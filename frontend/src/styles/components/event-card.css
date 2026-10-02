@@ -214,3 +214,39 @@
   font-weight: var(--weight-bold);
   letter-spacing: 0.08em;
 }
+
+
+/* ---------- phones: an Instagram-like feed ----------
+   One event per row, flyer edge to edge at full size, details right below; posts separated by a line
+   instead of boxed cards. Wider screens keep the card grid. */
+
+@media (max-width: 719px) {
+  .card-grid {
+    gap: 0;
+    margin: 0 calc(var(--space-4) * -1); /* edge to edge: undo the container's side padding */
+  }
+
+  .event-card {
+    border: 0;
+    border-bottom: var(--border-width) solid var(--divider);
+    border-radius: 0;
+    background: none;
+  }
+
+  .event-card:hover {
+    transform: none;
+  }
+
+  .event-card__media {
+    border-bottom: 0;
+  }
+
+  .event-card__body {
+    padding: var(--space-4) var(--space-4) var(--space-5);
+  }
+
+  .card-grid + .card-grid,
+  .agenda-group + .agenda-group {
+    margin-top: var(--space-5);
+  }
+}

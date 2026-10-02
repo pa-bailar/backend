@@ -8,6 +8,7 @@ import { initThemeToggle } from "./theme";
 import { renderCalendarView } from "./views/calendarView";
 import { initEventDialog, openEventDialog } from "./views/eventDialog";
 import { renderFilters } from "./views/filters";
+import { hideJumpBar, initJumpBar } from "./views/jumpBar";
 import { renderUpcomingView } from "./views/upcomingView";
 
 const state = createInitialState();
@@ -26,6 +27,12 @@ function announce(count: number) {
   const noun = count === 1 ? "evento" : "eventos";
   byId("results-status").textContent =
     state.view === "upcoming" ? `${count} ${noun} próximos` : `${count} ${noun} este día`;
+  byId("filter-sheet-results").textContent = count ? `Ver ${count} ${noun}` : "Ver resultados";
+}
+
+/** Where re-rendered controls are looked up for focus: the open filter sheet, or else the page. */
+function focusScope(): ParentNode {
+  return document.querySelector("#filter-sheet[open]") ?? document;
 }
 
 function render() {
@@ -41,10 +48,11 @@ function render() {
     tab.setAttribute("aria-selected", String(tab.dataset.view === state.view));
   });
 
+  if (state.view !== "upcoming") hideJumpBar();
   const shown = state.view === "upcoming" ? renderUpcomingView(upcoming, events, state) : renderCalendarView(events, state);
   announce(shown);
 
-  if (focused) document.querySelector<HTMLElement>(focused)?.focus();
+  if (focused) focusScope().querySelector<HTMLElement>(focused)?.focus();
 }
 
 /** After filtering by academy from a card far down the list, move to the filter notice (and its "show all" button). */
@@ -83,13 +91,16 @@ function handleClick(domEvent: MouseEvent) {
 
   // The control clicked was re-rendered away: put focus somewhere useful.
   if (account) focusAccountFilter();
-  else if ("clearFilters" in control.dataset) byId("type-filters").querySelector<HTMLElement>("button")?.focus();
+  else if ("clearFilters" in control.dataset) {
+    focusScope().querySelector<HTMLElement>('[data-filter-row="type"] button')?.focus();
+  }
 }
 
 export function start() {
   events = JSON.parse(byId("events-data").textContent || "[]");
   initThemeToggle();
   initEventDialog((id) => events.find((event) => event.id === id));
+  initJumpBar();
   document.addEventListener("click", handleClick);
   render();
 }

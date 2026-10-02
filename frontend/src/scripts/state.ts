@@ -63,7 +63,9 @@ export function defaultDayForMonth(events: DanceEvent[], month: Date): string {
 }
 
 export interface AgendaGroup {
-  label: string;
+  key: string; // stable, for the section's id: "hoy", "fin-de-semana", "2026-11"…
+  label: string; // heading: "Este fin de semana"
+  shortLabel: string; // jump bar chip: "Finde"
   events: DanceEvent[];
 }
 
@@ -89,18 +91,25 @@ export function groupByPeriod(events: DanceEvent[], today = todayIso()): AgendaG
   const nextWeekEnd = addDays(thisWeekEnd, 7);
   const currentMonth = today.slice(0, 7);
 
-  const groups = new Map<string, DanceEvent[]>();
+  const groups = new Map<string, AgendaGroup>();
   for (const event of events) {
-    let label: string;
-    if (event.date === today) label = "Hoy";
-    else if (event.date < weekendStart) label = "Esta semana";
-    else if (event.date <= thisWeekEnd) label = "Este fin de semana";
-    else if (event.date <= nextWeekEnd) label = "Próxima semana";
-    else if (event.date.startsWith(currentMonth)) label = `Más adelante en ${formatMonthName(event.date)}`;
-    else label = capitalize(formatMonthName(event.date, !event.date.startsWith(today.slice(0, 4))));
-    groups.set(label, [...(groups.get(label) ?? []), event]);
+    const [key, label, shortLabel] = periodOf(event.date);
+    const group = groups.get(key) ?? { key, label, shortLabel, events: [] };
+    group.events.push(event);
+    groups.set(key, group);
   }
-  return [...groups].map(([label, grouped]) => ({ label, events: grouped }));
+  return [...groups.values()];
+
+  function periodOf(date: string): [string, string, string] {
+    if (date === today) return ["hoy", "Hoy", "Hoy"];
+    if (date < weekendStart) return ["esta-semana", "Esta semana", "Esta semana"];
+    if (date <= thisWeekEnd) return ["fin-de-semana", "Este fin de semana", "Finde"];
+    if (date <= nextWeekEnd) return ["proxima-semana", "Próxima semana", "Próx. semana"];
+    const month = formatMonthName(date);
+    if (date.startsWith(currentMonth)) return ["resto-del-mes", `Más adelante en ${month}`, `Resto de ${month}`];
+    const otherYear = !date.startsWith(today.slice(0, 4));
+    return [date.slice(0, 7), capitalize(formatMonthName(date, otherYear)), capitalize(otherYear ? `${month} ${date.slice(0, 4)}` : month)];
+  }
 }
 
 /** Events grouped by date, keeping the input order (events.json is already sorted). */

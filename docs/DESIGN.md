@@ -111,6 +111,19 @@ The light theme's creams are the paper of 1970s salsa flyers and sleeves. The pa
 - **Empty results** always offer a way out: "Quitar filtros" when filters are active.
 - **Dance styles** are one line of text joined by a middle dot glued to the previous word with a no-break space (`stylesLabel`), never separate elements with CSS separators. The dot stays centered between words, and a wrapped line never starts with a dot.
 
+## Phones: feed, jump bar and filter sheet
+
+- **Feed like Instagram:** under 720px each event is a full-width post, the flyer edge to edge at full size and the details right below, separated by a line instead of boxed cards. Nothing is shrunk into thumbnails.
+- **Jump bar** (`JumpBar.astro`, `scripts/views/jumpBar.ts`):
+  - **What it is:** one slim row (`--jump-bar-height`, 56px) stuck to the top, with "Filtros" and a chip per period ("Hoy · Finde · Próx. semana · Nov").
+  - **Jumping:** tapping a period jumps there, and the period on screen is highlighted (scroll-spy).
+  - **Hides like Instagram's header:** it hides while scrolling down and returns on any scroll up. It never hides near the top of the page, while it holds focus, or during a jump.
+  - **Where it shows:** wherever the full toolbar isn't sticky (phones, short windows).
+- **Filter sheet** (`FilterSheet.astro`):
+  - **Opening:** "Filtros" opens the type and style chips in a sheet that slides up from the bottom, so the list stays where it was. Chips wrap, so every option is visible.
+  - **Results:** "Ver N eventos" closes it. The bar's button shows how many filters are active ("Filtros · 2").
+  - **One renderer:** the same chips render into the toolbar and the sheet (`[data-filter-row]`).
+
 ## Events with several posts
 
 An event can be announced by several Instagram posts (a flyer, then a video, a reminder). It's still **one** card:
