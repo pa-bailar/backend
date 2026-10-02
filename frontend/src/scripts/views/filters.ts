@@ -6,7 +6,7 @@
 import type { AppState, DanceEvent, EventType } from "../types";
 import { escapeHtml } from "../lib/dom";
 import { capitalize, typeLabel } from "../lib/format";
-import { STYLE_FAMILIES, eventsInView } from "../state";
+import { STYLE_FAMILIES, eventsInView, styleMatches } from "../state";
 
 function chipHtml(attribute: "type" | "style", value: string, label: string, active: boolean): string {
   return `<button class="chip" data-${attribute}="${escapeHtml(value)}" aria-pressed="${active}">${escapeHtml(label)}</button>`;
@@ -23,6 +23,15 @@ function styleOptions(events: DanceEvent[]): string[] {
     if ([...present].some((style) => style.startsWith(`${family} `))) present.add(family);
   }
   return [...present].sort((a, b) => a.localeCompare(b, "es"));
+}
+
+/** Rhythm options for quick chips: most frequent first ("salsa" counts its variants too). */
+export function rankedStyles(events: DanceEvent[]): string[] {
+  const counts = new Map<string, number>();
+  for (const style of styleOptions(events)) {
+    counts.set(style, events.filter((event) => event.styles.some((item) => styleMatches(item, style))).length);
+  }
+  return [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "es")).map(([style]) => style);
 }
 
 export function renderFilters(events: DanceEvent[], state: AppState) {

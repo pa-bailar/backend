@@ -1,5 +1,5 @@
-/* Phones: slim bar stuck to the top with "Filtros" and the period chips (scripts/views/jumpBar.ts).
-   Hides while scrolling down, comes back on scroll up (like Instagram's header). */
+/* Phones: slim bar stuck to the top (components/JumpBar.astro, scripts/views/jumpBar.ts):
+   [⚙ 2] [Finde ▾] | rhythm chips. Hides while scrolling down, comes back on scroll up. */
 
 .jump-bar {
   position: sticky;
@@ -25,50 +25,101 @@
   height: var(--jump-bar-height);
 }
 
+.jump-bar .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+/* ⚙ with the number of active filters. */
 .jump-bar__filters {
+  position: relative;
   flex: none;
+  justify-content: center;
+  min-width: var(--control-height);
+  color: var(--text);
 }
 
-/* A line between the button and the period chips. */
-.jump-bar__inner > .jump-bar__periods {
-  padding-left: var(--space-2);
-  border-left: var(--border-width) solid var(--divider);
+.jump-bar__badge {
+  min-width: 1.4em;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-round);
+  background: var(--chip-active-bg);
+  color: var(--chip-active-text);
+  font-size: var(--text-2xs);
+  line-height: 1.4;
+  text-align: center;
 }
 
-/* Period chips scroll sideways; the filter button stays put. */
-.jump-bar__periods {
+.jump-bar__period {
+  flex: none;
+  color: var(--text);
+}
+
+.jump-bar__period[hidden] {
+  display: none;
+}
+
+/* Rhythm chips scroll sideways after a line; they fade out at the edge instead of being sliced,
+   and come to rest aligned to a chip. */
+.jump-bar__styles {
   display: flex;
   gap: var(--space-2);
   min-width: 0;
   margin-right: calc(var(--space-4) * -1); /* scroll to the screen edge */
-  padding-right: var(--space-4);
+  padding: 0 var(--space-4) 0 var(--space-2);
+  border-left: var(--border-width) solid var(--divider);
   overflow-x: auto;
   scrollbar-width: none;
-  /* Chips come to rest aligned, and fade out at the edges instead of being sliced. */
   scroll-snap-type: x proximity;
   scroll-padding-inline: var(--space-2);
   mask-image: linear-gradient(to right, transparent, #000 var(--space-2), #000 calc(100% - var(--space-6)), transparent);
 }
 
-.jump-bar__periods > * {
-  scroll-snap-align: start;
-}
-
-.jump-bar__periods::-webkit-scrollbar {
+.jump-bar__styles::-webkit-scrollbar {
   display: none;
 }
 
-.jump-bar__chip {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-  white-space: nowrap;
+.jump-bar__styles > * {
+  scroll-snap-align: start;
 }
 
-.jump-bar__chip[aria-current="true"] {
-  background: var(--chip-active-bg);
-  border-color: var(--chip-active-bg);
-  color: var(--chip-active-text);
+/* Period menu: opens under its button (placed by jumpBar.ts; popover: closes on outside tap, Escape,
+   or scrolling). */
+.period-menu {
+  position: fixed;
+  inset: auto;
+  min-width: 220px;
+  margin: 0;
+  padding: var(--space-2) 0;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+
+.period-menu__item {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-5);
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  border: 0;
+  background: none;
+  text-align: left;
+}
+
+.period-menu__item[aria-current] {
+  font-weight: var(--weight-bold);
+  background: var(--surface-sunken);
+}
+
+.period-menu__count {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* A jump lands the period's heading just below the bar. */

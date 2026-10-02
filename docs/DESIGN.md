@@ -114,12 +114,12 @@ The light theme's creams are the paper of 1970s salsa flyers and sleeves. The pa
 ## Phones: feed, jump bar and filter sheet
 
 - **Feed like Instagram:** under 720px each event is a full-width post, the flyer edge to edge at full size and the details right below, separated by a line instead of boxed cards. Nothing is shrunk into thumbnails.
-- **Jump bar** (`JumpBar.astro`, `scripts/views/jumpBar.ts`):
-  - **What it is:** one slim row (`--jump-bar-height`, 56px) stuck to the top, with "Filtros" and a chip per period ("Hoy · Finde · Próx. semana · Nov").
-  - **Jumping:** tapping a period jumps there, and the period on screen is highlighted (scroll-spy).
-  - **Hides like Instagram's header:** it hides while scrolling down and returns on any scroll up. It never hides near the top of the page, while it holds focus, or during a jump.
-  - **Where it shows:** wherever the full toolbar isn't sticky (phones, short windows), in both views (in Calendario, just "Filtros").
-  - **Edges:** period chips fade out at the edge instead of being sliced, and come to rest aligned to a chip.
+- **Jump bar** (`JumpBar.astro`, `scripts/views/jumpBar.ts`): one slim row (`--jump-bar-height`, 56px) stuck to the top, modeled on the filter bars of Google Maps and Airbnb: **[⚙ 2] [Finde ▾] | Salsa · Bachata · …**
+  - **⚙** opens the filter sheet; the badge counts active filters.
+  - **Period button** ("Finde ▾"): names the period on screen (scroll-spy) and opens a menu (popover, anchored under it) listing each period with its number of events; picking one jumps there. Hidden with fewer than two periods (and in Calendario).
+  - **Rhythm chips:** most frequent first (a family counts its variants). One tap filters, another tap clears. They fade out at the edge instead of being sliced, and come to rest aligned.
+  - **Hides like Instagram's header:** it hides while scrolling down and returns on any scroll up. It never hides near the top of the page, while it holds focus, or during a jump; scrolling closes the period menu.
+  - **Where it shows:** wherever the full toolbar isn't sticky (phones, short windows), in both views.
 - **Filter sheet** (`FilterSheet.astro`):
   - **Opening:** "Filtros" opens the type and style chips in a sheet that slides up from the bottom, so the list stays where it was. Chips wrap, so every option is visible.
   - **Results:** "Ver N eventos" closes it. The bar's button shows how many filters are active ("Filtros · 2").
