@@ -42,7 +42,7 @@ Run the sweep:
 
 ```bash
 .venv\Scripts\python -m pa_bailar sweep            # analyze posts from the last 7 days
-.venv\Scripts\python -m pa_bailar sweep --days 14  # look further back
+.venv\Scripts\python -m pa_bailar sweep --days 14  # look further back (at most 30)
 ```
 
 Lint, format, type check and tests:
@@ -146,6 +146,22 @@ Where to see it:
   - It closes itself when everything is clear.
 - **healthchecks.io** emails when a run fails or stops arriving. Each ping carries the report, visible in
   the check's event log.
+
+## Dependencies
+
+- **Direct dependencies** are listed and pinned in `requirements.in` (the sweep) and
+  `requirements-dev.in` (plus the development tools).
+- **The `.txt` files are generated from them** and pin every indirect dependency too, with hashes. pip
+  refuses any package file that doesn't match, so a new or tampered release of a dependency's dependency
+  can't slip into a run.
+- **Dependabot** updates both files.
+- **To change a dependency by hand**, edit the `.in` file and regenerate both `.txt` files:
+
+```bash
+.venv\Scripts\python -m pip install pip-tools
+.venv\Scripts\pip-compile --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o requirements.txt requirements.in
+.venv\Scripts\pip-compile --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url -o requirements-dev.txt requirements-dev.in
+```
 
 ## Contributing
 

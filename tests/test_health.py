@@ -118,3 +118,11 @@ def test_the_history_keeps_the_latest_runs():
     health.save_history([record(posts_analyzed=n) for n in range(health.HISTORY_RUNS + 5)])
     history = health.load_history()
     assert len(history) == health.HISTORY_RUNS and history[-1].posts_analyzed == health.HISTORY_RUNS + 4
+
+
+def test_handles_in_the_report_never_mention_github_users():
+    finding = health.Finding("warning", "fetch:zafradance", "@zafradance couldn't be read")
+    event = stored("e", date=(TODAY + timedelta(days=1)).isoformat(), title="Social con @djsalsa", confidence="low")
+    report = health.report_markdown([finding], [event])
+    assert "@zafradance" not in report and "@djsalsa" not in report and "@academia" not in report
+    assert "@⁠zafradance" in report  # reads the same, but isn't a mention

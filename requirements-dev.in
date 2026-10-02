@@ -1,0 +1,8 @@
+# Development tools on top of what the sweep needs (requirements.in). requirements-dev.txt is generated
+# from this file, pinned and hashed, like requirements.txt.
+-c requirements.txt
+-r requirements.in
+mypy==2.4.0
+pytest==9.1.1
+ruff==0.16.10
+types-requests==2.33.0.20260906

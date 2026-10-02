@@ -35,6 +35,10 @@ QUIET_RUNS = 14  # a week of runs...
 QUIET_MIN_POSTS = 10  # ...analyzing at least this many posts without finding a single event
 INACTIVE_DAYS = 45  # an account without posts for this long may be abandoned
 DATE_DOUBT = re.compile(r"\b(fecha|dias?)\b")  # doubts about the date (folded text): the costliest mistake
+# "@name" in an issue mentions (and notifies) the GitHub user of that name. Instagram handles, and titles or
+# doubts quoting them, get an invisible word joiner after the "@": they read the same but ping no one.
+MENTION = re.compile(r"@(?=[\w-])")
+WORD_JOINER = "⁠"
 
 
 class RunRecord(BaseModel):
@@ -247,5 +251,5 @@ def report_markdown(findings: list[Finding], review: list[StoredEvent], run_url:
         lines.append("")
     if run_url:
         lines += [f"[Run log]({run_url})", ""]
-    lines.append(f"<!-- health-fingerprint: {fingerprint(findings)} -->")
-    return "\n".join(lines) + "\n"
+    text = MENTION.sub("@" + WORD_JOINER, "\n".join(lines))
+    return f"{text}\n<!-- health-fingerprint: {fingerprint(findings)} -->\n"
