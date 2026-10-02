@@ -125,7 +125,7 @@ class StoredEvent(EventDetails):
 
     id: str  # readable and never changed once set, e.g. "social-de-halloween-24-oct" (ids.py); the event's URL
     account: str
-    media: list[EventMedia]  # main post first: images before videos, then oldest first
+    media: list[EventMedia]  # main post first: flyers before videos, newest first (merging.ordered_media)
 
 
 class ProcessedPost(BaseModel):

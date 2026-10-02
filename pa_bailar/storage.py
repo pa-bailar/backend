@@ -12,6 +12,7 @@ from PIL import Image
 from pydantic import TypeAdapter
 
 from . import config
+from .merging import ordered_media
 from .models import AccountState, ProcessedPost, StoredEvent
 
 _events_adapter = TypeAdapter(list[StoredEvent])
@@ -41,7 +42,12 @@ def load_events() -> list[StoredEvent]:
 
 
 def save_events(events: list[StoredEvent]) -> None:
-    ordered = sorted(events, key=lambda event: (event.date or "9999", event.start_time or ""))
+    """Events by date and time; each event's posts in their order (merging.ordered_media), so every
+    event follows it, including events stored before the order last changed."""
+    ordered = [
+        event.model_copy(update={"media": ordered_media(event.media)})
+        for event in sorted(events, key=lambda event: (event.date or "9999", event.start_time or ""))
+    ]
     write_json(config.EVENTS_FILE, _events_adapter.dump_python(ordered, mode="json"))
 
 
