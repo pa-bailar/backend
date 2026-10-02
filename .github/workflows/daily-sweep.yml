@@ -101,7 +101,7 @@ jobs:
       - name: Get a token for the site repository (pa-bailar-bot)
         id: app
         if: ${{ !cancelled() }}
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
