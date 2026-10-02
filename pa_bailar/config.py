@@ -72,6 +72,9 @@ DEFAULT_LOOKBACK_DAYS = 7
 # The most a run may look back (--days, the workflow's `days` input): anyone able to start the workflow
 # can't make one run spend the day's quotas on old posts. New accounts get BACKFILL_DAYS on their own.
 MAX_LOOKBACK_DAYS = 30
+# When cron-job.org starts the daily sweep (Bogotá time, README "What starts the sweep"). Other jobs that
+# use the Instagram app's hourly quota (discover) keep clear of these times so the sweep finds it free.
+SWEEP_TIMES = ("05:23", "12:47")
 # A newly added account is swept more deeply until all of these posts have been analyzed
 # (it can take a few runs if the daily Gemini budget runs out); then it joins the regular sweep.
 BACKFILL_POSTS = 30

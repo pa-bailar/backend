@@ -12,12 +12,13 @@ import json
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel
 
-from . import storage
+from . import config, storage
 from .models import AccountClassification
 from .text import fold
 
@@ -221,3 +222,20 @@ def report_markdown(cache: dict[str, DiscoveredAccount], already_followed: set[s
             "",
         ]
     )
+
+
+# Around each daily sweep, discovery makes no Instagram calls: Meta counts the app's calls over a rolling
+# hour, so it stops an hour before the sweep starts and resumes once the sweep is done.
+QUIET_BEFORE_SWEEP = timedelta(minutes=60)
+QUIET_AFTER_SWEEP = timedelta(minutes=45)
+
+
+def near_sweep(now: datetime) -> bool:
+    """True while the daily sweep needs the Instagram app's hourly quota (`now` in Bogotá)."""
+    for sweep_time in config.SWEEP_TIMES:
+        hour, minute = map(int, sweep_time.split(":"))
+        for day in (-1, 0, 1):  # windows can cross midnight
+            start = (now + timedelta(days=day)).replace(hour=hour, minute=minute, second=0, microsecond=0)
+            if start - QUIET_BEFORE_SWEEP <= now < start + QUIET_AFTER_SWEEP:
+                return True
+    return False

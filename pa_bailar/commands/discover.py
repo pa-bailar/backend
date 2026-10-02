@@ -24,10 +24,11 @@ from pa_bailar.models import AccountClassification
 CACHE_FILE = config.PRIVATE_DIR / "discovery.json"
 REPORT_FILE = config.PRIVATE_DIR / "discovery_report.md"
 # The Instagram app's quota is about 200 calls an hour, shared with the daily sweep: ~100 an hour here,
-# and a pause whenever Meta reports the app past USAGE_PAUSE_PERCENT of it.
+# a pause whenever Meta reports the app past USAGE_PAUSE_PERCENT of it, and none around the sweep's times.
 SECONDS_BETWEEN_INSTAGRAM_CALLS = 36
 USAGE_PAUSE_PERCENT = 60
 USAGE_PAUSE_SECONDS = 10 * 60
+QUIET_PAUSE_SECONDS = 5 * 60  # rechecks while the daily sweep has the quota (discovery.near_sweep)
 
 log = logging.getLogger("discover")
 
@@ -59,6 +60,9 @@ def main(argv: list[str] | None = None) -> None:
     todo = [u for u in discovery.by_likelihood(following) if u not in cache and u not in already]
     for count, username in enumerate(todo[: args.max_instagram], start=1):
         time.sleep(SECONDS_BETWEEN_INSTAGRAM_CALLS if count > 1 else 0)
+        while discovery.near_sweep(config.now_bogota()):
+            log.info("  The daily sweep is about to run or running: pausing Instagram checks 5 min")
+            time.sleep(QUIET_PAUSE_SECONDS)
         while instagram.app_usage_percent >= USAGE_PAUSE_PERCENT:
             log.info("  Instagram app at %s%% of its hourly quota: pausing 10 min", instagram.app_usage_percent)
             time.sleep(USAGE_PAUSE_SECONDS)
