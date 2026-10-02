@@ -3,7 +3,7 @@
 import type { DanceEvent, EventType, View } from "./types";
 import { byId } from "./lib/dom";
 import { addMonths, startOfMonth, todayIso } from "./lib/dates";
-import { createInitialState, defaultDayForMonth } from "./state";
+import { clearFilters, createInitialState, defaultDayForMonth } from "./state";
 import { initThemeToggle } from "./theme";
 import { renderCalendarView } from "./views/calendarView";
 import { initEventDialog, openEventDialog } from "./views/eventDialog";
@@ -47,13 +47,18 @@ function render() {
   if (focused) document.querySelector<HTMLElement>(focused)?.focus();
 }
 
+/** After filtering by academy from a card far down the list, move to the filter notice (and its "show all" button). */
+function focusAccountFilter() {
+  byId("account-filter").querySelector<HTMLElement>("button")?.focus();
+}
+
 /** One delegated listener for every data-* control rendered by the views. */
 function handleClick(domEvent: MouseEvent) {
   const control = (domEvent.target as HTMLElement).closest<HTMLElement>(
-    "[data-view],[data-type],[data-style],[data-day],[data-event],[data-month-step],[data-today]",
+    "[data-view],[data-type],[data-style],[data-account],[data-clear-filters],[data-day],[data-event],[data-month-step],[data-today]",
   );
   if (!control) return;
-  const { view, type, style, day, event: eventId, monthStep } = control.dataset;
+  const { view, type, style, account, day, event: eventId, monthStep } = control.dataset;
 
   if (eventId) {
     const event = events.find((item) => item.id === eventId);
@@ -63,6 +68,9 @@ function handleClick(domEvent: MouseEvent) {
   if (view) state.view = view as View;
   else if (type) state.typeFilter = type as EventType | "all";
   else if (style) state.styleFilter = style;
+  else if (account !== undefined) {
+    state.accountFilter = account || null; // "" = show every academy again
+  } else if ("clearFilters" in control.dataset) clearFilters(state);
   else if (day) state.selectedDay = day;
   else if (monthStep) {
     state.month = addMonths(state.month, Number(monthStep));
@@ -72,12 +80,16 @@ function handleClick(domEvent: MouseEvent) {
     state.selectedDay = todayIso();
   }
   render();
+
+  // The control clicked was re-rendered away: put focus somewhere useful.
+  if (account) focusAccountFilter();
+  else if ("clearFilters" in control.dataset) byId("type-filters").querySelector<HTMLElement>("button")?.focus();
 }
 
 export function start() {
   events = JSON.parse(byId("events-data").textContent || "[]");
   initThemeToggle();
-  initEventDialog();
+  initEventDialog((id) => events.find((event) => event.id === id));
   document.addEventListener("click", handleClick);
   render();
 }

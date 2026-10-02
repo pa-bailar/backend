@@ -45,7 +45,9 @@ _EVENT_DEFINITION = """What counts as an event (one-time, with a specific date):
 What does NOT count:
 - regular classes and courses, weekly or recurring nights;
 - recaps of past events, student showcases, wedding choreographies, tutorials, motivational posts,
-  general ads without a specific date."""
+  general ads without a specific date;
+- posts announcing that an event is cancelled or postponed without a new date (a postponed event with
+  its new date does count, with the new date)."""
 
 TRIAGE_PROMPT = f"""You screen Instagram posts of dance academies in Bogotá, Colombia.
 

@@ -96,8 +96,16 @@ html:has(dialog[open]) {
   overflow: hidden;
 }
 
+/* Inline SVG icons (scripts/lib/icons.ts): sized and colored by the text around them. */
+.icon {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+}
+
 .empty-state {
   display: grid;
+  justify-items: center;
   gap: var(--space-2);
   padding: var(--space-7) var(--space-4);
   text-align: center;

@@ -1,114 +1,63 @@
-// Event detail dialog: the flyer of each post announcing the event (tabs when there are several),
-// all details, prices and share actions.
+// Event detail dialog on the home page.
+// Opening it puts the event's own URL in the address bar (/evento/<id>/) with history.pushState, so:
+//   - the phone's back button closes it instead of leaving the site;
+//   - the address bar shows a link that works when copied (that page exists, see pages/evento/[id].astro).
 
-import type { DanceEvent, EventMedia } from "../types";
-import { byId, escapeHtml } from "../lib/dom";
-import { formatLongDate, formatMoney, formatTime, mediaLabel, placeLabel, stylesLabel, typeLabel } from "../lib/format";
-import { flyerUrl, googleCalendarUrl, whatsappShareUrl } from "../lib/links";
+import type { DanceEvent } from "../types";
+import { byId } from "../lib/dom";
+import { eventPath } from "../lib/links";
+import { eventDetailHtml, handleMediaTabClick } from "./eventDetail";
 
 let currentEvent: DanceEvent | null = null;
+let findEvent: (id: string) => DanceEvent | undefined = () => undefined;
 
-function detailRows(event: DanceEvent): [string, string][] {
-  const time = [formatTime(event.start_time), formatTime(event.end_time)].filter(Boolean).join(" – ");
-  const rows: [string, string][] = [
-    ["Cuándo", `${formatLongDate(event.date)}${time ? ` · ${time}` : ""}`],
-    ["Organiza", [event.organizer, `@${event.account}`].filter(Boolean).join(" · ")],
-    ["Lugar", placeLabel(event) || "No indicado en el flyer"],
-  ];
-  if (event.artists.length) rows.push(["Con", event.artists.join(", ")]);
-  if (event.activities.length) rows.push(["Incluye", event.activities.join(" · ")]);
-  if (event.contact) rows.push(["Contacto", event.contact]);
-  return rows;
+interface HistoryState {
+  eventId?: string;
 }
 
-function pricesHtml(event: DanceEvent): string {
-  if (!event.prices.length) return "";
-  const items = event.prices
-    .map((price) => {
-      const condition = price.condition ? ` <small>(${escapeHtml(price.condition)})</small>` : "";
-      return `<li><span>${escapeHtml(price.label)}${condition}</span><b>${formatMoney(price.amount_cop)}</b></li>`;
-    })
-    .join("");
-  return `<h3 class="event-dialog__subheading">Precios</h3><ul class="price-list">${items}</ul>`;
-}
-
-/** Tabs to switch between the posts that announce this event. Hidden when there's only one. */
-function mediaTabsHtml(event: DanceEvent, selected: number): string {
-  if (event.media.length < 2) return "";
-  const tabs = event.media
-    .map(
-      (media, index) => `
-        <button class="media-tabs__tab" role="tab" data-media-index="${index}" aria-selected="${index === selected}">
-          ${mediaLabel(media.media_type)}
-        </button>`,
-    )
-    .join("");
-  return `<div class="media-tabs" role="tablist" aria-label="Publicaciones de este evento">${tabs}</div>`;
-}
-
-function mediaHtml(event: DanceEvent, media: EventMedia): string {
-  const flyer = flyerUrl(media);
-  if (!flyer) return "";
-  const isVideo = media.media_type === "VIDEO";
-  return `
-    <a class="event-dialog__media" href="${escapeHtml(media.permalink)}" target="_blank" rel="noopener">
-      <img src="${escapeHtml(flyer)}" alt="${isVideo ? "Video" : "Flyer"} de ${escapeHtml(event.title)}" />
-      ${isVideo ? `<span class="event-dialog__play">Ver video en Instagram</span>` : ""}
-    </a>`;
-}
-
-function dialogHtml(event: DanceEvent, selected: number): string {
-  const media = event.media[selected];
-  const permalink = escapeHtml(media.permalink);
-  const rows = detailRows(event)
-    .map(([term, value]) => `<dt>${term}</dt><dd>${escapeHtml(value)}</dd>`)
-    .join("");
-  const styles = stylesLabel(event.styles);
-
-  return `
-    <button class="event-dialog__close" data-close-dialog aria-label="Cerrar">×</button>
-    <div class="event-dialog__visual">
-      ${mediaTabsHtml(event, selected)}
-      ${mediaHtml(event, media)}
-    </div>
-    <div class="event-dialog__info">
-      <div class="stripes" aria-hidden="true"><i></i><i></i><i></i></div>
-      <span class="tag-type t-${escapeHtml(event.event_type)}">${typeLabel(event.event_type)}</span>
-      <h2 class="event-dialog__title" id="event-dialog-title">${escapeHtml(event.title)}</h2>
-      <dl class="detail-list">${rows}</dl>
-      ${pricesHtml(event)}
-      ${styles ? `<p class="style-list">${escapeHtml(styles)}</p>` : ""}
-      <div class="event-dialog__actions">
-        <a class="btn btn--primary" href="${permalink}" target="_blank" rel="noopener">Ver en Instagram</a>
-        <a class="btn btn--whatsapp" href="${escapeHtml(whatsappShareUrl(event))}" target="_blank" rel="noopener">Compartir por WhatsApp</a>
-        <a class="btn" href="${escapeHtml(googleCalendarUrl(event))}" target="_blank" rel="noopener">Agregar al calendario</a>
-      </div>
-      ${event.doubts.length ? `<p class="callout"><strong>Por confirmar:</strong> ${escapeHtml(event.doubts.join(" "))}</p>` : ""}
-      ${media.caption ? `<details class="event-dialog__caption"><summary>Texto de la publicación</summary><p>${escapeHtml(media.caption)}</p></details>` : ""}
-    </div>`;
+function dialog(): HTMLDialogElement {
+  return byId<HTMLDialogElement>("event-dialog");
 }
 
 function render(selected: number) {
-  if (currentEvent) byId("event-dialog-body").innerHTML = dialogHtml(currentEvent, selected);
+  if (!currentEvent) return;
+  byId("event-dialog-body").innerHTML = eventDetailHtml(currentEvent, selected, { closeButton: true, headingLevel: 2 });
+}
+
+function show(event: DanceEvent) {
+  currentEvent = event;
+  render(0);
+  if (!dialog().open) dialog().showModal();
 }
 
 export function openEventDialog(event: DanceEvent) {
-  currentEvent = event;
-  render(0);
-  byId<HTMLDialogElement>("event-dialog").showModal();
+  show(event);
+  history.pushState({ eventId: event.id } satisfies HistoryState, "", eventPath(event));
 }
 
-export function initEventDialog() {
-  const dialog = byId<HTMLDialogElement>("event-dialog");
-  dialog.addEventListener("click", (domEvent) => {
+/** `find` looks an event up by id, to reopen it when the visitor goes forward in history. */
+export function initEventDialog(find: (id: string) => DanceEvent | undefined) {
+  findEvent = find;
+  const element = dialog();
+
+  element.addEventListener("click", (domEvent) => {
     const target = domEvent.target as HTMLElement;
-    const tab = target.closest<HTMLElement>("[data-media-index]");
-    if (tab) {
-      render(Number(tab.dataset.mediaIndex));
-      byId("event-dialog-body").querySelector<HTMLElement>(`[data-media-index="${tab.dataset.mediaIndex}"]`)?.focus();
-      return;
-    }
+    if (handleMediaTabClick(byId("event-dialog-body"), target, render)) return;
     // Close on the × button or a click on the backdrop (the dialog element itself).
-    if (target === dialog || target.closest("[data-close-dialog]")) dialog.close();
+    if (target === element || target.closest("[data-close-dialog]")) element.close();
+  });
+
+  // Closed by ×, backdrop or Escape: leave the event's URL the same way the back button would.
+  element.addEventListener("close", () => {
+    currentEvent = null;
+    if ((history.state as HistoryState | null)?.eventId) history.back();
+  });
+
+  // Back (or forward) button: follow the URL.
+  window.addEventListener("popstate", (domEvent) => {
+    const eventId = (domEvent.state as HistoryState | null)?.eventId;
+    const event = eventId ? findEvent(eventId) : undefined;
+    if (event) show(event);
+    else if (element.open) element.close();
   });
 }

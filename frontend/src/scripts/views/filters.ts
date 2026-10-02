@@ -1,4 +1,4 @@
-// Filter chips for event type and dance style.
+// Filter chips for event type and dance style, and the notice of the academy filter (set from a card).
 // Only values present in the current view's events are offered (plus the selected one), so a chip
 // never leads to an empty list just because that style only appears in past events.
 
@@ -33,6 +33,13 @@ export function renderFilters(events: DanceEvent[], state: AppState) {
     chipHtml("type", "all", "Todo", state.typeFilter === "all"),
     ...types.map((type: EventType) => chipHtml("type", type, typeLabel(type), state.typeFilter === type)),
   ].join("");
+
+  const accountFilter = byId("account-filter");
+  accountFilter.hidden = !state.accountFilter;
+  accountFilter.innerHTML = state.accountFilter
+    ? `<span>Solo eventos de <b>@${escapeHtml(state.accountFilter)}</b></span>
+       <button class="chip" data-account="">Ver todas las academias</button>`
+    : "";
 
   byId("style-filters").innerHTML = [
     chipHtml("style", "all", "Todos los ritmos", state.styleFilter === "all"),

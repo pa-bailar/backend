@@ -17,6 +17,10 @@ import { flyerUrl, mainMedia } from "../lib/links";
 
 const MAX_STYLES_ON_CARD = 3;
 
+function isFree(event: DanceEvent): boolean {
+  return event.prices.length > 0 && event.prices.every((price) => price.amount_cop === 0);
+}
+
 export function eventCardHtml(event: DanceEvent): string {
   const flyer = flyerUrl(mainMedia(event));
   const postCount =
@@ -43,10 +47,12 @@ export function eventCardHtml(event: DanceEvent): string {
         <h3 class="event-card__title">
           <button class="event-card__hit" data-event="${escapeHtml(event.id)}">${escapeHtml(event.title)}</button>
         </h3>
-        <p class="event-card__meta">@${escapeHtml(event.account)}</p>
+        <p class="event-card__meta">
+          <button class="event-card__account" data-account="${escapeHtml(event.account)}" aria-label="Ver solo eventos de @${escapeHtml(event.account)}">@${escapeHtml(event.account)}</button>
+        </p>
         ${place ? `<p class="event-card__meta">${escapeHtml(place)}</p>` : ""}
         <div class="event-card__foot">
-          ${price ? `<span class="event-card__price">${escapeHtml(price)}</span>` : ""}
+          ${price ? `<span class="event-card__price${isFree(event) ? " event-card__price--free" : ""}">${escapeHtml(price)}</span>` : ""}
           ${styles ? `<span class="style-list">${escapeHtml(styles)}</span>` : ""}
         </div>
       </div>

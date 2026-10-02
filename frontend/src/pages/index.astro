@@ -7,6 +7,8 @@ import SiteHeader from "../components/SiteHeader.astro";
 import ViewToolbar from "../components/ViewToolbar.astro";
 import events from "../../../data/events.json";
 import meta from "../../../data/meta.json";
+import type { DanceEvent } from "../scripts/types";
+import { previewImagePath } from "../scripts/lib/links";
 
 const accounts = [...new Set(events.map((event) => event.account))].sort();
 // Escape "<" so a caption can never end the inline JSON script block early.
@@ -21,7 +23,8 @@ const updatedLabel = new Date(checkedAt).toLocaleDateString("es-CO", {
 });
 // Link previews show the flyer of the next upcoming event.
 const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" }); // YYYY-MM-DD
-const previewImage = events.find((event) => event.date >= today)?.media[0]?.flyer ?? null;
+const nextEvent = (events as DanceEvent[]).find((event) => event.date >= today && previewImagePath(event));
+const previewImage = nextEvent ? previewImagePath(nextEvent) : null;
 ---
 
 <BaseLayout

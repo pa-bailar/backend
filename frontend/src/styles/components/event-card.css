@@ -146,6 +146,23 @@
   color: var(--text-muted);
 }
 
+/* The academy: filters the list by it. Above the stretched title button, so it gets its own taps. */
+.event-card__account {
+  position: relative;
+  z-index: 1;
+  padding: var(--space-1) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--divider);
+  text-underline-offset: 3px;
+}
+
+.event-card__account:hover {
+  text-decoration-color: currentColor;
+}
+
 .event-card__foot {
   display: flex;
   flex-wrap: wrap;
@@ -158,6 +175,13 @@
 .event-card__price {
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
+}
+
+.event-card__price--free {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--whatsapp); /* same green and text pair as the WhatsApp button: checked for contrast */
+  color: var(--on-whatsapp);
 }
 
 /* ---------- date sticker (record label) ---------- */

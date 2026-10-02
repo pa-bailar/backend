@@ -2,7 +2,7 @@
 
 import type { AppState, DanceEvent } from "../types";
 import { escapeHtml } from "../lib/dom";
-import { eventsInView, groupByPeriod, matchesFilters } from "../state";
+import { eventsInView, groupByPeriod, hasActiveFilters, matchesFilters } from "../state";
 import { eventCardGridHtml } from "./eventCard";
 
 /** Renders the list and returns how many events it shows. */
@@ -10,11 +10,15 @@ export function renderUpcomingView(container: HTMLElement, events: DanceEvent[],
   const upcoming = eventsInView(events, state).filter((event) => matchesFilters(event, state));
 
   if (!upcoming.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <p>No hay eventos próximos con estos filtros.</p>
-        <p>Prueba otro filtro o revisa el calendario.</p>
-      </div>`;
+    container.innerHTML = hasActiveFilters(state)
+      ? `<div class="empty-state">
+          <p>No hay eventos próximos con estos filtros.</p>
+          <button class="btn" data-clear-filters>Quitar filtros</button>
+        </div>`
+      : `<div class="empty-state">
+          <p>No hay eventos próximos por ahora.</p>
+          <p>Las academias publican casi a diario: vuelve en unos días.</p>
+        </div>`;
     return 0;
   }
 
