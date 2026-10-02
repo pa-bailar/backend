@@ -16,10 +16,6 @@ import requests
 from pa_bailar import config, storage
 from pa_bailar.instagram import InstagramClient, InstagramError
 
-APP_ID = config.require_env("META_APP_ID")
-APP_SECRET = config.require_env("META_APP_SECRET")
-IG_USER_ID = config.require_env("IG_USER_ID")
-
 
 def graph_get(path: str, **params: Any) -> dict[str, Any]:
     response = requests.get(f"{config.GRAPH_API_URL}/{path}", params=params, timeout=config.HTTP_TIMEOUT_SECONDS)
@@ -39,8 +35,8 @@ def save_token(token: str) -> None:
     config.ENV_FILE.write_text(text, encoding="utf-8")
 
 
-def describe_expiry(token: str) -> str:
-    info = graph_get("debug_token", input_token=token, access_token=f"{APP_ID}|{APP_SECRET}")["data"]
+def describe_expiry(token: str, app_token: str) -> str:
+    info = graph_get("debug_token", input_token=token, access_token=app_token)["data"]
     if not info.get("is_valid"):
         return "INVALID"
     expires_at = info.get("expires_at", 0)
@@ -48,22 +44,27 @@ def describe_expiry(token: str) -> str:
 
 
 def main(argv: list[str] | None = None) -> None:
+    # Read here, not at import: only this command needs the Meta app's id and secret (local .env only).
+    app_id = config.require_env("META_APP_ID")
+    app_secret = config.require_env("META_APP_SECRET")
+    ig_user_id = config.require_env("IG_USER_ID")
+    app_token = f"{app_id}|{app_secret}"
     short_token = config.require_env("META_ACCESS_TOKEN")
 
     # 1. Short-lived token -> ~60-day user token
     long_token = graph_get(
         "oauth/access_token",
         grant_type="fb_exchange_token",
-        client_id=APP_ID,
-        client_secret=APP_SECRET,
+        client_id=app_id,
+        client_secret=app_secret,
         fb_exchange_token=short_token,
     )["access_token"]
-    print(f"Long-lived user token: expires {describe_expiry(long_token)}")
+    print(f"Long-lived user token: expires {describe_expiry(long_token, app_token)}")
 
     # 2. Long-lived user token -> token of the Page linked to your Instagram
     pages = graph_get("me/accounts", fields="name,access_token,instagram_business_account", access_token=long_token)
     page = next(
-        (p for p in pages["data"] if p.get("instagram_business_account", {}).get("id") == IG_USER_ID),
+        (p for p in pages["data"] if p.get("instagram_business_account", {}).get("id") == ig_user_id),
         None,
     )
     if not page:
@@ -71,12 +72,12 @@ def main(argv: list[str] | None = None) -> None:
             "Could not find the Page linked to your Instagram. Did you select it when generating the token?"
         )
     page_token = page["access_token"]
-    print(f"Page token for '{page['name']}': expires {describe_expiry(page_token)}")
+    print(f"Page token for '{page['name']}': expires {describe_expiry(page_token, app_token)}")
 
     # 3. Keep the Page token if it can use Business Discovery; otherwise fall back to the 60-day token.
     test_account = storage.read_accounts()[0]
     try:
-        InstagramClient(page_token, IG_USER_ID).fetch_recent_posts(test_account)
+        InstagramClient(page_token, ig_user_id).fetch_recent_posts(test_account)
     except InstagramError as error:
         print(f"The Page token can't use Business Discovery ({error}); saving the 60-day token.")
         save_token(long_token)
