@@ -69,6 +69,9 @@ FLYER_WEBP_QUALITY = 80
 
 # ---------- Pipeline ----------
 DEFAULT_LOOKBACK_DAYS = 7
+# The most a run may look back (--days, the workflow's `days` input): anyone able to start the workflow
+# can't make one run spend the day's quotas on old posts. New accounts get BACKFILL_DAYS on their own.
+MAX_LOOKBACK_DAYS = 30
 # A newly added account is swept more deeply until all of these posts have been analyzed
 # (it can take a few runs if the daily Gemini budget runs out); then it joins the regular sweep.
 BACKFILL_POSTS = 30

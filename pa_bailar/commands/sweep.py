@@ -88,13 +88,25 @@ def publish_health(findings: list[health.Finding], report: str) -> None:
         Path(report_file).write_text(report, encoding="utf-8")
 
 
+def lookback_days(value: str) -> int:
+    """--days: a whole number from 1 to MAX_LOOKBACK_DAYS."""
+    try:
+        days = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"not a whole number: {value!r}") from None
+    if not 1 <= days <= config.MAX_LOOKBACK_DAYS:
+        raise argparse.ArgumentTypeError(f"must be between 1 and {config.MAX_LOOKBACK_DAYS}, got {days}")
+    return days
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m pa_bailar sweep", description=__doc__.splitlines()[0])
     parser.add_argument(
         "--days",
-        type=int,
+        type=lookback_days,
         default=config.DEFAULT_LOOKBACK_DAYS,
-        help=f"only analyze posts published in the last N days (default {config.DEFAULT_LOOKBACK_DAYS})",
+        help=f"only analyze posts published in the last N days (default {config.DEFAULT_LOOKBACK_DAYS}, "
+        f"at most {config.MAX_LOOKBACK_DAYS})",
     )
     args = parser.parse_args(argv)
     setup_logging()

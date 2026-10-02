@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
     inputs:
       days:
-        description: "Only analyze posts from the last N days"
+        description: "Only analyze posts from the last N days (1 to 30)"
         type: number
         default: 7
 
@@ -53,11 +53,14 @@ jobs:
         with:
           persist-credentials: false
 
+      # Without stored credentials: the sweep runs third-party packages, so the token that can push here is
+      # only handed to the step that saves the state (below).
       - name: Read the sweep state
         uses: actions/checkout@v7
         with:
           ref: sweep-state
           path: sweep-state
+          persist-credentials: false
 
       - run: mkdir -p "$STATE_FILES" && cp sweep-state/*.json "$STATE_FILES"/
 
@@ -92,6 +95,8 @@ jobs:
       - name: Save the sweep state
         if: ${{ !cancelled() }}
         working-directory: sweep-state
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           cp "$GITHUB_WORKSPACE/$STATE_FILES"/*.json .
           if [ -z "$(git status --porcelain)" ]; then echo "State unchanged."; exit 0; fi
@@ -99,6 +104,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A  # new state files too (commit -a would skip them)
           git commit -qm "chore(state): sweep $(date -u +%FT%H:%MZ)"
+          gh auth setup-git  # git pushes with GH_TOKEN, which only this step has
           git push -q origin HEAD:sweep-state
 
       # Health (pa_bailar/health.py): rules over this run and the previous ones, no AI. While there are

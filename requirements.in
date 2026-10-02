@@ -1,0 +1,8 @@
+# What the sweep needs at run time, pinned. requirements.txt is generated from this file with every
+# indirect dependency pinned and hashed (see the README, "Dependencies"); Dependabot updates both.
+google-genai==2.27.0
+pillow==12.3.0
+pydantic==2.13.5
+python-dotenv==1.2.4
+requests==2.34.2
+tzdata==2026.4
