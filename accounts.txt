@@ -28,6 +28,16 @@ tubailecom
 mambolei_
 mover__se
 showstarscol
+studiolatindance
+academiaalmadetangoe
+proyectourbandance
+academia_cowork
+espacio.64
+lacoartadacentrocultural
+
+# Dance companies
+herencialatinad.c
+ebi_dancecompany
 
 # Event organizers
 festivalsalsaalparque
@@ -36,9 +46,50 @@ reyesdelasalsa.col
 bachatamania_bogota
 germanbaila
 _olorumcongress
+bailalo_improsocial
+cordillerafestival
+latrinidaddelasalsa
+danzaenlaciudad
+salsaculto
+paramopresenta
+latinproductioncolombia
+bachatasocialcongresss
+bailarito
+elparche.se
 
-# Venues
-tributo.salsayjazz
-ritmomoderno
-terrazasalsera
-discojaguar.bta
+# ---------------------------------------------------------------------------------------------------
+# Salsa bars and restaurants: NOT swept for now (every line below is a comment).
+# They contribute differently from academies (nightly rumba, live bands, weekly salsa nights more than
+# one-time events), to be handled later in their own way. Kept here so the discovery analysis isn't
+# lost: what each one is, according to its profile (discovery run, 2 October 2026). To sweep one, remove
+# the "# " in front of its username.
+# ---------------------------------------------------------------------------------------------------
+# tributo.salsayjazz
+#   Bar: live music, salsa and jazz, food, craft beer.
+# ritmomoderno
+#   Alternative bar (Cr 4 # 17-39, Centro): cocktails, parties with dancing.
+# terrazasalsera
+#   Salsa bar (4th floor) that also teaches salsa, bachata and tango; live shows with dancers and
+#   orchestras. Closest to an academy of the group.
+# discojaguar.bta
+#   Disco (Cra 7 # 59-30, Chapinero): salsa, merengue, dancehall, afro.
+# callejonsalsa
+#   Restaurant-bar (Calle 12D # 3-84): live music, promotes salsa culture and dance gatherings.
+# bulevarsalsabar
+#   Salsa bar (Calle 51 # 7-57, Chapinero). Same owners as bulevarsalsarooftop.
+# bulevarsalsarooftop
+#   Salsa bar (Cra 13 # 82-37, Zona T). Same owners as bulevarsalsabar.
+# elratonsalsaclub
+#   Salsa rooftop club (Zona T), New York style salsa; Thursday to Saturday.
+# el_panteon_de_la_salsa
+#   Salsa bar (Carrera 71d # 2a-13 sur): vinyl and digital salsa nights.
+# chanchanlatino
+#   Caribbean restaurant (Carrera 14 # 93-14) with live salsa.
+# babou_candelaria
+#   Salsa restaurant-bar in La Candelaria, live music.
+# zokalobohemiooficial
+#   Salsa bar with dance classes and special events.
+# lamecanica_original
+#   Cultural center, stage and bar (Cra 25 # 63f-21): concerts and salsa parties.
+# restaurantecasadecitas
+#   Peruvian restaurant with live music and rumba.
