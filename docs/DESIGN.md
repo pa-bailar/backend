@@ -92,7 +92,17 @@ The light theme's creams are the paper of 1970s salsa flyers and sleeves. The pa
 
 ## Upcoming list
 
-- **Grouped by period, not by day:** "Esta semana" ("Este fin de semana" from Friday), "Próxima semana", "Más adelante en <mes>", then one group per month (`groupByPeriod` in `scripts/state.ts`). Days with one or two events share rows instead of each leaving a mostly empty row.
+- **Grouped by period, not by day** (`groupByPeriod` in `scripts/state.ts`). Days with one or two events share rows instead of each leaving a mostly empty row. The buckets don't overlap, follow the usual calendar "date range" grouping, and split out the weekend because that's when most socials happen:
+
+  | Group | Range |
+  |---|---|
+  | Esta semana | today … Thursday of this week (only Monday–Thursday) |
+  | Este fin de semana | Friday … Sunday of this week (Friday night counts as weekend) |
+  | Próxima semana | next Monday … Sunday |
+  | Más adelante en *mes* | rest of the current month |
+  | *Mes* / *Mes de año* | one group per later month (year shown outside the current year) |
+
+  Weeks run Monday to Sunday.
 - **Each card says when:** "Hoy / Mañana · 8:00 p. m.", the weekday within a week ("Domingo · 6:00 p. m."), or weekday and date further away ("Martes 20 de oct"). The sticker keeps the date number.
 - **Wide screens (960px+):** the group heading sits in a left column.
 - **Dance styles** are one line of text joined by a middle dot glued to the previous word with a no-break space (`stylesLabel`), never separate elements with CSS separators. The dot stays centered between words, and a wrapped line never starts with a dot.
