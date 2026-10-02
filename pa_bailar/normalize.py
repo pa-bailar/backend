@@ -101,6 +101,26 @@ def normalize_styles(styles: Sequence[str]) -> list[str]:
     return result
 
 
+_WHATSAPP = re.compile(r"\b(whats\s*app|wpp|wsp|wa)\b", re.IGNORECASE)
+_HANDLE = re.compile(r"^@[A-Za-z0-9._]+$")
+_WEBSITE = re.compile(r"^(https?://)?[\w-]+(\.[\w-]+)+(/\S*)?$", re.IGNORECASE)
+
+
+def normalize_contact(contact: str | None) -> str | None:
+    """A contact the site can link: "@academia", a website, a phone number (7+ digits), or "WhatsApp " and a
+    number when it's marked as WhatsApp. Anything else (a word read off the flyer, e.g. "SOCIAL") is dropped."""
+    text = " ".join((contact or "").split())
+    if not text:
+        return None
+    if _HANDLE.match(text) or _WEBSITE.match(text):
+        return text
+    digits = re.sub(r"\D", "", text)
+    if len(digits) < 7:
+        return None
+    number = re.sub(r"[^\d+ ()-]", "", _WHATSAPP.sub("", text)).strip()
+    return f"WhatsApp {number}" if _WHATSAPP.search(text) else number
+
+
 def normalize_event(event: ExtractedEvent) -> ExtractedEvent:
     """A copy with valid dates and times (invalid ones become None), clean styles and no negative prices."""
     doubts = list(event.doubts)
@@ -115,6 +135,7 @@ def normalize_event(event: ExtractedEvent) -> ExtractedEvent:
             "end_time": end_time,
             "styles": normalize_styles(event.styles),
             "prices": [price for price in event.prices if price.amount_cop >= 0],
+            "contact": normalize_contact(event.contact),
             "doubts": doubts,
         }
     )

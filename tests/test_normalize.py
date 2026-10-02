@@ -3,7 +3,14 @@
 import pytest
 
 from pa_bailar.models import Price
-from pa_bailar.normalize import normalize_event, normalize_style, normalize_styles, parse_iso_date, parse_time
+from pa_bailar.normalize import (
+    normalize_contact,
+    normalize_event,
+    normalize_style,
+    normalize_styles,
+    parse_iso_date,
+    parse_time,
+)
 from tests.factories import extracted
 
 
@@ -75,3 +82,22 @@ def test_invalid_date_becomes_none_so_the_event_is_not_published():
 def test_negative_prices_are_removed():
     prices = [Price(label="General", amount_cop=20000), Price(label="Error", amount_cop=-1)]
     assert [p.label for p in normalize_event(extracted(prices=prices)).prices] == ["General"]
+
+
+@pytest.mark.parametrize(
+    ("raw", "clean"),
+    [
+        ("@bureodancestudio", "@bureodancestudio"),
+        ("appdanza.com", "appdanza.com"),
+        ("distrito-social-academy.com/eventos", "distrito-social-academy.com/eventos"),
+        ("3164952960", "3164952960"),
+        ("350-537-2687", "350-537-2687"),
+        ("WhatsApp 320 2332984", "WhatsApp 320 2332984"),
+        ("Wpp: 3018847358", "WhatsApp 3018847358"),
+        ("SOCIAL", None),
+        ("  ", None),
+        (None, None),
+    ],
+)
+def test_contacts_are_kept_only_when_the_site_can_link_them(raw, clean):
+    assert normalize_contact(raw) == clean
