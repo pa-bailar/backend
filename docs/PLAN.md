@@ -80,7 +80,7 @@ The rest of this plan assumes **public + GitHub Pages**. The Cloudflare differen
 
 ## 3. Repository layout and conventions
 
-Target layout after the folder rename (`agenda-salsera` → `pa-bailar`):
+Target layout (local folder: `C:\Users\Jhoan\Code\pa-bailar`):
 
 ```
 pa-bailar/
@@ -484,9 +484,9 @@ Optional and **not free**: a custom domain (e.g. `pabailar.co`, ~$10–40/year).
 Each phase ends in a working state. Work happens on a branch → PR → merge (once the repo exists).
 
 ### Phase 0 — Prerequisites
-- [ ] Close VS Code and Notepad++, then rename the folder `agenda-salsera` → `pa-bailar`.
-- [ ] Recreate `backend/.venv` (venvs hold absolute paths) and reinstall the requirements.
-- [ ] Update `C:\Users\Jhoan\Code\.claude\launch.json` to the new path.
+- [x] Close VS Code and Notepad++, then rename the folder `agenda-salsera` → `pa-bailar`.
+- [x] Recreate `backend/.venv` (venvs hold absolute paths) and reinstall the requirements.
+- [x] Update `C:\Users\Jhoan\Code\.claude\launch.json` to the new path (config name `pa-bailar-web`).
 - [x] User: create or confirm a **GitHub account** → `jzamora5`.
 - [x] User: decide **public (GitHub Pages)** or **private (Cloudflare Pages)** → **public**: https://github.com/jzamora5/pa-bailar
 - [x] Install the GitHub CLI (`winget install GitHub.cli`) and `gh auth login` (scopes: repo, workflow).
