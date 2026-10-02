@@ -55,8 +55,9 @@ The first image of the post (flyer, slide or video frame) is attached.
 
 {_EVENT_DEFINITION}
 
-Does this post announce at least one upcoming event? When unsure, answer true: a later step checks
-the details, but a post wrongly answered false is lost."""
+Does this post announce at least one upcoming event, one whose date is today or later? A post whose
+events all took place before today is false (posts can be weeks old). When unsure, answer true: a later
+step checks the details, but a post wrongly answered false is lost."""
 
 EXTRACTION_PROMPT = f"""You catalog dance events in Bogotá, Colombia, from Instagram posts.
 

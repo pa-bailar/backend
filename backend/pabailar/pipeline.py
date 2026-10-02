@@ -141,7 +141,7 @@ class Sweep:
             ) from error
         log.info("Instagram token OK (@%s)", username)
 
-        for account in storage.read_accounts():
+        for account in self._accounts_in_order():
             self.stats.accounts += 1
             self._process_account(account)
 
@@ -150,6 +150,16 @@ class Sweep:
         storage.save_account_state(self.accounts)
         storage.save_meta(asdict(self.stats))
         return self.stats
+
+    def _accounts_in_order(self) -> list[str]:
+        """Accounts in their regular sweep first, so a backlog of new accounts (which can take several
+        days of quota) never uses up the quota for today's posts of the accounts already followed."""
+
+        def is_new(account: str) -> bool:
+            state = self.accounts.get(account)
+            return state is None or not state.backfill_done
+
+        return sorted(storage.read_accounts(), key=is_new)  # stable: keeps accounts.txt order within each group
 
     # ---------- per account ----------
 

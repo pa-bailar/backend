@@ -201,6 +201,15 @@ def test_new_account_stays_new_while_posts_are_pending():
     assert read(config.ACCOUNT_STATE_FILE)["academia"]["backfill_done"] is True
 
 
+def test_accounts_in_their_regular_sweep_go_before_new_accounts():
+    run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}))  # both finish their first sweep
+    config.ACCOUNTS_FILE.write_text("nueva\nacademia\notra\n", encoding="utf-8")
+    instagram = FakeInstagram({"nueva": [], "academia": [], "otra": []})
+
+    run(instagram, FakeExtractor({}))
+    assert list(instagram.limits) == ["academia", "otra", "nueva"]  # fetch order
+
+
 # ---------- quota fallbacks ----------
 
 
