@@ -3,7 +3,7 @@
 import pytest
 
 from pabailar.models import Price
-from pabailar.normalize import normalize_event, normalize_styles, parse_iso_date, parse_time
+from pabailar.normalize import normalize_event, normalize_style, normalize_styles, parse_iso_date, parse_time
 from tests.factories import extracted
 
 
@@ -31,12 +31,35 @@ def test_parse_time(value, expected):
     assert parse_time(value) == expected
 
 
-def test_styles_are_lowercase_trimmed_and_unique():
-    assert normalize_styles(["Salsa", " salsa ", "Salsa  Caleña", "", "bachata"]) == [
-        "salsa",
-        "salsa caleña",
-        "bachata",
-    ]
+def test_styles_are_mapped_to_the_list_and_deduplicated():
+    assert normalize_styles([" Salsa  Caleña", "salsa caleña", "", "Bachata"]) == ["salsa caleña", "bachata"]
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("mambo", "salsa en línea"),
+        ("Salsa On2", "salsa en línea"),
+        ("salsa en linea", "salsa en línea"),
+        ("Casino", "salsa cubana"),
+        ("rueda de casino", "salsa cubana"),
+        ("estilo caleño", "salsa caleña"),
+        ("bachata tradicional", "bachata dominicana"),
+        ("Bachata moderna", "bachata"),
+        ("reggaetón", "urbano"),
+        ("Rumba", "afro"),
+        ("chachachá", "cha cha chá"),
+        ("tango", "tango"),
+        ("vals", "otro"),
+    ],
+)
+def test_synonyms_map_to_the_style_list(raw, expected):
+    assert normalize_style(raw) == expected
+
+
+def test_generic_salsa_or_bachata_is_dropped_when_a_variant_is_known():
+    assert normalize_styles(["salsa", "salsa caleña", "bachata"]) == ["salsa caleña", "bachata"]
+    assert normalize_styles(["bachata", "bachata sensual", "salsa"]) == ["bachata sensual", "salsa"]
 
 
 def test_invalid_start_time_is_dropped_and_noted_as_a_doubt():

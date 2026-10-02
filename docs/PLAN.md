@@ -268,7 +268,29 @@ No formal versioning; `main` is continuously deployed. Optionally tag milestones
    - the recurring/undated filter in the pipeline
    - `storage.remove_unused_flyers`, `sort_events` and validation
    - one end-to-end pipeline test with mocked Instagram and Gemini responses (saved JSON fixtures)
-9. **Gemini quota behavior** (already in place): pacing, retries, model fallback, and posts that fail stay unprocessed so they retry the next day.
+9. **Gemini quota behavior** (already in place): pacing, retries, model fallback, and posts that fail stay unprocessed so they retry the next day. See "Gemini on the free tier" below.
+
+### Gemini on the free tier (2026-10-02)
+
+Free quotas as shown in AI Studio (aistudio.google.com/rate-limit). Each model has its own quota:
+
+| Model | Per minute | Per day | Role |
+|---|---|---|---|
+| gemini-3.8-flash | 5 | 20 | Extraction (first choice) |
+| gemini-3.5-flash | 5 | 20 | Extraction (second choice) |
+| gemini-3.5-flash-lite | 15 | 500 | Triage of every post; provisional extraction when both Flash are spent |
+
+How the sweep stays inside them (`extraction.py`, `pipeline.py`):
+- **Triage first:** every new post gets a cheap yes/no from Flash-Lite (caption plus one 512px image). About half of the posts aren't events, so they never reach Flash.
+- **Flash only extracts events.** If both Flash models are out, Flash-Lite extracts and the post is marked `provisional`. On a later run with Flash budget, it's re-extracted with Flash and its events are replaced.
+- **Pacing per model** (60 / per-minute limit, plus 0.5 s) and **daily budgets** (limit minus 2). Usage is saved per quota day (midnight Pacific), so manual and scheduled runs share it. A model with no budget is skipped without a request.
+- **Daily vs per-minute 429s:** a daily-quota error marks the model as spent; a per-minute one waits 60 s and retries.
+- **Nothing is lost:** posts that can't be analyzed today stay pending and are retried on the next run.
+- **Expected load with ~30 academies** (~1.3 posts per academy per week): about 6 triage and 3 extraction requests a day, with peaks of ~20 and ~10. Quotas change, so update `MODEL_LIMITS` in `config.py` when AI Studio shows different numbers.
+
+### New accounts (first, deeper sweep)
+
+A newly listed account is swept more deeply until all of it has been analyzed: its last `BACKFILL_POSTS` (30) posts from the last `BACKFILL_DAYS` (30) days, instead of 10 posts and 7 days. Thirty days catches monthly schedules. Progress lives in `state/accounts.json` (`backfill_done`). If the daily budget runs out midway (e.g. many accounts added at once), the account stays "new" and continues on the next run.
 10. **Logging:** plain `print` is fine on Actions (it's captured in the log). Never print tokens or keys.
 
 ### Running locally (unchanged)

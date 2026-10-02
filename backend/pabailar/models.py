@@ -11,6 +11,32 @@ from pydantic import BaseModel, Field
 EventType = Literal["social", "workshop", "concert", "festival", "competition", "show", "other"]
 Confidence = Literal["high", "medium", "low"]
 
+# Dance styles. Salsa and bachata have one level of specificity; the plain name is the fallback when
+# the variant can't be told. Every other style stays general. Synonyms are mapped in normalize.py.
+Style = Literal[
+    "salsa",
+    "salsa cubana",  # casino, rueda de casino, timba
+    "salsa en línea",  # on1, on2, mambo, New York / Los Angeles style
+    "salsa caleña",  # estilo caleño, Cali
+    "bachata",
+    "bachata sensual",
+    "bachata dominicana",  # tradicional
+    "merengue",
+    "cha cha chá",
+    "son",
+    "kizomba",
+    "zouk",
+    "champeta",
+    "urbano",  # reguetón, hip hop, street
+    "afro",  # afro, afrobeat, rumba cubana, folclor afro
+    "dancehall",
+    "heels",
+    "tango",
+    "swing",
+    "otro",
+]
+STYLES: tuple[str, ...] = Style.__args__
+
 
 class Price(BaseModel):
     label: str = Field(description="As written, e.g. 'Preventa', 'Taquilla', 'Alumnos', 'General'")
@@ -27,7 +53,10 @@ class EventDetails(BaseModel):
         "workshop = one-time workshops, masterclasses and special classes with guest teachers"
     )
     is_recurring: bool = Field(description="True for regular classes or nights that repeat (weekly, every Friday...)")
-    styles: list[str] = Field(description="Dance styles, lowercase Spanish: salsa, bachata, mambo, champeta, urbano...")
+    styles: list[Style] = Field(
+        description="Dance styles from the list. Use a salsa/bachata variant only when the post says it; "
+        "otherwise plain 'salsa' or 'bachata'."
+    )
     organizer: str | None
     venue: str | None = Field(description="Venue name if given")
     address: str | None
@@ -56,6 +85,15 @@ class ExtractedEvent(EventDetails):
         description="If this post announces again one of the KNOWN EVENTS listed in the prompt (a video, reminder "
         "or second flyer of the same event), that event's id. Null for a new event."
     )
+
+
+class Triage(BaseModel):
+    """Cheap first pass, so the expensive extraction only runs on posts that announce events."""
+
+    is_event_post: bool = Field(
+        description="True if the post announces at least one upcoming one-time event. When unsure, true."
+    )
+    reason: str = Field(description="One short sentence explaining the decision, in Spanish")
 
 
 class PostAnalysis(BaseModel):
@@ -98,3 +136,12 @@ class ProcessedPost(BaseModel):
     is_event_post: bool
     reason: str
     model: str
+    # Extracted by the lighter model because Flash was out of quota: re-extracted with Flash on a later run.
+    provisional: bool = False
+
+
+class AccountState(BaseModel):
+    """One record of backend/state/accounts.json, keyed by Instagram username."""
+
+    first_seen: str
+    backfill_done: bool = False  # True once its first, deeper sweep has analyzed every post

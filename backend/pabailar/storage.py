@@ -13,10 +13,11 @@ from PIL import Image
 from pydantic import TypeAdapter
 
 from . import config
-from .models import ProcessedPost, StoredEvent
+from .models import AccountState, ProcessedPost, StoredEvent
 
 _events_adapter = TypeAdapter(list[StoredEvent])
 _processed_adapter = TypeAdapter(dict[str, ProcessedPost])
+_accounts_adapter = TypeAdapter(dict[str, AccountState])
 
 
 def _read_json(path: Path, default: Any) -> Any:
@@ -69,6 +70,28 @@ def load_processed_posts() -> dict[str, ProcessedPost]:
 
 def save_processed_posts(processed: dict[str, ProcessedPost]) -> None:
     _write_json(config.PROCESSED_POSTS_FILE, _processed_adapter.dump_python(processed, mode="json"))
+
+
+# ---------- account state (backfill) ----------
+
+
+def load_account_state() -> dict[str, AccountState]:
+    return _accounts_adapter.validate_python(_read_json(config.ACCOUNT_STATE_FILE, {}))
+
+
+def save_account_state(accounts: dict[str, AccountState]) -> None:
+    _write_json(config.ACCOUNT_STATE_FILE, _accounts_adapter.dump_python(accounts, mode="json"))
+
+
+# ---------- Gemini usage (requests per model on the current quota day) ----------
+
+
+def load_gemini_usage() -> dict[str, Any]:
+    return _read_json(config.GEMINI_USAGE_FILE, {})
+
+
+def save_gemini_usage(usage: dict[str, Any]) -> None:
+    _write_json(config.GEMINI_USAGE_FILE, usage)
 
 
 # ---------- accounts ----------

@@ -5,7 +5,8 @@
     "processed_at": "2026-10-01T21:54:21-05:00",
     "is_event_post": true,
     "reason": "El post promociona un social de salsa y bachata con clase previa el sábado 3 de octubre.",
-    "model": "gemini-flash-latest"
+    "model": "gemini-flash-latest",
+    "provisional": false
   },
   "18198040588376870": {
     "account": "zafradance",
@@ -13,7 +14,8 @@
     "processed_at": "2026-10-01T21:54:44-05:00",
     "is_event_post": false,
     "reason": "Es un video tutorial de un paso de baile y publicidad general sin fechas ni horarios específicos.",
-    "model": "gemini-flash-latest"
+    "model": "gemini-flash-latest",
+    "provisional": false
   },
   "18379762747224169": {
     "account": "zafradance",
@@ -21,7 +23,8 @@
     "processed_at": "2026-10-01T21:54:51-05:00",
     "is_event_post": true,
     "reason": "Anuncia una super clase de champeta para el domingo 27 de septiembre.",
-    "model": "gemini-flash-latest"
+    "model": "gemini-flash-latest",
+    "provisional": false
   },
   "18142103065599867": {
     "account": "zafradance",
@@ -29,7 +32,8 @@
     "processed_at": "2026-10-01T21:55:24-05:00",
     "is_event_post": false,
     "reason": "Es una publicación promocional general de la academia sin fechas ni horarios de clases o eventos.",
-    "model": "gemini-flash-latest"
+    "model": "gemini-flash-latest",
+    "provisional": false
   },
   "17944206615322562": {
     "account": "zafradance",
@@ -37,7 +41,8 @@
     "processed_at": "2026-10-01T21:55:35-05:00",
     "is_event_post": false,
     "reason": "El post es un tutorial con consejos de baile y no anuncia ningún evento ni clase con fecha u horario específico.",
-    "model": "gemini-flash-latest"
+    "model": "gemini-flash-latest",
+    "provisional": false
   },
   "18330914212277947": {
     "account": "zafradance",
@@ -45,7 +50,8 @@
     "processed_at": "2026-10-01T21:56:57-05:00",
     "is_event_post": true,
     "reason": "Anuncia un social de salsa y bachata el sábado 5 de septiembre con clase y parejas de baile.",
-    "model": "gemini-3.5-flash"
+    "model": "gemini-3.5-flash",
+    "provisional": false
   },
   "18129749683771543": {
     "account": "bembeacademiadebaile",
@@ -53,7 +59,8 @@
     "processed_at": "2026-10-01T21:57:27-05:00",
     "is_event_post": true,
     "reason": "Anuncio de un social de Halloween el 24 de octubre en la academia Bembé.",
-    "model": "gemini-3.5-flash"
+    "model": "gemini-3.5-flash",
+    "provisional": false
   },
   "18092662847433715": {
     "account": "bembeacademiadebaile",
@@ -61,7 +68,8 @@
     "processed_at": "2026-10-01T21:58:26-05:00",
     "is_event_post": false,
     "reason": "La publicación muestra un video de práctica o motivación en una academia sin anunciar una fecha, hora o evento específico para el público.",
-    "model": "gemini-flash-lite-latest"
+    "model": "gemini-flash-lite-latest",
+    "provisional": false
   },
   "17866733517659910": {
     "account": "bembeacademiadebaile",
@@ -69,7 +77,8 @@
     "processed_at": "2026-10-01T21:59:12-05:00",
     "is_event_post": false,
     "reason": "El post es de carácter promocional mostrando una clase de bachata, pero no especifica horarios, fechas, precios ni detalles de un evento o clase abierta en particular.",
-    "model": "gemini-3.5-flash"
+    "model": "gemini-3.5-flash",
+    "provisional": false
   },
   "18113166034873802": {
     "account": "bembeacademiadebaile",
@@ -77,7 +86,8 @@
     "processed_at": "2026-10-01T21:59:28-05:00",
     "is_event_post": false,
     "reason": "Es un anuncio general de clases personalizadas sin fechas, horarios o eventos específicos programados.",
-    "model": "gemini-3.5-flash"
+    "model": "gemini-3.5-flash",
+    "provisional": false
   },
   "18194856820389461": {
     "account": "bembeacademiadebaile",
@@ -85,7 +95,8 @@
     "processed_at": "2026-10-01T21:59:59-05:00",
     "is_event_post": false,
     "reason": "El post es una presentación del Grupo de Formación de la academia y no anuncia un evento, clase o taller con fecha o detalles específicos.",
-    "model": "gemini-3.5-flash"
+    "model": "gemini-3.5-flash",
+    "provisional": false
   },
   "18125277811839771": {
     "account": "bembeacademiadebaile",
@@ -93,7 +104,8 @@
     "processed_at": "2026-10-01T22:00:12-05:00",
     "is_event_post": false,
     "reason": "Es una publicacion informativa sobre como llegar a la academia, no anuncia ningun evento o clase con fecha y horario especifico.",
-    "model": "gemini-3.5-flash"
+    "model": "gemini-3.5-flash",
+    "provisional": false
   },
   "17985388479076791": {
     "account": "esferalatinaoficial",
@@ -101,7 +113,8 @@
     "processed_at": "2026-10-01T22:01:00-05:00",
     "is_event_post": true,
     "reason": "El post anuncia un evento social con clase de bachata el viernes 25 de septiembre.",
-    "model": "gemini-3.5-flash"
+    "model": "gemini-3.5-flash",
+    "provisional": false
   },
   "17940141273086498": {
     "account": "esferalatinaoficial",
@@ -109,7 +122,8 @@
     "processed_at": "2026-10-01T22:01:14-05:00",
     "is_event_post": true,
     "reason": "Anuncia una clase especial de Champeta + Salsa el jueves 10 de septiembre.",
-    "model": "gemini-3.5-flash"
+    "model": "gemini-3.5-flash",
+    "provisional": false
   },
   "17966843337172267": {
     "account": "esferalatinaoficial",
@@ -117,7 +131,8 @@
     "processed_at": "2026-10-01T22:01:37-05:00",
     "is_event_post": false,
     "reason": "El post es un agradecimiento y resumen de la participación de la academia en el Boston Salsa Festival, siendo un recuento de un evento ya pasado.",
-    "model": "gemini-3.5-flash"
+    "model": "gemini-3.5-flash",
+    "provisional": false
   },
   "18485647252129232": {
     "account": "madyumdance",
@@ -125,7 +140,8 @@
     "processed_at": "2026-10-01T22:01:56-05:00",
     "is_event_post": true,
     "reason": "Anuncia un workshop/clase especial de Salsa Freestyle con Renato Palacios para este sábado.",
-    "model": "gemini-3.5-flash"
+    "model": "gemini-3.5-flash",
+    "provisional": false
   },
   "18179940502441318": {
     "account": "madyumdance",
@@ -133,7 +149,8 @@
     "processed_at": "2026-10-01T22:02:04-05:00",
     "is_event_post": false,
     "reason": "El post promociona servicios de coreografías para bodas y no anuncia un evento abierto al público.",
-    "model": "gemini-flash-lite-latest"
+    "model": "gemini-flash-lite-latest",
+    "provisional": false
   },
   "18445168045134487": {
     "account": "madyumdance",
@@ -141,7 +158,8 @@
     "processed_at": "2026-10-01T22:02:10-05:00",
     "is_event_post": false,
     "reason": "El post es un recuerdo o resumen de un taller que ya pasó, mencionando que habrá otro próximo sábado pero sin detallar la fecha ni el horario específico.",
-    "model": "gemini-flash-lite-latest"
+    "model": "gemini-flash-lite-latest",
+    "provisional": false
   },
   "18382266040226570": {
     "account": "madyumdance",
@@ -149,7 +167,8 @@
     "processed_at": "2026-10-01T22:02:17-05:00",
     "is_event_post": true,
     "reason": "El post anuncia un taller de dancehall organizado por Madyum para este sábado 26.",
-    "model": "gemini-flash-lite-latest"
+    "model": "gemini-flash-lite-latest",
+    "provisional": true
   },
   "17990723310048827": {
     "account": "madyumdance",
@@ -157,7 +176,8 @@
     "processed_at": "2026-10-01T22:02:38-05:00",
     "is_event_post": true,
     "reason": "El post anuncia clases regulares de salsa en pareja nivel avanzado, aunque actualmente estén en pausa.",
-    "model": "gemini-flash-lite-latest"
+    "model": "gemini-flash-lite-latest",
+    "provisional": true
   },
   "18422550298154507": {
     "account": "madyumdance",
@@ -165,7 +185,8 @@
     "processed_at": "2026-10-01T22:02:43-05:00",
     "is_event_post": false,
     "reason": "Es un resumen o recopilación de un taller que ya se realizó y no anuncia fechas de un próximo evento.",
-    "model": "gemini-flash-latest"
+    "model": "gemini-flash-latest",
+    "provisional": false
   },
   "18382502500227795": {
     "account": "madyumdance",
@@ -173,7 +194,8 @@
     "processed_at": "2026-10-01T22:03:03-05:00",
     "is_event_post": true,
     "reason": "El post anuncia un gran taller de bachata tradicional para este sábado.",
-    "model": "gemini-flash-lite-latest"
+    "model": "gemini-flash-lite-latest",
+    "provisional": true
   },
   "18104347286615308": {
     "account": "madyumdance",
@@ -181,7 +203,8 @@
     "processed_at": "2026-10-01T22:03:11-05:00",
     "is_event_post": true,
     "reason": "El post anuncia el gran aniversario de Madyum con fecha el 5 de diciembre.",
-    "model": "gemini-flash-lite-latest"
+    "model": "gemini-flash-lite-latest",
+    "provisional": true
   },
   "18389263297200452": {
     "account": "madyumdance",
@@ -189,7 +212,8 @@
     "processed_at": "2026-10-01T22:03:18-05:00",
     "is_event_post": false,
     "reason": "La publicación muestra un equipo de niñas ensayando, pero no anuncia ningún evento o clase abierta al público con fecha y hora específicas.",
-    "model": "gemini-flash-lite-latest"
+    "model": "gemini-flash-lite-latest",
+    "provisional": false
   },
   "18336609811283206": {
     "account": "madyumdance",
@@ -197,7 +221,8 @@
     "processed_at": "2026-10-01T22:03:24-05:00",
     "is_event_post": true,
     "reason": "El post anuncia clases recurrentes de bachata en pareja todos los viernes a las 8:00 pm.",
-    "model": "gemini-flash-lite-latest"
+    "model": "gemini-flash-lite-latest",
+    "provisional": true
   },
   "18126108809477354": {
     "account": "academiadebailepasolatino",
@@ -205,7 +230,8 @@
     "processed_at": "2026-10-01T22:03:31-05:00",
     "is_event_post": false,
     "reason": "El post es un resumen o 'recap' de agradecimiento sobre un evento benéfico que ya ocurrió en el pasado y no anuncia eventos futuros.",
-    "model": "gemini-flash-lite-latest"
+    "model": "gemini-flash-lite-latest",
+    "provisional": false
   },
   "18112581790860968": {
     "account": "esferalatinaoficial",
@@ -213,6 +239,7 @@
     "processed_at": "2026-10-01T23:35:33-05:00",
     "is_event_post": true,
     "reason": "La publicación anuncia una programación de talleres y eventos especiales para el mes de octubre.",
-    "model": "gemini-flash-lite-latest"
+    "model": "gemini-flash-lite-latest",
+    "provisional": true
   }
 }

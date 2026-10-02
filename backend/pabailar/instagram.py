@@ -38,13 +38,13 @@ class InstagramClient:
         """Cheap call that fails fast if the token is invalid. Returns our own username."""
         return self._get("username")["username"]
 
-    def fetch_recent_posts(self, account: str) -> list[Post]:
-        """Latest posts of a public Business/Creator account. Costs one API call."""
+    def fetch_recent_posts(self, account: str, limit: int = config.POSTS_PER_ACCOUNT) -> list[Post]:
+        """The latest `limit` posts of a public Business/Creator account. Costs one API call."""
         media_fields = "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp"
         child_fields = "media_type,media_url,thumbnail_url"
         fields = (
             f"business_discovery.username({account})"
-            f"{{media.limit({config.POSTS_PER_ACCOUNT}){{{media_fields},children{{{child_fields}}}}}}}"
+            f"{{media.limit({limit}){{{media_fields},children{{{child_fields}}}}}}}"
         )
         return self._get(fields)["business_discovery"].get("media", {}).get("data", [])
 
