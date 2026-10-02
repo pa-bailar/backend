@@ -64,15 +64,18 @@
   stroke-linecap: round;
 }
 
-/* Show the icon of the theme you'd switch TO (moon while light, sun while dark). */
-.theme-toggle__icon--sun {
+/* Show the icon of the current mode: half circle (auto, the default), sun (día) or moon (noche). */
+.theme-toggle__icon--sun,
+.theme-toggle__icon--moon {
   display: none;
 }
 
-:root[data-active-theme="dark"] .theme-toggle__icon--sun {
+:root[data-theme-mode="light"] .theme-toggle__icon--sun,
+:root[data-theme-mode="dark"] .theme-toggle__icon--moon {
   display: block;
 }
 
-:root[data-active-theme="dark"] .theme-toggle__icon--moon {
+:root[data-theme-mode="light"] .theme-toggle__icon--auto,
+:root[data-theme-mode="dark"] .theme-toggle__icon--auto {
   display: none;
 }

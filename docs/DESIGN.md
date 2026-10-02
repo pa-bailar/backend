@@ -9,7 +9,10 @@ Two themes, one system:
 
 The **structure** (type, motifs, components) comes from Fania. The **mood** of the dark theme comes from bachata sensual. Both themes share every component; only the color values change.
 
-By default the theme follows the visitor's device. The toggle (top right) overrides it and is remembered.
+**Theme modes**, like macOS "Auto". The toggle in the top right cycles **Auto → Día → Noche**, and the choice is remembered:
+- **Auto** (default): Fania de día from 6:00 to 17:59 and Noche Fania the rest of the day, by the visitor's clock. It switches on its own while the page is open. Bogotá is near the equator, so sunrise and sunset stay close to 6:00 and 18:00 all year.
+- **Día / Noche:** always that theme.
+- **Without JavaScript:** the device's light/dark setting.
 
 ## Files
 
@@ -37,15 +40,15 @@ frontend/src/styles/
 2. **Semantic colors:** what a color is *for* (`--bg`, `--surface`, `--text-muted`, `--accent`, `--action`…). Each is `light-dark(<Fania de día>, <Noche Fania>)`. **Components only use these.**
 3. **Scales:** type sizes, spacing, radii, control sizes, motion.
 
-Themes switch through CSS `color-scheme`: `light dark` (follow the device) by default, or forced by `html[data-theme="light" | "dark"]`. `scripts/theme.ts` sets the attribute; an inline script in `BaseLayout.astro` applies a saved choice before first paint (no flash).
+Themes switch through CSS `color-scheme`: `light dark` (follow the device) when no theme is set, or forced by `html[data-theme="light" | "dark"]`. `scripts/theme.ts` sets `data-theme` (the theme in use) and `data-theme-mode` (auto/light/dark, which picks the toggle's icon). An inline copy of its logic in `BaseLayout.astro` applies the theme before first paint (no flash) and sets the `theme-color` meta for the phone's address bar.
 
 ### Semantic colors
 
 | Token | Fania de día | Noche Fania | Use |
 |---|---|---|---|
-| `--bg` | cream-100 | wine-900 | Page background |
-| `--surface` | cream-50 | wine-800 | Cards, dialog, buttons |
-| `--surface-sunken` | cream-200 | wine-950 | Image wells, callouts |
+| `--bg` | cream-150 (aged offset paper) | wine-900 | Page background |
+| `--surface` | cream-75 | wine-800 | Cards, dialog, buttons |
+| `--surface-sunken` | cream-250 | wine-950 | Image wells, callouts |
 | `--border` | wine-900 | wine-600 | Outlines of cards, chips, buttons |
 | `--divider` | cream-300 | wine-600 | Lines between sections and rows |
 | `--text` | wine-900 | cream-100 | Body text |
@@ -83,7 +86,16 @@ Sizes: `--text-2xs` 11 · `xs` 12 · `sm` 13 · `md` 15 (body) · `lg` 17 · `xl
 
 - **70s stripes** (`<Stripes />`): three bands (tomato, orange, marigold). Used in the header, the event dialog and the footer. Don't use them anywhere else; they lose meaning if repeated.
 - **Date sticker:** a round "record label" with the day and month, overlapping the bottom-right of each flyer.
-- **Italic headings:** day and month headings in Bodoni italic, like a handwritten setlist.
+- **Italic headings:** group, day and month headings in Bodoni italic, like a handwritten setlist.
+
+The light theme's creams are the paper of 1970s salsa flyers and sleeves. The page uses the slightly darker, aged tone (`#ECDDC6`) rather than near-white, so it isn't glaring. Cards sit one step lighter so they still lift off the page.
+
+## Upcoming list
+
+- **Grouped by period, not by day:** "Esta semana" ("Este fin de semana" from Friday), "Próxima semana", "Más adelante en <mes>", then one group per month (`groupByPeriod` in `scripts/state.ts`). Days with one or two events share rows instead of each leaving a mostly empty row.
+- **Each card says when:** "Hoy / Mañana · 8:00 p. m.", the weekday within a week ("Domingo · 6:00 p. m."), or weekday and date further away ("Martes 20 de oct"). The sticker keeps the date number.
+- **Wide screens (960px+):** the group heading sits in a left column.
+- **Dance styles** are one line of text joined by a middle dot glued to the previous word with a no-break space (`stylesLabel`), never separate elements with CSS separators. The dot stays centered between words, and a wrapped line never starts with a dot.
 
 ## Events with several posts
 

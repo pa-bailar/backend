@@ -1,7 +1,7 @@
 // Spanish (Colombia) display formatting.
 
 import type { DanceEvent, EventType, MediaType } from "../types";
-import { addDays, parseIsoDate, todayIso } from "./dates";
+import { addDays, daysBetween, parseIsoDate, todayIso } from "./dates";
 
 const LOCALE = "es-CO";
 
@@ -38,6 +38,14 @@ export function mediaLabel(type: MediaType): string {
   return MEDIA_LABELS[type] ?? "Publicación";
 }
 
+/**
+ * "salsa · mambo · afro". The no-break space glues each dot to the word before it, so a wrapped line
+ * never starts with a dot.
+ */
+export function stylesLabel(styles: string[], max = styles.length): string {
+  return styles.slice(0, max).join(" · ");
+}
+
 /** "1 publicación" / "2 publicaciones" */
 export function postCountLabel(count: number): string {
   return `${count} ${count === 1 ? "publicación" : "publicaciones"}`;
@@ -66,6 +74,33 @@ export function formatDayHeading(iso: string): string {
   if (iso === todayIso()) return `Hoy · ${label}`;
   if (iso === addDays(todayIso(), 1)) return `Mañana · ${label}`;
   return label;
+}
+
+const weekdayName = new Intl.DateTimeFormat(LOCALE, { weekday: "long" });
+const dayAndMonth = new Intl.DateTimeFormat(LOCALE, { weekday: "long", day: "numeric", month: "short" });
+
+/**
+ * When an event happens, as shown on its card: "Hoy · 8:00 p. m.", "Mañana · 6:00 p. m.",
+ * "Sábado · 8:00 p. m." within a week, "Martes 20 oct. · 7:00 p. m." further away.
+ */
+export function cardWhenLabel(event: DanceEvent): string {
+  const days = daysBetween(todayIso(), event.date);
+  const date = parseIsoDate(event.date);
+  let day: string;
+  if (days === 0) day = "Hoy";
+  else if (days === 1) day = "Mañana";
+  else if (days > 1 && days < 7) day = capitalize(weekdayName.format(date));
+  else day = capitalize(dayAndMonth.format(date).replace(",", ""));
+  const time = formatTime(event.start_time);
+  return time ? `${day} · ${time}` : day;
+}
+
+const monthOnly = new Intl.DateTimeFormat(LOCALE, { month: "long" });
+
+/** "octubre", or "octubre de 2027" with the year. */
+export function formatMonthName(iso: string, withYear = false): string {
+  const date = parseIsoDate(iso);
+  return withYear ? monthYear.format(date) : monthOnly.format(date);
 }
 
 /** "Octubre de 2026" */

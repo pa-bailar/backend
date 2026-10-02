@@ -1,20 +1,29 @@
 /* Event card, card grid, day groups and the round date sticker. */
 
-.day-group + .day-group {
+/* Upcoming events are grouped by period (this week, next week, by month), not by day: cards of
+   different days share rows, so sparse days don't leave mostly empty rows. Each card says its day. */
+.agenda-group + .agenda-group {
   margin-top: var(--space-6);
 }
 
-/* Wide screens: the day heading sits in a column on the left, so days with one or two events
-   don't leave most of the row empty. */
+.agenda-group__heading {
+  margin-bottom: var(--space-3);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: var(--text-2xl);
+}
+
+/* Wide screens: the group heading sits in a column on the left. */
 @media (min-width: 960px) {
-  .day-group {
+  .agenda-group {
     display: grid;
     grid-template-columns: var(--day-column-width) minmax(0, 1fr);
     gap: var(--space-5);
     align-items: start;
   }
 
-  .day-group .day-heading {
+  .agenda-group__heading {
     margin-bottom: 0;
   }
 }

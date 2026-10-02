@@ -1,9 +1,8 @@
-// "Próximos": upcoming events grouped by day.
+// "Próximos": upcoming events grouped by period (this week, next week, then by month).
 
 import type { AppState, DanceEvent } from "../types";
 import { escapeHtml } from "../lib/dom";
-import { formatDayHeading } from "../lib/format";
-import { eventsInView, groupByDay, matchesFilters } from "../state";
+import { eventsInView, groupByPeriod, matchesFilters } from "../state";
 import { eventCardGridHtml } from "./eventCard";
 
 /** Renders the list and returns how many events it shows. */
@@ -19,12 +18,12 @@ export function renderUpcomingView(container: HTMLElement, events: DanceEvent[],
     return 0;
   }
 
-  container.innerHTML = [...groupByDay(upcoming)]
+  container.innerHTML = groupByPeriod(upcoming)
     .map(
-      ([day, dayEvents]) => `
-        <section class="day-group">
-          <h2 class="day-heading">${escapeHtml(formatDayHeading(day))}</h2>
-          ${eventCardGridHtml(dayEvents)}
+      (group) => `
+        <section class="agenda-group">
+          <h2 class="agenda-group__heading">${escapeHtml(group.label)}</h2>
+          ${eventCardGridHtml(group.events)}
         </section>`,
     )
     .join("");

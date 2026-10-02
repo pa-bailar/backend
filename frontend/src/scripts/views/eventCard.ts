@@ -4,7 +4,15 @@
 
 import type { DanceEvent } from "../types";
 import { escapeHtml } from "../lib/dom";
-import { formatTime, placeLabel, postCountLabel, priceSummary, stickerDate, typeLabel } from "../lib/format";
+import {
+  cardWhenLabel,
+  placeLabel,
+  postCountLabel,
+  priceSummary,
+  stickerDate,
+  stylesLabel,
+  typeLabel,
+} from "../lib/format";
 import { flyerUrl, mainMedia } from "../lib/links";
 
 const MAX_STYLES_ON_CARD = 3;
@@ -17,13 +25,10 @@ export function eventCardHtml(event: DanceEvent): string {
     ? `<img src="${escapeHtml(flyer)}" alt="" loading="lazy" decoding="async" />`
     : `<div class="no-flyer" aria-hidden="true">Pa'</div>`;
   const sticker = stickerDate(event.date);
-  const time = formatTime(event.start_time);
+  const when = cardWhenLabel(event);
   const place = placeLabel(event);
   const price = priceSummary(event);
-  const styles = event.styles
-    .slice(0, MAX_STYLES_ON_CARD)
-    .map((style) => `<span class="tag">${escapeHtml(style)}</span>`)
-    .join("");
+  const styles = stylesLabel(event.styles, MAX_STYLES_ON_CARD);
 
   return `
     <article class="event-card">
@@ -34,7 +39,7 @@ export function eventCardHtml(event: DanceEvent): string {
         <span class="date-sticker" aria-hidden="true"><b>${sticker.day}</b><small>${sticker.month}</small></span>
       </div>
       <div class="event-card__body">
-        ${time ? `<p class="event-card__time">${time}</p>` : ""}
+        <p class="event-card__time">${escapeHtml(when)}</p>
         <h3 class="event-card__title">
           <button class="event-card__hit" data-event="${escapeHtml(event.id)}">${escapeHtml(event.title)}</button>
         </h3>
@@ -42,7 +47,7 @@ export function eventCardHtml(event: DanceEvent): string {
         ${place ? `<p class="event-card__meta">${escapeHtml(place)}</p>` : ""}
         <div class="event-card__foot">
           ${price ? `<span class="event-card__price">${escapeHtml(price)}</span>` : ""}
-          ${styles}
+          ${styles ? `<span class="style-list">${escapeHtml(styles)}</span>` : ""}
         </div>
       </div>
     </article>`;

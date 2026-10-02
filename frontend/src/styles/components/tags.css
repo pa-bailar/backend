@@ -21,17 +21,10 @@
   text-transform: uppercase;
 }
 
-.tag {
+/* Dance styles as one line of text ("salsa · mambo · afro"). The separator is part of the text, glued to
+   the previous word with a no-break space, so it stays centered between words and a wrapped line never
+   starts with a lone dot. Built by stylesLabel() in scripts/lib/format.ts. */
+.style-list {
   font-size: var(--text-xs);
   color: var(--text-muted);
-}
-
-.tag + .tag::before {
-  content: "· ";
-}
-
-.tag-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
 }

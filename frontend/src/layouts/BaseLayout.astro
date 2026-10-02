@@ -53,8 +53,7 @@ const favicon =
     <meta property="og:url" content={pageUrl} />
     {imageUrl && <meta property="og:image" content={imageUrl} />}
     <meta name="twitter:card" content={imageUrl ? "summary_large_image" : "summary"} />
-    <meta name="theme-color" content="#F3E6D3" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#2A0F14" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ECDDC6" />
     <link rel="icon" href={favicon} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -62,12 +61,23 @@ const favicon =
       href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&family=Instrument+Sans:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <!-- Apply a saved theme before first paint so the page never flashes the wrong one. -->
+    <!-- Apply the theme before first paint so the page never flashes the wrong one.
+         Mirrors resolveTheme() in scripts/theme.ts: saved mode, else light 6:00–17:59 / dark otherwise. -->
     <script is:inline>
-      try {
-        const saved = localStorage.getItem("theme");
-        if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
-      } catch {}
+      (function () {
+        var mode = "auto";
+        try {
+          var saved = localStorage.getItem("theme");
+          if (saved === "light" || saved === "dark") mode = saved;
+        } catch (e) {}
+        var hour = new Date().getHours();
+        var theme = mode === "auto" ? (hour >= 6 && hour < 18 ? "light" : "dark") : mode;
+        var root = document.documentElement;
+        root.dataset.theme = theme;
+        root.dataset.themeMode = mode;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", theme === "dark" ? "#2A0F14" : "#ECDDC6");
+      })();
     </script>
   </head>
   <body>
