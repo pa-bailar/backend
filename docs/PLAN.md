@@ -487,19 +487,19 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 - [ ] Close VS Code and Notepad++, then rename the folder `agenda-salsera` → `pa-bailar`.
 - [ ] Recreate `backend/.venv` (venvs hold absolute paths) and reinstall the requirements.
 - [ ] Update `C:\Users\Jhoan\Code\.claude\launch.json` to the new path.
-- [ ] User: create or confirm a **GitHub account**.
-- [ ] User: decide **public (GitHub Pages)** or **private (Cloudflare Pages)**.
-- [ ] Install the GitHub CLI (`winget install GitHub.cli`) and `gh auth login`. Optional, but makes repo creation and secrets setup faster.
+- [x] User: create or confirm a **GitHub account** → `jzamora5`.
+- [x] User: decide **public (GitHub Pages)** or **private (Cloudflare Pages)** → **public**: https://github.com/jzamora5/pa-bailar
+- [x] Install the GitHub CLI (`winget install GitHub.cli`) and `gh auth login` (scopes: repo, workflow).
 
 **Done when:** the project runs from `C:\Users\Jhoan\Code\pa-bailar`, and the account and hosting choice are known.
 
 ### Phase 1 — Repository hygiene and first commit
-- [ ] Add `.gitattributes`, `.editorconfig`, `.nvmrc` (24) and `.python-version` (3.12).
-- [ ] Pin `backend/requirements.txt`; add `requirements-dev.txt`.
-- [ ] Update `README.md` (what it is, layout, local setup, link to docs).
-- [ ] `git init -b main`; check `git status` shows **no `.env`**; first commit: `chore: initial commit`.
-- [ ] Create the GitHub repo `pa-bailar` and push.
-- [ ] Turn on secret scanning + push protection and Dependabot alerts.
+- [x] Add `.gitattributes`, `.editorconfig`, `.nvmrc` (24) and `.python-version` (3.12).
+- [x] Pin `backend/requirements.txt`. (`requirements-dev.txt` moves to Phase 2 with the tests.)
+- [x] Update `README.md` (what it is, layout, local setup, link to docs).
+- [x] `git init -b main`; check `git status` shows **no `.env`**; first commit: `chore: initial commit`.
+- [x] Create the GitHub repo `pa-bailar` and push. Commits use the noreply email `15051424+jzamora5@users.noreply.github.com`.
+- [x] Turn on secret scanning + push protection and Dependabot alerts.
 
 **Done when:** the code is on GitHub, with no secrets in it.
 
