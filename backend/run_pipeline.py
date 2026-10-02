@@ -32,7 +32,8 @@ def summary_markdown(stats: RunStats) -> str:
             f"{stats.posts_analyzed} posts analyzed ({stats.posts_triaged_out} ruled out by triage) · "
             f"{stats.events_new} new events · {stats.events_merged} merged into existing events · "
             f"{stats.events_discarded} discarded (recurring/undated) · {stats.provisional} provisional · "
-            f"{stats.upgraded} upgraded · {stats.pending} pending for next run · {stats.errors} errors",
+            f"{stats.upgraded} upgraded · {stats.pending} pending for next run · {stats.errors} errors · "
+            f"{stats.events_expired} past events and {stats.flyers_removed} flyers cleaned up",
             "",
             "| Account | Posts analyzed | New events | Merged | Pending | Errors |",
             "|---|---|---|---|---|---|",

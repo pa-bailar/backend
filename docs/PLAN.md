@@ -234,16 +234,16 @@ No formal versioning; `main` is continuously deployed. Optionally tag milestones
 - **Idempotency:** re-running the sweep the same day changes nothing unless Instagram has new posts.
 - **Only one-time events with a date** are stored. Recurring classes are discarded at extraction.
 - **Lookback window:** 7 days (`DEFAULT_LOOKBACK_DAYS`).
-- **Retention (postponed by user; design it now, enable later):**
-  - Events whose date is more than N days in the past (proposal: 60) are moved to `data/archive/<year>.json` or deleted.
-  - Their flyers are deleted. `remove_unused_flyers` already handles the cleanup.
-  - Prune `processed_posts.json` entries older than the lookback window plus a margin (e.g. 30 days), since they can't come back.
+- **Retention (every sweep, `Sweep._apply_retention`):**
+  - Events dated more than `EVENT_RETENTION_DAYS` (30) ago are deleted. Git history is the archive.
+  - Their flyers are then deleted by `remove_unused_flyers`, which removes every flyer no event uses.
+  - `processed_posts.json` forgets posts analyzed more than `PROCESSED_RETENTION_DAYS` (45) ago. That's longer than the 30-day first sweep and any manual `--days`, so a forgotten post is never fetched, or paid for, again.
 - **Backups:** git history is the backup, and every sweep is a commit. To restore: `git revert <sweep commit>`, or `git checkout <commit> -- data/`.
 
 ### Growth estimate
-- 10–20 new flyers a week at about 80 KB is **50–100 MB a year** of git history, and deleted flyers stay in history.
+- Flyers average about 90 KB. With ~40 academies, maybe 100–200 new flyers a month: **100–200 MB a year** of git history, because deleted flyers stay in history.
 - GitHub recommends repos under 1 GB, and GitHub Pages sites under 1 GB. With retention on, the *live* site stays at a few MB.
-- If history ever gets too large, move flyers to external storage, or start a fresh repo with history squashed.
+- If history ever gets too large, lower `FLYER_MAX_SIZE` and `FLYER_WEBP_QUALITY`, move flyers to external storage, or start a fresh repo with history squashed.
 
 ---
 
@@ -650,7 +650,6 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 
 ### After go-live (separate plans)
 - Design system (directions A/B/C; recommendation A, "Cartel popular") → `DESIGN.md` + restyle, through `design/*` branches and PRs.
-- Past-event retention (section 5) when the user wants it.
 - More accounts (academies, then bars).
 - Telegram bot or submission form for Stories and personal accounts. This may need a small free backend (e.g. Cloudflare Worker + D1), and would get its own plan.
 
@@ -679,15 +678,11 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 Known gaps from the 2026-10-01 audit (not fixed yet, by design):
 - "Actualizado el …" shows the build date, not the data date. Fixed by `meta.json` in Phase 2.
 - Merging a post fills in missing details but keeps the old `doubts` (e.g. "sin hora" after a video supplies the time).
-- `processed_posts.json` grows forever. Prune it with the retention work.
 - Images are sent to Gemini as JPEG without checking the actual format (Instagram serves JPEG today).
-- No end-to-end pipeline test with mocked Instagram/Gemini yet (Phase 2).
 - Gemini's `same_as` linking hasn't been exercised on a real repost yet; check the first runs.
 - View tabs don't support arrow-key navigation (full ARIA tabs pattern).
 - Fonts load from Google Fonts. Self-hosting them would remove a third-party request.
 
-- Design system and restyle (pending user choice A/B/C).
-- Past-event retention and archive.
 - Pull-request preview deploys (needs Cloudflare Pages).
 - Custom domain.
 - Telegram bot / submission form.

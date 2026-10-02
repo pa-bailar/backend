@@ -8,10 +8,10 @@ import pytest
 from pabailar import config, storage
 from pabailar.extraction import ExtractionError
 from pabailar.instagram import InstagramError
-from pabailar.models import PostAnalysis, Triage
+from pabailar.models import PostAnalysis, ProcessedPost, Triage
 from pabailar.pipeline import Sweep
 from run_pipeline import summary_markdown
-from tests.factories import extracted, make_image
+from tests.factories import extracted, make_image, media, stored
 
 FLYER_URL = "https://cdn.example/flyer.jpg"
 VIDEO_THUMB_URL = "https://cdn.example/video.jpg"
@@ -249,3 +249,43 @@ def test_one_account_failing_does_not_stop_the_others_and_meta_is_written():
     assert meta["stats"]["by_account"]["academia"]["fetch_failed"] is True
     summary = summary_markdown(stats)
     assert "@academia" in summary and "Gemini requests" in summary
+
+
+# ---------- retention ----------
+
+
+def days_ago_date(days: int) -> str:
+    return (datetime.now(config.BOGOTA_TZ) - timedelta(days=days)).date().isoformat()
+
+
+def processed_record(days: int) -> ProcessedPost:
+    when = datetime.now(config.BOGOTA_TZ) - timedelta(days=days)
+    return ProcessedPost(
+        account="academia", permalink="x", processed_at=when.isoformat(timespec="seconds"),
+        is_event_post=True, reason="", model="fake-flash",
+    )  # fmt: skip
+
+
+def test_past_events_expire_with_their_flyers_and_old_post_records_are_forgotten():
+    old = stored("old-0", posts=[media("old")], date=days_ago_date(config.EVENT_RETENTION_DAYS + 1))
+    recent = stored("recent-0", posts=[media("recent")], date=days_ago_date(config.EVENT_RETENTION_DAYS - 1))
+    storage.save_events([old, recent])
+    config.FLYERS_DIR.mkdir(parents=True)
+    for post_id in ("old", "recent"):
+        (config.FLYERS_DIR / f"{post_id}-0.webp").write_bytes(b"webp")
+    storage.save_processed_posts(
+        {"forgotten": processed_record(config.PROCESSED_RETENTION_DAYS + 1), "kept": processed_record(10)}
+    )
+
+    stats = run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}))
+
+    assert [event.id for event in storage.load_events()] == ["recent-0"]
+    assert sorted(path.name for path in config.FLYERS_DIR.iterdir()) == ["recent-0.webp"]
+    assert list(storage.load_processed_posts()) == ["kept"]
+    assert (stats.events_expired, stats.flyers_removed, stats.processed_forgotten) == (1, 1, 1)
+
+
+def test_post_records_inside_a_long_manual_lookback_are_kept():
+    storage.save_processed_posts({"p": processed_record(config.PROCESSED_RETENTION_DAYS + 5)})
+    run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}), days=config.PROCESSED_RETENTION_DAYS + 10)
+    assert list(storage.load_processed_posts()) == ["p"]
