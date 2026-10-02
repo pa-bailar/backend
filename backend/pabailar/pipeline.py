@@ -6,6 +6,8 @@ Per account:
   - Each new post is triaged by the light model; only posts that announce events are extracted by Flash.
   - Posts extracted provisionally (Flash was out of quota) are re-extracted with Flash when there's budget.
   - Posts that couldn't be analyzed (no quota left today, network errors) stay pending for the next run.
+
+After all accounts: events older than EVENT_RETENTION_DAYS are deleted, then every flyer no event uses.
 """
 
 import logging
@@ -59,6 +61,8 @@ class RunStats:
     upgraded: int = 0  # provisional posts re-extracted with Flash this run
     pending: int = 0
     errors: int = 0
+    events_expired: int = 0  # dated more than EVENT_RETENTION_DAYS ago
+    processed_forgotten: int = 0  # analyzed-post records older than PROCESSED_RETENTION_DAYS
     flyers_removed: int = 0
     gemini_requests: dict[str, int] = field(default_factory=dict)
     by_account: dict[str, AccountStats] = field(default_factory=dict)
@@ -145,6 +149,7 @@ class Sweep:
             self.stats.accounts += 1
             self._process_account(account)
 
+        self._apply_retention()
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
         self.stats.gemini_requests = self.extractor.requests_this_run()
         storage.save_account_state(self.accounts)
@@ -160,6 +165,28 @@ class Sweep:
             return state is None or not state.backfill_done
 
         return sorted(storage.read_accounts(), key=is_new)  # stable: keeps accounts.txt order within each group
+
+    def _apply_retention(self) -> None:
+        """Delete long-past events and forget old analyzed posts, so data and flyers don't grow forever."""
+        now = datetime.now(config.BOGOTA_TZ)
+        oldest_date = (now - timedelta(days=config.EVENT_RETENTION_DAYS)).date().isoformat()
+        kept = [event for event in self.events if not event.date or event.date >= oldest_date]
+        self.stats.events_expired = len(self.events) - len(kept)
+        self.events = kept
+
+        # Never forget a post the lookback could still fetch (e.g. a manual run with --days 60).
+        keep_days = max(config.PROCESSED_RETENTION_DAYS, self.lookback.days + 1)
+        oldest_record = now - timedelta(days=keep_days)
+        old = [pid for pid, rec in self.processed.items() if datetime.fromisoformat(rec.processed_at) < oldest_record]
+        for post_id in old:
+            del self.processed[post_id]
+        self.stats.processed_forgotten = len(old)
+
+        if self.stats.events_expired or old:
+            log.info(
+                "Retention: %s past events deleted, %s old post records forgotten", self.stats.events_expired, len(old)
+            )
+            self._save()
 
     # ---------- per account ----------
 

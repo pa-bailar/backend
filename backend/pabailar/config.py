@@ -68,6 +68,14 @@ DEFAULT_LOOKBACK_DAYS = 7
 # (it can take a few runs if the daily Gemini budget runs out); then it joins the regular sweep.
 BACKFILL_POSTS = 30
 BACKFILL_DAYS = 30
+
+# ---------- Retention ----------
+# Events dated more than this many days ago are deleted, and their flyers with them (git history keeps both).
+EVENT_RETENTION_DAYS = 30
+# Records of analyzed posts are forgotten after this many days. Must exceed BACKFILL_DAYS and the lookback:
+# older posts are never fetched again, so forgetting them can't cause a second analysis.
+PROCESSED_RETENTION_DAYS = 45
+
 BOGOTA_TZ = timezone(timedelta(hours=-5))  # Colombia has no daylight saving time
 
 

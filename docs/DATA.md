@@ -79,4 +79,4 @@ On the site, filtering by **Salsa** or **Bachata** also shows their variants.
 - **Re-analyzing a post** first removes what it contributed, so nothing is duplicated.
 - **Writes are atomic** (temp file + rename) and every load/save is validated against the models.
 - **Line endings are LF**, so files are identical on Windows and on the Linux CI runner.
-- **Retention (not enabled yet):** past events and their flyers will be pruned after ~60 days; see `docs/PLAN.md`.
+- **Retention:** every sweep deletes events dated more than 30 days ago and their flyers, and forgets analyzed posts older than 45 days; see `docs/PLAN.md`.
