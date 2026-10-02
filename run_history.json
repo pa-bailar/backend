@@ -1,0 +1,27 @@
+[
+  {
+    "finished_at": "2026-10-02T13:29:43-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/37044385776",
+    "accounts": 35,
+    "failed_accounts": [
+      "terrazasalsera"
+    ],
+    "skipped_accounts": [
+      "discojaguar.bta"
+    ],
+    "posts_analyzed": 121,
+    "events_new": 25,
+    "events_merged": 37,
+    "pending": 42,
+    "post_errors": 0,
+    "provisional": 39,
+    "rate_limited": true,
+    "out_of_time": true,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 161,
+      "gemini-3.8-flash": 15,
+      "gemini-3.5-flash": 17
+    },
+    "warnings": []
+  }
+]

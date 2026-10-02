@@ -268,5 +268,1215 @@
     "model": "gemini-3.5-flash",
     "provisional": false,
     "caption_hash": "5bfd0f4cfa5e0bee"
+  },
+  "18207044776366939": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/reel/Dc1-cpWi-p_/",
+    "processed_at": "2026-10-02T13:00:49-05:00",
+    "is_event_post": true,
+    "reason": "Anuncia un workshop de tres clases el 17 de septiembre con bailarinas de Tini.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
+    "caption_hash": "c3b9eeea1b687bec"
+  },
+  "18094649012398996": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/p/Dc4zTdpnL9_/",
+    "processed_at": "2026-10-02T13:04:36-05:00",
+    "is_event_post": true,
+    "reason": "Anuncio de la semana especial de clases 'Hagámoslo Real' del 7 al 11 de septiembre de 2026 en las diferentes sedes de Bureo Dance Studio.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "e92413277ff9f2bf"
+  },
+  "18108680687599548": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/p/Dc_91MfEkSk/",
+    "processed_at": "2026-10-02T13:04:40-05:00",
+    "is_event_post": false,
+    "reason": "La publicación muestra imágenes del detrás de escena y ensayos, pero no anuncia un evento específico próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "9b3cfe0b51bde914"
+  },
+  "18475359718114255": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/p/DdAxDa8CaOW/",
+    "processed_at": "2026-10-02T13:06:28-05:00",
+    "is_event_post": true,
+    "reason": "Se anuncia un taller de coreografía de una única sesión con el bailarín invitado Lil Andrew para el miércoles 9 de septiembre.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "b0e55e2a6aa00141"
+  },
+  "18013517321748037": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/reel/DdC6BaICc0N/",
+    "processed_at": "2026-10-02T13:06:29-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un mensaje motivacional y de agradecimiento sobre un cambio de sede, no anuncia ningún evento o taller específico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "00b83d7ccfba4525"
+  },
+  "17939885055096850": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/p/DdFeUdvnKUu/",
+    "processed_at": "2026-10-02T13:07:51-05:00",
+    "is_event_post": true,
+    "reason": "Anuncia un taller de danza de fecha única dictado por la coreógrafa Kirsten Dodgen en Bogotá.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "991242c1d32cee74"
+  },
+  "18126494698803654": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/p/DdHVGBwEXKq/",
+    "processed_at": "2026-10-02T13:07:57-05:00",
+    "is_event_post": false,
+    "reason": "El evento principal ocurrió el 14 de septiembre de 2026 y la fecha actual es posterior.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "7df1a01f239f3bf2"
+  },
+  "18265196218306960": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/p/DdMcCsinNUx/",
+    "processed_at": "2026-10-02T13:07:59-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un resumen de una clase que ya ocurrió y no anuncia un evento futuro.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "dc0adc5c95d8767b"
+  },
+  "18125843635842523": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/reel/DdPqK2VC0vA/",
+    "processed_at": "2026-10-02T13:08:03-05:00",
+    "is_event_post": false,
+    "reason": "La publicacion es un video de baile de recuerdo y no anuncia ningun evento futuro.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "6580accaad720f59"
+  },
+  "18649102459032582": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/p/DdXf-27HAIt/",
+    "processed_at": "2026-10-02T13:08:08-05:00",
+    "is_event_post": false,
+    "reason": "El evento anunciado ocurrió el 17 de septiembre de 2026 y la fecha actual es posterior.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "64b569e9f4fb287d"
+  },
+  "18124895125860558": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/p/DdbzZpcHMRt/",
+    "processed_at": "2026-10-02T13:11:59-05:00",
+    "is_event_post": true,
+    "reason": "Anuncia tres talleres de salsa y bachata con Bryan Jerez en diferentes sedes de Bureo para la semana del 22 al 24 de septiembre.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "b888230aadd9a319"
+  },
+  "18114879713055350": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/p/Ddhn6WUnI6U/",
+    "processed_at": "2026-10-02T13:12:01-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un resumen de un taller y evento que ya ocurrió en el pasado.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "148e6b5900b712c2"
+  },
+  "18113903033040937": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/reel/DdkR0l7Cynm/",
+    "processed_at": "2026-10-02T13:12:06-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un resumen o recuerdo de un evento pasado y no anuncia un evento próximo con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "364ba1af49414ea8"
+  },
+  "18007124306782865": {
+    "account": "bureodancestudio",
+    "permalink": "https://www.instagram.com/p/DdzzNf4nHS1/",
+    "processed_at": "2026-10-02T13:12:10-05:00",
+    "is_event_post": false,
+    "reason": "La publicación anuncia una promoción de paquetes y descuentos por tiempo limitado en lugar de un evento específico como un taller o fiesta.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "c4f9c27b81359799"
+  },
+  "18036448199836668": {
+    "account": "ludancestudios",
+    "permalink": "https://www.instagram.com/reel/Dc1ulYHpAGA/",
+    "processed_at": "2026-10-02T13:12:15-05:00",
+    "is_event_post": false,
+    "reason": "La publicacion es un recuento de un taller que ya ocurrio en el pasado.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "193f9e89eea1451e"
+  },
+  "18154168786450664": {
+    "account": "ludancestudios",
+    "permalink": "https://www.instagram.com/p/Dc9U9WYhVGP/",
+    "processed_at": "2026-10-02T13:13:34-05:00",
+    "is_event_post": true,
+    "reason": "Se anuncia la fiesta del primer aniversario de LuDance Estudio el 10 de octubre con puesta en escena y fiesta crossover.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "0e4fe1a700fb8919"
+  },
+  "18621881713023553": {
+    "account": "ludancestudios",
+    "permalink": "https://www.instagram.com/reel/DdAcsOIAqba/",
+    "processed_at": "2026-10-02T13:13:36-05:00",
+    "is_event_post": false,
+    "reason": "La publicación anuncia clases regulares de heels que ocurren todos los viernes, lo cual no cuenta como un evento de fecha única.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "69af32b12467b3aa"
+  },
+  "18090013664183863": {
+    "account": "ludancestudios",
+    "permalink": "https://www.instagram.com/reel/DdB9YQhNn73/",
+    "processed_at": "2026-10-02T13:13:44-05:00",
+    "is_event_post": false,
+    "reason": "El evento BACHATA FUSION EXPERIENCE ocurrió el 26 y 27 de septiembre y la fecha actual es posterior.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "732808243e8963b1"
+  },
+  "17908918632471320": {
+    "account": "ludancestudios",
+    "permalink": "https://www.instagram.com/reel/DdowLc9gj-F/",
+    "processed_at": "2026-10-02T13:14:01-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es una celebración de aniversario y un video recapitulativo, pero no anuncia un evento próximo específico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "f6f227b402a71bd5"
+  },
+  "18130959460746898": {
+    "account": "ludancestudios",
+    "permalink": "https://www.instagram.com/reel/DdtzuRlRFY4/",
+    "processed_at": "2026-10-02T13:14:08-05:00",
+    "is_event_post": false,
+    "reason": "La publicación anuncia una clase regular y recurrente de salsa los sábados, la cual no cuenta como un evento único.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "05640328dfb832da"
+  },
+  "18413821672080522": {
+    "account": "ludancestudios",
+    "permalink": "https://www.instagram.com/reel/Dd-HjEbASYM/",
+    "processed_at": "2026-10-02T13:14:41-05:00",
+    "is_event_post": false,
+    "reason": "El post es un recuerdo o resumen de un taller que ya ocurrió y no anuncia un evento próximo con una fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "624fb7666149a718"
+  },
+  "18129795415671668": {
+    "account": "ritmosacademiadebaile",
+    "permalink": "https://www.instagram.com/reel/Dc1TFr3B3VN/",
+    "processed_at": "2026-10-02T13:15:08-05:00",
+    "is_event_post": false,
+    "reason": "La publicación muestra un video de una clase regular de baile sin anunciar ningún evento específico próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "1875214d5715e969"
+  },
+  "18199884541372721": {
+    "account": "ritmosacademiadebaile",
+    "permalink": "https://www.instagram.com/p/Dc9vgbzts-c/",
+    "processed_at": "2026-10-02T13:15:22-05:00",
+    "is_event_post": true,
+    "reason": "Se anuncia la presentación de un show de teatro musical de salsa el 1 de noviembre de 2026.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "4f973031e210228e"
+  },
+  "18069630428738274": {
+    "account": "ritmosacademiadebaile",
+    "permalink": "https://www.instagram.com/p/DdP-4xctgJ4/",
+    "processed_at": "2026-10-02T13:15:55-05:00",
+    "is_event_post": true,
+    "reason": "Anuncia una función del musical 'Entre Ritmos y Latidos' el 1 de noviembre de 2026 en el Teatro Libre Chapinero.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "bd7cffaa9d97dd59"
+  },
+  "18333258193274240": {
+    "account": "studio110dance",
+    "permalink": "https://www.instagram.com/reel/DdPmVIRzX_8/",
+    "processed_at": "2026-10-02T13:16:12-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia clases regulares de baile para adultos mayores sin especificar una fecha concreta para un evento único.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "0d59487cfe782a1e"
+  },
+  "18125773468889093": {
+    "account": "studio110dance",
+    "permalink": "https://www.instagram.com/reel/DdxqcjQOmwA/",
+    "processed_at": "2026-10-02T13:16:16-05:00",
+    "is_event_post": false,
+    "reason": "El video explica cómo llegar a la sede de la academia y no anuncia ningún evento específico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "f6869a32b532e91b"
+  },
+  "18046982273805992": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/p/DczO_NfD6LY/",
+    "processed_at": "2026-10-02T13:16:21-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un meme o contenido humorístico sobre las clases de baile y no anuncia ningún evento específico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "7033a675dfa4e402"
+  },
+  "17931879759384676": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/p/Dc2NsJ1DCPS/",
+    "processed_at": "2026-10-02T13:16:26-05:00",
+    "is_event_post": false,
+    "reason": "La publicación promociona clases regulares y espacios generales de la academia pero no anuncia un evento específico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "0a68ed14c2e54d50"
+  },
+  "17947203279275710": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/reel/Dc_tqAAxnU9/",
+    "processed_at": "2026-10-02T13:16:30-05:00",
+    "is_event_post": false,
+    "reason": "La publicación muestra un video de humor sobre una actividad pasada de amigo secreto y no anuncia ningún evento futuro.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "3d2d12d438a616ef"
+  },
+  "18069384140744326": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/reel/DdEywp5xrEl/",
+    "processed_at": "2026-10-02T13:16:38-05:00",
+    "is_event_post": false,
+    "reason": "La publicación muestra la coreografía resultante de una clase regular y no anuncia ningún evento próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "2891e93bb47b1288"
+  },
+  "17915582604448980": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/reel/DdRXibuxQeL/",
+    "processed_at": "2026-10-02T13:16:42-05:00",
+    "is_event_post": false,
+    "reason": "La publicación anuncia un espacio recurrente semanal (todos los lunes) dirigido a alumnos regulares, lo cual no califica como un evento único.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "47156b7a315be8c1"
+  },
+  "18107461136192690": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/p/DdXoDyojO7I/",
+    "processed_at": "2026-10-02T13:16:49-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un mensaje reflexivo y de agradecimiento que no anuncia ningún evento específico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "589ccc5a66df774c"
+  },
+  "18218113489342549": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/reel/DdZAZEnRzv-/",
+    "processed_at": "2026-10-02T13:16:51-05:00",
+    "is_event_post": false,
+    "reason": "La publicacion es una promocion general para parejas pero no anuncia un evento especifico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "ca100fd088435276"
+  },
+  "18150230383557404": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/reel/DdbvSNmRPYC/",
+    "processed_at": "2026-10-02T13:16:56-05:00",
+    "is_event_post": false,
+    "reason": "La publicacion anuncia clases regulares semanales todos los martes en lugar de un evento unico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "d745293482197a94"
+  },
+  "18112428938584718": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/reel/DddRIK9uBTh/",
+    "processed_at": "2026-10-02T13:17:00-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un resumen fotográfico de una celebración pasada de amor y amistad.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "8c00ae33abb6e0cf"
+  },
+  "18149714359529479": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/reel/Ddkc60bsuu1/",
+    "processed_at": "2026-10-02T13:17:04-05:00",
+    "is_event_post": false,
+    "reason": "El video muestra un momento divertido de una clase regular de merengue sin anunciar ningún evento específico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "635ffdfaed487b35"
+  },
+  "17971442750947663": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/reel/DdmT4_BxS67/",
+    "processed_at": "2026-10-02T13:17:13-05:00",
+    "is_event_post": false,
+    "reason": "El video es un meme humorístico sobre clases de baile regulares y no anuncia ningún evento específico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "38d3e6d9675be020"
+  },
+  "18113027366013830": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/reel/Ddy93ePRVoQ/",
+    "processed_at": "2026-10-02T13:17:16-05:00",
+    "is_event_post": false,
+    "reason": "El post invita a tomar clases regulares escribiendo la palabra BACHATA, pero no anuncia un evento especifico unico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "f59f389a4aca237d"
+  },
+  "18026404658885665": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/p/Dd1nySHkXy2/",
+    "processed_at": "2026-10-02T13:17:22-05:00",
+    "is_event_post": false,
+    "reason": "El post promociona clases regulares y no anuncia un evento puntual con fecha especifica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "5dbe11bc3f4d0462"
+  },
+  "17974630266132703": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/p/Dd9x496vfN1/",
+    "processed_at": "2026-10-02T13:17:34-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un meme humorístico sobre bailar en la academia y no anuncia ningún evento específico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "fc7fbed8c8d6810c"
+  },
+  "17905684278510537": {
+    "account": "academyfeel",
+    "permalink": "https://www.instagram.com/reel/Dc1AIr1phfy/",
+    "processed_at": "2026-10-02T13:17:42-05:00",
+    "is_event_post": false,
+    "reason": "El texto menciona un evento pasado en Cali ya ocurrido.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "fc6f2e82a73833fa"
+  },
+  "18127381486751149": {
+    "account": "academyfeel",
+    "permalink": "https://www.instagram.com/p/Dc6hH77FVI7/",
+    "processed_at": "2026-10-02T13:18:01-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es una celebración de un premio obtenido en el pasado y no anuncia un evento próximo con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "76b5d0b9d76b5e7d"
+  },
+  "17907969771545676": {
+    "account": "academyfeel",
+    "permalink": "https://www.instagram.com/reel/Ddea3XbvDmI/",
+    "processed_at": "2026-10-02T13:18:10-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un resumen y agradecimiento por una competencia que ya ocurrió en el pasado.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "f284ce7cfd861593"
+  },
+  "18094427084387144": {
+    "account": "soondanz_company",
+    "permalink": "https://www.instagram.com/reel/DdUPDdOPNJH/",
+    "processed_at": "2026-10-02T13:18:24-05:00",
+    "is_event_post": false,
+    "reason": "La publicación promociona clases regulares de salsa sin anunciar un evento único con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "345438d4f58bcee8"
+  },
+  "17984251284078552": {
+    "account": "soondanz_company",
+    "permalink": "https://www.instagram.com/reel/DdZYjTlvl8W/",
+    "processed_at": "2026-10-02T13:18:46-05:00",
+    "is_event_post": false,
+    "reason": "El post es un recuento de una clase pasada de Heels y promociona la siguiente sin especificar una fecha.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "86e0e82087d79372"
+  },
+  "18356056747221099": {
+    "account": "soondanz_company",
+    "permalink": "https://www.instagram.com/reel/Ddm5MdhPaGH/",
+    "processed_at": "2026-10-02T13:18:49-05:00",
+    "is_event_post": false,
+    "reason": "La publicacion muestra un video de una clase regular de baile pasada y no anuncia ningun evento unico o taller especial con fecha especifica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "52f885d7942af593"
+  },
+  "18029912528681157": {
+    "account": "soondanz_company",
+    "permalink": "https://www.instagram.com/p/Dd1sHreG-nc/",
+    "processed_at": "2026-10-02T13:18:53-05:00",
+    "is_event_post": false,
+    "reason": "La publicación promociona clases regulares y continuas de bachata en lugar de un evento único con una fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "a58a3e708c94eacc"
+  },
+  "17913794670446865": {
+    "account": "imperiolatino",
+    "permalink": "https://www.instagram.com/p/Dc_wnmVPyoh/",
+    "processed_at": "2026-10-02T13:19:03-05:00",
+    "is_event_post": false,
+    "reason": "La publicación promociona las clases regulares y descuentos semanales de la academia, no un evento único con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "ee8bd9b7aa7a9127"
+  },
+  "18143422915496924": {
+    "account": "imperiolatino",
+    "permalink": "https://www.instagram.com/p/DdFXLfxH8gx/",
+    "processed_at": "2026-10-02T13:19:06-05:00",
+    "is_event_post": false,
+    "reason": "La publicación promociona las clases regulares de bachata con la profesora Sara Acero y no anuncia ningún evento o taller de fecha única.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "1d4c80826eb105d1"
+  },
+  "18176212447433419": {
+    "account": "imperiolatino",
+    "permalink": "https://www.instagram.com/p/DdHc8HkJ0ff/",
+    "processed_at": "2026-10-02T13:19:10-05:00",
+    "is_event_post": false,
+    "reason": "El evento anunciado ocurrió el 19 de septiembre de 2026 y la fecha actual es posterior.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "b2e1b96deb7c0947"
+  },
+  "18177695947442451": {
+    "account": "imperiolatino",
+    "permalink": "https://www.instagram.com/p/DdjjaEBDuo2/",
+    "processed_at": "2026-10-02T13:19:22-05:00",
+    "is_event_post": false,
+    "reason": "La publicación anuncia la incorporación de un nuevo profesor de ballet y clases regulares, pero no un evento único con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "c52c5cf2f1648d91"
+  },
+  "18128846989785657": {
+    "account": "imperiolatino",
+    "permalink": "https://www.instagram.com/reel/Ddrb-ViJect/",
+    "processed_at": "2026-10-02T13:19:24-05:00",
+    "is_event_post": false,
+    "reason": "El post es un resumen (recap) de un evento que ya ocurrió y no anuncia una fecha futura.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "49a607d3e9ba0d29"
+  },
+  "18100745444632280": {
+    "account": "imperiolatino",
+    "permalink": "https://www.instagram.com/p/Dd2On3BP7Xk/",
+    "processed_at": "2026-10-02T13:19:33-05:00",
+    "is_event_post": false,
+    "reason": "El anuncio es sobre alquiler de espacio y no sobre un evento específico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "d3c26a3995fedee5"
+  },
+  "17905517349593677": {
+    "account": "imperiolatino",
+    "permalink": "https://www.instagram.com/p/Dd9g0ifp6OW/",
+    "processed_at": "2026-10-02T13:19:35-05:00",
+    "is_event_post": false,
+    "reason": "La publicación anuncia descuentos por pago oportuno de mensualidades y no un evento único.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "e28fd59cd7c2f9d9"
+  },
+  "18016554014926349": {
+    "account": "mambo_y_control",
+    "permalink": "https://www.instagram.com/reel/Dc_rgYwSQBF/",
+    "processed_at": "2026-10-02T13:19:47-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia clases regulares de los sábados y no un evento único con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "5c742543e4c0582d"
+  },
+  "17881005324522990": {
+    "account": "mambo_y_control",
+    "permalink": "https://www.instagram.com/reel/DdRnHm2CrCT/",
+    "processed_at": "2026-10-02T13:19:48-05:00",
+    "is_event_post": false,
+    "reason": "El post recomienda aplicaciones para bailar y menciona un futuro curso pero no anuncia un evento específico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "2c9bf00610acae24"
+  },
+  "18071762753721686": {
+    "account": "mambo_y_control",
+    "permalink": "https://www.instagram.com/reel/DdiDdEEuYlX/",
+    "processed_at": "2026-10-02T13:19:53-05:00",
+    "is_event_post": false,
+    "reason": "La publicación anuncia clases regulares semanales de salsa, las cuales no cuentan como un evento único.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "f0aefea824f479e0"
+  },
+  "17896591305398161": {
+    "account": "mambo_y_control",
+    "permalink": "https://www.instagram.com/reel/DdmXwxZig1g/",
+    "processed_at": "2026-10-02T13:19:57-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia clases regulares y horarios fijos semanales en lugar de un evento único con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "d05b910dc24ac7a3"
+  },
+  "18018174977930391": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/Dc1R20lEchZ/",
+    "processed_at": "2026-10-02T13:20:23-05:00",
+    "is_event_post": true,
+    "reason": "Anuncia el evento de aniversario de Distrito Social con fecha del 31 de octubre al 2 de noviembre de 2026, con la presencia de Ricardo y Laura.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "5efb1247df342786"
+  },
+  "18409856125080489": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/Dc6W0owRIod/",
+    "processed_at": "2026-10-02T13:20:44-05:00",
+    "is_event_post": true,
+    "reason": "La publicación anuncia una programación de talleres y eventos especiales para el mes de septiembre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "9df5968618ba5a69"
+  },
+  "18127890811762567": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/Dc_hyzQkRy_/",
+    "processed_at": "2026-10-02T13:20:51-05:00",
+    "is_event_post": true,
+    "reason": "La publicación anuncia un evento de aniversario con la participación de Esteban y Valery.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "8fb4dfab721ef77b"
+  },
+  "18101050046369055": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/reel/DdB-rJXR9MV/",
+    "processed_at": "2026-10-02T13:21:00-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una clase magistral de Jack and Jill con bailarines invitados para el 13 de septiembre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "e23b3acf0eaa6714"
+  },
+  "17939085588098200": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/DdEeskQlg4V/",
+    "processed_at": "2026-10-02T13:22:06-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento de aniversario de tres días en Distrito Social con talleres de bachata.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "ac48442c5f78228c"
+  },
+  "18091073186556725": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/DdJk419kfie/",
+    "processed_at": "2026-10-02T13:22:14-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia el aniversario de Distrito Social con Duane y Aleja.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "b5ee62e6cff02521"
+  },
+  "18438785839135774": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/DdPlZN9xoMV/",
+    "processed_at": "2026-10-02T13:22:23-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un festival de aniversario de tres días con talleres y sociales.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "46fe7de43348d8c9"
+  },
+  "18101899421631677": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/DdZC9wlxNGr/",
+    "processed_at": "2026-10-02T13:22:34-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento social de Halloween para el 31 de octubre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "5336ec2f0cd9ab14"
+  },
+  "18133094761730072": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/reel/DdjYRcMBpPx/",
+    "processed_at": "2026-10-02T13:22:42-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un festival de tres días organizado por Distrito Social.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "f4a8cf30218774b9"
+  },
+  "17925664512421185": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/reel/Ddl9Dceh7GT/",
+    "processed_at": "2026-10-02T13:22:51-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia los eventos del aniversario de Distrito Social los días 31 de octubre, 1 y 2 de noviembre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "e03207ab45878163"
+  },
+  "18169606639420327": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/DdnIaEckdwf/",
+    "processed_at": "2026-10-02T13:22:54-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un resumen o recuerdo de un taller de improvisación que ya ocurrió, por lo que no anuncia un evento futuro.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "6e6a4deb8ef12498"
+  },
+  "18150552889543035": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/reel/Ddoi9bTR5PO/",
+    "processed_at": "2026-10-02T13:23:04-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento de aniversario con múltiples días y actividades.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "92d3ba63ced4d2b0"
+  },
+  "18125678203891135": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/DdsGHjXEZgT/",
+    "processed_at": "2026-10-02T13:23:08-05:00",
+    "is_event_post": false,
+    "reason": "La publicación promociona la venta de camisetas y productos de aniversario, pero no anuncia ningún evento específico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "962f120c7f4d9bdf"
+  },
+  "18021267338925064": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/DdwtU46JlFG/",
+    "processed_at": "2026-10-02T13:23:18-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia los preparativos y el festival de aniversario de Distrito Social para el 31 de octubre, 1 y 2 de noviembre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "17e5bd4ba1deaa85"
+  },
+  "18334628131261291": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/reel/Ddzawbytb5W/",
+    "processed_at": "2026-10-02T13:23:26-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia los talleres, social y fiesta de aniversario de Distrito Social del 31 de octubre al 2 de noviembre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "9cccfddb90f60443"
+  },
+  "17922037542488794": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/DdzF1yqRkuy/",
+    "processed_at": "2026-10-02T13:23:36-05:00",
+    "is_event_post": false,
+    "reason": "El post es un recordatorio del cierre del segundo corte de inscripciones para un festival y no un evento nuevo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "270dcf83f71365d3"
+  },
+  "18136397614653925": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/reel/Dd1uUJKp9_z/",
+    "processed_at": "2026-10-02T13:23:44-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un festival de aniversario de tres días con talleres y sociales.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "5b814793e0999654"
+  },
+  "17910069849519332": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/Dd1vOXnJacQ/",
+    "processed_at": "2026-10-02T13:23:54-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia el festival de aniversario de Distrito Social que se llevará a cabo del 31 de octubre al 2 de noviembre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "effb415f234061aa"
+  },
+  "18475727074116887": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/reel/Dd37MkXN4tk/",
+    "processed_at": "2026-10-02T13:24:03-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un festival de baile de tres días con talleres y social.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "0277ffc0b69ac587"
+  },
+  "18095793410543849": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/reel/Dd4djLxNDGk/",
+    "processed_at": "2026-10-02T13:24:12-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un festival de baile de tres días con talleres y sociales en Distrito Social.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "710b802b1fd26ab6"
+  },
+  "18153059854477991": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/Dd6iiQxxr_T/",
+    "processed_at": "2026-10-02T13:24:22-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia el último día del segundo corte de preventa para un festival de aniversario.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "9173f796daa3caf8"
+  },
+  "18016769585940879": {
+    "account": "danceinmotionclub",
+    "permalink": "https://www.instagram.com/reel/Dd2_z3ChG7A/",
+    "processed_at": "2026-10-02T13:24:32-05:00",
+    "is_event_post": false,
+    "reason": "El post es un video recapitulativo del show anual de la academia pero no anuncia una fecha para un próximo evento.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "b372fc08cf52b880"
+  },
+  "18120739681906964": {
+    "account": "danceinmotionclub",
+    "permalink": "https://www.instagram.com/p/Dd3A1YyB_Pz/",
+    "processed_at": "2026-10-02T13:24:41-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es solo una foto de grupo y no anuncia ningún evento próximo con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "c25683caf9f12ee6"
+  },
+  "18164322976483987": {
+    "account": "danceinmotionclub",
+    "permalink": "https://www.instagram.com/reel/Dd6bCSchsBr/",
+    "processed_at": "2026-10-02T13:24:50-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un video de un show pasado y no anuncia un evento próximo con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "98a52b46b0c76159"
+  },
+  "18113466149017426": {
+    "account": "danceinmotionclub",
+    "permalink": "https://www.instagram.com/p/Dd6bkJBBTUc/",
+    "processed_at": "2026-10-02T13:25:00-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un video o foto de presentación de grupo de baile sin fecha específica para un evento próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "2cc3c9152b67d5fc"
+  },
+  "17962219116197714": {
+    "account": "danceinmotionclub",
+    "permalink": "https://www.instagram.com/reel/Dd8vFnqBmtc/",
+    "processed_at": "2026-10-02T13:25:03-05:00",
+    "is_event_post": false,
+    "reason": "La imagen muestra un resumen o presentación pasada sin anunciar un evento futuro con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "31469d08ed8abd33"
+  },
+  "18159651883516437": {
+    "account": "danceinmotionclub",
+    "permalink": "https://www.instagram.com/p/Dd8vPYVBYZ7/",
+    "processed_at": "2026-10-02T13:25:13-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia un grupo de baile y muestra una foto de presentación pero no especifica la fecha, hora ni lugar de un evento.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "55cc20e1ad6070b8"
+  },
+  "17902083543361973": {
+    "account": "danceinmotionclub",
+    "permalink": "https://www.instagram.com/p/Dd-AgpkNX3t/",
+    "processed_at": "2026-10-02T13:25:23-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un taller de salsa estilo caleño para el 17 de octubre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "e3b0c44298fc1c14"
+  },
+  "18609561076049652": {
+    "account": "tubailecom",
+    "permalink": "https://www.instagram.com/reel/DczJpoqxAKh/",
+    "processed_at": "2026-10-02T13:25:27-05:00",
+    "is_event_post": false,
+    "reason": "El post promociona clases privadas a domicilio y no anuncia un evento especifico unico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "553811f57a5f9e6b"
+  },
+  "18039575954816775": {
+    "account": "tubailecom",
+    "permalink": "https://www.instagram.com/reel/Dc_i53BOP0H/",
+    "processed_at": "2026-10-02T13:25:32-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un concurso para ganar clases de baile y no anuncia un evento específico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "2542d1e4eb7bc9e8"
+  },
+  "17957743317250699": {
+    "account": "tubailecom",
+    "permalink": "https://www.instagram.com/reel/DdUiJ5Sxy_i/",
+    "processed_at": "2026-10-02T13:25:37-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un meme o video humorístico sobre amigos secretos y no anuncia ningún evento específico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "7b4f0a7c45060456"
+  },
+  "18132653167655934": {
+    "account": "tubailecom",
+    "permalink": "https://www.instagram.com/reel/DdcROOIxKut/",
+    "processed_at": "2026-10-02T13:25:41-05:00",
+    "is_event_post": false,
+    "reason": "La publicación ofrece clases de baile personalizadas para parejas como un servicio general, pero no anuncia ningún evento específico con fecha y hora.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "5d0802d95cf68a01"
+  },
+  "18420123475152701": {
+    "account": "tubailecom",
+    "permalink": "https://www.instagram.com/reel/Ddkf8aVNek3/",
+    "processed_at": "2026-10-02T13:25:45-05:00",
+    "is_event_post": false,
+    "reason": "La publicación anuncia un curso intensivo regular sin una fecha específica exacta.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "0ca2a38c697ae61c"
+  },
+  "18117387673959897": {
+    "account": "tubailecom",
+    "permalink": "https://www.instagram.com/reel/DdrwvbnRdY9/",
+    "processed_at": "2026-10-02T13:25:50-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un tutorial de baile y no anuncia ningún evento próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "ce8a8b1983ee03e3"
+  },
+  "18111328985123164": {
+    "account": "tubailecom",
+    "permalink": "https://www.instagram.com/reel/DdxGxdDRLek/",
+    "processed_at": "2026-10-02T13:25:54-05:00",
+    "is_event_post": false,
+    "reason": "El post promociona clases privadas regulares y no anuncia un evento específico de fecha única.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "b309cfa01524ee5e"
+  },
+  "17986966299027310": {
+    "account": "tubailecom",
+    "permalink": "https://www.instagram.com/p/Dd2Ghd4nexZ/",
+    "processed_at": "2026-10-02T13:25:59-05:00",
+    "is_event_post": false,
+    "reason": "El texto y la imagen muestran el recuento de un evento que ya ocurrió en el pasado y no anuncian un evento futuro.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "dd36f27e54f34f5a"
+  },
+  "18104343455267314": {
+    "account": "tubailecom",
+    "permalink": "https://www.instagram.com/reel/Dd90ugMxnmT/",
+    "processed_at": "2026-10-02T13:26:03-05:00",
+    "is_event_post": false,
+    "reason": "El post es de tipo motivacional y promocional sobre clases regulares de baile, sin anunciar ningún evento específico de fecha única.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "6d7d57ca45c753cf"
+  },
+  "18046796276809001": {
+    "account": "mover__se",
+    "permalink": "https://www.instagram.com/reel/DdCfr8yPC6O/",
+    "processed_at": "2026-10-02T13:26:12-05:00",
+    "is_event_post": false,
+    "reason": "La publicación anuncia clases regulares mensuales de flexibilidad y no un evento único con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "0933a54ffe0aeddc"
+  },
+  "17949659403256946": {
+    "account": "mover__se",
+    "permalink": "https://www.instagram.com/p/DdDAsk_DaDg/",
+    "processed_at": "2026-10-02T13:26:17-05:00",
+    "is_event_post": false,
+    "reason": "La publicacion es un mensaje motivacional sobre las clases y no anuncia ningun evento especifico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "fda7724564d7a556"
+  },
+  "18151270045532103": {
+    "account": "mover__se",
+    "permalink": "https://www.instagram.com/p/DdkNvmBuYKk/",
+    "processed_at": "2026-10-02T13:26:25-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un anuncio genérico de expectativa sin fecha ni detalles de un evento.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "78bbc64a7cabc165"
+  },
+  "18095873720432478": {
+    "account": "mover__se",
+    "permalink": "https://www.instagram.com/p/DdsFdkxNFCQ/",
+    "processed_at": "2026-10-02T13:26:35-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia el evento de clausura Mover-sé 2026 de la academia de baile.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "5d7c172d42e40eb0"
+  },
+  "18013505918746903": {
+    "account": "showstarscol",
+    "permalink": "https://www.instagram.com/reel/DdCb-uRxXxE/",
+    "processed_at": "2026-10-02T13:26:45-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento de social de bachata y crossover el 12 de septiembre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "78da75ca7552837b"
+  },
+  "18119490457941889": {
+    "account": "showstarscol",
+    "permalink": "https://www.instagram.com/p/DdZzJiSJJ4s/",
+    "processed_at": "2026-10-02T13:26:48-05:00",
+    "is_event_post": false,
+    "reason": "La fecha del evento ya pasó antes de la fecha actual.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "285587ba19699ac2"
+  },
+  "17974124537935313": {
+    "account": "showstarscol",
+    "permalink": "https://www.instagram.com/reel/DdcibWKOMXA/",
+    "processed_at": "2026-10-02T13:26:53-05:00",
+    "is_event_post": false,
+    "reason": "La publicacion anuncia una promocion de descuento en planes de clases y no un evento unico como un taller o fiesta.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "426eb996c2634843"
+  },
+  "18124482976842926": {
+    "account": "showstarscol",
+    "permalink": "https://www.instagram.com/reel/Dde1Xr1N2Xm/",
+    "processed_at": "2026-10-02T13:27:04-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una fiesta de aniversario de la academia Show Stars el próximo sábado 26 de septiembre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "efad3f52b8cfb0f4"
+  },
+  "18107639209923462": {
+    "account": "showstarscol",
+    "permalink": "https://www.instagram.com/p/Ddjlj4xEWqV/",
+    "processed_at": "2026-10-02T13:27:13-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una fiesta de aniversario de la academia.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "54970668d0f60121"
+  },
+  "18066587792777378": {
+    "account": "showstarscol",
+    "permalink": "https://www.instagram.com/p/Ddm6q22N86u/",
+    "processed_at": "2026-10-02T13:27:21-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una fiesta de aniversario con reggaetón clásico para el 26 de septiembre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "2c6caf1be3cb3852"
+  },
+  "18115508507019819": {
+    "account": "showstarscol",
+    "permalink": "https://www.instagram.com/p/DdsDqyLjVhJ/",
+    "processed_at": "2026-10-02T13:27:25-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un post motivacional e interactivo sobre excusas para no bailar, sin anunciar ningún evento específico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "9e3123dac528d9be"
+  },
+  "18209333182364945": {
+    "account": "showstarscol",
+    "permalink": "https://www.instagram.com/reel/Dd1_jlchSZ_/",
+    "processed_at": "2026-10-02T13:27:29-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es humorística sobre el trabajo en equipo y no anuncia ningún evento específico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "176f86bf07f64328"
+  },
+  "18185806897365695": {
+    "account": "reyesdelasalsa.col",
+    "permalink": "https://www.instagram.com/p/DdeDTJiB1YX/",
+    "processed_at": "2026-10-02T13:27:49-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una competencia internacional de salsa y bachata del 19 al 21 de marzo de 2027.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "90443b1d251eb8b7"
+  },
+  "17939961648366902": {
+    "account": "reyesdelasalsa.col",
+    "permalink": "https://www.instagram.com/reel/DdeHFzwxyOC/",
+    "processed_at": "2026-10-02T13:28:03-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia la competencia internacional Reyes de la Salsa del 19 al 21 de marzo de 2027.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "ab1f8fb7878d7fe1"
+  },
+  "18218496433344823": {
+    "account": "reyesdelasalsa.col",
+    "permalink": "https://www.instagram.com/reel/Ddlmk57xDYb/",
+    "processed_at": "2026-10-02T13:28:13-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una competencia internacional de salsa con fechas específicas en Bogotá.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "b53fb6c77b8c3102"
+  },
+  "17910685500495782": {
+    "account": "reyesdelasalsa.col",
+    "permalink": "https://www.instagram.com/p/DdmcmQkMZOa/",
+    "processed_at": "2026-10-02T13:28:21-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia la competencia internacional de baile Reyes de la Salsa del 19 al 21 de marzo de 2027.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "5e6873b228f400a7"
+  },
+  "18115421941982084": {
+    "account": "bachatamania_bogota",
+    "permalink": "https://www.instagram.com/p/DdIDt25nOeG/",
+    "processed_at": "2026-10-02T13:28:27-05:00",
+    "is_event_post": false,
+    "reason": "El evento anunciado ocurrió el 25 de septiembre y la fecha actual es el 2 de octubre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "196f2bc874cc11b6"
+  },
+  "18041124329684768": {
+    "account": "bachatamania_bogota",
+    "permalink": "https://www.instagram.com/reel/DdXkh1wgmVu/",
+    "processed_at": "2026-10-02T13:28:36-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un social de bachata con clase pre social para el sábado 19 de septiembre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "1a3301a0b5d9c2d1"
+  },
+  "17896312032393668": {
+    "account": "bachatamania_bogota",
+    "permalink": "https://www.instagram.com/reel/DdZ4gMbgmsf/",
+    "processed_at": "2026-10-02T13:28:46-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un taller de bachata con Christian y Natalia como antesala al social.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "aee7d4b9d1f857c9"
+  },
+  "18107746265597196": {
+    "account": "bachatamania_bogota",
+    "permalink": "https://www.instagram.com/reel/DdjxYgkAiHj/",
+    "processed_at": "2026-10-02T13:28:50-05:00",
+    "is_event_post": false,
+    "reason": "El evento anunciado ocurrió el 25 de septiembre, una fecha anterior al día de hoy.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "dd86bbe06ce91d34"
+  },
+  "17982270951095026": {
+    "account": "bachatamania_bogota",
+    "permalink": "https://www.instagram.com/p/Ddq9strApWj/",
+    "processed_at": "2026-10-02T13:28:54-05:00",
+    "is_event_post": false,
+    "reason": "El evento ocurrió el 25 de septiembre de 2026, fecha anterior al día de hoy (2 de octubre de 2026).",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "cbf02e81e795b986"
+  },
+  "18122906905711309": {
+    "account": "bachatamania_bogota",
+    "permalink": "https://www.instagram.com/reel/DdxHcx0Aif6/",
+    "processed_at": "2026-10-02T13:28:58-05:00",
+    "is_event_post": false,
+    "reason": "La publicacion es un recuerdo de un evento pasado y agradece a los asistentes.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "c633b7fe74507a0c"
+  },
+  "18411223324085711": {
+    "account": "bachatamania_bogota",
+    "permalink": "https://www.instagram.com/p/DdzBduzAN8d/",
+    "processed_at": "2026-10-02T13:29:08-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento social de bachata programado para el 17 de octubre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "191ef0b1734442c3"
+  },
+  "17980619367080550": {
+    "account": "germanbaila",
+    "permalink": "https://www.instagram.com/reel/DczI-ceBrYf/",
+    "processed_at": "2026-10-02T13:29:12-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un video humorístico sobre cómo sonaría su voz para el metro y menciona clases y fiestas regulares sin una fecha específica de evento próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "bd06a0b6b89a63db"
+  },
+  "17930487552145151": {
+    "account": "germanbaila",
+    "permalink": "https://www.instagram.com/reel/Dczkt9FOPPK/",
+    "processed_at": "2026-10-02T13:29:24-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia las próximas fechas del evento mensual de salsa Coca-Cola Bailable.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "1a0848bd6abce11b"
+  },
+  "18108572762327650": {
+    "account": "germanbaila",
+    "permalink": "https://www.instagram.com/reel/Dc36sb8zpVU/",
+    "processed_at": "2026-10-02T13:29:30-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento familiar dominical recurrente de salsa con fecha y hora específicas.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "5bec6e1994e3c125"
   }
 }
