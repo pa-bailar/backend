@@ -7,11 +7,11 @@ import pytest
 
 from pa_bailar import config, storage
 from pa_bailar.commands.sweep import summary_markdown
-from pa_bailar.extraction import ExtractionError
+from pa_bailar.gemini import ExtractionError, RejectedRequestError
 from pa_bailar.instagram import InstagramError
 from pa_bailar.models import PostAnalysis, ProcessedPost, Triage
 from pa_bailar.pipeline import Sweep
-from tests.factories import extracted, make_image, media, stored
+from tests.factories import event_id, extracted, make_image, media, stored
 
 FLYER_URL = "https://cdn.example/flyer.jpg"
 VIDEO_THUMB_URL = "https://cdn.example/video.jpg"
@@ -59,11 +59,13 @@ class FakeExtractor:
         not_events: set[str] = frozenset(),
         flash_available: bool = True,
         out_of_quota: bool = False,
+        rejected: frozenset[str] = frozenset(),
     ):
         self.analyses = analyses
         self.not_events = not_events
         self.flash_available = flash_available
         self.out_of_quota = out_of_quota
+        self.rejected = rejected  # post ids Gemini refuses (e.g. an image it can't read)
         self.known_seen: dict[str, list[str]] = {}
         self.extracted_posts: list[str] = []
 
@@ -81,6 +83,8 @@ class FakeExtractor:
     def extract(self, account, post, published, images, known_events, allow_provisional=True):
         if self.out_of_quota:
             raise ExtractionError("no quota")
+        if post["id"] in self.rejected:
+            raise RejectedRequestError("400 bad image")
         self.known_seen[post["id"]] = [event.id for event in known_events]
         self.extracted_posts.append(post["id"])
         if self.flash_available:
@@ -91,18 +95,10 @@ class FakeExtractor:
 
 
 @pytest.fixture(autouse=True)
-def isolated_files(tmp_path, monkeypatch):
-    monkeypatch.setattr(config, "DATA_DIR", tmp_path / "data")
-    monkeypatch.setattr(config, "FLYERS_DIR", tmp_path / "data" / "flyers")
-    monkeypatch.setattr(config, "EVENTS_FILE", tmp_path / "data" / "events.json")
-    monkeypatch.setattr(config, "META_FILE", tmp_path / "data" / "meta.json")
-    monkeypatch.setattr(config, "PROCESSED_POSTS_FILE", tmp_path / "state" / "processed_posts.json")
-    monkeypatch.setattr(config, "ACCOUNT_STATE_FILE", tmp_path / "state" / "accounts.json")
-    accounts = tmp_path / "accounts.txt"
-    accounts.write_text("academia\n# comment\n@otra\n", encoding="utf-8")
-    monkeypatch.setattr(config, "ACCOUNTS_FILE", accounts)
+def two_accounts_and_fake_images(isolated_files, monkeypatch):
+    """On top of the shared isolation (conftest.py): two accounts, and images without the network."""
+    config.ACCOUNTS_FILE.write_text("academia\n# comment\n@otra\n", encoding="utf-8")
     monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: make_image())
-    return tmp_path
 
 
 def run(instagram, extractor, days=7):
@@ -125,7 +121,7 @@ def test_flyer_then_video_of_the_same_event_become_one_event_with_two_posts():
     extractor = FakeExtractor(
         {
             "flyer": event_post("flyer", title="Social", start_time="20:00"),
-            "video": event_post("video", title="Ven a bailar", same_as="social-10-oct", start_time=None),
+            "video": event_post("video", title="Ven a bailar", same_as=event_id("Social"), start_time=None),
         }
     )
 
@@ -135,7 +131,7 @@ def test_flyer_then_video_of_the_same_event_become_one_event_with_two_posts():
     assert len(events) == 1
     assert [m["post_id"] for m in events[0]["media"]] == ["flyer", "video"]
     assert events[0]["title"] == "Social" and events[0]["start_time"] == "20:00"
-    assert extractor.known_seen["video"] == ["social-10-oct"]  # Gemini was told about the earlier event
+    assert extractor.known_seen["video"] == [event_id("Social")]  # Gemini was told about the earlier event
     assert (stats.events_new, stats.events_merged) == (1, 1)
 
 
@@ -226,7 +222,7 @@ def test_provisional_extraction_is_upgraded_when_flash_is_back():
     assert read(config.PROCESSED_POSTS_FILE)["p1"]["provisional"] is False
     events = read(config.EVENTS_FILE)
     assert len(events) == 1 and events[0]["title"] == "Leído por Flash"
-    assert events[0]["id"] == "leido-por-lite-10-oct"  # the URL shared meanwhile keeps working
+    assert events[0]["id"] == event_id("Leído por Lite")  # the URL shared meanwhile keeps working
 
 
 def test_provisional_posts_wait_while_flash_is_still_out():
@@ -336,3 +332,39 @@ def test_a_rate_limit_stops_the_sweep_instead_of_spending_more_calls():
     instagram = FakeInstagram({"academia": limited, "otra": [post("p1")]})
     stats = run(instagram, FakeExtractor({"p1": event_post("p1")}))
     assert list(instagram.limits) == ["academia"] and stats.accounts == 1 and stats.failed_accounts == 1
+
+
+# ---------- posts that can't be processed ----------
+
+
+def test_a_post_gemini_rejects_is_recorded_once_instead_of_retried_forever():
+    instagram = FakeInstagram({"academia": [post("bad")], "otra": []})
+    stats = run(instagram, FakeExtractor({}, rejected=frozenset({"bad"})))
+    assert stats.errors == 1 and stats.pending == 0
+    assert "rechazado" in storage.load_processed_posts()["bad"].reason
+    assert read(config.ACCOUNT_STATE_FILE)["academia"]["backfill_done"] is True  # the first sweep can finish
+
+    again = FakeExtractor({}, rejected=frozenset({"bad"}))
+    run(instagram, again)
+    assert again.extracted_posts == []  # not sent to Gemini again
+
+
+def test_a_flyer_that_cant_be_saved_leaves_the_post_pending(monkeypatch):
+    def broken_disk(*args, **kwargs):
+        raise OSError("disk full")
+
+    monkeypatch.setattr("pa_bailar.pipeline._save_flyers", broken_disk)
+    stats = run(FakeInstagram({"academia": [post("p1")], "otra": []}), FakeExtractor({"p1": event_post("p1")}))
+    assert stats.pending == 1 and "p1" not in storage.load_processed_posts()
+    assert read(config.ACCOUNT_STATE_FILE)["academia"]["backfill_done"] is False
+
+
+def test_an_unexpected_error_loses_one_account_not_the_run():
+    class Broken(FakeInstagram):
+        def fetch_recent_posts(self, account, limit=config.POSTS_PER_ACCOUNT):
+            if account == "academia":
+                raise KeyError("business_discovery")
+            return super().fetch_recent_posts(account, limit)
+
+    stats = run(Broken({"academia": [], "otra": [post("p1")]}), FakeExtractor({"p1": event_post("p1")}))
+    assert stats.errors == 1 and stats.events_new == 1

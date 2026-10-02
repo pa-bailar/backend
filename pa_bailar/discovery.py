@@ -10,14 +10,16 @@ Results are cached in private/discovery.json, so the tool can stop and resume.
 
 import json
 import re
-import unicodedata
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel
 
+from . import storage
 from .models import AccountClassification
+from .text import fold
 
 DANCE_KEYWORDS = [
     "bail", "danc", "danz", "salsa", "bachat", "kizomba", "zouk", "mambo", "casino", "timba", "merengue",
@@ -42,14 +44,9 @@ Be strict about Bogotá: "yes" only with evidence (Bogotá, BTA, a Bogotá neigh
 "no" when another city or country is stated; "unknown" otherwise."""
 
 
-def _plain(text: str) -> str:
-    decomposed = unicodedata.normalize("NFKD", (text or "").casefold())
-    return "".join(char for char in decomposed if not unicodedata.combining(char))
-
-
 def dance_score(*texts: str) -> int:
     """How many dance keywords appear in the texts (accent- and case-insensitive)."""
-    plain = " ".join(_plain(text) for text in texts)
+    plain = " ".join(fold(text) for text in texts)
     return sum(1 for keyword in DANCE_KEYWORDS if keyword in plain)
 
 
@@ -99,21 +96,17 @@ def load_cache(path: Path) -> dict[str, DiscoveredAccount]:
 
 
 def save_cache(path: Path, cache: dict[str, DiscoveredAccount]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    data = {username: account.model_dump(mode="json") for username, account in cache.items()}
-    temporary = path.with_suffix(".tmp")
-    temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    temporary.replace(path)
+    storage.write_json(path, {username: account.model_dump(mode="json") for username, account in cache.items()})
 
 
-def profile_hint(profile: dict[str, Any]) -> int:
+def profile_hint(profile: Mapping[str, Any]) -> int:
     captions = [item.get("caption") or "" for item in profile.get("media", {}).get("data", [])]
     return dance_score(
         profile.get("username", ""), profile.get("name") or "", profile.get("biography") or "", *captions
     )
 
 
-def classify_prompt(profile: dict[str, Any]) -> str:
+def classify_prompt(profile: Mapping[str, Any]) -> str:
     captions = [
         f"- {(item.get('caption') or '').replace(chr(10), ' ')[:300]}"
         for item in profile.get("media", {}).get("data", [])
@@ -164,24 +157,25 @@ def is_recommended(c: AccountClassification) -> bool:
 
 
 def report_sections(cache: dict[str, DiscoveredAccount], already_followed: set[str]) -> dict[str, list[ReportRow]]:
-    classified = [a for a in cache.values() if a.classification and a.username not in already_followed]
-    recommended = [a for a in classified if is_recommended(a.classification)]
-    maybe = [
-        a
-        for a in classified
-        if a not in recommended and a.classification.kind != "not_dance" and a.classification.in_bogota != "no"
+    classified = [
+        (a, a.classification) for a in cache.values() if a.classification and a.username not in already_followed
     ]
+    recommended = [a for a, c in classified if is_recommended(c)]
+    maybe = [a for a, c in classified if not is_recommended(c) and c.kind != "not_dance" and c.in_bogota != "no"]
 
     def order(accounts: list[DiscoveredAccount]) -> list[ReportRow]:
         rank = {"yes": 0, "unknown": 1, "no": 2}
-        accounts = sorted(
-            accounts,
-            key=lambda a: (
-                rank[a.classification.in_bogota],
-                not a.classification.announces_events,
-                -int((a.profile or {}).get("followers_count", 0) or 0),
-            ),
-        )
+
+        def sort_key(account: DiscoveredAccount) -> tuple[int, bool, int]:
+            c = account.classification
+            assert c is not None  # only classified accounts reach the report
+            return (
+                rank[c.in_bogota],
+                not c.announces_events,
+                -int((account.profile or {}).get("followers_count") or 0),
+            )
+
+        accounts = sorted(accounts, key=sort_key)
         return [_row(account) for account in accounts]
 
     return {"recommended": order(recommended), "maybe": order(maybe)}

@@ -1,23 +1,18 @@
 """Clean what Gemini returns before it is stored: the frontend relies on these formats."""
 
 import re
-import unicodedata
+from collections.abc import Sequence
 from datetime import date, time
 
 from .models import STYLES, ExtractedEvent
+from .text import fold
 
 _TIME_PATTERN = re.compile(r"^(\d{1,2}):(\d{2})$")
 
 
-def _key(text: str) -> str:
-    """Lowercase, single spaces, no accents: 'Salsa  Caleña' → 'salsa calena'."""
-    decomposed = unicodedata.normalize("NFKD", text.casefold())
-    return " ".join("".join(char for char in decomposed if not unicodedata.combining(char)).split())
-
-
 # Accent-insensitive names and synonyms → the style list in models.py.
 _STYLE_SYNONYMS = {
-    **{_key(style): style for style in STYLES},
+    **{fold(style): style for style in STYLES},
     "mambo": "salsa en línea",
     "on1": "salsa en línea",
     "on2": "salsa en línea",
@@ -83,13 +78,13 @@ def parse_time(value: str | None) -> str | None:
 
 def normalize_style(style: str) -> str | None:
     """A style from the list for any spelling or synonym; 'otro' for unknown ones, None for blanks."""
-    key = _key(style)
+    key = fold(style)
     if not key:
         return None
     return _STYLE_SYNONYMS.get(key, "otro")
 
 
-def normalize_styles(styles: list[str]) -> list[str]:
+def normalize_styles(styles: Sequence[str]) -> list[str]:
     """Styles from the list, without duplicates, in their original order.
 
     The generic 'salsa' / 'bachata' is dropped when a specific variant of it is present.

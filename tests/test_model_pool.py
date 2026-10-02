@@ -3,7 +3,7 @@
 import pytest
 from google.genai import errors
 
-from pa_bailar import config, extraction
+from pa_bailar import config, gemini
 from pa_bailar.models import Triage
 
 
@@ -30,27 +30,22 @@ def client_error(code: int, message: str) -> errors.ClientError:
     return errors.ClientError(code, {"error": {"code": code, "message": message, "status": "X"}})
 
 
+class FakeClient:
+    def __init__(self):
+        self.models = FakeModels({})
+
+
 @pytest.fixture
 def pool(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "GEMINI_USAGE_FILE", tmp_path / "usage.json")
     monkeypatch.setattr(config, "PACING_MARGIN_SECONDS", 0)
-    monkeypatch.setattr(extraction.time, "sleep", lambda seconds: None)
-    instance = extraction.ModelPool.__new__(extraction.ModelPool)
-    instance._day = extraction._quota_day()
-    instance._used = extraction.Counter()
-    instance._last_call = {}
-    instance.requests_this_run = extraction.Counter()
-    return instance
+    monkeypatch.setattr(gemini.time, "sleep", lambda seconds: None)
+    return gemini.ModelPool("unused-key", client=FakeClient())
 
 
 def with_models(pool, behaviour):
-    fake = FakeModels(behaviour)
-
-    class Client:
-        models = fake
-
-    pool._client = Client()
-    return fake
+    pool._client.models.behaviour = behaviour
+    return pool._client.models
 
 
 ANSWER = Triage(is_event_post=True, reason="ok")
@@ -87,12 +82,26 @@ def test_models_without_budget_are_skipped_without_a_request(pool):
 
 def test_no_model_left_raises_extraction_error(pool):
     with_models(pool, {"gemini-3.8-flash": [client_error(404, "not found")]})
-    with pytest.raises(extraction.ExtractionError):
+    with pytest.raises(gemini.ExtractionError):
         pool.generate(["gemini-3.8-flash"], [], Triage)
 
 
 def test_usage_is_saved_and_counted_per_day(pool):
     with_models(pool, {"gemini-3.5-flash-lite": [ANSWER]})
     pool.generate(["gemini-3.5-flash-lite"], [], Triage)
-    saved = extraction.storage.load_gemini_usage()
-    assert saved == {"day": extraction._quota_day(), "requests": {"gemini-3.5-flash-lite": 1}}
+    saved = gemini.storage.load_gemini_usage()
+    assert saved == {"day": gemini._quota_day(), "requests": {"gemini-3.5-flash-lite": 1}}
+
+
+def test_a_request_gemini_refuses_is_permanent_not_retried(pool):
+    fake = with_models(pool, {"gemini-3.8-flash": [client_error(400, "Unable to process input image")]})
+    with pytest.raises(gemini.RejectedRequestError):
+        pool.generate(("gemini-3.8-flash", "gemini-3.5-flash"), [], Triage)
+    assert fake.calls == ["gemini-3.8-flash"]  # no retry, no fallback: the request itself is the problem
+
+
+def test_server_errors_are_retried(pool):
+    busy = errors.ServerError(503, {"error": {"code": 503, "message": "overloaded", "status": "UNAVAILABLE"}})
+    fake = with_models(pool, {"gemini-3.8-flash": [busy, ANSWER]})
+    assert pool.generate(("gemini-3.8-flash",), [], Triage) == (ANSWER, "gemini-3.8-flash")
+    assert fake.calls == ["gemini-3.8-flash", "gemini-3.8-flash"]

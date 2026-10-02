@@ -12,3 +12,14 @@ extend-exclude = [".venv"]
 [tool.ruff.lint]
 # pycodestyle, pyflakes, import order, naming, pyupgrade, bugbear, simplify
 select = ["E", "W", "F", "I", "N", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["pa_bailar"]
+plugins = ["pydantic.mypy"]
+strict = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["dotenv.*"]
+ignore_missing_imports = true

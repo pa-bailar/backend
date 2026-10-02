@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 
 from pa_bailar import config
+from pa_bailar.logs import setup_logging
 from pa_bailar.pipeline import RunStats, Sweep
 
 
@@ -59,10 +60,7 @@ def main(argv: list[str] | None = None) -> None:
         help=f"only analyze posts published in the last N days (default {config.DEFAULT_LOOKBACK_DAYS})",
     )
     args = parser.parse_args(argv)
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
-    # Third-party libraries log every HTTP request at INFO; keep only their warnings.
-    for noisy in ("httpx", "google_genai", "urllib3"):
-        logging.getLogger(noisy).setLevel(logging.WARNING)
+    setup_logging()
 
     stats = Sweep(lookback_days=args.days).run()
 

@@ -7,6 +7,7 @@ Steps:
   3. Copy the new META_ACCESS_TOKEN into the GitHub secret of the same name.
 """
 
+import argparse
 import re
 from datetime import datetime
 from typing import Any
@@ -18,8 +19,11 @@ from pa_bailar.instagram import InstagramClient, InstagramError
 
 
 def graph_get(path: str, **params: Any) -> dict[str, Any]:
-    response = requests.get(f"{config.GRAPH_API_URL}/{path}", params=params, timeout=config.HTTP_TIMEOUT_SECONDS)
-    data = response.json()
+    try:
+        response = requests.get(f"{config.GRAPH_API_URL}/{path}", params=params, timeout=config.HTTP_TIMEOUT_SECONDS)
+        data: dict[str, Any] = response.json()
+    except (requests.RequestException, ValueError) as error:
+        raise SystemExit(f"Could not reach Meta: {error}") from error
     if "error" in data:
         raise SystemExit(f"Meta error: {data['error'].get('message')}")
     return data
@@ -32,7 +36,7 @@ def save_token(token: str) -> None:
     text, replaced = re.subn(r"^META_ACCESS_TOKEN=.*$", line, text, flags=re.MULTILINE)
     if not replaced:
         text = f"{text.rstrip()}\n{line}\n" if text.strip() else f"{line}\n"
-    config.ENV_FILE.write_text(text, encoding="utf-8")
+    config.ENV_FILE.write_text(text, encoding="utf-8", newline="\n")
 
 
 def describe_expiry(token: str, app_token: str) -> str:
@@ -44,6 +48,10 @@ def describe_expiry(token: str, app_token: str) -> str:
 
 
 def main(argv: list[str] | None = None) -> None:
+    argparse.ArgumentParser(
+        prog="python -m pa_bailar refresh-token",
+        description="Turn the Graph API Explorer token in .env into a Page token that does not expire, and save it.",
+    ).parse_args(argv)
     # Read here, not at import: only this command needs the Meta app's id and secret (local .env only).
     app_id = config.require_env("META_APP_ID")
     app_secret = config.require_env("META_APP_SECRET")
@@ -75,7 +83,10 @@ def main(argv: list[str] | None = None) -> None:
     print(f"Page token for '{page['name']}': expires {describe_expiry(page_token, app_token)}")
 
     # 3. Keep the Page token if it can use Business Discovery; otherwise fall back to the 60-day token.
-    test_account = storage.read_accounts()[0]
+    accounts = storage.read_accounts()
+    if not accounts:
+        raise SystemExit("accounts.txt is empty: add an academy to test Business Discovery with.")
+    test_account = accounts[0]
     try:
         InstagramClient(page_token, ig_user_id).fetch_recent_posts(test_account)
     except InstagramError as error:
