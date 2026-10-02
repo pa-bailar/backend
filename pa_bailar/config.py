@@ -80,8 +80,8 @@ SWEEP_TIMES = ("05:23", "12:47")
 BACKFILL_POSTS = 30
 BACKFILL_DAYS = 30
 
-# A run stops starting new Gemini work after this long and leaves the rest for the next run, well inside
-# the workflow's 45-minute timeout: a timed-out run loses everything it did (and its quota).
+# A run stops starting new Gemini work after this long and leaves the rest for the next run, inside the
+# sweep step's 35-minute timeout (the job's is 60): the steps after it still save the state and the data.
 MAX_RUN_MINUTES = 30
 
 # ---------- Retention ----------
