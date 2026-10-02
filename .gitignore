@@ -1,6 +1,6 @@
 # Secrets and personal data (e.g. your Instagram data export)
 .env
-backend/private/
+private/
 
 # Python
 .venv/
@@ -8,4 +8,4 @@ __pycache__/
 .ruff_cache/
 
 # Sweep state: kept in the sweep-state branch on CI, local files for local runs
-backend/state/*.json
+state/*.json

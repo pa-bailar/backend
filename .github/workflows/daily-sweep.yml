@@ -35,7 +35,7 @@ concurrency:
 env:
   SITE_OWNER: pa-bailar
   SITE_REPO: pa-bailar.github.io
-  STATE_DIR: backend/state
+  STATE_DIR: state
   MERGE_TIMEOUT_MINUTES: 20
 
 jobs:
@@ -73,19 +73,18 @@ jobs:
         with:
           python-version-file: .python-version
           cache: pip
-          cache-dependency-path: backend/requirements.txt
+          cache-dependency-path: requirements.txt
 
-      - run: pip install -r backend/requirements.txt
+      - run: pip install -r requirements.txt
 
       - name: Run the sweep
-        working-directory: backend
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           DATA_DIR: ${{ github.workspace }}/site/data
           LOOKBACK_DAYS: ${{ inputs.days || '7' }}
-        run: python run_pipeline.py --days "$LOOKBACK_DAYS"
+        run: python -m pa_bailar sweep --days "$LOOKBACK_DAYS"
 
       # Kept even when the sweep failed partway: its progress (analyzed posts) is real.
       - name: Save the sweep state

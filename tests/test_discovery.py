@@ -2,8 +2,8 @@
 
 import json
 
-from pabailar import discovery
-from pabailar.models import AccountClassification
+from pa_bailar import discovery
+from pa_bailar.models import AccountClassification
 
 HTML_EXPORT = """<main>
 <div><h2>zafradance</h2><div><a target="_blank" href="https://www.instagram.com/_u/zafradance">x</a></div></div>

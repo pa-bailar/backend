@@ -1,7 +1,7 @@
 [project]
-name = "pabailar"
+name = "pa-bailar-backend"
 version = "0.1.0"
-description = "Collects one-time dance events in Bogotá from Instagram and writes them to data/."
+description = "Collects one-time dance events in Bogotá from Instagram and publishes them to the site."
 requires-python = ">=3.12"
 
 [tool.ruff]

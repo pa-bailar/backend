@@ -2,7 +2,7 @@
 version: 2
 updates:
   - package-ecosystem: pip
-    directory: /backend
+    directory: /
     schedule:
       interval: weekly
       day: monday

@@ -1,11 +1,11 @@
 """Find dance academies in Bogotá among the accounts you follow on Instagram.
 
 Input: your Instagram data export ("Followers and following"), HTML or JSON. It stays on your PC
-(backend/private/ is git-ignored). For each followed account:
+(private/ is git-ignored). For each followed account:
   1. Instagram (Business Discovery): personal or private accounts are rejected → discarded, free.
   2. Local filter: only business accounts with a dance hint in their name, bio or recent captions go on.
   3. Gemini Flash-Lite classifies them: academy / venue / organizer / …, in Bogotá or not.
-Results are cached in backend/private/discovery.json, so the tool can stop and resume.
+Results are cached in private/discovery.json, so the tool can stop and resume.
 """
 
 import json

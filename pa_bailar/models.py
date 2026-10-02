@@ -142,7 +142,7 @@ class ProcessedPost(BaseModel):
     caption_hash: str | None = None
 
 
-# ---------- Account discovery (tools/discover_accounts) ----------
+# ---------- Account discovery (python -m pa_bailar discover) ----------
 
 AccountKind = Literal["academy", "venue", "organizer", "dance_company", "teacher", "dance_other", "not_dance"]
 

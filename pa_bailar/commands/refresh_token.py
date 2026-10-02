@@ -1,9 +1,9 @@
-"""Turn a short-lived Graph API Explorer token into a Page token that does not expire.
+"""refresh-token: turn a short-lived Graph API Explorer token into a Page token that does not expire.
 
 Only needed again if the token stops working (e.g. you changed your Facebook password).
 Steps:
-  1. Paste a NEW token from the Graph API Explorer into META_ACCESS_TOKEN in backend/.env.
-  2. From the backend folder run:  .venv\\Scripts\\python refresh_token.py
+  1. Paste a NEW token from the Graph API Explorer into META_ACCESS_TOKEN in .env (repository root).
+  2. From the repository root run:  .venv\\Scripts\\python -m pa_bailar refresh-token
   3. Copy the new META_ACCESS_TOKEN into the GitHub secret of the same name.
 """
 
@@ -13,8 +13,8 @@ from typing import Any
 
 import requests
 
-from pabailar import config, storage
-from pabailar.instagram import InstagramClient, InstagramError
+from pa_bailar import config, storage
+from pa_bailar.instagram import InstagramClient, InstagramError
 
 APP_ID = config.require_env("META_APP_ID")
 APP_SECRET = config.require_env("META_APP_SECRET")
@@ -47,7 +47,7 @@ def describe_expiry(token: str) -> str:
     return "never" if expires_at == 0 else datetime.fromtimestamp(expires_at).strftime("%Y-%m-%d %H:%M")
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     short_token = config.require_env("META_ACCESS_TOKEN")
 
     # 1. Short-lived token -> ~60-day user token

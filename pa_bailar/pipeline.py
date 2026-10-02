@@ -162,8 +162,8 @@ class Sweep:
             username = self.instagram.check_token()
         except InstagramError as error:
             raise SystemExit(
-                f"Instagram token invalid ({error}). Generate a new one, run refresh_token.py "
-                "and update META_ACCESS_TOKEN (backend/.env and the GitHub secret)."
+                f"Instagram token invalid ({error}). Generate a new one, run `python -m pa_bailar refresh-token` "
+                "and update META_ACCESS_TOKEN (.env and the GitHub secret)."
             ) from error
         log.info("Instagram token OK (@%s)", username)
 

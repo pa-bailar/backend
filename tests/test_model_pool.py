@@ -3,8 +3,8 @@
 import pytest
 from google.genai import errors
 
-from pabailar import config, extraction
-from pabailar.models import Triage
+from pa_bailar import config, extraction
+from pa_bailar.models import Triage
 
 
 class FakeModels:

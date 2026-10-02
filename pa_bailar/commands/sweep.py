@@ -1,8 +1,8 @@
-"""Run the daily sweep: collect one-time dance events from the accounts in accounts.txt.
+"""sweep: collect one-time dance events from the accounts in accounts.txt.
 
-Usage (from the backend folder):
-    .venv\\Scripts\\python run_pipeline.py             # posts from the last 7 days
-    .venv\\Scripts\\python run_pipeline.py --days 14   # look further back
+Usage (from the repository root):
+    .venv\\Scripts\\python -m pa_bailar sweep             # posts from the last 7 days
+    .venv\\Scripts\\python -m pa_bailar sweep --days 14   # look further back
 """
 
 import argparse
@@ -10,8 +10,8 @@ import logging
 import os
 from pathlib import Path
 
-from pabailar import config
-from pabailar.pipeline import RunStats, Sweep
+from pa_bailar import config
+from pa_bailar.pipeline import RunStats, Sweep
 
 
 def summary_markdown(stats: RunStats) -> str:
@@ -50,15 +50,15 @@ def summary_markdown(stats: RunStats) -> str:
     )
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(prog="python -m pa_bailar sweep", description=__doc__.splitlines()[0])
     parser.add_argument(
         "--days",
         type=int,
         default=config.DEFAULT_LOOKBACK_DAYS,
         help=f"only analyze posts published in the last N days (default {config.DEFAULT_LOOKBACK_DAYS})",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     # Third-party libraries log every HTTP request at INFO; keep only their warnings.
     for noisy in ("httpx", "google_genai", "urllib3"):

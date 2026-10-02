@@ -1,6 +1,6 @@
 """The same event announced by several posts (flyer, video, reminder) becomes one event."""
 
-from pabailar.merging import detach_post, find_existing, looks_like_same_event, merge_into
+from pa_bailar.merging import detach_post, find_existing, looks_like_same_event, merge_into
 from tests.factories import extracted, media, stored
 
 # ---------- matching ----------
