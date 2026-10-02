@@ -87,7 +87,7 @@ Everything runs on GitHub Actions:
 | Workflow | When | What |
 |---|---|---|
 | `ci` | Every pull request | Lint, format check and unit tests. The required check on `main`. |
-| `daily-sweep` | Every day at 5:23 AM and 12:47 PM Bogotá, or *Run workflow* | Instagram → Gemini, writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is saved to the `sweep-state` branch. |
+| `daily-sweep` | Every day at 5:23 AM and 12:47 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini, writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is saved to the `sweep-state` branch. |
 
 `main` is protected by the `protect-main` ruleset with **no bypass**: changes only arrive through
 squash-merged pull requests that pass `ci`; force pushes and deletion are blocked.
@@ -96,6 +96,29 @@ Settings → Secrets and variables → Actions:
 - Secrets: `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `APP_PRIVATE_KEY` (the pa-bailar-bot
   App's private key), and optionally `HEALTHCHECK_URL`.
 - Variables: `APP_ID` (the pa-bailar-bot App's id).
+
+### What starts the sweep
+
+**cron-job.org** (free) starts the two daily runs, not GitHub's own `schedule` trigger. That trigger
+never fired in this repository: it's a known, undocumented problem of new private repositories, with no
+fix from GitHub.
+
+- **The jobs:** `pa-bailar sweep 5:23` and `pa-bailar sweep 12:47`, in the America/Bogota time zone.
+- **What each job does:** it calls GitHub's API to run the workflow, the same as pressing *Run workflow*:
+  - `POST https://api.github.com/repos/pa-bailar/backend/actions/workflows/daily-sweep.yml/dispatches`
+  - body `{"ref":"main"}`
+  - headers `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28` and
+    `Content-Type: application/json`
+  - `Authorization: Bearer <token>`
+- **The token:** a fine-grained token owned by `pa-bailar`, limited to this repository and to the
+  **Actions: read and write** permission. It can start or cancel runs, but can't read the code or the secrets.
+- **When it fails:**
+  - cron-job.org emails if a call fails, for example a `401` once the token expires.
+  - healthchecks.io emails if no run arrives.
+  - When the token expires, create a new one the same way and replace it in both jobs.
+- **Don't add a `schedule:` trigger back.** If GitHub's scheduler started working, every run would happen
+  twice. They would never overlap (the `data` concurrency group queues them), but the second one would
+  spend Instagram quota for nothing.
 
 ## Monitoring the sweeps
 
