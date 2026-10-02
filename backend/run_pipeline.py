@@ -22,15 +22,19 @@ def main() -> None:
     )
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(message)s")
+    # Third-party libraries log every HTTP request at INFO; keep only their warnings.
+    for noisy in ("httpx", "google_genai", "urllib3"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
 
     stats = Sweep(lookback_days=args.days).run()
 
     logging.info(
-        "\nDone: %s accounts, %s posts analyzed, %s events saved, %s recurring/undated discarded, "
-        "%s flyers removed, %s errors.",
+        "\nDone: %s accounts, %s posts analyzed, %s new events, %s posts merged into existing events, "
+        "%s recurring/undated discarded, %s flyers removed, %s errors.",
         stats.accounts,
         stats.posts_analyzed,
-        stats.events_saved,
+        stats.events_new,
+        stats.events_merged,
         stats.events_discarded,
         stats.flyers_removed,
         stats.errors,

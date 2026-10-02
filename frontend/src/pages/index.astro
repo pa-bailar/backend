@@ -7,8 +7,8 @@ import SiteHeader from "../components/SiteHeader.astro";
 import ViewToolbar from "../components/ViewToolbar.astro";
 import events from "../../../data/events.json";
 
-const accounts = [...new Set(events.map((event) => event.source.account))].sort();
-// Escape "<" so captions can never close the <script> tag early.
+const accounts = [...new Set(events.map((event) => event.account))].sort();
+// Escape "<" so a caption can never end the inline JSON script block early.
 const eventsJson = JSON.stringify(events).replace(/</g, "\\u003c");
 const updatedLabel = new Date().toLocaleDateString("es-CO", {
   day: "numeric",

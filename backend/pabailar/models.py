@@ -52,6 +52,10 @@ class ExtractedEvent(EventDetails):
         description="Number of the attached image that shows THIS event (its own flyer, or the schedule slide "
         "where it is listed). Null if no image shows it."
     )
+    same_as: str | None = Field(
+        description="If this post announces again one of the KNOWN EVENTS listed in the prompt (a video, reminder "
+        "or second flyer of the same event), that event's id. Null for a new event."
+    )
 
 
 class PostAnalysis(BaseModel):
@@ -63,20 +67,26 @@ class PostAnalysis(BaseModel):
 # ---------- Stored data ----------
 
 
-class EventSource(BaseModel):
-    account: str
+MediaType = Literal["IMAGE", "CAROUSEL_ALBUM", "VIDEO"]
+
+
+class EventMedia(BaseModel):
+    """One Instagram post that announces the event (a flyer, a carousel, a video...)."""
+
     post_id: str
     permalink: str
-    published: str
+    media_type: MediaType
+    published: str  # ISO timestamp from Instagram
+    flyer: str | None  # image saved under data/, e.g. "flyers/<post_id>-<slide>.webp"
     caption: str | None
 
 
 class StoredEvent(EventDetails):
-    """One record of data/events.json."""
+    """One record of data/events.json: one event, announced by one or more posts."""
 
-    id: str  # "<post_id>-<index>", deterministic so re-runs never duplicate
-    flyer: str | None  # path relative to data/, e.g. "flyers/<post_id>-<slide>.webp"
-    source: EventSource
+    id: str  # "<first post_id>-<index>", stable even when more posts are added
+    account: str
+    media: list[EventMedia]  # main post first: images before videos, then oldest first
 
 
 class ProcessedPost(BaseModel):

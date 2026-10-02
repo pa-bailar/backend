@@ -8,11 +8,15 @@ export interface Price {
   condition: string | null;
 }
 
-export interface EventSource {
-  account: string;
+export type MediaType = "IMAGE" | "CAROUSEL_ALBUM" | "VIDEO";
+
+/** One Instagram post announcing the event. */
+export interface EventMedia {
   post_id: string;
   permalink: string;
+  media_type: MediaType;
   published: string;
+  flyer: string | null; // path relative to the site root, e.g. "flyers/123-0.webp"
   caption: string | null;
 }
 
@@ -36,8 +40,8 @@ export interface DanceEvent {
   contact: string | null;
   confidence: "high" | "medium" | "low";
   doubts: string[];
-  flyer: string | null; // path relative to the site root, e.g. "flyers/123-0.webp"
-  source: EventSource;
+  account: string;
+  media: EventMedia[]; // main post first (images before videos); always at least one
 }
 
 export type View = "upcoming" | "calendar";

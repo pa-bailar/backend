@@ -50,6 +50,20 @@
   left: var(--space-3);
 }
 
+/* "2 publicaciones": the event was announced by several posts (flyer, video...). */
+.media-count {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  padding: 2px var(--space-2);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+}
+
 .no-flyer {
   display: grid;
   place-items: center;

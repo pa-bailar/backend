@@ -97,6 +97,7 @@ pa-bailar/
 │  │  ├─ instagram.py         #   Graph API client
 │  │  ├─ extraction.py        #   Gemini prompt, retries, model fallback
 │  │  ├─ storage.py           #   validated read/write of data/ and state/
+│  │  ├─ merging.py           #   one event, many posts: match and merge
 │  │  └─ pipeline.py          #   the sweep (orchestration)
 │  ├─ tests/                  # pytest tests (offline, no API calls)
 │  ├─ state/processed_posts.json
@@ -221,9 +222,15 @@ No formal versioning; `main` is continuously deployed. Optionally tag milestones
 
 ### Rules
 - **IDs:**
-  - Event: `<postId>-<index>`
+  - Event: `<postId>-<index>` of the first post that announced it. It stays the same when more posts are merged in.
   - Flyer: `<postId>-<slideIndex>.webp`
   - Both are deterministic, so re-runs never duplicate.
+- **The right flyer for each event:** Gemini picks the slide that shows the event (`image_index`), never a generic cover when another slide shows it. Events announced together on one image (e.g. a monthly schedule) legitimately share that image. It's saved once and both events point to it.
+- **One event, many posts:** academies announce the same event several times (a flyer, then a video, a reminder). Each event stores **all** its posts in `media` (images first, then videos). It never appears twice.
+  - **Matching:** Gemini receives the account's known upcoming events and returns `same_as` when a post announces one of them again, even if the wording differs. As a fallback, a rule matches on same account and date, plus the same start time (or the same title when there's no time).
+  - **Merging:** the post is added to the event's `media`, and details the event was missing are filled in. Known details are never overwritten.
+  - **Re-analysis:** before a post is analyzed again, its contributions are removed (`detach_post`). Events left without posts disappear.
+  - Logic in `backend/pabailar/merging.py`, covered by `backend/tests/test_merging.py`.
 - **Idempotency:** re-running the sweep the same day changes nothing unless Instagram has new posts.
 - **Only one-time events with a date** are stored. Recurring classes are discarded at extraction.
 - **Lookback window:** 7 days (`DEFAULT_LOOKBACK_DAYS`).

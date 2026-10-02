@@ -9,7 +9,7 @@ from google.genai import errors, types
 
 from . import config
 from .instagram import Post
-from .models import PostAnalysis
+from .models import PostAnalysis, StoredEvent
 
 log = logging.getLogger(__name__)
 
@@ -29,6 +29,14 @@ Caption:
 The images (flyer, carousel slides or a video preview frame) are attached and numbered from 0.
 For each event, set image_index to the image that actually shows that event. Do not point to a
 generic cover slide when another slide shows the event itself.
+Several events may share the same image when that image announces all of them (e.g. a monthly schedule).
+
+KNOWN EVENTS already announced by this account in earlier posts (id | date | start time | title):
+{known_events}
+Academies often announce the same event several times: a flyer, then a video, a reminder or a second
+flyer. If an event in this post is one of the known events (same occasion, even if the title or wording
+differs, e.g. "este sábado" vs the date), set same_as to that event's id and still fill in every detail
+you can see. Otherwise set same_as to null.
 
 What counts as an event (one-time, with a specific date):
 - socials, parties, anniversaries, concerts, festivals, competitions, shows;
@@ -63,12 +71,18 @@ class EventExtractor:
         self._last_call = time.monotonic()
 
     @staticmethod
-    def _build_contents(account: str, post: Post, published: datetime, images: list[bytes]) -> list:
+    def _build_contents(
+        account: str, post: Post, published: datetime, images: list[bytes], known_events: list[StoredEvent]
+    ) -> list:
+        known = "\n".join(
+            f"- {event.id} | {event.date} | {event.start_time or '?'} | {event.title}" for event in known_events
+        )
         prompt = PROMPT.format(
             account=account,
             published=published.astimezone(config.BOGOTA_TZ).strftime("%Y-%m-%d %A"),
             today=datetime.now(config.BOGOTA_TZ).strftime("%Y-%m-%d %A"),
             caption=post.get("caption") or "(sin texto)",
+            known_events=known or "(none)",
         )
         contents: list = []
         for index, image in enumerate(images):
@@ -76,9 +90,20 @@ class EventExtractor:
         contents.append(prompt)
         return contents
 
-    def analyze(self, account: str, post: Post, published: datetime, images: list[bytes]) -> tuple[PostAnalysis, str]:
-        """Return the analysis and the name of the model that produced it."""
-        contents = self._build_contents(account, post, published, images)
+    def analyze(
+        self,
+        account: str,
+        post: Post,
+        published: datetime,
+        images: list[bytes],
+        known_events: list[StoredEvent],
+    ) -> tuple[PostAnalysis, str]:
+        """Return the analysis and the name of the model that produced it.
+
+        `known_events` are this account's stored events, so Gemini can tell when a post (e.g. a video)
+        announces one of them again.
+        """
+        contents = self._build_contents(account, post, published, images, known_events)
         generation_config = types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=PostAnalysis,

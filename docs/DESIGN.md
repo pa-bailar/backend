@@ -86,6 +86,13 @@ Sizes: `--text-2xs` 11 · `xs` 12 · `sm` 13 · `md` 15 (body) · `lg` 17 · `xl
 - **Date sticker:** a round "record label" with the day and month, overlapping the bottom-right of each flyer.
 - **Italic headings:** day and month headings in Bodoni italic, like a handwritten setlist.
 
+## Events with several posts
+
+An event can be announced by several Instagram posts (a flyer, then a video, a reminder). It's still **one** card:
+- **Card:** shows the main post's flyer (images come before videos). A `.media-count` label ("2 publicaciones") sits in the flyer's top-right corner.
+- **Dialog:** `.media-tabs` above the flyer, labeled by post type (Flyer / Carrusel / Video), with the same underline style as the main view tabs. Switching tabs changes the image, the "Ver en Instagram" link and the caption.
+- **Videos:** the dialog shows the video's preview frame with a "Ver video en Instagram" label (`.event-dialog__play`). Videos play on Instagram, never embedded.
+
 ## Component rules
 
 - **Naming:** BEM-style. `block`, `block__element`, `block--modifier`, and state classes `is-*` (`is-today`, `is-selected`, `is-past`). The CSS file is named after the block.

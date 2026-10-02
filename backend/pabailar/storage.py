@@ -66,8 +66,8 @@ def read_accounts() -> list[str]:
 
 def save_flyer(image_bytes: bytes, name: str) -> str:
     """Save a compressed WebP copy (Instagram image links expire). Returns the path relative to data/."""
-    config.FLYERS_DIR.mkdir(parents=True, exist_ok=True)
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    config.FLYERS_DIR.mkdir(parents=True, exist_ok=True)
     image.thumbnail(config.FLYER_MAX_SIZE)
     path = config.FLYERS_DIR / f"{name}.webp"
     image.save(path, "WEBP", quality=config.FLYER_WEBP_QUALITY)
@@ -76,7 +76,7 @@ def save_flyer(image_bytes: bytes, name: str) -> str:
 
 def remove_unused_flyers(events: list[StoredEvent]) -> int:
     """Delete flyer files no event points to. Returns how many were deleted."""
-    used = {event.flyer for event in events if event.flyer}
+    used = {media.flyer for event in events for media in event.media if media.flyer}
     unused = [
         path for path in config.FLYERS_DIR.glob("*.webp") if path.relative_to(config.DATA_DIR).as_posix() not in used
     ]

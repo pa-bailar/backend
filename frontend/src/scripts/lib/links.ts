@@ -1,14 +1,19 @@
 // URLs built from an event: flyer image, Google Calendar and WhatsApp share.
 
-import type { DanceEvent } from "../types";
+import type { DanceEvent, EventMedia } from "../types";
 import { addDays } from "./dates";
 import { formatLongDate, formatTime, placeLabel, priceSummary } from "./format";
 
 const BASE_URL = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 const DEFAULT_DURATION_HOURS = 4; // socials often run past midnight
 
-export function flyerUrl(event: DanceEvent): string | null {
-  return event.flyer ? `${BASE_URL}${event.flyer}` : null;
+export function flyerUrl(media: EventMedia): string | null {
+  return media.flyer ? `${BASE_URL}${media.flyer}` : null;
+}
+
+/** The main post: the one shown on the card and shared by default. */
+export function mainMedia(event: DanceEvent): EventMedia {
+  return event.media[0];
 }
 
 export function googleCalendarUrl(event: DanceEvent): string {
@@ -30,7 +35,7 @@ export function googleCalendarUrl(event: DanceEvent): string {
     text: event.title,
     dates,
     ctz: "America/Bogota",
-    details: event.source.permalink,
+    details: event.media.map((media) => media.permalink).join("\n"),
     location: [event.venue, event.address, "Bogotá"].filter(Boolean).join(", "),
   });
   return `https://calendar.google.com/calendar/render?${params}`;
@@ -44,7 +49,7 @@ export function whatsappShareUrl(event: DanceEvent): string {
     `${formatLongDate(event.date)}${time}`,
     placeLabel(event),
     priceSummary(event),
-    event.source.permalink,
+    mainMedia(event).permalink,
   ];
   return `https://wa.me/?text=${encodeURIComponent(lines.filter(Boolean).join("\n"))}`;
 }

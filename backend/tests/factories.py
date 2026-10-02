@@ -1,0 +1,53 @@
+"""Builders for test data."""
+
+import io
+
+from PIL import Image
+
+from pabailar.models import EventMedia, ExtractedEvent, StoredEvent
+
+DETAILS = {
+    "title": "Social",
+    "event_type": "social",
+    "is_recurring": False,
+    "styles": ["salsa"],
+    "organizer": None,
+    "venue": None,
+    "address": None,
+    "area": None,
+    "date": "2026-10-10",
+    "weekday": None,
+    "start_time": None,
+    "end_time": None,
+    "prices": [],
+    "artists": [],
+    "activities": [],
+    "contact": None,
+    "confidence": "high",
+    "doubts": [],
+}
+
+
+def make_image() -> bytes:
+    buffer = io.BytesIO()
+    Image.new("RGB", (400, 500), "red").save(buffer, "JPEG")
+    return buffer.getvalue()
+
+
+def extracted(image_index: int | None = 0, same_as: str | None = None, **details) -> ExtractedEvent:
+    return ExtractedEvent(**(DETAILS | details), image_index=image_index, same_as=same_as)
+
+
+def media(post_id: str = "p1", media_type: str = "IMAGE", published: str = "2026-10-01T12:00:00+0000") -> EventMedia:
+    return EventMedia(
+        post_id=post_id,
+        permalink=f"https://www.instagram.com/p/{post_id}/",
+        media_type=media_type,
+        published=published,
+        flyer=f"flyers/{post_id}-0.webp",
+        caption=None,
+    )
+
+
+def stored(event_id: str = "p1-0", account: str = "academia", posts: list[EventMedia] | None = None, **details):
+    return StoredEvent(**(DETAILS | details), id=event_id, account=account, media=posts or [media()])
