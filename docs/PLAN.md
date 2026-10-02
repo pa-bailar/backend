@@ -6,6 +6,11 @@
 > site repository and opens its data PR there as the **pa-bailar-bot** GitHub App; the sweep state lives
 > in this repository's `sweep-state` branch. Sections below that describe a single repository are kept
 > as the original plan; README.md has the current setup.
+>
+> **Update 2026-10-02 (layout):** the backend repository is now flat: the package is `pa_bailar/` (was
+> `backend/pabailar/`), commands run as `python -m pa_bailar sweep|discover|refresh-token` (were
+> `run_pipeline.py`, `discover_accounts.py`, `refresh_token.py`), and `tests/`, `accounts.txt`, `state/`,
+> `private/` and `.env` sit at the repository root. Older paths below refer to the previous layout.
 
 Status: **planned, not started.** Written 2026-10-01; this replaces the earlier short version.
 Goal: put the site live for **$0**, keep it updated with a **daily sweep**, and set the project

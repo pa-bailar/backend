@@ -2,8 +2,8 @@
 
 import pytest
 
-from pabailar.models import Price
-from pabailar.normalize import normalize_event, normalize_style, normalize_styles, parse_iso_date, parse_time
+from pa_bailar.models import Price
+from pa_bailar.normalize import normalize_event, normalize_style, normalize_styles, parse_iso_date, parse_time
 from tests.factories import extracted
 
 

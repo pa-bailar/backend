@@ -1,11 +1,11 @@
-"""Find dance academies in Bogotá among the accounts you follow, from your Instagram data export.
+"""discover: find dance academies in Bogotá among the accounts you follow, from your Instagram export.
 
-Usage (from the backend folder):
-    .venv\\Scripts\\python discover_accounts.py private\\following.html
-    .venv\\Scripts\\python discover_accounts.py private\\following.html --max-instagram 300
+Usage (from the repository root):
+    .venv\\Scripts\\python -m pa_bailar discover private\\following.html
+    .venv\\Scripts\\python -m pa_bailar discover private\\following.html --max-instagram 100
 
 Resumable: results are cached in private/discovery.json; run it again to continue.
-Writes private/discovery_report.md. Everything stays in backend/private/ (git-ignored).
+Writes private/discovery_report.md. Everything stays in private/ (git-ignored).
 """
 
 import argparse
@@ -15,14 +15,13 @@ from pathlib import Path
 
 from google.genai import errors as genai_errors
 
-from pabailar import config, discovery, storage
-from pabailar.extraction import ExtractionError, ModelPool
-from pabailar.instagram import InstagramClient, InstagramError, is_not_visible, is_rate_limited
-from pabailar.models import AccountClassification
+from pa_bailar import config, discovery, storage
+from pa_bailar.extraction import ExtractionError, ModelPool
+from pa_bailar.instagram import InstagramClient, InstagramError, is_not_visible, is_rate_limited
+from pa_bailar.models import AccountClassification
 
-PRIVATE_DIR = config.BACKEND_DIR / "private"
-CACHE_FILE = PRIVATE_DIR / "discovery.json"
-REPORT_FILE = PRIVATE_DIR / "discovery_report.md"
+CACHE_FILE = config.PRIVATE_DIR / "discovery.json"
+REPORT_FILE = config.PRIVATE_DIR / "discovery_report.md"
 # Instagram allows ~200 calls/hour for the app; keep room for the daily sweep.
 # The Instagram app's quota is about 200 calls an hour, shared with the daily sweep: ~100 an hour here,
 # and a pause whenever Meta reports the app past USAGE_PAUSE_PERCENT of it.
@@ -33,14 +32,14 @@ USAGE_PAUSE_SECONDS = 10 * 60
 log = logging.getLogger("discover")
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(prog="python -m pa_bailar discover", description=__doc__.splitlines()[0])
     parser.add_argument("export", type=Path, help="following.html or following.json from your Instagram export")
     parser.add_argument("--max-instagram", type=int, default=220, help="Instagram profile checks this run")
     parser.add_argument(
         "--max-gemini", type=int, default=250, help="Gemini classifications this run (shares the daily quota)"
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     for noisy in ("httpx", "google_genai", "urllib3"):
         logging.getLogger(noisy).setLevel(logging.WARNING)

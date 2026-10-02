@@ -2,7 +2,7 @@
 
 import pytest
 
-from pabailar import config, pipeline
+from pa_bailar import config, pipeline
 from tests.factories import extracted, make_image
 
 

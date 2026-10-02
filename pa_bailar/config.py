@@ -1,6 +1,6 @@
 """Paths, settings and secrets for the backend.
 
-Secrets come from environment variables: from backend/.env locally, from GitHub Actions secrets on CI.
+Secrets come from environment variables: from .env (repository root) locally, from GitHub Actions secrets on CI.
 """
 
 import os
@@ -10,22 +10,22 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-BACKEND_DIR = Path(__file__).resolve().parent.parent
-PROJECT_DIR = BACKEND_DIR.parent
-ENV_FILE = BACKEND_DIR / ".env"
+ROOT_DIR = Path(__file__).resolve().parent.parent  # the repository
+ENV_FILE = ROOT_DIR / ".env"
 load_dotenv(ENV_FILE)
 
 # ---------- Files ----------
 # Public output, read by the website: the data/ folder of the site repository (pa-bailar.github.io).
 # Locally a clone next to this repository (Code/pa-bailar-web); on CI the workflow checks the site out
 # and sets DATA_DIR.
-DATA_DIR = Path(os.environ.get("DATA_DIR") or PROJECT_DIR.parent / "pa-bailar-web" / "data").resolve()
+DATA_DIR = Path(os.environ.get("DATA_DIR") or ROOT_DIR.parent / "pa-bailar-web" / "data").resolve()
 EVENTS_FILE = DATA_DIR / "events.json"
 META_FILE = DATA_DIR / "meta.json"
 FLYERS_DIR = DATA_DIR / "flyers"
 # Backend-only input and state (on CI the state is kept in this repository's sweep-state branch).
-ACCOUNTS_FILE = BACKEND_DIR / "accounts.txt"
-STATE_DIR = BACKEND_DIR / "state"
+ACCOUNTS_FILE = ROOT_DIR / "accounts.txt"
+STATE_DIR = ROOT_DIR / "state"
+PRIVATE_DIR = ROOT_DIR / "private"  # your own files (Instagram export, keys): git-ignored
 PROCESSED_POSTS_FILE = STATE_DIR / "processed_posts.json"
 ACCOUNT_STATE_FILE = STATE_DIR / "accounts.json"
 GEMINI_USAGE_FILE = STATE_DIR / "gemini_usage.json"

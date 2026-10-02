@@ -4,7 +4,7 @@ import io
 
 from PIL import Image
 
-from pabailar.models import EventMedia, ExtractedEvent, StoredEvent
+from pa_bailar.models import EventMedia, ExtractedEvent, StoredEvent
 
 DETAILS = {
     "title": "Social",

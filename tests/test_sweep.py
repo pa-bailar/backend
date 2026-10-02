@@ -5,12 +5,12 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from pabailar import config, storage
-from pabailar.extraction import ExtractionError
-from pabailar.instagram import InstagramError
-from pabailar.models import PostAnalysis, ProcessedPost, Triage
-from pabailar.pipeline import Sweep
-from run_pipeline import summary_markdown
+from pa_bailar import config, storage
+from pa_bailar.commands.sweep import summary_markdown
+from pa_bailar.extraction import ExtractionError
+from pa_bailar.instagram import InstagramError
+from pa_bailar.models import PostAnalysis, ProcessedPost, Triage
+from pa_bailar.pipeline import Sweep
 from tests.factories import extracted, make_image, media, stored
 
 FLYER_URL = "https://cdn.example/flyer.jpg"
@@ -101,7 +101,7 @@ def isolated_files(tmp_path, monkeypatch):
     accounts = tmp_path / "accounts.txt"
     accounts.write_text("academia\n# comment\n@otra\n", encoding="utf-8")
     monkeypatch.setattr(config, "ACCOUNTS_FILE", accounts)
-    monkeypatch.setattr("pabailar.pipeline.download_image", lambda url: make_image())
+    monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: make_image())
     return tmp_path
 
 

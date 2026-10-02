@@ -1,6 +1,6 @@
 """Readable event ids (the events' URLs)."""
 
-from pabailar.ids import MAX_TITLE_LENGTH, new_event_id, slugify
+from pa_bailar.ids import MAX_TITLE_LENGTH, new_event_id, slugify
 
 
 def test_slug_is_lowercase_ascii_words():

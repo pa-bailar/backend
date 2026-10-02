@@ -6,8 +6,17 @@ dance academies (Instagram → Gemini) and publishes them to the site,
 pull request twice a day. The site, its design system and the data contract (`docs/DATA.md`) live there.
 
 ```
-backend/    Python collector: Instagram -> Gemini -> the site repository's data/
-docs/       plan, architecture and conventions (PLAN.md)
+pa_bailar/            the collector (one Python package)
+  commands/           what you run: sweep, discover, refresh_token
+  pipeline.py         the sweep: Instagram -> Gemini -> events, merged and stored
+  instagram.py        Instagram Graph API (Business Discovery)
+  extraction.py       Gemini prompts, models, quotas
+  merging.py, ids.py, normalize.py, storage.py, models.py, discovery.py, config.py
+tests/                unit and end-to-end tests (no network)
+docs/PLAN.md          architecture, decisions and conventions
+accounts.txt          the academies to follow
+state/                local sweep state (git-ignored; on GitHub: the sweep-state branch)
+private/              your own files: Instagram export, App key, discovery results (git-ignored)
 ```
 
 Local folders: this repository in `Code\pa-bailar`, the site in `Code\pa-bailar-web` (a local
@@ -17,12 +26,12 @@ sweep writes into `..\pa-bailar-web\data`; set `DATA_DIR` to change it).
 
 - Python 3.12 (`.python-version`)
 
-## Backend
+## Setup
 
-Secrets live in `backend/.env` (git-ignored, never commit it):
+Secrets live in `.env` (repository root, git-ignored, never commit it):
 `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `META_APP_ID`, `META_APP_SECRET`.
 
-First-time setup (from `backend/`):
+First time (from the repository root):
 
 ```bash
 python -m venv .venv
@@ -32,8 +41,8 @@ python -m venv .venv
 Run the sweep:
 
 ```bash
-.venv\Scripts\python run_pipeline.py            # analyze posts from the last 7 days
-.venv\Scripts\python run_pipeline.py --days 14  # look further back
+.venv\Scripts\python -m pa_bailar sweep            # analyze posts from the last 7 days
+.venv\Scripts\python -m pa_bailar sweep --days 14  # look further back
 ```
 
 Lint and format:
@@ -43,28 +52,28 @@ Lint and format:
 .venv\Scripts\python -m ruff format .
 ```
 
-- Accounts to follow: `backend/accounts.txt` (one username per line). Add as many as you like at once:
+- Accounts to follow: `accounts.txt` (one username per line). Add as many as you like at once:
   a new account's first sweep reads its last 30 posts (30 days), and when the free Gemini quota runs
   out the rest waits for the next day. Accounts already in their regular sweep always go first, so a
   backlog never delays today's events.
-- Already-analyzed posts are remembered in `backend/state/processed_posts.json`, so re-runs only
+- Already-analyzed posts are remembered in `state/processed_posts.json`, so re-runs only
   spend Gemini quota on new posts. On GitHub the state lives in the `sweep-state` branch (local runs
-  keep their own copy in `backend/state/`, git-ignored).
+  keep their own copy in `state/`, git-ignored).
 - If the Instagram token stops working, paste a new one from the Graph API Explorer into `.env`
-  and run `.venv\Scripts\python refresh_token.py`.
+  and run `.venv\Scripts\python -m pa_bailar refresh-token`.
 
 ### Finding new academies among the accounts you follow
 
 1. Download your Instagram data: Accounts Center → Your information and permissions → Download your information → "Followers and following" (HTML or JSON).
-2. Put `following.html` (or `.json`) in `backend/private/`. That folder is git-ignored; your data never leaves your PC.
+2. Put `following.html` (or `.json`) in `private/`. That folder is git-ignored; your data never leaves your PC.
 3. Run:
 
 ```bash
-.venv\Scripts\python discover_accounts.py private\following.html
+.venv\Scripts\python -m pa_bailar discover private\following.html
 ```
 
 How it works:
-- **Instagram** checks each followed account, dance-looking usernames first, 20 s apart. Personal and private accounts are skipped.
+- **Instagram** checks each followed account, dance-looking usernames first, 36 s apart (about 100 an hour, half the app's quota, so the daily sweeps always have room). It pauses when Meta reports the app past 60% of its hourly quota and stops at a rate limit; personal and private accounts are skipped.
 - **Gemini Flash-Lite** classifies the business accounts with a dance hint: academy, venue, organizer… and whether they're in Bogotá.
 - **The report** is written to `private/discovery_report.md`.
 - **Runs resume:** run it again to continue where it stopped. Each run is capped (`--max-instagram`, `--max-gemini`) so it doesn't eat the daily sweep's quota.

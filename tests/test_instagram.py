@@ -1,6 +1,6 @@
 """Instagram errors and usage: what's a rate limit, what's an account Business Discovery can't see."""
 
-from pabailar.instagram import InstagramClient, InstagramError, is_not_visible, is_rate_limited
+from pa_bailar.instagram import InstagramClient, InstagramError, is_not_visible, is_rate_limited
 
 
 def test_rate_limits_are_not_mistaken_for_personal_accounts():
