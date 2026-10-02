@@ -1,0 +1,5 @@
+google-genai==2.27.0
+pillow==12.3.0
+pydantic==2.13.5
+python-dotenv==1.2.4
+requests==2.34.2

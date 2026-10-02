@@ -1,0 +1,11 @@
+# Secrets
+.env
+
+# Python
+.venv/
+__pycache__/
+
+# Node / Astro
+node_modules/
+dist/
+.astro/

@@ -1,0 +1,86 @@
+---
+import "../styles/global.css";
+import events from "../../../data/events.json";
+
+const accounts = [...new Set(events.map((e) => e.source.account))].sort();
+// Escape "<" so captions can never close the <script> tag early.
+const eventsJson = JSON.stringify(events).replace(/</g, "\\u003c");
+const updated = new Date().toLocaleDateString("es-CO", {
+  day: "numeric",
+  month: "long",
+  timeZone: "America/Bogota",
+});
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pa' Bailar · Bogotá</title>
+    <meta name="description" content="Sociales y talleres de baile en Bogotá: salsa, bachata, mambo y más, en un solo lugar." />
+    <meta name="theme-color" content="#120d10" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💃</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Bogotá · actualizado el {updated}</p>
+        <h1>Pa' <span>Bailar</span></h1>
+        <p class="tagline">Sociales y talleres de las academias de baile de la ciudad, en un solo lugar.</p>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <div class="wrap toolbar-inner">
+        <div class="tabs" role="tablist" aria-label="Vista">
+          <button role="tab" class="tab" aria-selected="true" data-view="upcoming">Próximos</button>
+          <button role="tab" class="tab" aria-selected="false" data-view="calendar">Calendario</button>
+        </div>
+        <div class="filters" id="type-filters" aria-label="Filtrar por tipo"></div>
+        <div class="filters" id="style-filters" aria-label="Filtrar por ritmo"></div>
+      </div>
+    </div>
+
+    <main class="wrap">
+      <section id="view-upcoming" aria-live="polite"></section>
+
+      <section id="view-calendar" hidden>
+        <div class="cal-head">
+          <button class="icon-btn" id="cal-prev" aria-label="Mes anterior">‹</button>
+          <h2 id="cal-title"></h2>
+          <button class="icon-btn" id="cal-next" aria-label="Mes siguiente">›</button>
+          <button class="ghost-btn" id="cal-today">Hoy</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div id="cal-day"></div>
+      </section>
+    </main>
+
+    <footer class="wrap footer">
+      <p>
+        La información se extrae automáticamente de publicaciones públicas de Instagram y puede tener errores:
+        confirma siempre en la publicación original. Los flyers pertenecen a cada academia.
+      </p>
+      <p class="sources">
+        Fuentes: {accounts.map((a) => <a href={`https://www.instagram.com/${a}/`} target="_blank" rel="noopener">@{a}</a>)}
+      </p>
+    </footer>
+
+    <dialog id="event-dialog" aria-labelledby="dlg-title">
+      <div class="dlg" id="dlg-body"></div>
+    </dialog>
+
+    <script type="application/json" id="events-data" set:html={eventsJson} />
+    <script>
+      import { start } from "../scripts/app";
+      start();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+# Instagram accounts to follow (one username per line, without @).
+# Lines starting with # are ignored.
+
+# Academies
+zafradance
+bembeacademiadebaile
+esferalatinaoficial
+madyumdance
+academiadebailepasolatino
