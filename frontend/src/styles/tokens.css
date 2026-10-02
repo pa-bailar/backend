@@ -22,6 +22,7 @@
   --wine-800: #3a1a1f;
   --wine-600: #5a2a30;
   --wine-500: #6e2a33;
+  --wine-400: #8e6363; /* dark-theme outlines: ≥3:1 on the page and on cards */
   --cream-50: #fff8ec;
   --cream-75: #f7eddc; /* cards: one step under the near-white */
   --cream-100: #f3e6d3;
@@ -34,6 +35,7 @@
   --cocoa-200: #b7978c;
   --tomato-600: #c8321c;
   --tomato-400: #e2452b;
+  --tomato-350: #e8553b; /* type tags: light enough for wine text (≥4.5:1) */
   --orange-600: #e8791c;
   --orange-400: #f08a24;
   --marigold-600: #e9b021;
@@ -50,7 +52,7 @@
   --backdrop: light-dark(rgb(42 15 20 / 0.6), rgb(16 5 8 / 0.75));
 
   /* Lines */
-  --border: light-dark(var(--wine-900), var(--wine-600));
+  --border: light-dark(var(--wine-900), var(--wine-400));
   --divider: light-dark(var(--cream-300), var(--wine-600));
 
   /* Text */
@@ -79,9 +81,9 @@
   --today-text: var(--wine-900);
 
   /* Event types (background of tags, pills and dots; text on them is --on-type) */
-  --type-social: light-dark(var(--marigold-600), var(--tomato-400));
+  --type-social: light-dark(var(--marigold-600), var(--tomato-350));
   --type-workshop: light-dark(var(--orange-600), var(--marigold-400));
-  --type-concert: light-dark(var(--tomato-400), var(--orange-400));
+  --type-concert: light-dark(var(--tomato-350), var(--orange-400));
   --type-festival: var(--rose-300);
   --type-competition: light-dark(var(--cream-300), var(--cream-200));
   --type-show: var(--rose-300);
