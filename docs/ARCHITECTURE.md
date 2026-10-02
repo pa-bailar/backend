@@ -487,13 +487,17 @@ flowchart TD
     RULE -->|yes| MERGE
     RULE -->|no| NEW["New event<br/>id: title-day-month"]
     MERGE --> F["Fill in what the event was missing.<br/>If P is the newest post: date, weekday,<br/>start and end time, prices from P"]
-    F --> O["media sorted:<br/>images first, then videos; oldest first"]
+    F --> O["media sorted: flyers first, then videos;<br/>newest first (the latest flyer is the cover)"]
 ```
 
 - **Gemini links first:** the extraction prompt lists the account's known upcoming events (id, date,
   time, title), and Gemini sets `same_as` when the post announces one of them again. The rule-based match
   is the fallback.
 - **Two events in the same post are never merged** with each other.
+- **The cover is the latest flyer:** an event's posts are sorted flyers (photos and carousels)
+  first, then videos, newest first within each (`ordered_media`). The first post is what the card,
+  the link previews and the detail show first. A corrected or updated flyer replaces the first
+  announcement as the cover. Every save applies this order to all events.
 - **Logistics follow the newest post:** a later post may reschedule an event or change its prices, so
   `date`, `weekday`, `start_time`, `end_time` and `prices` come from the newest post. Everything else
   keeps its first value (the flyer's title beats a reminder's caption) and is only filled in when it was

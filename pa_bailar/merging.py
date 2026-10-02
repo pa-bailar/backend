@@ -15,9 +15,12 @@ _UPDATABLE_FIELDS = {"date", "weekday", "start_time", "end_time", "prices"}
 _EMPTY: tuple[object, ...] = (None, "", [])
 
 
-def media_order(media: EventMedia) -> tuple[int, str]:
-    """Images and carousels first (they carry the flyer), videos last; then oldest first."""
-    return (1 if media.media_type == "VIDEO" else 0, media.published)
+def ordered_media(media: list[EventMedia]) -> list[EventMedia]:
+    """An event's posts, main post first: flyers (images and carousels) before videos, and the newest
+    first within each, so the latest flyer is the event's cover (a corrected or updated flyer replaces
+    the first announcement)."""
+    newest_first = sorted(media, key=lambda item: item.published, reverse=True)
+    return sorted(newest_first, key=lambda item: item.media_type == "VIDEO")  # stable: keeps newest first
 
 
 def looks_like_same_event(stored: StoredEvent, account: str, candidate: EventDetails) -> bool:
@@ -58,7 +61,7 @@ def merge_into(stored: StoredEvent, candidate: EventDetails, media: EventMedia) 
             continue
         if current in _EMPTY or (is_newest and field in _UPDATABLE_FIELDS and new != current):
             updates[field] = new
-    updates["media"] = sorted([*others, media], key=media_order)
+    updates["media"] = ordered_media([*others, media])
     return stored.model_copy(update=updates)
 
 

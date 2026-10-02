@@ -1,6 +1,7 @@
 """The same event announced by several posts (flyer, video, reminder) becomes one event."""
 
-from pa_bailar.merging import detach_post, find_existing, looks_like_same_event, merge_into
+from pa_bailar import storage
+from pa_bailar.merging import detach_post, find_existing, looks_like_same_event, merge_into, ordered_media
 from tests.factories import extracted, media, stored
 
 # ---------- matching ----------
@@ -50,6 +51,22 @@ def test_merge_adds_the_post_and_puts_images_before_videos():
     merged = merge_into(event, extracted(), media("flyer", "IMAGE", "2026-09-30T10:00:00+0000"))
     assert [m.post_id for m in merged.media] == ["flyer", "video"]
     assert merged.id == event.id
+
+
+def test_the_latest_flyer_comes_first_and_videos_after_flyers():
+    posts = [
+        media("old-flyer", published="2026-10-01T12:00:00+0000"),
+        media("video", "VIDEO", published="2026-10-05T12:00:00+0000"),
+        media("new-flyer", "CAROUSEL_ALBUM", published="2026-10-03T12:00:00+0000"),
+        media("old-video", "VIDEO", published="2026-10-02T12:00:00+0000"),
+    ]
+    assert [m.post_id for m in ordered_media(posts)] == ["new-flyer", "old-flyer", "video", "old-video"]
+
+
+def test_saved_events_follow_the_post_order():
+    posts = [media("old", published="2026-10-01T12:00:00+0000"), media("new", published="2026-10-03T12:00:00+0000")]
+    storage.save_events([stored(posts=posts)])
+    assert [m.post_id for m in storage.load_events()[0].media] == ["new", "old"]
 
 
 def test_merge_fills_missing_details_but_keeps_known_ones():
