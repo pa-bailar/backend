@@ -73,7 +73,7 @@ From `frontend/`:
 ```bash
 npm ci          # first time
 npm run dev     # local preview at http://localhost:4321
-npm run check   # type check (astro check)
+npm run check   # type check + color contrast (WCAG AA)
 npm run build   # static site in frontend/dist/
 ```
 

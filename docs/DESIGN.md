@@ -125,7 +125,10 @@ An event can be announced by several Instagram posts (a flyer, then a video, a r
 - **Accessibility:**
   - Every interactive element is a real `<button>` or `<a>`.
   - Visible focus ring (`--focus`).
-  - Contrast ≥ 4.5:1 for text in both themes.
+  - Contrast meets WCAG 2.2 AA in both themes: ≥ 4.5:1 for text, ≥ 3:1 for large text and for the outlines and indicators people need to see (borders, focus ring, selected states).
+  - `npm run check` runs `scripts/check-contrast.mjs`, which reads `tokens.css` and checks every pair the components use; CI fails if one drops below AA. New color pairs go in its `PAIRS` list.
+  - Don't dim text with `opacity`: use `--text-muted`. Colored marks that aren't text (calendar dots) get a `--border` outline.
+  - `--divider` and the stripes are decorative and exempt.
   - Motion is respected via `prefers-reduced-motion`.
 
 ## Adding something new
@@ -133,4 +136,4 @@ An event can be announced by several Instagram posts (a flyer, then a video, a r
 1. Need a new color, size or spacing? Add a token in `tokens.css` (semantic colors need both a light and a dark value).
 2. Create `styles/components/<block>.css` and import it in `layouts/BaseLayout.astro`, after the other components. Don't chain CSS with `@import`: the dev server doesn't reload imported files.
 3. Static markup goes in an Astro component (`src/components/<Block>.astro`); markup rendered from data goes in a view (`src/scripts/views/<block>.ts`).
-4. Check both themes and a phone width (375px) before opening the PR.
+4. Check both themes and a phone width (375px), and run `npm run check`, before opening the PR.

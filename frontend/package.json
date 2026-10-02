@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check && npm run check:contrast",
+    "check:contrast": "node scripts/check-contrast.mjs"
   },
   "dependencies": {
     "astro": "^7.3.5"

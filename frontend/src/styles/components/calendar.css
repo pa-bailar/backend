@@ -63,7 +63,12 @@
 }
 
 .cal-day.is-past {
-  opacity: 0.5;
+  background: none; /* past days recede without fading text below WCAG contrast */
+}
+
+.cal-day.is-past .cal-day__number {
+  color: var(--text-muted);
+  font-weight: var(--weight-regular);
 }
 
 .cal-day.is-selected {
@@ -123,6 +128,7 @@
   height: 7px;
   border-radius: var(--radius-round);
   background: var(--type);
+  box-shadow: 0 0 0 1px var(--border); /* outline keeps light dots >=3:1 against the cell */
 }
 
 @media (min-width: 720px) {
