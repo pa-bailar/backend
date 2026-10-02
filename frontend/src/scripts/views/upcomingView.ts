@@ -3,12 +3,17 @@
 
 import type { AppState, DanceEvent } from "../types";
 import { escapeHtml } from "../lib/dom";
-import { activeFilterCount, eventsInView, groupByPeriod, hasActiveFilters, matchesFilters } from "../state";
+import { eventsInView, groupByPeriod, hasActiveFilters, matchesFilters } from "../state";
 import { eventCardGridHtml } from "./eventCard";
-import { renderJumpBar, sectionId } from "./jumpBar";
+import type { AgendaGroup } from "../state";
+import { sectionId } from "./jumpBar";
 
-/** Renders the list and returns how many events it shows. */
-export function renderUpcomingView(container: HTMLElement, events: DanceEvent[], state: AppState): number {
+/** Renders the list; returns how many events it shows and their periods (for the jump bar). */
+export function renderUpcomingView(
+  container: HTMLElement,
+  events: DanceEvent[],
+  state: AppState,
+): { shown: number; groups: AgendaGroup[] } {
   const upcoming = eventsInView(events, state).filter((event) => matchesFilters(event, state));
   const groups = groupByPeriod(upcoming);
 
@@ -33,6 +38,5 @@ export function renderUpcomingView(container: HTMLElement, events: DanceEvent[],
       )
       .join("");
   }
-  renderJumpBar(groups, activeFilterCount(state));
-  return upcoming.length;
+  return { shown: upcoming.length, groups };
 }

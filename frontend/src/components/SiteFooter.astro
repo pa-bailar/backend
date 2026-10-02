@@ -23,8 +23,8 @@ const googleUrl = `https://calendar.google.com/calendar/r?cid=${encodeURICompone
     <div class="site-footer__subscribe">
       <p><Fragment set:html={ICONS.calendar} /> Suscríbete y los eventos nuevos aparecen solos en tu calendario:</p>
       <p class="site-footer__links">
-        <a href={googleUrl} target="_blank" rel="noopener">Google Calendar</a>
-        <a href={webcalUrl}>iPhone y otros calendarios</a>
+        <a href={googleUrl} target="_blank" rel="noopener" data-track="suscripcion-google">Google Calendar</a>
+        <a href={webcalUrl} data-track="suscripcion-ical">iPhone y otros calendarios</a>
       </p>
       <p class="site-footer__note">Tu calendario lo actualiza una o dos veces al día.</p>
     </div>

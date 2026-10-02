@@ -1,11 +1,16 @@
-// Phones only (CSS hides it where the toolbar is sticky): a slim bar stuck to the top of the screen with
-// a "Filtros" button (opens the filter sheet) and one chip per period ("Hoy · Finde · Próx. semana · Nov").
-// On phones it's the only way to the filters: the toolbar's chip rows are hidden there (toolbar.css).
-//   - Tapping a chip jumps to that period; the chip of the period on screen is highlighted (scroll-spy).
-//   - Like Instagram's header, the bar hides while scrolling down and comes back on any scroll up.
+// Phones only (CSS hides it where the toolbar is sticky): one slim row stuck to the top of the screen,
+// like the filter bars of Google Maps or Airbnb, and the only way to the filters there (the toolbar's
+// chip rows are hidden on phones, toolbar.css):
+//   [⚙ 2]  [Finde ▾]  |  Salsa · Bachata · Salsa caleña …
+//   - ⚙ opens the filter sheet; the number is how many filters are active.
+//   - "Finde ▾" names the period on screen (scroll-spy) and opens a menu to jump to another one.
+//   - Rhythm chips, most frequent first: one tap filters, another tap clears.
+// Like Instagram's header, the bar hides while scrolling down and comes back on any scroll up.
 
 import type { AgendaGroup } from "../state";
 import { byId, escapeHtml } from "../lib/dom";
+import { capitalize } from "../lib/format";
+import { ICONS } from "../lib/icons";
 import { dismissSheet, initSheet } from "../lib/sheet";
 
 const SCROLL_THRESHOLD = 8; // px of movement before reacting, so small jitters don't toggle the bar
@@ -15,25 +20,27 @@ const ALWAYS_SHOWN_ABOVE = 200; // px from the top of the page where the bar nev
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let observer: IntersectionObserver | null = null;
 let jumping = false; // a jump scrolls on purpose: don't hide the bar or move the highlight meanwhile
-let periodKeys: string[] = [];
+let groups: AgendaGroup[] = [];
 
 export function sectionId(group: AgendaGroup): string {
   return `periodo-${group.key}`;
 }
 
+export interface JumpBarContent {
+  groups: AgendaGroup[]; // periods of the upcoming list (none in the calendar)
+  activeFilters: number;
+  styles: string[]; // rhythm chips, most frequent first
+  styleFilter: string;
+}
+
+/** The period on screen: its name on the period button, and marked in the menu. */
 function setActive(key: string) {
-  const periods = byId("jump-periods");
-  periods.querySelectorAll<HTMLElement>("[data-jump]").forEach((chip) => {
-    const active = chip.dataset.jump === key;
-    if (active) {
-      chip.setAttribute("aria-current", "true");
-      // Keep the active chip visible inside the horizontally scrolling row (never scrolls the page).
-      const left = chip.offsetLeft - periods.clientWidth / 2 + chip.offsetWidth / 2;
-      periods.scrollTo({ left, behavior: prefersReducedMotion() ? "auto" : "smooth" });
-    } else {
-      chip.removeAttribute("aria-current");
-    }
-  });
+  const group = groups.find((item) => item.key === key);
+  if (!group) return;
+  byId("jump-period-label").textContent = group.shortLabel;
+  byId("jump-period-menu")
+    .querySelectorAll<HTMLElement>("[data-jump]")
+    .forEach((item) => item.toggleAttribute("aria-current", item.dataset.jump === key));
 }
 
 function atPageBottom(): boolean {
@@ -42,25 +49,25 @@ function atPageBottom(): boolean {
 
 /**
  * The edges of the page, where no section crosses the band: above the list the first period is
- * highlighted; at the very bottom, the last period on screen (it can't scroll up to the band).
+ * current; at the very bottom, the last period on screen (it can't scroll up to the band).
  */
 function highlightAtEdges() {
-  if (jumping || !periodKeys.length) return;
-  const first = document.getElementById(`periodo-${periodKeys[0]}`);
+  if (jumping || !groups.length) return;
+  const first = document.getElementById(sectionId(groups[0]));
   if (first && first.getBoundingClientRect().top > BAND_TOP) {
-    setActive(periodKeys[0]);
+    setActive(groups[0].key);
     return;
   }
   if (!atPageBottom()) return;
-  const onScreen = periodKeys.filter((key) => {
-    const section = document.getElementById(`periodo-${key}`);
+  const onScreen = groups.filter((group) => {
+    const section = document.getElementById(sectionId(group));
     return section && section.getBoundingClientRect().top < window.innerHeight;
   });
-  if (onScreen.length) setActive(onScreen[onScreen.length - 1]);
+  if (onScreen.length) setActive(onScreen[onScreen.length - 1].key);
 }
 
-/** Scroll-spy: highlight the period whose section is at the top of the screen. */
-function watchSections(groups: AgendaGroup[]) {
+/** Scroll-spy: the period whose section is at the top of the screen is the current one. */
+function watchSections() {
   observer?.disconnect();
   const visible = new Set<string>();
   const order = groups.map((group) => group.key);
@@ -81,22 +88,35 @@ function watchSections(groups: AgendaGroup[]) {
   groups.forEach((group) => observer!.observe(byId(sectionId(group))));
 }
 
-/** Renders the chips for the list's periods and the number of active filters. */
-export function renderJumpBar(groups: AgendaGroup[], activeFilters: number) {
-  const bar = byId("jump-bar");
-  bar.hidden = false;
-  byId("jump-periods").innerHTML = groups
+export function renderJumpBar(content: JumpBarContent) {
+  groups = content.groups;
+  byId("jump-bar").hidden = false;
+
+  const filters = byId("jump-filters");
+  const count = content.activeFilters;
+  filters.innerHTML = `${ICONS.sliders}${count ? `<span class="jump-bar__badge">${count}</span>` : ""}`;
+  filters.setAttribute("aria-label", count ? `Filtros, ${count} activos` : "Filtros");
+
+  // The period menu only makes sense with two or more periods.
+  byId("jump-period").hidden = groups.length < 2;
+  byId("jump-period-menu").innerHTML = groups
     .map(
-      (group) =>
-        `<a class="chip jump-bar__chip" href="#${sectionId(group)}" data-jump="${escapeHtml(group.key)}">${escapeHtml(group.shortLabel)}</a>`,
+      (group) => `
+        <button class="period-menu__item" type="button" data-jump="${escapeHtml(group.key)}">
+          <span>${escapeHtml(group.label)}</span><span class="period-menu__count">${group.events.length}</span>
+        </button>`,
     )
     .join("");
-  const filters = byId("jump-filters");
-  filters.textContent = activeFilters ? `Filtros · ${activeFilters}` : "Filtros";
-  filters.setAttribute("aria-label", activeFilters ? `Filtros, ${activeFilters} activos` : "Filtros");
-  periodKeys = groups.map((group) => group.key);
+
+  byId("jump-styles").innerHTML = content.styles
+    .map((style) => {
+      const active = style === content.styleFilter;
+      return `<button class="chip" type="button" data-style="${escapeHtml(style)}" aria-pressed="${active}">${escapeHtml(capitalize(style))}</button>`;
+    })
+    .join("");
+
   if (groups.length) setActive(groups[0].key);
-  watchSections(groups);
+  watchSections();
 }
 
 function jumpTo(key: string) {
@@ -111,7 +131,7 @@ function jumpTo(key: string) {
   else setTimeout(done, 800);
 }
 
-/** Filtros: the filter sheet slides up from the bottom; the list stays where it was behind it. */
+/** ⚙: the filter sheet slides up from the bottom; the list stays where it was behind it. */
 function initFilterSheet() {
   const sheet = byId<HTMLDialogElement>("filter-sheet");
   sheet.addEventListener("click", (domEvent) => {
@@ -126,6 +146,7 @@ function initFilterSheet() {
 /** Hide while scrolling down, show on any scroll up (and near the top, and when it holds focus). */
 function initHideOnScroll() {
   const bar = byId("jump-bar");
+  const menu = byId("jump-period-menu");
   let lastY = window.scrollY;
   let ticking = false;
   const update = () => {
@@ -134,6 +155,7 @@ function initHideOnScroll() {
     const delta = y - lastY;
     if (Math.abs(delta) < SCROLL_THRESHOLD) return;
     highlightAtEdges();
+    if (!jumping && menu.matches(":popover-open")) menu.hidePopover(); // the menu belongs to the bar
     const hide = delta > 0 && y > ALWAYS_SHOWN_ABOVE && !jumping && !bar.contains(document.activeElement);
     bar.classList.toggle("is-hidden", hide);
     lastY = y;
@@ -150,15 +172,20 @@ function initHideOnScroll() {
 }
 
 export function initJumpBar() {
-  byId("jump-bar").addEventListener("click", (domEvent) => {
-    const target = domEvent.target as HTMLElement;
-    const chip = target.closest<HTMLElement>("[data-jump]");
-    if (chip) {
-      domEvent.preventDefault(); // the href works without JavaScript; with it, scroll smoothly and keep the URL
-      jumpTo(chip.dataset.jump!);
-    } else if (target.closest("#jump-filters")) {
-      byId<HTMLDialogElement>("filter-sheet").showModal();
-    }
+  byId("jump-filters").addEventListener("click", () => byId<HTMLDialogElement>("filter-sheet").showModal());
+  const menu = byId("jump-period-menu");
+  // Open the menu right under its button, wherever the bar is on the screen.
+  menu.addEventListener("beforetoggle", (toggle) => {
+    if ((toggle as ToggleEvent).newState !== "open") return;
+    const button = byId("jump-period").getBoundingClientRect();
+    menu.style.top = `${button.bottom + 4}px`;
+    menu.style.left = `${button.left}px`;
+  });
+  menu.addEventListener("click", (domEvent) => {
+    const item = (domEvent.target as HTMLElement).closest<HTMLElement>("[data-jump]");
+    if (!item) return;
+    byId("jump-period-menu").hidePopover();
+    jumpTo(item.dataset.jump!);
   });
   initHideOnScroll();
   initFilterSheet();

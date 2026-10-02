@@ -2,12 +2,14 @@
 // The detail itself is already in the HTML, rendered at build time.
 
 import type { DanceEvent } from "./types";
+import { initClickTracking } from "./lib/analytics";
 import { byId } from "./lib/dom";
 import { initThemeToggle } from "./theme";
 import { eventDetailHtml, handleMediaTabClick } from "./views/eventDetail";
 
 export function initEventPage() {
   initThemeToggle();
+  initClickTracking();
   const event: DanceEvent = JSON.parse(byId("event-data").textContent || "null");
   const container = byId("event-detail");
   const render = (selected: number) => {

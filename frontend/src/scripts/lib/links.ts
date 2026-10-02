@@ -91,7 +91,8 @@ export function whatsappShareUrl(event: DanceEvent): string {
     `${formatLongDate(event.date)}${time}`,
     placeLabel(event),
     priceSummary(event),
-    eventPageUrl(event),
+    // Tagged so visits from these messages count as coming from WhatsApp (its app hides the referrer).
+    `${eventPageUrl(event)}?utm_source=whatsapp`,
   ];
   return `https://wa.me/?text=${encodeURIComponent(lines.filter(Boolean).join("\n"))}`;
 }

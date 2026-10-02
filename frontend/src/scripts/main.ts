@@ -1,13 +1,21 @@
 // Entry point: load the events embedded in the page, wire up interactions and render.
 
 import type { DanceEvent, EventType, View } from "./types";
+import { initClickTracking } from "./lib/analytics";
 import { byId } from "./lib/dom";
 import { addMonths, startOfMonth, todayIso } from "./lib/dates";
-import { activeFilterCount, clearFilters, createInitialState, defaultDayForMonth, visibleEvents } from "./state";
+import {
+  activeFilterCount,
+  clearFilters,
+  createInitialState,
+  defaultDayForMonth,
+  eventsInView,
+  visibleEvents,
+} from "./state";
 import { initThemeToggle } from "./theme";
 import { renderCalendarView } from "./views/calendarView";
 import { initEventDialog, openEventDialog } from "./views/eventDialog";
-import { renderFilters } from "./views/filters";
+import { rankedStyles, renderFilters } from "./views/filters";
 import { initJumpBar, renderJumpBar } from "./views/jumpBar";
 import { renderUpcomingView } from "./views/upcomingView";
 
@@ -30,14 +38,18 @@ function announce(count: number) {
   byId("filter-sheet-results").textContent = count ? `Ver ${count} ${noun}` : "Ver resultados";
 }
 
-/** Where re-rendered controls are looked up for focus: the open filter sheet, or else the page. */
-function focusScope(): ParentNode {
-  return document.querySelector("#filter-sheet[open]") ?? document;
+/** Containers whose controls are re-rendered: focus goes back to the same control in the same one. */
+const FOCUS_SCOPES = "#filter-sheet, #jump-bar, .toolbar, main";
+
+/** Where to look for the re-rendered control: the open filter sheet, else where the focus was. */
+function focusScope(previous: Element | null): ParentNode {
+  return document.querySelector("#filter-sheet[open]") ?? previous?.closest(FOCUS_SCOPES) ?? document;
 }
 
 function render() {
-  // Re-rendering replaces chips and calendar days; remember which one had focus.
+  // Re-rendering replaces chips and calendar days; remember which one had focus, and where.
   const focused = focusSelector(document.activeElement);
+  const scope = focusScope(document.activeElement);
 
   renderFilters(events, state);
   const upcoming = byId("view-upcoming");
@@ -48,12 +60,19 @@ function render() {
     tab.setAttribute("aria-selected", String(tab.dataset.view === state.view));
   });
 
-  // The calendar has no periods to jump to, but phones still need the bar's "Filtros".
-  if (state.view !== "upcoming") renderJumpBar([], activeFilterCount(state));
-  const shown = state.view === "upcoming" ? renderUpcomingView(upcoming, events, state) : renderCalendarView(events, state);
+  const { shown, groups } =
+    state.view === "upcoming"
+      ? renderUpcomingView(upcoming, events, state)
+      : { shown: renderCalendarView(events, state), groups: [] }; // the calendar has no periods to jump to
+  renderJumpBar({
+    groups,
+    activeFilters: activeFilterCount(state),
+    styles: rankedStyles(eventsInView(events, state)),
+    styleFilter: state.styleFilter,
+  });
   announce(shown);
 
-  if (focused) focusScope().querySelector<HTMLElement>(focused)?.focus();
+  if (focused) scope.querySelector<HTMLElement>(focused)?.focus();
 }
 
 /** After filtering by academy from a card far down the list, move to the filter notice (and its "show all" button). */
@@ -76,7 +95,7 @@ function handleClick(domEvent: MouseEvent) {
   }
   if (view) state.view = view as View;
   else if (type) state.typeFilter = type as EventType | "all";
-  else if (style) state.styleFilter = style;
+  else if (style) state.styleFilter = style === state.styleFilter ? "all" : style; // tap again to clear
   else if (account !== undefined) {
     state.accountFilter = account || null; // "" = show every academy again
   } else if ("clearFilters" in control.dataset) clearFilters(state);
@@ -93,7 +112,10 @@ function handleClick(domEvent: MouseEvent) {
   // The control clicked was re-rendered away: put focus somewhere useful.
   if (account) focusAccountFilter();
   else if ("clearFilters" in control.dataset) {
-    focusScope().querySelector<HTMLElement>('[data-filter-row="type"] button')?.focus();
+    // The first type chip that can be seen (in the open sheet, or the toolbar), else the bar's ⚙.
+    const chips = [...document.querySelectorAll<HTMLElement>('[data-filter-row="type"] button')];
+    const visible = chips.find((chip) => chip.closest("#filter-sheet[open]") || chip.offsetParent !== null);
+    (visible ?? byId("jump-filters")).focus();
   }
 }
 
@@ -102,6 +124,7 @@ export function start() {
   initThemeToggle();
   initEventDialog((id) => events.find((event) => event.id === id));
   initJumpBar();
+  initClickTracking();
   document.addEventListener("click", handleClick);
   render();
 }

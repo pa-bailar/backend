@@ -19,7 +19,7 @@ function detailRows(event: DanceEvent): [string, string][] {
   const place = placeLabel(event);
   const maps = mapsUrl(event);
   const directions = maps
-    ? ` <a class="inline-link" href="${escapeHtml(maps)}" target="_blank" rel="noopener">${ICONS.pin}Cómo llegar</a>`
+    ? ` <a class="inline-link" href="${escapeHtml(maps)}" target="_blank" rel="noopener" data-track="como-llegar">${ICONS.pin}Cómo llegar</a>`
     : "";
 
   const rows: [string, string][] = [
@@ -105,9 +105,9 @@ export function eventDetailHtml(
       ${styles ? `<p class="style-list">${escapeHtml(styles)}</p>` : ""}
       ${lowConfidence}
       <div class="event-dialog__actions">
-        <a class="btn btn--primary" href="${permalink}" target="_blank" rel="noopener">${ICONS.instagram}Ver en Instagram</a>
-        <a class="btn btn--whatsapp" href="${escapeHtml(whatsappShareUrl(event))}" target="_blank" rel="noopener">${ICONS.whatsapp}Compartir por WhatsApp</a>
-        <a class="btn" href="${escapeHtml(googleCalendarUrl(event))}" target="_blank" rel="noopener">${ICONS.calendar}Agregar al calendario</a>
+        <a class="btn btn--primary" href="${permalink}" target="_blank" rel="noopener" data-track="instagram">${ICONS.instagram}Ver en Instagram</a>
+        <a class="btn btn--whatsapp" href="${escapeHtml(whatsappShareUrl(event))}" target="_blank" rel="noopener" data-track="whatsapp">${ICONS.whatsapp}Compartir por WhatsApp</a>
+        <a class="btn" href="${escapeHtml(googleCalendarUrl(event))}" target="_blank" rel="noopener" data-track="calendario">${ICONS.calendar}Agregar al calendario</a>
       </div>
       ${media.caption ? `<details class="event-dialog__caption"><summary>Texto de la publicación</summary><p>${escapeHtml(media.caption)}</p></details>` : ""}
     </div>`;

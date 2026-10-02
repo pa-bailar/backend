@@ -9,6 +9,7 @@
 
 import type { DanceEvent } from "../types";
 import { byId } from "../lib/dom";
+import { trackPageview } from "../lib/analytics";
 import { eventPath } from "../lib/links";
 import { dismissSheet, initSheet } from "../lib/sheet";
 import { eventDetailHtml, handleMediaTabClick } from "./eventDetail";
@@ -54,6 +55,7 @@ function setCurrent(position: number, { updateUrl }: { updateUrl: boolean }) {
   dialog().setAttribute("aria-labelledby", `event-title-${position}`);
   slides().forEach((slide, i) => (slide.inert = i !== position));
   if (updateUrl) history.replaceState({ eventId: event.id } satisfies HistoryState, "", eventPath(event));
+  trackPageview(eventPath(event), event.title); // which events people look at
 }
 
 function step(delta: number) {

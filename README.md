@@ -83,6 +83,10 @@ npm run build   # static site in frontend/dist/
 Besides the home page, the build makes one page per event (`/evento/<id>/`, what shared links open),
 a JPEG link preview per event (`/og/<id>.jpg`) and a subscribable calendar feed (`/calendario.ics`).
 
+## Visit statistics
+
+[GoatCounter](https://jzamora9.goatcounter.com) (free, no cookies, no consent banner needed): page visits, each event opened in the viewer, and clicks on Instagram, WhatsApp, calendar, "Cómo llegar" and the calendar subscription (`data-track`, `frontend/src/scripts/lib/analytics.ts`). Shared WhatsApp links carry `utm_source=whatsapp`. Local testing (localhost) isn't counted.
+
 ## Deployment
 
 Live at **https://pa-bailar.github.io**. Everything runs on GitHub Actions:

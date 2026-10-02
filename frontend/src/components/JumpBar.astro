@@ -1,10 +1,16 @@
 ---
-// Phones only: slim bar stuck to the top with "Filtros" and the period chips (scripts/views/jumpBar.ts).
+// Phones only: slim bar stuck to the top with the filters button, the period menu and the rhythm chips
+// (scripts/views/jumpBar.ts fills it).
 ---
 
-<nav class="jump-bar" id="jump-bar" aria-label="Ir a un periodo" hidden>
+<nav class="jump-bar" id="jump-bar" aria-label="Filtros rápidos" hidden>
   <div class="container jump-bar__inner">
-    <button class="chip jump-bar__filters" id="jump-filters" type="button">Filtros</button>
-    <div class="jump-bar__periods" id="jump-periods"></div>
+    <button class="chip jump-bar__filters" id="jump-filters" type="button" aria-label="Filtros"></button>
+    <button class="chip jump-bar__period" id="jump-period" type="button" popovertarget="jump-period-menu"
+      aria-label="Ir a otro periodo">
+      <span id="jump-period-label"></span><span aria-hidden="true">▾</span>
+    </button>
+    <div class="jump-bar__styles" id="jump-styles" role="group" aria-label="Filtrar por ritmo"></div>
   </div>
+  <div class="period-menu" id="jump-period-menu" popover></div>
 </nav>
