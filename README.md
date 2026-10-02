@@ -5,6 +5,8 @@ dance academies (Instagram → Gemini) and publishes them to the site,
 [pa-bailar/pa-bailar.github.io](https://github.com/pa-bailar/pa-bailar.github.io) (public), with a
 pull request twice a day. The site, its design system and the data contract (`docs/DATA.md`) live there.
 
+**How it all fits together, with diagrams: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).**
+
 ```
 pa_bailar/            the collector (one Python package)
   commands/           what you run: sweep, discover, refresh_token
@@ -13,7 +15,8 @@ pa_bailar/            the collector (one Python package)
   extraction.py       Gemini prompts, models, quotas
   merging.py, ids.py, normalize.py, storage.py, models.py, discovery.py, config.py
 tests/                unit and end-to-end tests (no network)
-docs/PLAN.md          architecture, decisions and conventions
+docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, monitoring (start here)
+docs/PLAN.md          the original go-live plan, kept for its decisions
 accounts.txt          the academies to follow
 state/                local sweep state (git-ignored; on GitHub: the sweep-state branch)
 private/              your own files: Instagram export, App key, discovery results (git-ignored)
@@ -89,8 +92,9 @@ Everything runs on GitHub Actions:
 | `ci` | Every pull request | Lint, format check and unit tests. The required check on `main`. |
 | `daily-sweep` | Every day at 5:23 AM and 12:47 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini, writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is saved to the `sweep-state` branch. |
 
-`main` is protected by the `protect-main` ruleset with **no bypass**: changes only arrive through
-squash-merged pull requests that pass `ci`; force pushes and deletion are blocked.
+`main` is **not protected**: rulesets on private repositories need a paid GitHub plan (Pro or Team).
+Changes go through squash-merged pull requests and `ci` runs on every one of them by convention, but
+nothing enforces it. The site repository, which is public, does enforce it (`protect-main`).
 
 Settings → Secrets and variables → Actions:
 - Secrets: `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `APP_PRIVATE_KEY` (the pa-bailar-bot
