@@ -1,0 +1,67 @@
+# Every morning: collect new events from Instagram and commit the data to main.
+# The commit is pushed with a deploy key (secret SWEEP_DEPLOY_KEY), so it triggers deploy.yml like any
+# push touching data/, and so it can be allowed past main's protection rule.
+name: daily-sweep
+
+on:
+  schedule:
+    - cron: "0 11 * * *" # 6:00 AM Bogotá (UTC-5, no daylight saving)
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Only analyze posts from the last N days"
+        default: "7"
+
+permissions:
+  contents: read # pushes use the deploy key, not the workflow token
+
+concurrency:
+  group: data
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ssh-key: ${{ secrets.SWEEP_DEPLOY_KEY }}
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - run: pip install -r backend/requirements.txt
+
+      - name: Run the sweep
+        working-directory: backend
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          LOOKBACK_DAYS: ${{ inputs.days || '7' }}
+        run: python run_pipeline.py --days "$LOOKBACK_DAYS"
+
+      - name: Commit data
+        if: ${{ !cancelled() }} # keep progress saved by a sweep that failed partway (it still shows as failed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ backend/state/
+          if git diff --cached --quiet; then
+            echo "No data changes."
+            exit 0
+          fi
+          git commit -m "chore(data): daily sweep $(date -u +%F)"
+          git pull --rebase origin main
+          git push
+
+      - name: Ping health check (optional, only if the HEALTHCHECK_URL secret exists)
+        if: success()
+        env:
+          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+        run: |
+          if [ -n "$HEALTHCHECK_URL" ]; then curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL" > /dev/null; fi

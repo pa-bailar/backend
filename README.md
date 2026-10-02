@@ -61,6 +61,23 @@ npm run check   # type check (astro check)
 npm run build   # static site in frontend/dist/
 ```
 
+## Deployment
+
+Live at **https://pa-bailar.github.io**. Everything runs on GitHub Actions:
+
+| Workflow | When | What |
+|---|---|---|
+| `ci` | Every pull request | Backend lint + tests, frontend type check + build (only the side that changed) |
+| `daily-sweep` | Every day 6:00 AM Bogotá, or *Run workflow* | Instagram → Gemini → commits `data/` to `main` (pushed with the `SWEEP_DEPLOY_KEY` deploy key) |
+| `deploy` | Push to `main` touching `frontend/` or `data/`, or *Run workflow* | Builds the site and publishes it to GitHub Pages |
+
+Secrets (Settings → Secrets and variables → Actions): `GEMINI_API_KEY`, `META_ACCESS_TOKEN`,
+`IG_USER_ID`, `SWEEP_DEPLOY_KEY`, and optionally `HEALTHCHECK_URL`.
+
+Recommended ruleset on `main` (Settings → Rules): require a pull request (squash) and the `ci`
+check, block force pushes and deletion, and add **Deploy keys** as a bypass actor so the daily
+sweep can still push its data commits.
+
 ## Contributing
 
 `main` is what's live. Work on a branch (`feat/...`, `fix/...`), open a pull request, and use

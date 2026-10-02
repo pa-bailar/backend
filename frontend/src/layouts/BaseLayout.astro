@@ -18,9 +18,13 @@ import "../styles/components/site-footer.css";
 interface Props {
   title: string;
   description: string;
+  /** Path of an image under the site's public folder (e.g. a flyer) for link previews. */
+  image?: string | null;
 }
 
-const { title, description } = Astro.props;
+const { title, description, image } = Astro.props;
+const pageUrl = new URL(Astro.url.pathname, Astro.site);
+const imageUrl = image ? new URL(`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}${image}`, Astro.site) : null;
 
 // Record-label favicon in the brand colors (wine + marigold).
 const favicon =
@@ -39,6 +43,16 @@ const favicon =
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={pageUrl} />
+    <!-- Link previews (WhatsApp, Instagram, Facebook) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CO" />
+    <meta property="og:site_name" content="Pa' Bailar" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={pageUrl} />
+    {imageUrl && <meta property="og:image" content={imageUrl} />}
+    <meta name="twitter:card" content={imageUrl ? "summary_large_image" : "summary"} />
     <meta name="theme-color" content="#F3E6D3" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#2A0F14" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href={favicon} />
