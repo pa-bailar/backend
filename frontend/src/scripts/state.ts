@@ -9,6 +9,7 @@ export function createInitialState(): AppState {
     view: "upcoming",
     typeFilter: "all",
     styleFilter: "all",
+    accountFilter: null,
     month: startOfMonth(new Date()),
     selectedDay: todayIso(),
   };
@@ -24,7 +25,18 @@ export function styleMatches(eventStyle: string, filter: string): boolean {
 export function matchesFilters(event: DanceEvent, state: AppState): boolean {
   const typeOk = state.typeFilter === "all" || event.event_type === state.typeFilter;
   const styleOk = state.styleFilter === "all" || event.styles.some((style) => styleMatches(style, state.styleFilter));
-  return typeOk && styleOk;
+  const accountOk = !state.accountFilter || event.account === state.accountFilter;
+  return typeOk && styleOk && accountOk;
+}
+
+export function hasActiveFilters(state: AppState): boolean {
+  return state.typeFilter !== "all" || state.styleFilter !== "all" || state.accountFilter !== null;
+}
+
+export function clearFilters(state: AppState) {
+  state.typeFilter = "all";
+  state.styleFilter = "all";
+  state.accountFilter = null;
 }
 
 function monthPrefix(month: Date): string {
@@ -61,13 +73,14 @@ export interface AgendaGroup {
  * (This week, Next week, Later this month, Next month…), with the weekend split out because it's
  * when most socials happen:
  *
- *   "Esta semana"            today … Thursday of this week (only Monday–Thursday)
+ *   "Hoy"                    today, first: what most visitors want to know (cf. hoy-milonga, Eventbrite)
+ *   "Esta semana"            tomorrow … Thursday of this week (only Monday–Wednesday)
  *   "Este fin de semana"     Friday … Sunday of this week (Friday night counts as weekend)
  *   "Próxima semana"         next Monday … Sunday
  *   "Más adelante en <mes>"  the rest of the current month
  *   "<Mes>" / "<Mes> de <año>"  one group per later month (year shown when it's not this year)
  *
- * Weeks run Monday to Sunday, as in Colombian calendars. Hoy/Mañana are shown on each card.
+ * Weeks run Monday to Sunday, as in Colombian calendars. "Mañana" is shown on each card.
  * Input must be sorted by date.
  */
 export function groupByPeriod(events: DanceEvent[], today = todayIso()): AgendaGroup[] {
@@ -79,7 +92,8 @@ export function groupByPeriod(events: DanceEvent[], today = todayIso()): AgendaG
   const groups = new Map<string, DanceEvent[]>();
   for (const event of events) {
     let label: string;
-    if (event.date < weekendStart) label = "Esta semana";
+    if (event.date === today) label = "Hoy";
+    else if (event.date < weekendStart) label = "Esta semana";
     else if (event.date <= thisWeekEnd) label = "Este fin de semana";
     else if (event.date <= nextWeekEnd) label = "Próxima semana";
     else if (event.date.startsWith(currentMonth)) label = `Más adelante en ${formatMonthName(event.date)}`;

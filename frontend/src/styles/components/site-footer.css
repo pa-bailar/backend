@@ -1,4 +1,4 @@
-/* Site footer: disclaimer and source accounts. */
+/* Site footer: disclaimer, calendar subscription and source accounts. */
 
 .site-footer {
   padding-bottom: var(--space-6);
@@ -8,11 +8,37 @@
 
 .site-footer .container {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
-.site-footer__sources {
+.site-footer .icon {
+  vertical-align: -0.2em;
+}
+
+.site-footer__subscribe {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.site-footer__note {
+  font-size: var(--text-xs);
+}
+
+.site-footer__links {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-3);
+}
+
+.site-footer__links a {
+  padding: var(--space-1) 0; /* taller tap target */
+  font-weight: var(--weight-bold);
+}
+
+.site-footer__sources summary {
+  cursor: pointer;
+}
+
+.site-footer__sources .site-footer__links {
+  margin-top: var(--space-2);
 }

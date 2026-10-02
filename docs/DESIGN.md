@@ -96,7 +96,8 @@ The light theme's creams are the paper of 1970s salsa flyers and sleeves. The pa
 
   | Group | Range |
   |---|---|
-  | Esta semana | today … Thursday of this week (only Monday–Thursday) |
+  | Hoy | today, always first: what most visitors come for |
+  | Esta semana | tomorrow … Thursday of this week (only Monday–Wednesday) |
   | Este fin de semana | Friday … Sunday of this week (Friday night counts as weekend) |
   | Próxima semana | next Monday … Sunday |
   | Más adelante en *mes* | rest of the current month |
@@ -105,6 +106,9 @@ The light theme's creams are the paper of 1970s salsa flyers and sleeves. The pa
   Weeks run Monday to Sunday.
 - **Each card says when:** "Hoy / Mañana · 8:00 p. m.", the weekday within a week ("Domingo · 6:00 p. m."), or weekday and date further away ("Martes 20 de oct"). The sticker keeps the date number.
 - **Wide screens (960px+):** the group heading sits in a left column.
+- **The academy on each card** is a button: it filters the list to that academy and shows "Solo eventos de @academia · Ver todas las academias" under the chips. It sits above the card's stretched click area.
+- **Free events** show their price as a green "Gratis" label (WhatsApp green pair, already checked for contrast).
+- **Empty results** always offer a way out: "Quitar filtros" when filters are active.
 - **Dance styles** are one line of text joined by a middle dot glued to the previous word with a no-break space (`stylesLabel`), never separate elements with CSS separators. The dot stays centered between words, and a wrapped line never starts with a dot.
 
 ## Events with several posts
@@ -113,6 +117,15 @@ An event can be announced by several Instagram posts (a flyer, then a video, a r
 - **Card:** shows the main post's flyer (images come before videos). A `.media-count` label ("2 publicaciones") sits in the flyer's top-right corner.
 - **Dialog:** `.media-tabs` above the flyer, labeled by post type (Flyer / Carrusel / Video), with the same underline style as the main view tabs. Switching tabs changes the image, the "Ver en Instagram" link and the caption.
 - **Videos:** the dialog shows the video's preview frame with a "Ver video en Instagram" label (`.event-dialog__play`). Videos play on Instagram, never embedded.
+
+## Event detail: dialog and page
+
+- **Same markup in both** (`scripts/views/eventDetail.ts`): the home page's dialog and each event's own page (`pages/evento/[id].astro`, one static page per event).
+- **The dialog has a URL:** opening it pushes `/evento/<id>/` to the address bar, so the phone's back button closes it, and a copied link opens that event's page.
+- **Shared links open the event page.** Its preview (WhatsApp, Instagram) shows the flyer as a small JPEG made at build time (`pages/og/[id].jpg.ts`), and search engines get schema.org `Event` data.
+- **Missing details say "Por confirmar"** in their own row (hora, lugar, precio), in muted italics. Gemini's free-text doubts are not shown; a low-confidence extraction gets one note asking to confirm in the post.
+- **"Cómo llegar"** after the venue opens Google Maps (only when there's a venue or address).
+- **Icons** (`scripts/lib/icons.ts`): Instagram and WhatsApp marks (Simple Icons, CC0) and drawn calendar and pin icons, inline SVG in the text color, hidden from screen readers.
 
 ## Component rules
 

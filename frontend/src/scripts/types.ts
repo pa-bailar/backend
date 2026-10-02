@@ -50,6 +50,7 @@ export interface AppState {
   view: View;
   typeFilter: EventType | "all";
   styleFilter: string;
+  accountFilter: string | null; // Instagram username, chosen by tapping it on a card
   month: Date; // first day of the month shown in the calendar
   selectedDay: string; // YYYY-MM-DD
 }

@@ -1,11 +1,16 @@
 ---
 import Stripes from "./Stripes.astro";
+import { ICONS } from "../scripts/lib/icons";
 
 interface Props {
   accounts: string[];
 }
 
 const { accounts } = Astro.props;
+// Subscribe links for the daily calendar feed (pages/calendario.ics.ts).
+const feedUrl = new URL(`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}calendario.ics`, Astro.site);
+const webcalUrl = feedUrl.href.replace(/^https?:/, "webcal:");
+const googleUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl)}`;
 ---
 
 <footer class="site-footer">
@@ -15,9 +20,19 @@ const { accounts } = Astro.props;
       La información se extrae automáticamente de publicaciones públicas de Instagram y puede tener errores:
       confirma siempre en la publicación original. Los flyers pertenecen a cada academia.
     </p>
-    <p class="site-footer__sources">
-      Fuentes:
-      {accounts.map((account) => <a href={`https://www.instagram.com/${account}/`} target="_blank" rel="noopener">@{account}</a>)}
-    </p>
+    <div class="site-footer__subscribe">
+      <p><Fragment set:html={ICONS.calendar} /> Suscríbete y los eventos nuevos aparecen solos en tu calendario:</p>
+      <p class="site-footer__links">
+        <a href={googleUrl} target="_blank" rel="noopener">Google Calendar</a>
+        <a href={webcalUrl}>iPhone y otros calendarios</a>
+      </p>
+      <p class="site-footer__note">Tu calendario lo actualiza una o dos veces al día.</p>
+    </div>
+    <details class="site-footer__sources">
+      <summary><Fragment set:html={ICONS.instagram} /> Fuentes: {accounts.length} cuentas de Instagram</summary>
+      <p class="site-footer__links">
+        {accounts.map((account) => <a href={`https://www.instagram.com/${account}/`} target="_blank" rel="noopener">@{account}</a>)}
+      </p>
+    </details>
   </div>
 </footer>

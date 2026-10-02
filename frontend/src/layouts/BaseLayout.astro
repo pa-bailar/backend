@@ -79,6 +79,7 @@ const favicon =
         if (meta) meta.setAttribute("content", theme === "dark" ? "#2A0F14" : "#ECDDC6");
       })();
     </script>
+    <slot name="head" />
   </head>
   <body>
     <slot />

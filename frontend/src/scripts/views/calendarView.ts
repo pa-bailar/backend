@@ -4,7 +4,7 @@ import type { AppState, DanceEvent } from "../types";
 import { byId, escapeHtml } from "../lib/dom";
 import { daysInMonth, mondayOffset, todayIso, toIsoDate } from "../lib/dates";
 import { formatDayHeading, formatLongDate, formatMonthTitle } from "../lib/format";
-import { groupByDay, matchesFilters } from "../state";
+import { groupByDay, hasActiveFilters, matchesFilters } from "../state";
 import { eventCardGridHtml } from "./eventCard";
 
 const WEEKDAY_INITIALS = ["L", "M", "M", "J", "V", "S", "D"];
@@ -34,6 +34,14 @@ function dayCellHtml(iso: string, dayNumber: number, dayEvents: DanceEvent[], st
     </button>`;
 }
 
+function emptyDayHtml(state: AppState): string {
+  if (!hasActiveFilters(state)) return `<p class="text-muted">No hay eventos este día.</p>`;
+  return `<div class="empty-state">
+      <p>No hay eventos este día con estos filtros.</p>
+      <button class="btn" data-clear-filters>Quitar filtros</button>
+    </div>`;
+}
+
 /** Renders the month and returns how many events the selected day shows. */
 export function renderCalendarView(events: DanceEvent[], state: AppState): number {
   const { month } = state;
@@ -52,6 +60,6 @@ export function renderCalendarView(events: DanceEvent[], state: AppState): numbe
   const selectedEvents = byDay.get(state.selectedDay) ?? [];
   byId("cal-selected-day").innerHTML = `
     <h2 class="day-heading">${escapeHtml(formatDayHeading(state.selectedDay))}</h2>
-    ${selectedEvents.length ? eventCardGridHtml(selectedEvents) : `<p class="text-muted">No hay eventos este día.</p>`}`;
+    ${selectedEvents.length ? eventCardGridHtml(selectedEvents) : emptyDayHtml(state)}`;
   return selectedEvents.length;
 }

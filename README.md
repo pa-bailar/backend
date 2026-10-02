@@ -80,6 +80,9 @@ npm run check   # type check + color contrast (WCAG AA)
 npm run build   # static site in frontend/dist/
 ```
 
+Besides the home page, the build makes one page per event (`/evento/<id>/`, what shared links open),
+a JPEG link preview per event (`/og/<id>.jpg`) and a subscribable calendar feed (`/calendario.ics`).
+
 ## Deployment
 
 Live at **https://pa-bailar.github.io**. Everything runs on GitHub Actions:

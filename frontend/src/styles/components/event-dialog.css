@@ -53,6 +53,9 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 /* ---------- media tabs: switch between the posts announcing the event ---------- */
@@ -162,6 +165,24 @@
   margin: 0;
 }
 
+/* "Cómo llegar" after the venue. */
+.inline-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* A detail the post doesn't give. */
+.to-confirm {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
 .price-list {
   margin: 0;
   padding: 0;
@@ -206,5 +227,56 @@
     max-height: calc(100dvh - var(--space-5));
     padding: var(--space-6);
     overflow-y: auto;
+  }
+}
+
+/* ---------- the event's own page (pages/evento/[id].astro): same detail, outside a dialog ---------- */
+
+.event-page__header {
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+.event-page__logo {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  line-height: 1;
+  color: var(--logo);
+  text-decoration: none;
+}
+
+.event-page__back {
+  display: block;
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text); /* the red accent is below 4.5:1 on the page background */
+}
+
+.event-page__past {
+  margin-bottom: var(--space-3);
+}
+
+.event-page {
+  margin-bottom: var(--space-6);
+  overflow: hidden;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.event-page .event-dialog__media img {
+  max-height: 80vh;
+}
+
+.event-page .event-dialog__info .stripes,
+.event-page .media-tabs {
+  margin-right: 0; /* no close button here */
+}
+
+@media (min-width: 760px) {
+  .event-page .event-dialog__info {
+    max-height: none;
+    overflow: visible;
   }
 }
