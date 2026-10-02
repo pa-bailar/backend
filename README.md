@@ -67,16 +67,16 @@ Live at **https://pa-bailar.github.io**. Everything runs on GitHub Actions:
 
 | Workflow | When | What |
 |---|---|---|
-| `ci` | Every pull request | Backend lint + tests, frontend type check + build (only the side that changed) |
-| `daily-sweep` | Every day 6:00 AM Bogotá, or *Run workflow* | Instagram → Gemini → commits `data/` to `main` (pushed with the `SWEEP_DEPLOY_KEY` deploy key) |
-| `deploy` | Push to `main` touching `frontend/` or `data/`, or *Run workflow* | Builds the site and publishes it to GitHub Pages |
+| `ci` | Every pull request (and started by the sweep for its data PR) | Backend lint + unit tests, frontend type check + build. The final `ci` job is the required check. |
+| `daily-sweep` | Every day 6:00 AM Bogotá, or *Run workflow* | Instagram → Gemini. Only if events or flyers changed: opens a `data` PR, runs `ci` on it and auto-merges it. Every day: republishes the site with the check time. |
+| `deploy` | Push to `main` touching `frontend/` or `data/`, started by the sweep, or *Run workflow* | Builds the site and publishes it to GitHub Pages |
+
+`main` is protected by the `protect-main` ruleset with **no bypass**: changes only arrive through
+squash-merged pull requests that pass `ci`; force pushes and deletion are blocked. The daily data
+follows the same path. Data PRs carry the `data` label, so they're easy to filter or mute.
 
 Secrets (Settings → Secrets and variables → Actions): `GEMINI_API_KEY`, `META_ACCESS_TOKEN`,
-`IG_USER_ID`, `SWEEP_DEPLOY_KEY`, and optionally `HEALTHCHECK_URL`.
-
-Recommended ruleset on `main` (Settings → Rules): require a pull request (squash) and the `ci`
-check, block force pushes and deletion, and add **Deploy keys** as a bypass actor so the daily
-sweep can still push its data commits.
+`IG_USER_ID`, and optionally `HEALTHCHECK_URL`.
 
 ## Contributing
 

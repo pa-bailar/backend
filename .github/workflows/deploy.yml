@@ -1,6 +1,8 @@
 # Builds the Astro site and publishes it to GitHub Pages.
-# Runs when site code or data changes on main (merged PRs and the daily sweep's data commits)
-# or from the manual button.
+# Runs when site code or data changes on main (merged PRs), from the manual button, and every day from
+# the daily sweep, which passes the time of its check so "Actualizado el …" stays current even on days
+# without new events. (The sweep's own data merges are made by the workflow token, which doesn't
+# trigger push workflows, so the sweep always starts this itself.)
 name: deploy
 
 on:
@@ -11,6 +13,10 @@ on:
       - "data/**"
       - ".nvmrc"
   workflow_dispatch:
+    inputs:
+      checked_at:
+        description: "When the data was last checked (ISO time); defaults to meta.json's generated_at"
+        required: false
 
 permissions:
   contents: read
@@ -36,6 +42,8 @@ jobs:
         working-directory: frontend
       - run: npm run build
         working-directory: frontend
+        env:
+          PUBLIC_CHECKED_AT: ${{ inputs.checked_at }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: frontend/dist

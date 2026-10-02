@@ -11,8 +11,10 @@ import meta from "../../../data/meta.json";
 const accounts = [...new Set(events.map((event) => event.account))].sort();
 // Escape "<" so a caption can never end the inline JSON script block early.
 const eventsJson = JSON.stringify(events).replace(/</g, "\\u003c");
-// When the backend last refreshed the data (not when the site was built).
-const updatedLabel = new Date(meta.generated_at).toLocaleDateString("es-CO", {
+// When the data was last checked: the daily sweep passes PUBLIC_CHECKED_AT to the build; otherwise
+// (local builds, code deploys) the time of the last data change recorded in meta.json.
+const checkedAt = import.meta.env.PUBLIC_CHECKED_AT || meta.generated_at;
+const updatedLabel = new Date(checkedAt).toLocaleDateString("es-CO", {
   day: "numeric",
   month: "long",
   timeZone: "America/Bogota",

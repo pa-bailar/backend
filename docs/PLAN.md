@@ -587,7 +587,7 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 ### Phase 4 — CI
 - [x] `.github/workflows/ci.yml`.
 - [ ] Open a test PR; both jobs are green.
-- [ ] Ruleset on `main`: require PR + `ci`, block force push and deletion. **Personal repos can't let the Actions bot bypass a ruleset**, so the sweep pushes with a write **deploy key** (`SWEEP_DEPLOY_KEY`, created) and the ruleset needs a `DeployKey` bypass. Left for the owner to apply (see README).
+- [ ] Ruleset `protect-main` on `main`: require a squash-merged PR + the `ci` check, block force pushes and deletion, **no bypass at all** (owner's decision, 2026-10-02). The daily sweep therefore publishes data through its own auto-merged PR (see Phase 6).
 
 **Done when:** a PR with a deliberately broken test is blocked, and a fixed one merges.
 
@@ -599,8 +599,13 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 **Done when:** the site is live at `https://pa-bailar.github.io`, with flyers loading.
 
 ### Phase 6 — Daily sweep
-- [x] Add secrets `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` and `SWEEP_DEPLOY_KEY` (check they survive the org move).
-- [x] `.github/workflows/daily-sweep.yml`.
+- [x] Add secrets `GEMINI_API_KEY`, `META_ACCESS_TOKEN` and `IG_USER_ID` (they survived the move to the org).
+- [x] `.github/workflows/daily-sweep.yml`, data through PRs, and **only when events or flyers change**:
+  - The sweep pushes a `data/sweep-…` branch, opens a PR labeled `data`, starts `ci` on it, and enables auto-merge (squash). After the merge it starts `deploy`.
+  - Days without new events open no PR. `backend/state/processed_posts.json` survives between runs in the Actions cache and is committed with the next real change.
+  - Every day the sweep starts `deploy` with `checked_at`, so "Actualizado el …" shows the time of the check.
+  - The workflow token can't trigger push/PR workflows, so the sweep starts `ci` and `deploy` with `workflow_dispatch`.
+  - Requires "Allow GitHub Actions to create and approve pull requests" (repo and org settings).
 - [ ] Run it manually with `days = 7`; check:
   - (a) the bot commit `chore(data): daily sweep …` appears on `main`
   - (b) deploy is triggered

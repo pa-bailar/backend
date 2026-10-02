@@ -1,5 +1,7 @@
-# Checks every pull request. Each side runs only when its files change; the final `ci` job is the
-# single required status check (it passes when every job passed or was skipped).
+# The `ci` check required on main: backend lint (ruff) + unit tests (pytest), frontend type check + build.
+# On pull requests each side runs only when its files change; when started manually (or by the daily
+# sweep for its data PR) both sides run. The final `ci` job is the single required status check:
+# it passes when every job passed or was skipped.
 name: ci
 
 on:
@@ -16,6 +18,7 @@ concurrency:
 
 jobs:
   changes:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -38,8 +41,9 @@ jobs:
               - ".github/workflows/**"
 
   backend:
+    name: backend (lint + unit tests)
     needs: changes
-    if: needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || needs.changes.outputs.backend == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -53,13 +57,17 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements*.txt
       - run: pip install -r requirements-dev.txt
-      - run: ruff check .
-      - run: ruff format --check .
-      - run: pytest -q
+      - name: Lint
+        run: ruff check .
+      - name: Format
+        run: ruff format --check .
+      - name: Unit tests
+        run: pytest -q
 
   frontend:
+    name: frontend (type check + build)
     needs: changes
-    if: needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || needs.changes.outputs.frontend == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -73,11 +81,13 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-      - run: npm run check
-      - run: npm run build
+      - name: Type check
+        run: npm run check
+      - name: Build
+        run: npm run build
 
   ci:
-    needs: [backend, frontend]
+    needs: [changes, backend, frontend]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 2

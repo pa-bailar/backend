@@ -10,9 +10,9 @@ Breaking changes bump `schema_version` in `meta.json` and update both sides in t
 | File | Written by | Read by | Content |
 |---|---|---|---|
 | `data/events.json` | backend | frontend (build) | Array of events, sorted by date and start time |
-| `data/meta.json` | backend | frontend (build) | `schema_version`, `generated_at` (Bogotá time), stats of the last sweep |
+| `data/meta.json` | backend | frontend (build) | `schema_version`, `generated_at` (Bogotá time) and stats of the last sweep that changed data. Only committed with a real change; the site's "Actualizado el" uses the daily check time passed by the deploy, falling back to `generated_at`. |
 | `data/flyers/*.webp` | backend | frontend (static files) | Flyer copies, max 1080×1350, WebP q80 |
-| `backend/state/processed_posts.json` | backend | backend | Posts already analyzed, keyed by post id |
+| `backend/state/processed_posts.json` | backend | backend | Posts already analyzed, keyed by post id. On CI it lives in the Actions cache between runs and is committed with the next real change. |
 | `backend/accounts.txt` | people | backend | Instagram usernames to follow |
 
 ## Event (`events.json` item)

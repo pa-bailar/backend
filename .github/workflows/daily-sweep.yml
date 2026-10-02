@@ -1,6 +1,16 @@
-# Every morning: collect new events from Instagram and commit the data to main.
-# The commit is pushed with a deploy key (secret SWEEP_DEPLOY_KEY), so it triggers deploy.yml like any
-# push touching data/, and so it can be allowed past main's protection rule.
+# Every morning: collect new events from Instagram, publish real changes through a pull request,
+# and republish the site with the time of the check.
+#
+# main only accepts pull requests that pass the `ci` check, with no exceptions, so the data goes
+# through the same path as code:
+#   sweep → (only if events or flyers changed) data/ branch → PR → ci → auto-merge → deploy
+#
+# Days without new events open no PR. The list of analyzed posts (backend/state) is kept in the
+# Actions cache between runs, so posts aren't sent to Gemini twice; it is committed with the next
+# real change. Losing the cache only means re-analyzing a few posts.
+#
+# Events created with the workflow token don't trigger other workflows, so this workflow starts
+# `ci` and `deploy` itself with workflow_dispatch (the one event the token is allowed to trigger).
 name: daily-sweep
 
 on:
@@ -13,20 +23,32 @@ on:
         default: "7"
 
 permissions:
-  contents: read # pushes use the deploy key, not the workflow token
+  contents: write # push the data branch
+  pull-requests: write # open the data PR and enable auto-merge
+  actions: write # start ci and deploy, save the state cache
 
 concurrency:
   group: data
   cancel-in-progress: false
 
+env:
+  GH_TOKEN: ${{ github.token }}
+  STATE_FILE: backend/state/processed_posts.json
+  MERGE_TIMEOUT_MINUTES: 20
+
 jobs:
   sweep:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
+
+      - name: Restore the analyzed-posts state
+        uses: actions/cache/restore@v6
         with:
-          ssh-key: ${{ secrets.SWEEP_DEPLOY_KEY }}
+          path: ${{ env.STATE_FILE }}
+          key: sweep-state-${{ github.run_id }}
+          restore-keys: sweep-state-
 
       - uses: actions/setup-python@v7
         with:
@@ -45,19 +67,59 @@ jobs:
           LOOKBACK_DAYS: ${{ inputs.days || '7' }}
         run: python run_pipeline.py --days "$LOOKBACK_DAYS"
 
-      - name: Commit data
-        if: ${{ !cancelled() }} # keep progress saved by a sweep that failed partway (it still shows as failed)
+      - name: Save the analyzed-posts state
+        if: ${{ !cancelled() }}
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.STATE_FILE }}
+          key: sweep-state-${{ github.run_id }}
+
+      - name: Open a data pull request if events or flyers changed
+        id: pr
+        if: ${{ !cancelled() }} # keep progress from a sweep that failed partway (it still shows as failed)
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/ backend/state/
-          if git diff --cached --quiet; then
-            echo "No data changes."
+          if [ -z "$(git status --porcelain -- data/events.json data/flyers)" ]; then
+            echo "No new or changed events today: no pull request."
             exit 0
           fi
-          git commit -m "chore(data): daily sweep $(date -u +%F)"
-          git pull --rebase origin main
-          git push
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          day="$(date -u +%F)"
+          branch="data/sweep-${day}-${GITHUB_RUN_ID}"
+          git switch -c "$branch"
+          git add data/ backend/state/
+          git commit -m "chore(data): daily sweep ${day}"
+          git push origin "$branch"
+          url="$(gh pr create --base main --head "$branch" --label data \
+            --title "chore(data): daily sweep ${day}" \
+            --body "Automatic data update from [daily-sweep run ${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}). Merges itself when \`ci\` passes.")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "Opened $url"
+
+      - name: Check the data PR and merge it when ci passes
+        if: ${{ !cancelled() && steps.pr.outputs.url != '' }}
+        env:
+          PR_URL: ${{ steps.pr.outputs.url }}
+          BRANCH: ${{ steps.pr.outputs.branch }}
+        run: |
+          gh workflow run ci.yml --ref "$BRANCH"
+          gh pr merge "$PR_URL" --auto --squash --delete-branch
+          deadline=$(( $(date +%s) + MERGE_TIMEOUT_MINUTES * 60 ))
+          while true; do
+            state="$(gh pr view "$PR_URL" --json state --jq .state)"
+            if [ "$state" = "MERGED" ]; then echo "Merged."; break; fi
+            if [ "$state" = "CLOSED" ]; then echo "::error::The data PR was closed without merging."; exit 1; fi
+            if [ "$(date +%s)" -gt "$deadline" ]; then
+              echo "::error::The data PR did not merge within ${MERGE_TIMEOUT_MINUTES} minutes (did ci fail?): $PR_URL"
+              exit 1
+            fi
+            sleep 30
+          done
+
+      - name: Publish the site with the time of this check
+        if: success()
+        run: gh workflow run deploy.yml --ref main -f checked_at="$(TZ=America/Bogota date --iso-8601=seconds)"
 
       - name: Ping health check (optional, only if the HEALTHCHECK_URL secret exists)
         if: success()
