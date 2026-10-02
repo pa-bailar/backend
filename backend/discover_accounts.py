@@ -17,14 +17,18 @@ from google.genai import errors as genai_errors
 
 from pabailar import config, discovery, storage
 from pabailar.extraction import ExtractionError, ModelPool
-from pabailar.instagram import InstagramClient, InstagramError, is_network_error
+from pabailar.instagram import InstagramClient, InstagramError, is_not_visible, is_rate_limited
 from pabailar.models import AccountClassification
 
 PRIVATE_DIR = config.BACKEND_DIR / "private"
 CACHE_FILE = PRIVATE_DIR / "discovery.json"
 REPORT_FILE = PRIVATE_DIR / "discovery_report.md"
 # Instagram allows ~200 calls/hour for the app; keep room for the daily sweep.
-SECONDS_BETWEEN_INSTAGRAM_CALLS = 20
+# The Instagram app's quota is about 200 calls an hour, shared with the daily sweep: ~100 an hour here,
+# and a pause whenever Meta reports the app past USAGE_PAUSE_PERCENT of it.
+SECONDS_BETWEEN_INSTAGRAM_CALLS = 36
+USAGE_PAUSE_PERCENT = 60
+USAGE_PAUSE_SECONDS = 10 * 60
 
 log = logging.getLogger("discover")
 
@@ -58,10 +62,17 @@ def main() -> None:
     todo = [u for u in discovery.by_likelihood(following) if u not in cache and u not in already]
     for count, username in enumerate(todo[: args.max_instagram], start=1):
         time.sleep(SECONDS_BETWEEN_INSTAGRAM_CALLS if count > 1 else 0)
+        while instagram.app_usage_percent >= USAGE_PAUSE_PERCENT:
+            log.info("  Instagram app at %s%% of its hourly quota: pausing 10 min", instagram.app_usage_percent)
+            time.sleep(USAGE_PAUSE_SECONDS)
+            instagram.app_usage_percent = 0  # the next call reports the real value again
         try:
             profile = instagram.fetch_profile(username)
         except InstagramError as error:
-            if is_network_error(error):
+            if is_rate_limited(error):
+                log.warning("Instagram rate limit reached (%s): stopping. Run again in an hour to continue.", error)
+                break
+            if not is_not_visible(error):
                 log.warning("  @%s: %s (will retry next run)", username, error)
                 continue
             cache[username] = discovery.DiscoveredAccount(username=username, status="personal")

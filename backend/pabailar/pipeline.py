@@ -23,7 +23,15 @@ from google.genai import errors as genai_errors
 from . import config, storage
 from .extraction import EventExtractor, ExtractionError
 from .ids import new_event_id
-from .instagram import InstagramClient, InstagramError, Post, download_image, image_urls, published_at
+from .instagram import (
+    InstagramClient,
+    InstagramError,
+    Post,
+    download_image,
+    image_urls,
+    is_rate_limited,
+    published_at,
+)
 from .merging import detach_post, find_existing, merge_into
 from .models import (
     AccountState,
@@ -147,6 +155,7 @@ class Sweep:
         self.stats = RunStats()
         self.started = time.monotonic()
         self.time_up_logged = False
+        self.rate_limited = False  # Meta is throttling the app: the remaining accounts wait for the next run
 
     def run(self) -> RunStats:
         try:
@@ -159,6 +168,9 @@ class Sweep:
         log.info("Instagram token OK (@%s)", username)
 
         for account in self._accounts_in_order():
+            if self.rate_limited:
+                log.warning("Instagram rate limit reached: the remaining accounts wait for the next run")
+                break
             self.stats.accounts += 1
             self._process_account(account)
 
@@ -217,6 +229,7 @@ class Sweep:
             posts = self.instagram.fetch_recent_posts(account, limit=limit)
         except InstagramError as error:
             log.error("   could not fetch posts: %s", error)
+            self.rate_limited = is_rate_limited(error)
             self.stats.errors += 1
             account_stats.errors += 1
             account_stats.fetch_failed = True
