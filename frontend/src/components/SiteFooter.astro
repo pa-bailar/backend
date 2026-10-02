@@ -1,0 +1,23 @@
+---
+import Stripes from "./Stripes.astro";
+
+interface Props {
+  accounts: string[];
+}
+
+const { accounts } = Astro.props;
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <Stripes />
+    <p>
+      La información se extrae automáticamente de publicaciones públicas de Instagram y puede tener errores:
+      confirma siempre en la publicación original. Los flyers pertenecen a cada academia.
+    </p>
+    <p class="site-footer__sources">
+      Fuentes:
+      {accounts.map((account) => <a href={`https://www.instagram.com/${account}/`} target="_blank" rel="noopener">@{account}</a>)}
+    </p>
+  </div>
+</footer>

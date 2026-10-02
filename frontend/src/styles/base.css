@@ -1,0 +1,95 @@
+/* Element defaults, layout primitives and utilities. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: var(--weight-regular);
+  line-height: 1.1;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- layout ---------- */
+
+.container {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.page-main {
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-7);
+  min-height: 50vh;
+}
+
+/* ---------- shared text styles ---------- */
+
+.day-heading {
+  margin-bottom: var(--space-3);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: var(--text-2xl);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.empty-state {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-7) var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+  }
+}

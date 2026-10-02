@@ -1,0 +1,131 @@
+/* Event card, card grid, day groups and the round date sticker. */
+
+.day-group + .day-group {
+  margin-top: var(--space-6);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: var(--space-5) var(--space-4);
+}
+
+.event-card__hit {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  text-align: left;
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-md);
+  transition: transform var(--duration) ease;
+}
+
+.event-card__hit:hover {
+  transform: translateY(-2px);
+}
+
+.event-card__media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: var(--surface-sunken);
+  border-bottom: var(--border-width) solid var(--border);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.event-card__media img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.event-card__media .tag-type {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+}
+
+.no-flyer {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  color: var(--text-muted);
+}
+
+.event-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+}
+
+.event-card__time {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--accent);
+}
+
+.event-card__title {
+  padding-right: calc(var(--sticker-size) - var(--space-1)); /* keep clear of the sticker */
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+}
+
+.event-card__meta {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.event-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+
+.event-card__price {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+}
+
+/* ---------- date sticker (record label) ---------- */
+
+.date-sticker {
+  position: absolute;
+  right: var(--space-3);
+  bottom: calc(var(--sticker-size) / -2.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: var(--sticker-size);
+  height: var(--sticker-size);
+  border: 3px solid var(--surface);
+  border-radius: var(--radius-round);
+  background: var(--sticker-bg);
+  color: var(--sticker-text);
+  line-height: 1;
+}
+
+.date-sticker b {
+  font-family: var(--font-display);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-xl);
+}
+
+.date-sticker small {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+}

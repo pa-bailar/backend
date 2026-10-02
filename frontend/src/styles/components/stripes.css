@@ -1,0 +1,24 @@
+/* 70s triple stripe: the signature motif. Used in the header, the dialog and the footer. */
+
+.stripes {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stripes i {
+  display: block;
+  height: var(--stripe-height);
+}
+
+.stripes i:nth-child(1) {
+  background: var(--stripe-1);
+}
+
+.stripes i:nth-child(2) {
+  background: var(--stripe-2);
+}
+
+.stripes i:nth-child(3) {
+  background: var(--stripe-3);
+}

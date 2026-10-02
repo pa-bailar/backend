@@ -1,0 +1,14 @@
+---
+// Sticky bar with the view tabs and the filter chips (chips are rendered by scripts/views/filters.ts).
+---
+
+<div class="toolbar">
+  <div class="container toolbar__inner">
+    <div class="tabs" role="tablist" aria-label="Vista">
+      <button class="tabs__tab" role="tab" aria-selected="true" data-view="upcoming">Próximos</button>
+      <button class="tabs__tab" role="tab" aria-selected="false" data-view="calendar">Calendario</button>
+    </div>
+    <div class="chip-row" id="type-filters" aria-label="Filtrar por tipo"></div>
+    <div class="chip-row" id="style-filters" aria-label="Filtrar por ritmo"></div>
+  </div>
+</div>

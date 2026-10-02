@@ -1,0 +1,136 @@
+/*
+ * Pa' Bailar design tokens. Rules and rationale: docs/DESIGN.md.
+ *
+ * Layer 1, palette:  raw colors. Never referenced by components.
+ * Layer 2, semantic: what a color is FOR. Components only use these.
+ *   Each semantic color is light-dark(<light>, <dark>):
+ *   light = "Fania de día" (1970s NY salsa flyer), dark = "Noche Fania" (bachata sensual night).
+ * Layer 3, scales:   type, spacing, shape, sizes, motion.
+ *
+ * Theme selection: `color-scheme` decides which side of light-dark() applies.
+ *   default            → follows the device (light dark)
+ *   [data-theme=light] → forced light (visitor's choice, saved by scripts/theme.ts)
+ *   [data-theme=dark]  → forced dark
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* ---------- Layer 1: palette ---------- */
+  --wine-950: #1e0a0e;
+  --wine-900: #2a0f14;
+  --wine-800: #3a1a1f;
+  --wine-600: #5a2a30;
+  --wine-500: #6e2a33;
+  --cream-50: #fff8ec;
+  --cream-100: #f3e6d3;
+  --cream-200: #e9dcc7;
+  --cream-300: #d9c6aa;
+  --cocoa-500: #6e4a44;
+  --cocoa-300: #c9afa3;
+  --cocoa-200: #b7978c;
+  --tomato-600: #c8321c;
+  --tomato-400: #e2452b;
+  --orange-600: #e8791c;
+  --orange-400: #f08a24;
+  --marigold-600: #e9b021;
+  --marigold-400: #f2c12e;
+  --rose-300: #e9b8a0;
+  --palm-600: #1f7a4a;
+  --white: #ffffff;
+
+  /* ---------- Layer 2: semantic colors (light, dark) ---------- */
+  /* Surfaces */
+  --bg: light-dark(var(--cream-100), var(--wine-900));
+  --surface: light-dark(var(--cream-50), var(--wine-800));
+  --surface-sunken: light-dark(var(--cream-200), var(--wine-950));
+  --backdrop: light-dark(rgb(42 15 20 / 0.6), rgb(16 5 8 / 0.75));
+
+  /* Lines */
+  --border: light-dark(var(--wine-900), var(--wine-600));
+  --divider: light-dark(var(--cream-300), var(--wine-600));
+
+  /* Text */
+  --text: light-dark(var(--wine-900), var(--cream-100));
+  --text-muted: light-dark(var(--cocoa-500), var(--cocoa-300));
+  --text-italic: light-dark(var(--wine-500), var(--rose-300));
+  --logo: light-dark(var(--tomato-600), var(--marigold-400));
+  --accent: light-dark(var(--tomato-600), var(--orange-400)); /* time, active tab, selection */
+  --focus: light-dark(var(--tomato-600), var(--marigold-400));
+
+  /* Controls */
+  --action: light-dark(var(--tomato-600), var(--marigold-400)); /* primary button */
+  --on-action: light-dark(var(--cream-50), var(--wine-900));
+  --chip-active-bg: light-dark(var(--wine-900), var(--marigold-400));
+  --chip-active-text: light-dark(var(--cream-100), var(--wine-900));
+  --whatsapp: var(--palm-600);
+  --on-whatsapp: var(--white);
+
+  /* Brand motifs */
+  --stripe-1: light-dark(var(--tomato-600), var(--tomato-400));
+  --stripe-2: light-dark(var(--orange-600), var(--orange-400));
+  --stripe-3: light-dark(var(--marigold-600), var(--marigold-400));
+  --sticker-bg: light-dark(var(--tomato-600), var(--marigold-400));
+  --sticker-text: light-dark(var(--cream-50), var(--wine-900));
+  --today-bg: light-dark(var(--marigold-600), var(--marigold-400));
+  --today-text: var(--wine-900);
+
+  /* Event types (background of tags, pills and dots; text on them is --on-type) */
+  --type-social: light-dark(var(--marigold-600), var(--tomato-400));
+  --type-workshop: light-dark(var(--orange-600), var(--marigold-400));
+  --type-concert: light-dark(var(--tomato-400), var(--orange-400));
+  --type-festival: var(--rose-300);
+  --type-competition: light-dark(var(--cream-300), var(--cream-200));
+  --type-show: var(--rose-300);
+  --type-other: light-dark(var(--cream-300), var(--cocoa-200));
+  --on-type: var(--wine-900);
+
+  /* ---------- Layer 3: typography ---------- */
+  --font-display: "Shrikhand", "Cooper Black", Georgia, serif; /* logo, event titles */
+  --font-serif: "Bodoni Moda", "Didot", Georgia, serif; /* italic accents: headings, tagline */
+  --font-sans: "Instrument Sans", system-ui, sans-serif; /* everything else */
+
+  --text-2xs: 0.6875rem; /* 11 */
+  --text-xs: 0.75rem; /* 12 */
+  --text-sm: 0.8125rem; /* 13 */
+  --text-md: 0.9375rem; /* 15, body */
+  --text-lg: 1.0625rem; /* 17 */
+  --text-xl: 1.3125rem; /* 21 */
+  --text-2xl: 1.625rem; /* 26 */
+  --text-3xl: 2.25rem; /* 36 */
+  --text-logo: clamp(2.75rem, 11vw, 4.5rem);
+
+  --weight-regular: 400;
+  --weight-bold: 600;
+
+  /* ---------- Layer 3: spacing (4px base) ---------- */
+  --space-1: 0.25rem; /* 4 */
+  --space-2: 0.5rem; /* 8 */
+  --space-3: 0.75rem; /* 12 */
+  --space-4: 1rem; /* 16 */
+  --space-5: 1.5rem; /* 24 */
+  --space-6: 2rem; /* 32 */
+  --space-7: 3rem; /* 48 */
+
+  /* ---------- Layer 3: shape and sizes ---------- */
+  --radius-sm: 2px; /* tags, chips, buttons: printed-label corners */
+  --radius-md: 4px; /* cards, dialog, calendar cells */
+  --radius-round: 50%; /* only the date sticker and calendar day numbers */
+  --border-width: 1.5px;
+  --stripe-height: 5px;
+  --control-height: 40px; /* buttons, icon buttons, theme toggle */
+  --chip-height: 32px;
+  --sticker-size: 60px;
+  --content-width: 1120px;
+
+  /* ---------- Layer 3: motion ---------- */
+  --duration: 150ms;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
