@@ -1,7 +1,17 @@
 ---
-// Empty dialog; scripts/views/eventDialog.ts fills it when an event card is clicked.
+// Event viewer: one slide per event on screen, swiped sideways (scripts/views/eventDialog.ts).
+// The bar shows where you are ("3 de 9") with arrows; on phones, the handle can be pulled down to close.
 ---
 
-<dialog class="event-dialog" id="event-dialog" aria-labelledby="event-dialog-title">
-  <div class="event-dialog__layout" id="event-dialog-body"></div>
+<dialog class="event-dialog" id="event-dialog" aria-labelledby="event-title-0">
+  <div class="viewer-bar">
+    <span class="viewer-bar__handle" aria-hidden="true"></span>
+    <div class="viewer-bar__nav">
+      <button class="icon-btn" type="button" data-step="-1" aria-label="Evento anterior">‹</button>
+      <span class="viewer-bar__count" id="viewer-count"></span>
+      <button class="icon-btn" type="button" data-step="1" aria-label="Evento siguiente">›</button>
+    </div>
+    <button class="icon-btn" type="button" data-close-dialog aria-label="Cerrar">×</button>
+  </div>
+  <div class="viewer-track" id="viewer-track"></div>
 </dialog>

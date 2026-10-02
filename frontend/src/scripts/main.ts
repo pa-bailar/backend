@@ -3,7 +3,7 @@
 import type { DanceEvent, EventType, View } from "./types";
 import { byId } from "./lib/dom";
 import { addMonths, startOfMonth, todayIso } from "./lib/dates";
-import { clearFilters, createInitialState, defaultDayForMonth } from "./state";
+import { clearFilters, createInitialState, defaultDayForMonth, visibleEvents } from "./state";
 import { initThemeToggle } from "./theme";
 import { renderCalendarView } from "./views/calendarView";
 import { initEventDialog, openEventDialog } from "./views/eventDialog";
@@ -70,7 +70,7 @@ function handleClick(domEvent: MouseEvent) {
 
   if (eventId) {
     const event = events.find((item) => item.id === eventId);
-    if (event) openEventDialog(event);
+    if (event) openEventDialog(event, visibleEvents(events, state));
     return;
   }
   if (view) state.view = view as View;

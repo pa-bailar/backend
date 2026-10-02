@@ -11,7 +11,7 @@ export function initEventPage() {
   const event: DanceEvent = JSON.parse(byId("event-data").textContent || "null");
   const container = byId("event-detail");
   const render = (selected: number) => {
-    container.innerHTML = eventDetailHtml(event, selected, { closeButton: false, headingLevel: 1 });
+    container.innerHTML = eventDetailHtml(event, selected, { headingLevel: 1 });
   };
   container.addEventListener("click", (domEvent) => handleMediaTabClick(container, domEvent.target as HTMLElement, render));
 }
