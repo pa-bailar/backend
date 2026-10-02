@@ -11,7 +11,8 @@ import sys
 import pytest
 
 from pa_bailar import config
-from pa_bailar.commands.sweep import lookback_days
+from pa_bailar.commands.sweep import is_broken, lookback_days
+from pa_bailar.pipeline import RunStats
 
 
 @pytest.mark.parametrize("module", ["sweep", "discover", "refresh_token"])
@@ -39,3 +40,11 @@ def test_sweep_rejects_lookbacks_outside_the_limit(value):
 
 def test_sweep_accepts_lookbacks_up_to_the_limit():
     assert lookback_days("1") == 1 and lookback_days(str(config.MAX_LOOKBACK_DAYS)) == config.MAX_LOOKBACK_DAYS
+
+
+def test_a_sweep_stopped_by_the_rate_limit_is_not_reported_as_broken():
+    stats = RunStats(accounts=1)
+    stats.account("academia").fetch_failed = True
+    assert is_broken(stats)  # every account failed for another reason: alert
+    stats.rate_limited = True
+    assert not is_broken(stats)  # Instagram's limit: the next run continues (health warns if it repeats)

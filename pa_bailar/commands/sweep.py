@@ -99,6 +99,13 @@ def lookback_days(value: str) -> int:
     return days
 
 
+def is_broken(stats: RunStats) -> bool:
+    """A run that must show as failed (and alert): no account could be read, and not because Instagram's rate
+    limit stopped it. Failed posts are retried next run, and a rate-limited run just waits for the next one;
+    the health checks warn when either keeps happening."""
+    return bool(stats.accounts) and stats.failed_accounts == stats.accounts and not stats.rate_limited
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m pa_bailar sweep", description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -134,8 +141,7 @@ def main(argv: list[str] | None = None) -> None:
         with Path(summary_file).open("a", encoding="utf-8") as file:
             file.write(report + "\n" + summary_markdown(stats))  # health first: what needs a look
 
-    # Individual posts that fail are retried next run; only a sweep where no account could be read is broken.
-    if stats.accounts and stats.failed_accounts == stats.accounts:
+    if is_broken(stats):
         raise SystemExit("Every account failed. Check the logs above.")
 
 

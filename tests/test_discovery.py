@@ -1,8 +1,11 @@
 """Account discovery: reading the export, ranking, filtering and the report (no network)."""
 
 import json
+from datetime import datetime
 
-from pa_bailar import discovery
+import pytest
+
+from pa_bailar import config, discovery
 from pa_bailar.models import AccountClassification
 
 HTML_EXPORT = """<main>
@@ -91,3 +94,21 @@ def test_cache_round_trip(tmp_path):
     path = tmp_path / "discovery.json"
     discovery.save_cache(path, cache)
     assert discovery.load_cache(path) == cache
+
+
+@pytest.mark.parametrize(
+    ("time", "quiet"),
+    [
+        ("04:22", False),  # more than an hour before the 5:23 sweep
+        ("04:24", True),  # the hour before it: Meta counts calls over a rolling hour
+        ("05:40", True),  # while it runs
+        ("06:09", False),  # 45 minutes after it started
+        ("12:46", True),
+        ("13:33", False),
+        ("23:00", False),
+    ],
+)
+def test_discovery_keeps_clear_of_the_daily_sweep(time, quiet):
+    hour, minute = map(int, time.split(":"))
+    now = datetime(2026, 10, 2, hour, minute, tzinfo=config.BOGOTA_TZ)
+    assert discovery.near_sweep(now) is quiet
