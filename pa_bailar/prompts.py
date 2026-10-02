@@ -73,6 +73,9 @@ Rules:
 - Dates without a year: pick the occurrence closest after the publication date.
 - If the weekday and the date disagree, trust the date written with numbers and set confidence to low.
 - Prices: '15K' or '15 mil' = 15000.
+- contact: an @username, a website or a phone number. If the flyer or the caption marks the number
+  as WhatsApp (the word, or the green WhatsApp icon next to it), write 'WhatsApp ' before it, e.g.
+  'WhatsApp 3001234567'; the site then opens a chat. Otherwise just the number.
 - Write extracted text (title, activities, doubts) in Spanish as it appears.
 - Never invent data. Leave unknown fields empty.
 - confidence: high when the date (and time, if any) are written explicitly; medium when you had to infer

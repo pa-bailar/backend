@@ -69,7 +69,11 @@ class EventDetails(BaseModel):
     prices: list[Price]
     artists: list[str] = Field(description="Guest teachers, DJs, orchestras, performers")
     activities: list[str] = Field(description="Short Spanish phrases, e.g. 'clase de bachata', 'show'")
-    contact: str | None = Field(description="Phone/WhatsApp or @username")
+    contact: str | None = Field(
+        description="How to reach the organizer: an @username, a website, or a phone number. Write "
+        "'WhatsApp ' before a number the flyer or caption marks as WhatsApp (the word or the WhatsApp "
+        "icon), e.g. 'WhatsApp 3001234567'; a number not marked so stays as it is."
+    )
     confidence: Confidence
     doubts: list[str] = Field(description="Important missing or assumed information, short phrases in Spanish")
 
