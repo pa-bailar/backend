@@ -1,5 +1,12 @@
 # Pa' Bailar: Go-live implementation plan
 
+> **Update 2026-10-02: the project is now two repositories.** This (private) `pa-bailar/backend` holds
+> the collector and its sweep; the public `pa-bailar/pa-bailar.github.io` holds the site (`frontend/`,
+> `data/`, CI, deploy, design system and data contract). The daily sweep writes into a checkout of the
+> site repository and opens its data PR there as the **pa-bailar-bot** GitHub App; the sweep state lives
+> in this repository's `sweep-state` branch. Sections below that describe a single repository are kept
+> as the original plan; README.md has the current setup.
+
 Status: **planned, not started.** Written 2026-10-01; this replaces the earlier short version.
 Goal: put the site live for **$0**, keep it updated with a **daily sweep**, and set the project
 conventions (Git, CI/CD, data, security) that every later change follows.

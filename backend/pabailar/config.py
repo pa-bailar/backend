@@ -16,12 +16,14 @@ ENV_FILE = BACKEND_DIR / ".env"
 load_dotenv(ENV_FILE)
 
 # ---------- Files ----------
-# Public output, read by the website.
-DATA_DIR = PROJECT_DIR / "data"
+# Public output, read by the website: the data/ folder of the site repository (pa-bailar.github.io).
+# Locally a clone next to this repository (Code/pa-bailar-web); on CI the workflow checks the site out
+# and sets DATA_DIR.
+DATA_DIR = Path(os.environ.get("DATA_DIR") or PROJECT_DIR.parent / "pa-bailar-web" / "data").resolve()
 EVENTS_FILE = DATA_DIR / "events.json"
 META_FILE = DATA_DIR / "meta.json"
 FLYERS_DIR = DATA_DIR / "flyers"
-# Backend-only input and state (on CI the state folder lives in the Actions cache between runs).
+# Backend-only input and state (on CI the state is kept in this repository's sweep-state branch).
 ACCOUNTS_FILE = BACKEND_DIR / "accounts.txt"
 STATE_DIR = BACKEND_DIR / "state"
 PROCESSED_POSTS_FILE = STATE_DIR / "processed_posts.json"
