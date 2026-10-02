@@ -1,0 +1,7 @@
+{
+  "day": "2026-10-02",
+  "requests": {
+    "gemini-3.8-flash": 3,
+    "gemini-3.5-flash": 1
+  }
+}
