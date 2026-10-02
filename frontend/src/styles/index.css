@@ -1,0 +1,13 @@
+/* Style entry point. Order matters: tokens → base → components. */
+@import "./tokens.css";
+@import "./base.css";
+
+@import "./components/stripes.css";
+@import "./components/buttons.css";
+@import "./components/tags.css";
+@import "./components/site-header.css";
+@import "./components/toolbar.css";
+@import "./components/event-card.css";
+@import "./components/calendar.css";
+@import "./components/event-dialog.css";
+@import "./components/site-footer.css";

@@ -1,0 +1,14 @@
+---
+// Calendar shell. The grid and the selected day are rendered by scripts/views/calendarView.ts.
+---
+
+<section id="view-calendar" class="calendar" hidden>
+  <div class="calendar__head">
+    <h2 class="calendar__title" id="cal-title"></h2>
+    <button class="icon-btn" data-month-step="-1" aria-label="Mes anterior">‹</button>
+    <button class="icon-btn" data-month-step="1" aria-label="Mes siguiente">›</button>
+    <button class="btn" data-today>Hoy</button>
+  </div>
+  <div class="calendar__grid" id="cal-grid"></div>
+  <div class="calendar__selected" id="cal-selected-day"></div>
+</section>

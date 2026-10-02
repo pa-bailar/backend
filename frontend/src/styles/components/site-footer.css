@@ -1,0 +1,18 @@
+/* Site footer: disclaimer and source accounts. */
+
+.site-footer {
+  padding-bottom: var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.site-footer .container {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.site-footer__sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
