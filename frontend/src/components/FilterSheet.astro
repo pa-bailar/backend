@@ -1,9 +1,10 @@
 ---
 // Phones: the filters in a sheet that slides up from the bottom, opened by "Filtros" in the jump bar.
-// The list behind stays where it was. Chips are rendered by scripts/views/filters.ts.
+// The list behind stays where it was; drag it down to dismiss (lib/sheet.ts). Chips: scripts/views/filters.ts.
 ---
 
-<dialog class="filter-sheet" id="filter-sheet" aria-labelledby="filter-sheet-title">
+<dialog class="sheet filter-sheet" id="filter-sheet" aria-labelledby="filter-sheet-title">
+  <span class="sheet-handle" aria-hidden="true"></span>
   <div class="filter-sheet__head">
     <h2 class="filter-sheet__title" id="filter-sheet-title">Filtros</h2>
     <button class="icon-btn" type="button" data-close-sheet aria-label="Cerrar">×</button>

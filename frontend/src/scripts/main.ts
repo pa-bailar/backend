@@ -3,12 +3,12 @@
 import type { DanceEvent, EventType, View } from "./types";
 import { byId } from "./lib/dom";
 import { addMonths, startOfMonth, todayIso } from "./lib/dates";
-import { clearFilters, createInitialState, defaultDayForMonth, visibleEvents } from "./state";
+import { activeFilterCount, clearFilters, createInitialState, defaultDayForMonth, visibleEvents } from "./state";
 import { initThemeToggle } from "./theme";
 import { renderCalendarView } from "./views/calendarView";
 import { initEventDialog, openEventDialog } from "./views/eventDialog";
 import { renderFilters } from "./views/filters";
-import { hideJumpBar, initJumpBar } from "./views/jumpBar";
+import { initJumpBar, renderJumpBar } from "./views/jumpBar";
 import { renderUpcomingView } from "./views/upcomingView";
 
 const state = createInitialState();
@@ -48,7 +48,8 @@ function render() {
     tab.setAttribute("aria-selected", String(tab.dataset.view === state.view));
   });
 
-  if (state.view !== "upcoming") hideJumpBar();
+  // The calendar has no periods to jump to, but phones still need the bar's "Filtros".
+  if (state.view !== "upcoming") renderJumpBar([], activeFilterCount(state));
   const shown = state.view === "upcoming" ? renderUpcomingView(upcoming, events, state) : renderCalendarView(events, state);
   announce(shown);
 

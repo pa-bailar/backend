@@ -1,10 +1,12 @@
 // Phones only (CSS hides it where the toolbar is sticky): a slim bar stuck to the top of the screen with
 // a "Filtros" button (opens the filter sheet) and one chip per period ("Hoy · Finde · Próx. semana · Nov").
+// On phones it's the only way to the filters: the toolbar's chip rows are hidden there (toolbar.css).
 //   - Tapping a chip jumps to that period; the chip of the period on screen is highlighted (scroll-spy).
 //   - Like Instagram's header, the bar hides while scrolling down and comes back on any scroll up.
 
 import type { AgendaGroup } from "../state";
 import { byId, escapeHtml } from "../lib/dom";
+import { dismissSheet, initSheet } from "../lib/sheet";
 
 const SCROLL_THRESHOLD = 8; // px of movement before reacting, so small jitters don't toggle the bar
 const BAND_TOP = 64; // px: just below the bar (--jump-bar-height + a little)
@@ -97,11 +99,6 @@ export function renderJumpBar(groups: AgendaGroup[], activeFilters: number) {
   watchSections(groups);
 }
 
-export function hideJumpBar() {
-  observer?.disconnect();
-  byId("jump-bar").hidden = true;
-}
-
 function jumpTo(key: string) {
   const section = document.getElementById(`periodo-${key}`);
   if (!section) return;
@@ -120,8 +117,10 @@ function initFilterSheet() {
   sheet.addEventListener("click", (domEvent) => {
     const target = domEvent.target as HTMLElement;
     // "Ver N eventos", × or a tap on the backdrop (the dialog element itself) closes it.
-    if (target === sheet || target.closest("[data-close-sheet]")) sheet.close();
+    if (target === sheet || target.closest("[data-close-sheet]")) dismissSheet(sheet);
   });
+  // Drag it down to dismiss, from the top or whenever its content is scrolled to the top.
+  initSheet(sheet, (target) => Boolean(target.closest(".filter-sheet__head")) || sheet.scrollTop <= 0);
 }
 
 /** Hide while scrolling down, show on any scroll up (and near the top, and when it holds focus). */

@@ -29,8 +29,12 @@ export function matchesFilters(event: DanceEvent, state: AppState): boolean {
   return typeOk && styleOk && accountOk;
 }
 
+export function activeFilterCount(state: AppState): number {
+  return [state.typeFilter !== "all", state.styleFilter !== "all", state.accountFilter !== null].filter(Boolean).length;
+}
+
 export function hasActiveFilters(state: AppState): boolean {
-  return state.typeFilter !== "all" || state.styleFilter !== "all" || state.accountFilter !== null;
+  return activeFilterCount(state) > 0;
 }
 
 export function clearFilters(state: AppState) {

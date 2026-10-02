@@ -3,13 +3,9 @@
 
 import type { AppState, DanceEvent } from "../types";
 import { escapeHtml } from "../lib/dom";
-import { eventsInView, groupByPeriod, hasActiveFilters, matchesFilters } from "../state";
+import { activeFilterCount, eventsInView, groupByPeriod, hasActiveFilters, matchesFilters } from "../state";
 import { eventCardGridHtml } from "./eventCard";
 import { renderJumpBar, sectionId } from "./jumpBar";
-
-function activeFilterCount(state: AppState): number {
-  return [state.typeFilter !== "all", state.styleFilter !== "all", state.accountFilter !== null].filter(Boolean).length;
-}
 
 /** Renders the list and returns how many events it shows. */
 export function renderUpcomingView(container: HTMLElement, events: DanceEvent[], state: AppState): number {

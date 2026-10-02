@@ -118,10 +118,13 @@ The light theme's creams are the paper of 1970s salsa flyers and sleeves. The pa
   - **What it is:** one slim row (`--jump-bar-height`, 56px) stuck to the top, with "Filtros" and a chip per period ("Hoy · Finde · Próx. semana · Nov").
   - **Jumping:** tapping a period jumps there, and the period on screen is highlighted (scroll-spy).
   - **Hides like Instagram's header:** it hides while scrolling down and returns on any scroll up. It never hides near the top of the page, while it holds focus, or during a jump.
-  - **Where it shows:** wherever the full toolbar isn't sticky (phones, short windows).
+  - **Where it shows:** wherever the full toolbar isn't sticky (phones, short windows), in both views (in Calendario, just "Filtros").
+  - **Edges:** period chips fade out at the edge instead of being sliced, and come to rest aligned to a chip.
 - **Filter sheet** (`FilterSheet.astro`):
   - **Opening:** "Filtros" opens the type and style chips in a sheet that slides up from the bottom, so the list stays where it was. Chips wrap, so every option is visible.
   - **Results:** "Ver N eventos" closes it. The bar's button shows how many filters are active ("Filtros · 2").
+  - **Phones only:** the toolbar's chip rows are hidden, so filters are only in the sheet; no rows scroll sideways cutting chips.
+  - **Dismissing:** drag it down like the viewer (see Bottom sheets).
   - **One renderer:** the same chips render into the toolbar and the sheet (`[data-filter-row]`).
 
 ## Events with several posts
@@ -135,10 +138,15 @@ An event can be announced by several Instagram posts (a flyer, then a video, a r
 
 - **Same markup in both** (`scripts/views/eventDetail.ts`): the home page's dialog and each event's own page (`pages/evento/[id].astro`, one static page per event).
 - **The viewer swipes between events** (`EventDialog.astro`, `scripts/views/eventDialog.ts`):
-  - **What's in it:** one slide per event on screen, in list order (or the selected calendar day's). Swipe sideways (or ‹ ›, or the arrow keys) to change event; scroll up and down to read.
-  - **Signaling the swipe:** the neighbors' edges peek at the sides, the bar shows "3 de 9", and a one-time nudge plays until the visitor first swipes. It's skipped with reduced motion.
-  - **Closing:** ×, Escape, the back button, or on phones pulling down from the top (grab handle). A short pull springs back.
-  - **Phones:** the viewer is attached to the bottom and almost full screen.
+  - **What's in it:** one full-width slide per event on screen, in list order (or the selected calendar day's). Swipe sideways (or ‹ ›, or the arrow keys) to change event; scroll up and down to read.
+  - **No peeking neighbors:** like Instagram posts, each event fills the width.
+  - **Signaling the swipe:** the "3 de 9" counter with ‹ › (dots fail past ~10 items), a seam between events while swiping, and a one-time nudge. The nudge plays after opening: about a fifth of the next event shows, holds, and slides back. It stops at the first touch and isn't repeated after the first swipe.
+- **Bottom sheets** (the viewer on phones and the filter sheet; `lib/sheet.ts`, `sheet.css`) behave like native ones, with values from Material/iOS sheets:
+  - **Opening:** they rise in 320ms (Material's emphasized-decelerate curve) while the backdrop fades in.
+  - **Dragging:** dragging down follows the finger 1:1, shrinks the sheet slightly and fades the backdrop. Dragging up past the top rubber-bands.
+  - **Release:** a flick down (>0.5 px/ms) closes, as does a drag past max(110px, 22% of the screen) unless flicked back up. Otherwise it springs back (300ms).
+  - **Closing:** it continues from where the finger left it, at the finger's speed (160–280ms, accelerating curve). ×, Escape and back slide it away the same way. When Safari's edge swipe already animated the back navigation, it closes at once.
+  - **Reduced motion:** no rise and no slide.
 - **The viewer has a URL:** opening pushes `/evento/<id>/`, so the phone's back button closes it; swiping replaces it, so back still closes instead of stepping through events. A copied link opens that event's page.
 - **Shared links open the event page.** Its preview (WhatsApp, Instagram) shows the flyer as a small JPEG made at build time (`pages/og/[id].jpg.ts`), and search engines get schema.org `Event` data.
 - **Missing details say "Por confirmar"** in their own row (hora, lugar, precio), in muted italics. Gemini's free-text doubts are not shown; a low-confidence extraction gets one note asking to confirm in the post.
