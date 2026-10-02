@@ -31,7 +31,7 @@ GEMINI_USAGE_FILE = STATE_DIR / "gemini_usage.json"
 # ---------- Instagram (Meta Graph API) ----------
 GRAPH_API_URL = "https://graph.facebook.com/v26.0"
 POSTS_PER_ACCOUNT = 10  # regular sweep; one API call per account regardless of this number
-MAX_IMAGES_PER_POST = 4
+MAX_IMAGES_PER_POST = 10  # monthly schedules often show an event on slide 5 or later; still one request
 HTTP_TIMEOUT_SECONDS = 30
 
 # ---------- Gemini ----------
@@ -68,6 +68,10 @@ DEFAULT_LOOKBACK_DAYS = 7
 # (it can take a few runs if the daily Gemini budget runs out); then it joins the regular sweep.
 BACKFILL_POSTS = 30
 BACKFILL_DAYS = 30
+
+# A run stops starting new Gemini work after this long and leaves the rest for the next run, well inside
+# the workflow's 45-minute timeout: a timed-out run loses everything it did (and its quota).
+MAX_RUN_MINUTES = 30
 
 # ---------- Retention ----------
 # Events dated more than this many days ago are deleted, and their flyers with them (git history keeps both).

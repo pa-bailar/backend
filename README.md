@@ -90,7 +90,7 @@ Live at **https://pa-bailar.github.io**. Everything runs on GitHub Actions:
 | Workflow | When | What |
 |---|---|---|
 | `ci` | Every pull request (and started by the sweep for its data PR) | Backend lint + unit tests, frontend type check + build. The final `ci` job is the required check. |
-| `daily-sweep` | Every day 6:00 AM Bogotá, or *Run workflow* | Instagram → Gemini. Only if events or flyers changed: opens a `data` PR, runs `ci` on it and auto-merges it. Every day: republishes the site with the check time. |
+| `daily-sweep` | Every day at 5:23 AM and 12:47 PM Bogotá, or *Run workflow* | Instagram → Gemini. Only if events or flyers changed: opens a `data` PR, runs `ci` on it and auto-merges it. Every day: republishes the site with the check time. |
 | `deploy` | Push to `main` touching `frontend/` or `data/`, started by the sweep, or *Run workflow* | Builds the site and publishes it to GitHub Pages |
 
 `main` is protected by the `protect-main` ruleset with **no bypass**: changes only arrive through

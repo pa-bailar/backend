@@ -70,7 +70,7 @@ class EventDetails(BaseModel):
     activities: list[str] = Field(description="Short Spanish phrases, e.g. 'clase de bachata', 'show'")
     contact: str | None = Field(description="Phone/WhatsApp or @username")
     confidence: Confidence
-    doubts: list[str] = Field(description="Missing or assumed information, in Spanish")
+    doubts: list[str] = Field(description="Important missing or assumed information, short phrases in Spanish")
 
 
 # ---------- Gemini response schema ----------
@@ -138,6 +138,8 @@ class ProcessedPost(BaseModel):
     model: str
     # Extracted by the lighter model because Flash was out of quota: re-extracted with Flash on a later run.
     provisional: bool = False
+    # Fingerprint of the caption analyzed: if the academy edits it (e.g. adds the venue), it's analyzed again.
+    caption_hash: str | None = None
 
 
 # ---------- Account discovery (tools/discover_accounts) ----------

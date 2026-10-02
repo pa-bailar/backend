@@ -37,7 +37,7 @@ Everything is centered on one GitHub repository. There are no servers to maintai
                       │  │                     manual button, or called by the sweep:              │
                       │  │                     build Astro → publish to GitHub Pages               │
                       │  │                                                                         │
-                      │  └─ daily-sweep.yml ── every day 6:00 AM Bogotá + manual button:           │
+                      │  └─ daily-sweep.yml ── 5:23 AM + 12:47 PM Bogotá + manual button:           │
                       │                        run backend → Instagram API → Gemini                 │
                       │                        → commit data/ → call deploy.yml                     │
                       └────────────────────────────────────────────────────────────────────────────┘
@@ -336,7 +336,8 @@ General rules for all workflows:
 - **Concurrency groups** so two runs never write data or deploy at the same time.
 - **Caching:** `actions/setup-python` with `cache: pip`; `actions/setup-node` with `cache: npm`.
 - **Timeouts:** `timeout-minutes` on every job (sweep: 30; others: 10), so a hung run doesn't eat minutes.
-- **Times:** cron runs in UTC. Bogotá is UTC−5 all year (no daylight saving), so 6:00 AM Bogotá is `0 11 * * *`.
+- **Times:** cron runs in UTC. Bogotá is UTC−5 all year (no daylight saving), so 5:23 AM Bogotá is `23 10 * * *` and 12:47 PM is `47 17 * * *`. Unusual minutes on purpose: GitHub delays, and under load drops, runs scheduled at the top of the hour. Two runs share the Gemini quotas (usage is kept in the state cache) and never overlap.
+- **Schedules after a repository transfer** may stay unregistered until the workflow file changes: check `gh run list --event schedule` the day after any transfer or rename.
 
 ### 8.1 `ci.yml` — checks on every pull request
 Each side is only checked when its files change. A `changes` job detects which folders a PR touches.
@@ -455,7 +456,8 @@ One-time setup: repo **Settings → Pages → Source: GitHub Actions**.
 name: daily-sweep
 on:
   schedule:
-    - cron: "0 11 * * *"     # 6:00 AM Bogotá
+    - cron: "23 10 * * *"    # 5:23 AM Bogotá
+    - cron: "47 17 * * *"    # 12:47 PM Bogotá
   workflow_dispatch:
     inputs:
       days: { description: "Lookback days", default: "7" }
@@ -513,7 +515,7 @@ Weekly, grouped PRs for `pip` (`/backend`), `npm` (`/frontend`) and `github-acti
 | What can go wrong | How you find out |
 |---|---|
 | Sweep fails (token, quota, code bug) | GitHub emails the repo owner on failed scheduled runs. The run page shows the step summary. |
-| Sweep silently stops running (schedule disabled, Actions outage) | **healthchecks.io** free plan: the sweep's last step pings a URL. If no ping arrives in 26 h, it emails you. Store the ping URL as secret `HEALTHCHECK_URL`. |
+| Sweep silently stops running (schedule disabled, Actions outage) | **healthchecks.io** free plan: every sweep reports success (ping) or failure (`/fail`). Set the check's period to 17 h (the longest gap between the two daily runs) with 1 h grace: it emails you on a failure or when runs stop arriving. Store the ping URL as secret `HEALTHCHECK_URL`. |
 | Data is stale on the site | The page shows "actualizado el …" from `meta.json`. Optionally show a warning if it's more than 2 days old. |
 | Instagram token revoked | The token health check fails the run immediately with clear instructions. |
 | Gemini quota exhausted | Posts stay unprocessed and retry the next day. The run summary lists them. |

@@ -290,3 +290,42 @@ def test_post_records_inside_a_long_manual_lookback_are_kept():
     storage.save_processed_posts({"p": processed_record(config.PROCESSED_RETENTION_DAYS + 5)})
     run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}), days=config.PROCESSED_RETENTION_DAYS + 10)
     assert list(storage.load_processed_posts()) == ["p"]
+
+
+# ---------- edited captions and the run's time budget ----------
+
+
+def test_an_edited_caption_is_analyzed_again_and_keeps_the_event_url():
+    first = post("p1")
+    run(FakeInstagram({"academia": [first], "otra": []}), FakeExtractor({"p1": event_post("p1", venue=None)}))
+    event_id = read(config.EVENTS_FILE)[0]["id"]
+
+    edited = {**first, "caption": "Ahora con lugar: Escuela del Mambo"}
+    extractor = FakeExtractor({"p1": event_post("p1", venue="Escuela del Mambo")})
+    stats = run(FakeInstagram({"academia": [edited], "otra": []}), extractor)
+
+    events = read(config.EVENTS_FILE)
+    assert stats.reanalyzed == 1 and len(events) == 1
+    assert events[0]["venue"] == "Escuela del Mambo" and events[0]["id"] == event_id
+
+    unchanged = run(FakeInstagram({"academia": [edited], "otra": []}), FakeExtractor({}))
+    assert unchanged.reanalyzed == 0  # same caption: no Gemini request
+
+
+def test_posts_analyzed_before_fingerprints_get_one_without_a_new_analysis():
+    run(FakeInstagram({"academia": [post("p1")], "otra": []}), FakeExtractor({"p1": event_post("p1")}))
+    records = read(config.PROCESSED_POSTS_FILE)
+    records["p1"]["caption_hash"] = None
+    config.PROCESSED_POSTS_FILE.write_text(json.dumps(records), encoding="utf-8")
+
+    extractor = FakeExtractor({})
+    run(FakeInstagram({"academia": [post("p1")], "otra": []}), extractor)
+    assert extractor.extracted_posts == [] and read(config.PROCESSED_POSTS_FILE)["p1"]["caption_hash"]
+
+
+def test_no_new_gemini_work_starts_after_the_time_budget(monkeypatch):
+    monkeypatch.setattr(config, "MAX_RUN_MINUTES", 0)
+    extractor = FakeExtractor({"p1": event_post("p1")})
+    stats = run(FakeInstagram({"academia": [post("p1")], "otra": []}), extractor)
+    assert extractor.extracted_posts == [] and stats.pending == 1
+    assert "p1" not in storage.load_processed_posts()  # analyzed on the next run

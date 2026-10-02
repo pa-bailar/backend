@@ -98,10 +98,14 @@ Dance styles: only from this list: {", ".join(STYLES)}.
 Rules:
 - A post can contain several events (e.g. a monthly schedule): return each one separately.
 - Dates without a year: pick the occurrence closest after the publication date.
-- Check the weekday matches the date; if not, note it in 'doubts'.
+- If the weekday and the date disagree, trust the date written with numbers and set confidence to low.
 - Prices: '15K' or '15 mil' = 15000.
 - Write extracted text (title, activities, doubts) in Spanish as it appears.
-- Never invent data. Leave unknown fields empty and mention important gaps in 'doubts'."""
+- Never invent data. Leave unknown fields empty.
+- confidence: high when the date (and time, if any) are written explicitly; medium when you had to infer
+  something (e.g. the date from "este sábado"); low when the date itself is uncertain or contradictory.
+  The website asks visitors to confirm in the post when it's low.
+- doubts: only important gaps or assumptions, one short phrase each (e.g. "sin precio")."""
 
 
 class ExtractionError(RuntimeError):
@@ -156,11 +160,23 @@ class ModelPool:
             time.sleep(wait)
         self._last_call[model] = time.monotonic()
 
-    def generate[T: BaseModel](self, models: list[str], contents: list, schema: type[T]) -> tuple[T, str]:
-        """The parsed answer of the first model in `models` that can give one, and that model's name."""
+    def generate[T: BaseModel](
+        self,
+        models: list[str],
+        contents: list,
+        schema: type[T],
+        thinking: types.ThinkingLevel | None = None,
+    ) -> tuple[T, str]:
+        """The parsed answer of the first model in `models` that can give one, and that model's name.
+
+        `thinking` lowers how much the model reasons before answering (faster, fewer tokens) for simple
+        decisions; None keeps the model's default. Temperature stays at the default, as Google advises for
+        Gemini 3 models.
+        """
         generation_config = types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=schema,
+            thinking_config=types.ThinkingConfig(thinking_level=thinking) if thinking else None,
             # We pass no tools; disabling this also silences the SDK's warning about it.
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
@@ -230,7 +246,8 @@ class EventExtractor:
         contents: list = [TRIAGE_PROMPT.format(**_format_context(account, post, published))]
         if images:
             contents.insert(0, types.Part.from_bytes(data=_small_jpeg(images[0]), mime_type="image/jpeg"))
-        return self.pool.generate(config.TRIAGE_MODELS, contents, Triage)
+        # A yes/no on one small image: little reasoning needed (extraction keeps the default).
+        return self.pool.generate(config.TRIAGE_MODELS, contents, Triage, thinking=types.ThinkingLevel.LOW)
 
     def extract(
         self,
