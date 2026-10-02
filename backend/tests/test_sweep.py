@@ -329,3 +329,10 @@ def test_no_new_gemini_work_starts_after_the_time_budget(monkeypatch):
     stats = run(FakeInstagram({"academia": [post("p1")], "otra": []}), extractor)
     assert extractor.extracted_posts == [] and stats.pending == 1
     assert "p1" not in storage.load_processed_posts()  # analyzed on the next run
+
+
+def test_a_rate_limit_stops_the_sweep_instead_of_spending_more_calls():
+    limited = InstagramError("(#4) Application request limit reached", code=4)
+    instagram = FakeInstagram({"academia": limited, "otra": [post("p1")]})
+    stats = run(instagram, FakeExtractor({"p1": event_post("p1")}))
+    assert list(instagram.limits) == ["academia"] and stats.accounts == 1 and stats.failed_accounts == 1
