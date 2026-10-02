@@ -71,7 +71,7 @@ BACKFILL_DAYS = 30
 
 # ---------- Retention ----------
 # Events dated more than this many days ago are deleted, and their flyers with them (git history keeps both).
-EVENT_RETENTION_DAYS = 30
+EVENT_RETENTION_DAYS = 60
 # Records of analyzed posts are forgotten after this many days. Must exceed BACKFILL_DAYS and the lookback:
 # older posts are never fetched again, so forgetting them can't cause a second analysis.
 PROCESSED_RETENTION_DAYS = 45
