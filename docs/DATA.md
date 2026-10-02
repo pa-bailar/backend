@@ -24,7 +24,7 @@ the next real data change.
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | string | `<first post id>-<index>`. Stable when more posts are merged in. |
+| `id` | string | Readable title + day + month, e.g. `social-de-halloween-24-oct` (`-2`, `-3`… if taken). It's the event's URL (`/evento/<id>/`), so it's set once and never changes: not when more posts are merged in, nor when a re-extraction rewords the title (`backend/pabailar/ids.py`). |
 | `title` | string | As written on the flyer |
 | `event_type` | `social` · `workshop` · `concert` · `festival` · `competition` · `show` · `other` | `social` includes parties; `workshop` includes one-time special classes |
 | `is_recurring` | boolean | Always `false` in stored data (recurring events are discarded) |

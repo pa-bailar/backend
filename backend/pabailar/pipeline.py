@@ -18,6 +18,7 @@ from google.genai import errors as genai_errors
 
 from . import config, storage
 from .extraction import EventExtractor, ExtractionError
+from .ids import new_event_id
 from .instagram import InstagramClient, InstagramError, Post, download_image, image_urls, published_at
 from .merging import detach_post, find_existing, merge_into
 from .models import (
@@ -305,13 +306,15 @@ class Sweep:
             self.stats.provisional += 1
             log.info("     extracted by %s (provisional: Flash out of quota, upgraded on a later run)", model)
         self._record_processed(account, post, analysis.is_event_post, analysis.reason, model, provisional)
-        # If this post was analyzed before, forget what it contributed and add it again below.
+        # If this post was analyzed before, forget what it contributed and add it again below. Events that
+        # only this post announced give their ids back, so a re-extraction keeps the events' URLs.
+        reusable = [event for event in self.events if {media.post_id for media in event.media} == {post["id"]}]
         self.events = detach_post(self.events, post["id"])
 
         if not publishable:
             log.info("     skipped: %s", analysis.reason)
-        for position, (candidate, flyer) in enumerate(zip(publishable, flyers, strict=True)):
-            self._add_event(account, post, position, candidate, _media_for(post, flyer), count=count_as_new)
+        for candidate, flyer in zip(publishable, flyers, strict=True):
+            self._add_event(account, post, candidate, _media_for(post, flyer), reusable, count=count_as_new)
         self._save()
 
     def _retry_later(self, account: str, reason: str) -> bool:
@@ -329,9 +332,9 @@ class Sweep:
         self,
         account: str,
         post: Post,
-        position: int,
         candidate: ExtractedEvent,
         media: EventMedia,
+        reusable: list[StoredEvent],
         count: bool = True,
     ) -> None:
         """Merge into the same event from another post, or store it as a new event.
@@ -346,12 +349,24 @@ class Sweep:
                 self.stats.account(account).events_merged += 1
             log.info("     same event as an earlier post, merged: %s %s", existing.date, existing.title)
             return
-        event = StoredEvent(**_details(candidate), id=f"{post['id']}-{position}", account=account, media=[media])
+        event = StoredEvent(
+            **_details(candidate), id=self._event_id(candidate, reusable), account=account, media=[media]
+        )
         self.events.append(event)
         if count:
             self.stats.events_new += 1
             self.stats.account(account).events_new += 1
         log.info("     event: %s %s | %s [%s]", event.date, event.start_time or "", event.title, event.event_type)
+
+    def _event_id(self, candidate: ExtractedEvent, reusable: list[StoredEvent]) -> str:
+        """The id of the event this post announced before (same date first), else a new readable one."""
+        previous = next((event for event in reusable if event.date == candidate.date), None) or next(
+            iter(reusable), None
+        )
+        if previous:
+            reusable.remove(previous)
+            return previous.id
+        return new_event_id(candidate.title, candidate.date, {event.id for event in self.events})
 
     def _record_processed(
         self, account: str, post: Post, is_event_post: bool, reason: str, model: str, provisional: bool

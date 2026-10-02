@@ -125,7 +125,7 @@ def test_flyer_then_video_of_the_same_event_become_one_event_with_two_posts():
     extractor = FakeExtractor(
         {
             "flyer": event_post("flyer", title="Social", start_time="20:00"),
-            "video": event_post("video", title="Ven a bailar", same_as="flyer-0", start_time=None),
+            "video": event_post("video", title="Ven a bailar", same_as="social-10-oct", start_time=None),
         }
     )
 
@@ -135,7 +135,7 @@ def test_flyer_then_video_of_the_same_event_become_one_event_with_two_posts():
     assert len(events) == 1
     assert [m["post_id"] for m in events[0]["media"]] == ["flyer", "video"]
     assert events[0]["title"] == "Social" and events[0]["start_time"] == "20:00"
-    assert extractor.known_seen["video"] == ["flyer-0"]  # Gemini was told about the earlier event
+    assert extractor.known_seen["video"] == ["social-10-oct"]  # Gemini was told about the earlier event
     assert (stats.events_new, stats.events_merged) == (1, 1)
 
 
@@ -226,6 +226,7 @@ def test_provisional_extraction_is_upgraded_when_flash_is_back():
     assert read(config.PROCESSED_POSTS_FILE)["p1"]["provisional"] is False
     events = read(config.EVENTS_FILE)
     assert len(events) == 1 and events[0]["title"] == "Leído por Flash"
+    assert events[0]["id"] == "leido-por-lite-10-oct"  # the URL shared meanwhile keeps working
 
 
 def test_provisional_posts_wait_while_flash_is_still_out():
