@@ -44,7 +44,10 @@ Lint and format:
 .venv\Scripts\python -m ruff format .
 ```
 
-- Accounts to follow: `backend/accounts.txt` (one username per line).
+- Accounts to follow: `backend/accounts.txt` (one username per line). Add as many as you like at once:
+  a new account's first sweep reads its last 30 posts (30 days), and when the free Gemini quota runs
+  out the rest waits for the next day. Accounts already in their regular sweep always go first, so a
+  backlog never delays today's events.
 - Already-analyzed posts are remembered in `backend/state/processed_posts.json`, so re-runs only
   spend Gemini quota on new posts.
 - If the Instagram token stops working, paste a new one from the Graph API Explorer into `.env`
