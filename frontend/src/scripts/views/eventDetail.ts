@@ -71,13 +71,13 @@ function mediaHtml(event: DanceEvent, media: EventMedia): string {
 }
 
 /**
- * The detail's inner HTML. `selected` is the post shown; `closeButton` is for the dialog (the event page
- * has a back link instead). The title is an h1 on the event page and an h2 in the dialog.
+ * The detail's inner HTML. `selected` is the post shown. The title is an h1 on the event page and an h2
+ * in the viewer, where each slide has its own `titleId`.
  */
 export function eventDetailHtml(
   event: DanceEvent,
   selected: number,
-  { closeButton, headingLevel }: { closeButton: boolean; headingLevel: 1 | 2 },
+  { headingLevel, titleId = "event-title" }: { headingLevel: 1 | 2; titleId?: string },
 ): string {
   const media = event.media[selected];
   const permalink = escapeHtml(media.permalink);
@@ -92,7 +92,6 @@ export function eventDetailHtml(
       : "";
 
   return `
-    ${closeButton ? `<button class="event-dialog__close" data-close-dialog aria-label="Cerrar">×</button>` : ""}
     <div class="event-dialog__visual">
       ${mediaTabsHtml(event, selected)}
       ${mediaHtml(event, media)}
@@ -100,7 +99,7 @@ export function eventDetailHtml(
     <div class="event-dialog__info">
       <div class="stripes" aria-hidden="true"><i></i><i></i><i></i></div>
       <span class="tag-type t-${escapeHtml(event.event_type)}">${typeLabel(event.event_type)}</span>
-      <${heading} class="event-dialog__title" id="event-dialog-title">${escapeHtml(event.title)}</${heading}>
+      <${heading} class="event-dialog__title" id="${titleId}">${escapeHtml(event.title)}</${heading}>
       <dl class="detail-list">${rows}</dl>
       ${pricesHtml(event)}
       ${styles ? `<p class="style-list">${escapeHtml(styles)}</p>` : ""}

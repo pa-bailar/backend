@@ -1,17 +1,140 @@
-/* Event detail dialog: flyer + info side by side on wide screens, stacked on phones. */
+/* Event viewer (components/EventDialog.astro): one slide per event, swiped sideways. Each slide is the
+   event detail: flyer + info side by side on wide screens, stacked on phones. */
 
 .event-dialog {
-  width: min(920px, calc(100% - var(--space-5)));
-  max-height: calc(100dvh - var(--space-5));
+  --viewer-peek: var(--space-6); /* how much of the neighbor slides shows at each side */
+  width: min(980px, calc(100% - var(--space-5)));
+  max-width: 100%;
+  height: calc(100dvh - var(--space-5));
+  max-height: 100dvh;
   padding: 0;
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
-  background: var(--surface);
+  background: var(--bg);
   color: var(--text);
+}
+
+.event-dialog[open] {
+  display: flex;
+  flex-direction: column;
 }
 
 .event-dialog::backdrop {
   background: var(--backdrop);
+}
+
+/* Pulled down with a finger: follows it; springs back (or closes) on release. */
+.event-dialog:not(.is-pulling) {
+  transition: transform var(--duration) ease;
+}
+
+.viewer-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--viewer-peek) var(--space-2);
+}
+
+/* Grab handle: says "pull me down". Phones only (see the media query below). */
+.viewer-bar__handle {
+  display: none;
+}
+
+.viewer-bar__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.viewer-bar__count {
+  min-width: 4.5em;
+  text-align: center;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.viewer-bar .icon-btn:disabled {
+  opacity: 0.35;
+}
+
+.viewer-track {
+  display: flex;
+  flex: 1;
+  gap: var(--space-2);
+  min-height: 0;
+  padding: 0 var(--viewer-peek) var(--space-3);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.viewer-track::-webkit-scrollbar {
+  display: none;
+}
+
+.viewer-slide {
+  flex: 0 0 100%;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-snap-align: center;
+  scroll-snap-stop: always; /* one event per swipe, however fast */
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+/* One-time nudge toward the next (or previous) event: "you can swipe". */
+.viewer-slide.is-hinting-next {
+  animation: viewer-hint-next 900ms ease-in-out 400ms 2;
+}
+
+.viewer-slide.is-hinting-previous {
+  animation: viewer-hint-previous 900ms ease-in-out 400ms 2;
+}
+
+@keyframes viewer-hint-next {
+  50% {
+    transform: translateX(calc(var(--space-7) * -1));
+  }
+}
+
+@keyframes viewer-hint-previous {
+  50% {
+    transform: translateX(var(--space-7));
+  }
+}
+
+@media (max-width: 759px) {
+  /* Phones: nearly full screen, attached to the bottom, with a handle to pull it down. */
+  .event-dialog {
+    --viewer-peek: var(--space-4);
+    width: 100%;
+    height: calc(100dvh - var(--space-4));
+    margin: auto 0 0;
+    border-bottom: 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .viewer-bar {
+    padding-top: var(--space-5);
+  }
+
+  .viewer-bar__handle {
+    position: absolute;
+    top: var(--space-2);
+    left: 50%;
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    transform: translateX(-50%);
+  }
 }
 
 .event-dialog__layout {
@@ -64,7 +187,6 @@
   display: flex;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-4) 0;
-  margin-right: calc(var(--control-height) + var(--space-2)); /* keep clear of the close button on phones */
   border-bottom: var(--border-width) solid var(--divider);
 }
 
@@ -90,10 +212,6 @@
   padding: var(--space-5);
 }
 
-.event-dialog__info .stripes {
-  margin-right: calc(var(--control-height) + var(--space-2)); /* keep clear of the close button */
-}
-
 .event-dialog__info .tag-type {
   align-self: flex-start;
 }
@@ -110,20 +228,6 @@
   font-weight: 500;
   font-size: var(--text-lg);
   color: var(--text-italic);
-}
-
-.event-dialog__close {
-  position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
-  z-index: 1;
-  width: var(--control-height);
-  height: var(--control-height);
-  background: var(--surface);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-xl);
-  line-height: 1;
 }
 
 .event-dialog__actions {
@@ -214,18 +318,22 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
-  .event-dialog__media img {
-    height: 100%;
-    max-height: calc(100dvh - var(--space-7) - var(--space-5)); /* leave room for the media tabs */
-  }
-
-  .media-tabs {
-    margin-right: 0; /* the close button sits over the info column on wide screens */
-  }
-
   .event-dialog__info {
-    max-height: calc(100dvh - var(--space-5));
     padding: var(--space-6);
+  }
+
+  /* In the viewer the flyer stays put and the info column scrolls. */
+  .viewer-slide {
+    overflow: hidden;
+    grid-template-rows: 100%;
+  }
+
+  .viewer-slide .event-dialog__media img {
+    height: 100%;
+    max-height: none;
+  }
+
+  .viewer-slide .event-dialog__info {
     overflow-y: auto;
   }
 }
@@ -267,16 +375,4 @@
 
 .event-page .event-dialog__media img {
   max-height: 80vh;
-}
-
-.event-page .event-dialog__info .stripes,
-.event-page .media-tabs {
-  margin-right: 0; /* no close button here */
-}
-
-@media (min-width: 760px) {
-  .event-page .event-dialog__info {
-    max-height: none;
-    overflow: visible;
-  }
 }

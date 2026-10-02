@@ -53,6 +53,13 @@ export function eventsInView(events: DanceEvent[], state: AppState): DanceEvent[
   return events.filter((event) => event.date.startsWith(prefix));
 }
 
+/** The events on screen, in display order: the upcoming list, or the selected calendar day. Swiping in
+ * the event viewer follows this order. */
+export function visibleEvents(events: DanceEvent[], state: AppState): DanceEvent[] {
+  const shown = eventsInView(events, state).filter((event) => matchesFilters(event, state));
+  return state.view === "upcoming" ? shown : shown.filter((event) => event.date === state.selectedDay);
+}
+
 /** Day to select after moving to another month: today in the current month, else its first event day. */
 export function defaultDayForMonth(events: DanceEvent[], month: Date): string {
   const prefix = monthPrefix(month);

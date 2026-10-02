@@ -134,7 +134,12 @@ An event can be announced by several Instagram posts (a flyer, then a video, a r
 ## Event detail: dialog and page
 
 - **Same markup in both** (`scripts/views/eventDetail.ts`): the home page's dialog and each event's own page (`pages/evento/[id].astro`, one static page per event).
-- **The dialog has a URL:** opening it pushes `/evento/<id>/` to the address bar, so the phone's back button closes it, and a copied link opens that event's page.
+- **The viewer swipes between events** (`EventDialog.astro`, `scripts/views/eventDialog.ts`):
+  - **What's in it:** one slide per event on screen, in list order (or the selected calendar day's). Swipe sideways (or ‹ ›, or the arrow keys) to change event; scroll up and down to read.
+  - **Signaling the swipe:** the neighbors' edges peek at the sides, the bar shows "3 de 9", and a one-time nudge plays until the visitor first swipes. It's skipped with reduced motion.
+  - **Closing:** ×, Escape, the back button, or on phones pulling down from the top (grab handle). A short pull springs back.
+  - **Phones:** the viewer is attached to the bottom and almost full screen.
+- **The viewer has a URL:** opening pushes `/evento/<id>/`, so the phone's back button closes it; swiping replaces it, so back still closes instead of stepping through events. A copied link opens that event's page.
 - **Shared links open the event page.** Its preview (WhatsApp, Instagram) shows the flyer as a small JPEG made at build time (`pages/og/[id].jpg.ts`), and search engines get schema.org `Event` data.
 - **Missing details say "Por confirmar"** in their own row (hora, lugar, precio), in muted italics. Gemini's free-text doubts are not shown; a low-confidence extraction gets one note asking to confirm in the post.
 - **"Cómo llegar"** after the venue opens Google Maps (only when there's a venue or address).

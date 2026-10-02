@@ -90,7 +90,7 @@ const json = (value: unknown) => JSON.stringify(value).replace(/</g, "\\u003c");
 
   <main class="container">
     {isPast && <p class="callout event-page__past">Este evento ya pasó.</p>}
-    <article class="event-page event-dialog__layout" id="event-detail" set:html={eventDetailHtml(event, 0, { closeButton: false, headingLevel: 1 })} />
+    <article class="event-page event-dialog__layout" id="event-detail" set:html={eventDetailHtml(event, 0, { headingLevel: 1 })} />
   </main>
 
   <SiteFooter accounts={accounts} />
