@@ -20,12 +20,64 @@
   grid-template-columns: 1fr;
 }
 
+.event-dialog__visual {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--surface-sunken);
+}
+
+.event-dialog__media {
+  position: relative;
+  display: block;
+  flex: 1;
+}
+
 .event-dialog__media img {
   display: block;
   width: 100%;
-  max-height: 70vh;
+  max-height: 55vh; /* phones: leave the title and date visible below the flyer */
   object-fit: contain;
-  background: var(--surface-sunken);
+}
+
+/* Label over a video's preview frame: the video itself plays on Instagram. */
+.event-dialog__play {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-4);
+  transform: translateX(-50%);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--action);
+  color: var(--on-action);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+}
+
+/* ---------- media tabs: switch between the posts announcing the event ---------- */
+
+.media-tabs {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4) 0;
+  margin-right: calc(var(--control-height) + var(--space-2)); /* keep clear of the close button on phones */
+  border-bottom: var(--border-width) solid var(--divider);
+}
+
+.media-tabs__tab {
+  padding: var(--space-2) 0;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-muted);
+}
+
+.media-tabs__tab[aria-selected="true"] {
+  color: var(--text);
+  border-bottom-color: var(--accent);
 }
 
 .event-dialog__info {
@@ -62,8 +114,8 @@
   top: var(--space-3);
   right: var(--space-3);
   z-index: 1;
-  width: 36px;
-  height: 36px;
+  width: var(--control-height);
+  height: var(--control-height);
   background: var(--surface);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-sm);
@@ -143,7 +195,11 @@
 
   .event-dialog__media img {
     height: 100%;
-    max-height: calc(100dvh - var(--space-5));
+    max-height: calc(100dvh - var(--space-7) - var(--space-5)); /* leave room for the media tabs */
+  }
+
+  .media-tabs {
+    margin-right: 0; /* the close button sits over the info column on wide screens */
   }
 
   .event-dialog__info {

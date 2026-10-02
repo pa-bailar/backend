@@ -3,7 +3,7 @@
 import type { AppState, DanceEvent } from "../types";
 import { byId, escapeHtml } from "../lib/dom";
 import { daysInMonth, mondayOffset, todayIso, toIsoDate } from "../lib/dates";
-import { formatDayHeading, formatMonthTitle } from "../lib/format";
+import { formatDayHeading, formatLongDate, formatMonthTitle } from "../lib/format";
 import { groupByDay, matchesFilters } from "../state";
 import { eventCardGridHtml } from "./eventCard";
 
@@ -24,7 +24,7 @@ function dayCellHtml(iso: string, dayNumber: number, dayEvents: DanceEvent[], st
   const more = dayEvents.length > MAX_PILLS_PER_DAY ? `<span class="cal-more">+${dayEvents.length - MAX_PILLS_PER_DAY}</span>` : "";
   const dots = dayEvents.map((event) => `<i class="cal-dot t-${escapeHtml(event.event_type)}"></i>`).join("");
   const count = dayEvents.length;
-  const label = count ? `${dayNumber}, ${count} evento${count > 1 ? "s" : ""}` : String(dayNumber);
+  const label = `${formatLongDate(iso)}${count ? `, ${count} evento${count > 1 ? "s" : ""}` : ""}`;
 
   return `
     <button class="cal-day ${modifiers.join(" ")}" data-day="${iso}" aria-label="${label}" aria-pressed="${iso === state.selectedDay}">
@@ -34,7 +34,8 @@ function dayCellHtml(iso: string, dayNumber: number, dayEvents: DanceEvent[], st
     </button>`;
 }
 
-export function renderCalendarView(events: DanceEvent[], state: AppState) {
+/** Renders the month and returns how many events the selected day shows. */
+export function renderCalendarView(events: DanceEvent[], state: AppState): number {
   const { month } = state;
   const byDay = groupByDay(events.filter((event) => matchesFilters(event, state)));
 
@@ -52,4 +53,5 @@ export function renderCalendarView(events: DanceEvent[], state: AppState) {
   byId("cal-selected-day").innerHTML = `
     <h2 class="day-heading">${escapeHtml(formatDayHeading(state.selectedDay))}</h2>
     ${selectedEvents.length ? eventCardGridHtml(selectedEvents) : `<p class="text-muted">No hay eventos este día.</p>`}`;
+  return selectedEvents.length;
 }

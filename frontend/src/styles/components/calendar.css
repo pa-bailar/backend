@@ -10,10 +10,19 @@
 .calendar__title {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 500;
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
+  white-space: nowrap; /* "Septiembre de 2026" on one line, even at 320px */
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 720px) {
+  .calendar__title {
+    font-size: var(--text-2xl);
+  }
 }
 
 .calendar__grid {

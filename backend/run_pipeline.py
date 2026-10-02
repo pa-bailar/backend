@@ -1,7 +1,4 @@
-"""Collect one-time dance events from the Instagram accounts in accounts.txt.
-
-Fetches each account's recent posts, skips posts already analyzed, asks Gemini to extract
-events, and writes the result to data/events.json plus the flyers in data/flyers/.
+"""Run the daily sweep: collect one-time dance events from the accounts in accounts.txt.
 
 Usage (from the backend folder):
     .venv\\Scripts\\python run_pipeline.py             # posts from the last 7 days
@@ -9,92 +6,41 @@ Usage (from the backend folder):
 """
 
 import argparse
-from datetime import datetime, timedelta, timezone
+import logging
 
-from agenda import config, instagram, storage
-from agenda.extractor import Extractor
+from pabailar import config
+from pabailar.pipeline import Sweep
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--days", type=int, default=config.DEFAULT_LOOKBACK_DAYS,
-                        help="Only analyze posts published in the last N days")
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "--days",
+        type=int,
+        default=config.DEFAULT_LOOKBACK_DAYS,
+        help=f"only analyze posts published in the last N days (default {config.DEFAULT_LOOKBACK_DAYS})",
+    )
     args = parser.parse_args()
-    cutoff = datetime.now(timezone.utc) - timedelta(days=args.days)
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    # Third-party libraries log every HTTP request at INFO; keep only their warnings.
+    for noisy in ("httpx", "google_genai", "urllib3"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
 
-    extractor = Extractor()
-    events = storage.load_json(config.EVENTS_FILE, [])
-    processed = storage.load_json(config.PROCESSED_FILE, {})
-    stats = {"analyzed": 0, "events": 0, "discarded": 0, "errors": 0}
+    stats = Sweep(lookback_days=args.days).run()
 
-    for account in storage.read_accounts():
-        print(f"\n== @{account}")
-        try:
-            posts = instagram.fetch_recent_posts(account)
-        except Exception as e:
-            print(f"   ERROR fetching posts: {e}")
-            stats["errors"] += 1
-            continue
-
-        for post in posts:
-            published = instagram.published_at(post)
-            if post["id"] in processed or published < cutoff:
-                continue
-            print(f"   - {published:%Y-%m-%d} {post['media_type']:<14} {post['permalink']}")
-            try:
-                images = [instagram.download(u) for u in instagram.image_urls(post)]
-                analysis, model = extractor.analyze(account, post, published, images)
-            except Exception as e:
-                print(f"     ERROR: {e}")
-                stats["errors"] += 1
-                continue  # not marked as processed, so it is retried next run
-
-            stats["analyzed"] += 1
-            processed[post["id"]] = {
-                "account": account,
-                "permalink": post["permalink"],
-                "processed_at": datetime.now(config.BOGOTA).isoformat(timespec="seconds"),
-                "is_event_post": analysis.is_event_post,
-                "reason": analysis.reason,
-                "model": model,
-            }
-
-            # Only one-time events with a date make it to the website.
-            kept = [e for e in analysis.events if not e.is_recurring and e.date]
-            stats["discarded"] += len(analysis.events) - len(kept)
-            events = [e for e in events if e["source"]["post_id"] != post["id"]]
-
-            if analysis.is_event_post and kept:
-                for i, event in enumerate(kept):
-                    # Each event gets the image that shows it; fall back to the first image.
-                    index = event.image_index if event.image_index is not None and event.image_index < len(images) else 0
-                    flyer = storage.save_flyer(images[index], f"{post['id']}-{index}") if images else None
-                    events.append({
-                        "id": f"{post['id']}-{i}",
-                        **event.model_dump(exclude={"image_index"}),
-                        "flyer": flyer,
-                        "source": {
-                            "account": account,
-                            "post_id": post["id"],
-                            "permalink": post["permalink"],
-                            "published": post["timestamp"],
-                            "caption": post.get("caption"),
-                        },
-                    })
-                    stats["events"] += 1
-                    print(f"     EVENT: {event.date} {event.start_time or ''} | {event.title} [{event.event_type}]")
-            else:
-                print(f"     skipped: {analysis.reason}")
-
-            # Save after every post so progress survives an interrupted run.
-            storage.save_json(config.EVENTS_FILE, storage.sort_events(events))
-            storage.save_json(config.PROCESSED_FILE, processed)
-
-    removed = storage.remove_unused_flyers(events)
-    if removed:
-        print(f"\nRemoved {removed} flyer images no event uses anymore.")
-    print(f"\nDone: {stats['analyzed']} posts analyzed, {stats['events']} events saved, "
-          f"{stats['discarded']} recurring/undated discarded, {stats['errors']} errors.")
+    logging.info(
+        "\nDone: %s accounts, %s posts analyzed, %s new events, %s posts merged into existing events, "
+        "%s recurring/undated discarded, %s flyers removed, %s errors.",
+        stats.accounts,
+        stats.posts_analyzed,
+        stats.events_new,
+        stats.events_merged,
+        stats.events_discarded,
+        stats.flyers_removed,
+        stats.errors,
+    )
+    if stats.accounts and stats.errors >= stats.accounts:
+        raise SystemExit("Every account failed. Check the logs above.")
 
 
 if __name__ == "__main__":

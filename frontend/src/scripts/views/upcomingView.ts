@@ -2,14 +2,13 @@
 
 import type { AppState, DanceEvent } from "../types";
 import { escapeHtml } from "../lib/dom";
-import { todayIso } from "../lib/dates";
 import { formatDayHeading } from "../lib/format";
-import { groupByDay, matchesFilters } from "../state";
+import { eventsInView, groupByDay, matchesFilters } from "../state";
 import { eventCardGridHtml } from "./eventCard";
 
-export function renderUpcomingView(container: HTMLElement, events: DanceEvent[], state: AppState) {
-  const today = todayIso();
-  const upcoming = events.filter((event) => event.date >= today && matchesFilters(event, state));
+/** Renders the list and returns how many events it shows. */
+export function renderUpcomingView(container: HTMLElement, events: DanceEvent[], state: AppState): number {
+  const upcoming = eventsInView(events, state).filter((event) => matchesFilters(event, state));
 
   if (!upcoming.length) {
     container.innerHTML = `
@@ -17,7 +16,7 @@ export function renderUpcomingView(container: HTMLElement, events: DanceEvent[],
         <p>No hay eventos próximos con estos filtros.</p>
         <p>Prueba otro filtro o revisa el calendario.</p>
       </div>`;
-    return;
+    return 0;
   }
 
   container.innerHTML = [...groupByDay(upcoming)]
@@ -29,4 +28,5 @@ export function renderUpcomingView(container: HTMLElement, events: DanceEvent[],
         </section>`,
     )
     .join("");
+  return upcoming.length;
 }

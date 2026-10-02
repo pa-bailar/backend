@@ -1,15 +1,18 @@
-// Event detail dialog: big flyer, all details, prices and share actions.
+// Event detail dialog: the flyer of each post announcing the event (tabs when there are several),
+// all details, prices and share actions.
 
-import type { DanceEvent } from "../types";
+import type { DanceEvent, EventMedia } from "../types";
 import { byId, escapeHtml } from "../lib/dom";
-import { formatLongDate, formatMoney, formatTime, placeLabel, typeLabel } from "../lib/format";
+import { formatLongDate, formatMoney, formatTime, mediaLabel, placeLabel, typeLabel } from "../lib/format";
 import { flyerUrl, googleCalendarUrl, whatsappShareUrl } from "../lib/links";
+
+let currentEvent: DanceEvent | null = null;
 
 function detailRows(event: DanceEvent): [string, string][] {
   const time = [formatTime(event.start_time), formatTime(event.end_time)].filter(Boolean).join(" – ");
   const rows: [string, string][] = [
     ["Cuándo", `${formatLongDate(event.date)}${time ? ` · ${time}` : ""}`],
-    ["Organiza", [event.organizer, `@${event.source.account}`].filter(Boolean).join(" · ")],
+    ["Organiza", [event.organizer, `@${event.account}`].filter(Boolean).join(" · ")],
     ["Lugar", placeLabel(event) || "No indicado en el flyer"],
   ];
   if (event.artists.length) rows.push(["Con", event.artists.join(", ")]);
@@ -29,9 +32,34 @@ function pricesHtml(event: DanceEvent): string {
   return `<h3 class="event-dialog__subheading">Precios</h3><ul class="price-list">${items}</ul>`;
 }
 
-function dialogHtml(event: DanceEvent): string {
-  const flyer = flyerUrl(event);
-  const permalink = escapeHtml(event.source.permalink);
+/** Tabs to switch between the posts that announce this event. Hidden when there's only one. */
+function mediaTabsHtml(event: DanceEvent, selected: number): string {
+  if (event.media.length < 2) return "";
+  const tabs = event.media
+    .map(
+      (media, index) => `
+        <button class="media-tabs__tab" role="tab" data-media-index="${index}" aria-selected="${index === selected}">
+          ${mediaLabel(media.media_type)}
+        </button>`,
+    )
+    .join("");
+  return `<div class="media-tabs" role="tablist" aria-label="Publicaciones de este evento">${tabs}</div>`;
+}
+
+function mediaHtml(event: DanceEvent, media: EventMedia): string {
+  const flyer = flyerUrl(media);
+  if (!flyer) return "";
+  const isVideo = media.media_type === "VIDEO";
+  return `
+    <a class="event-dialog__media" href="${escapeHtml(media.permalink)}" target="_blank" rel="noopener">
+      <img src="${escapeHtml(flyer)}" alt="${isVideo ? "Video" : "Flyer"} de ${escapeHtml(event.title)}" />
+      ${isVideo ? `<span class="event-dialog__play">Ver video en Instagram</span>` : ""}
+    </a>`;
+}
+
+function dialogHtml(event: DanceEvent, selected: number): string {
+  const media = event.media[selected];
+  const permalink = escapeHtml(media.permalink);
   const rows = detailRows(event)
     .map(([term, value]) => `<dt>${term}</dt><dd>${escapeHtml(value)}</dd>`)
     .join("");
@@ -39,7 +67,10 @@ function dialogHtml(event: DanceEvent): string {
 
   return `
     <button class="event-dialog__close" data-close-dialog aria-label="Cerrar">×</button>
-    ${flyer ? `<a class="event-dialog__media" href="${permalink}" target="_blank" rel="noopener"><img src="${escapeHtml(flyer)}" alt="Flyer de ${escapeHtml(event.title)}" /></a>` : ""}
+    <div class="event-dialog__visual">
+      ${mediaTabsHtml(event, selected)}
+      ${mediaHtml(event, media)}
+    </div>
     <div class="event-dialog__info">
       <div class="stripes" aria-hidden="true"><i></i><i></i><i></i></div>
       <span class="tag-type t-${escapeHtml(event.event_type)}">${typeLabel(event.event_type)}</span>
@@ -53,20 +84,30 @@ function dialogHtml(event: DanceEvent): string {
         <a class="btn" href="${escapeHtml(googleCalendarUrl(event))}" target="_blank" rel="noopener">Agregar al calendario</a>
       </div>
       ${event.doubts.length ? `<p class="callout"><strong>Por confirmar:</strong> ${escapeHtml(event.doubts.join(" "))}</p>` : ""}
-      ${event.source.caption ? `<details class="event-dialog__caption"><summary>Texto de la publicación</summary><p>${escapeHtml(event.source.caption)}</p></details>` : ""}
+      ${media.caption ? `<details class="event-dialog__caption"><summary>Texto de la publicación</summary><p>${escapeHtml(media.caption)}</p></details>` : ""}
     </div>`;
 }
 
+function render(selected: number) {
+  if (currentEvent) byId("event-dialog-body").innerHTML = dialogHtml(currentEvent, selected);
+}
+
 export function openEventDialog(event: DanceEvent) {
-  const dialog = byId<HTMLDialogElement>("event-dialog");
-  byId("event-dialog-body").innerHTML = dialogHtml(event);
-  dialog.showModal();
+  currentEvent = event;
+  render(0);
+  byId<HTMLDialogElement>("event-dialog").showModal();
 }
 
 export function initEventDialog() {
   const dialog = byId<HTMLDialogElement>("event-dialog");
   dialog.addEventListener("click", (domEvent) => {
     const target = domEvent.target as HTMLElement;
+    const tab = target.closest<HTMLElement>("[data-media-index]");
+    if (tab) {
+      render(Number(tab.dataset.mediaIndex));
+      byId("event-dialog-body").querySelector<HTMLElement>(`[data-media-index="${tab.dataset.mediaIndex}"]`)?.focus();
+      return;
+    }
     // Close on the × button or a click on the backdrop (the dialog element itself).
     if (target === dialog || target.closest("[data-close-dialog]")) dialog.close();
   });

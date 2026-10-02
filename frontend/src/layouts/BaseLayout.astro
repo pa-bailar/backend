@@ -1,6 +1,19 @@
 ---
 // HTML shell shared by every page: meta tags, fonts, design system styles and the theme pre-paint script.
-import "../styles/index.css";
+//
+// Styles are imported one by one (not chained with CSS @import) so the dev server reloads each file
+// when it changes. Order matters: tokens → base → components.
+import "../styles/tokens.css";
+import "../styles/base.css";
+import "../styles/components/stripes.css";
+import "../styles/components/buttons.css";
+import "../styles/components/tags.css";
+import "../styles/components/site-header.css";
+import "../styles/components/toolbar.css";
+import "../styles/components/event-card.css";
+import "../styles/components/calendar.css";
+import "../styles/components/event-dialog.css";
+import "../styles/components/site-footer.css";
 
 interface Props {
   title: string;

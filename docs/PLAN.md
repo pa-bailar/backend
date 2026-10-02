@@ -91,18 +91,30 @@ pa-bailar/
 │  │  └─ daily-sweep.yml      # cron: collect events, commit, deploy
 │  └─ dependabot.yml          # weekly dependency update PRs
 ├─ backend/
-│  ├─ agenda/                 # Python package (config, instagram, extractor, storage)
+│  ├─ pabailar/               # Python package
+│  │  ├─ config.py            #   paths, settings, require_env()
+│  │  ├─ models.py            #   Pydantic models = the data contract
+│  │  ├─ instagram.py         #   Graph API client
+│  │  ├─ extraction.py        #   Gemini prompt, retries, model fallback
+│  │  ├─ storage.py           #   validated read/write of data/ and state/
+│  │  ├─ merging.py           #   one event, many posts: match and merge
+│  │  └─ pipeline.py          #   the sweep (orchestration)
 │  ├─ tests/                  # pytest tests (offline, no API calls)
-│  ├─ tools/refresh_token.py
 │  ├─ state/processed_posts.json
 │  ├─ accounts.txt
-│  ├─ run_pipeline.py
+│  ├─ run_pipeline.py         # CLI: run the sweep
+│  ├─ refresh_token.py        # CLI: regenerate the Instagram token
+│  ├─ pyproject.toml          # ruff config
 │  ├─ requirements.txt        # pinned versions
-│  ├─ requirements-dev.txt    # ruff, pytest
+│  ├─ requirements-dev.txt    # ruff (+ pytest in Phase 2)
 │  └─ .env                    # local only, git-ignored
 ├─ frontend/
-│  ├─ src/ (pages, scripts, styles)
+│  ├─ src/
+│  │  ├─ pages/ layouts/ components/   # Astro markup
+│  │  ├─ scripts/             # typed client code: lib/, views/, state, theme, main
+│  │  └─ styles/              # tokens.css, base.css, components/*.css (see DESIGN.md)
 │  ├─ astro.config.mjs
+│  ├─ tsconfig.json           # strict
 │  ├─ package.json + package-lock.json
 ├─ data/
 │  ├─ events.json
@@ -204,15 +216,21 @@ No formal versioning; `main` is continuously deployed. Optionally tag milestones
 
 ### Schema
 - `docs/DATA.md` documents every field of an event: `id`, `title`, `event_type`, `styles`, `date`, `start_time`, `prices[]`, `flyer`, `source{account, post_id, permalink, published, caption}`, etc.
-- The Pydantic models in `backend/agenda/extractor.py` are the **source of truth**. `meta.json.schema_version` starts at `1` and goes up on breaking changes.
+- The Pydantic models in `backend/pabailar/models.py` are the **source of truth**. `meta.json.schema_version` starts at `1` and goes up on breaking changes.
 - The backend **validates the whole `events.json`** against the models before saving, so a bad write never gets committed.
 - The frontend's TypeScript `AgendaEvent` type mirrors the schema. `astro check` in CI catches mismatches.
 
 ### Rules
 - **IDs:**
-  - Event: `<postId>-<index>`
+  - Event: `<postId>-<index>` of the first post that announced it. It stays the same when more posts are merged in.
   - Flyer: `<postId>-<slideIndex>.webp`
   - Both are deterministic, so re-runs never duplicate.
+- **The right flyer for each event:** Gemini picks the slide that shows the event (`image_index`), never a generic cover when another slide shows it. Events announced together on one image (e.g. a monthly schedule) legitimately share that image. It's saved once and both events point to it.
+- **One event, many posts:** academies announce the same event several times (a flyer, then a video, a reminder). Each event stores **all** its posts in `media` (images first, then videos). It never appears twice.
+  - **Matching:** Gemini receives the account's known upcoming events and returns `same_as` when a post announces one of them again, even if the wording differs. As a fallback, a rule matches on same account and date, plus the same start time (or the same title when there's no time).
+  - **Merging:** the post is added to the event's `media`, and details the event was missing are filled in. Known details are never overwritten.
+  - **Re-analysis:** before a post is analyzed again, its contributions are removed (`detach_post`). Events left without posts disappear.
+  - Logic in `backend/pabailar/merging.py`, covered by `backend/tests/test_merging.py`.
 - **Idempotency:** re-running the sweep the same day changes nothing unless Instagram has new posts.
 - **Only one-time events with a date** are stored. Recurring classes are discarded at extraction.
 - **Lookback window:** 7 days (`DEFAULT_LOOKBACK_DAYS`).
@@ -232,13 +250,13 @@ No formal versioning; `main` is continuously deployed. Optionally tag milestones
 ## 6. Backend
 
 ### Changes needed before CI can run it
-1. **Paths and config:** already relative to the repo (`agenda/config.py`). Keys come from environment variables, so on CI they come from secrets. `load_dotenv` is harmless when there's no `.env`.
+1. **Paths and config:** already relative to the repo (`pabailar/config.py`). Keys come from environment variables, so on CI they come from secrets. `load_dotenv` is harmless when there's no `.env`.
 2. **Exit codes:**
    - Exit non-zero only when the run is **broken**: token invalid, every account failed, or the output can't be written. That makes GitHub mark the run red and email you.
    - A single post failing is not a failure. It's logged and retried the next day.
 3. **Token health check at start:**
    - Call `/debug_token`, or do a cheap `GET /{IG_USER_ID}?fields=username`.
-   - If the token is invalid, fail immediately with a clear message: "Instagram token invalid: run tools/refresh_token.py and update the META_ACCESS_TOKEN secret".
+   - If the token is invalid, fail immediately with a clear message: "Instagram token invalid: run refresh_token.py and update the META_ACCESS_TOKEN secret". *(Done in the cleanup: `InstagramClient.check_token()` at the start of every sweep.)*
 4. **Run summary:**
    - Write `data/meta.json`.
    - Also append a Markdown table to `$GITHUB_STEP_SUMMARY`, so each Actions run page shows what happened: per account, the posts seen, events added and any errors.
@@ -488,7 +506,7 @@ Weekly, grouped PRs for `pip` (`/backend`), `npm` (`/frontend`) and `github-acti
   | Secret | Used by | Notes |
   |---|---|---|
   | `GEMINI_API_KEY` | sweep | From aistudio.google.com |
-  | `META_ACCESS_TOKEN` | sweep | Non-expiring Page token (from `tools/refresh_token.py`) |
+  | `META_ACCESS_TOKEN` | sweep | Non-expiring Page token (from `backend/refresh_token.py`) |
   | `IG_USER_ID` | sweep | Not secret, but kept with the others for simplicity |
   | `HEALTHCHECK_URL` | sweep | Optional monitoring ping |
   | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | deploy | Only if Cloudflare Pages |
@@ -539,7 +557,7 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 
 ### Phase 1 — Repository hygiene and first commit
 - [x] Add `.gitattributes`, `.editorconfig`, `.nvmrc` (24) and `.python-version` (3.12).
-- [x] Pin `backend/requirements.txt`. (`requirements-dev.txt` moves to Phase 2 with the tests.)
+- [x] Pin `backend/requirements.txt`; `requirements-dev.txt` with ruff (pytest is added in Phase 2 with the tests).
 - [x] Update `README.md` (what it is, layout, local setup, link to docs).
 - [x] `git init -b main`; check `git status` shows **no `.env`**; first commit: `chore: initial commit`.
 - [x] Create the GitHub repo `pa-bailar` and push. Commits use the noreply email `15051424+jzamora5@users.noreply.github.com`.
@@ -548,11 +566,11 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 **Done when:** the code is on GitHub, with no secrets in it.
 
 ### Phase 2 — Backend ready for CI
-- [ ] Token health check at start; clear error message.
-- [ ] Exit codes: fail only on broken runs.
+- [x] Token health check at start; clear error message. *(cleanup PR)*
+- [x] Exit codes: fail only on broken runs (invalid token, missing secret, every account failed). *(cleanup PR)*
 - [ ] Write `data/meta.json` + `$GITHUB_STEP_SUMMARY` table.
-- [ ] Validate `events.json` against the Pydantic models before saving.
-- [ ] `ruff` config; fix lint issues.
+- [x] Validate `events.json` against the Pydantic models on load and save. *(cleanup PR)*
+- [x] `ruff` config; fix lint issues. *(cleanup PR)*
 - [ ] Offline tests with fixtures (section 6.8).
 - [ ] `docs/DATA.md` (schema + rules).
 
@@ -625,7 +643,7 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 | Fix a wrong event by hand | Edit `data/events.json` in a PR → merge → deploy runs automatically. (If the post is re-analyzed later, the edit can be overwritten. Remove the post from `processed_posts.json` only when you *want* it re-analyzed.) |
 | Remove an event (e.g. the academy asks) | Delete it from `events.json` + add the post ID to an ignore list (to build in Phase 2) → merge. |
 | Re-analyze a post | Remove its ID from `backend/state/processed_posts.json` and its events from `events.json` → run the sweep with enough `days`. |
-| Instagram token stopped working | On your PC: Graph API Explorer → new token into `backend/.env` → `.venv\Scripts\python tools\refresh_token.py` → copy the new `META_ACCESS_TOKEN` into the GitHub secret → run the sweep. |
+| Instagram token stopped working | On your PC: Graph API Explorer → new token into `backend/.env` → `.venv\Scripts\python refresh_token.py` (from `backend/`) → copy the new `META_ACCESS_TOKEN` into the GitHub secret → run the sweep. |
 | Gemini key leaked or revoked | Create a new key in AI Studio → update the `GEMINI_API_KEY` secret. |
 | Roll back a bad sweep | `git revert <sweep commit>` in a PR → merge → deploy runs. |
 | Scheduled runs stopped (60-day rule) | Actions → daily-sweep → **Enable workflow**. |
@@ -634,6 +652,16 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 ---
 
 ## 14. Future items (not part of go-live)
+
+Known gaps from the 2026-10-01 audit (not fixed yet, by design):
+- "Actualizado el …" shows the build date, not the data date. Fixed by `meta.json` in Phase 2.
+- Merging a post fills in missing details but keeps the old `doubts` (e.g. "sin hora" after a video supplies the time).
+- `processed_posts.json` grows forever. Prune it with the retention work.
+- Images are sent to Gemini as JPEG without checking the actual format (Instagram serves JPEG today).
+- No end-to-end pipeline test with mocked Instagram/Gemini yet (Phase 2).
+- Gemini's `same_as` linking hasn't been exercised on a real repost yet; check the first runs.
+- View tabs don't support arrow-key navigation (full ARIA tabs pattern).
+- Fonts load from Google Fonts. Self-hosting them would remove a third-party request.
 
 - Design system and restyle (pending user choice A/B/C).
 - Past-event retention and archive.

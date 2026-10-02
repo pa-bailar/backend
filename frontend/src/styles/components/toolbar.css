@@ -1,12 +1,19 @@
 /* Sticky toolbar: view tabs and filter chips. */
 
 .toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 10;
   background: var(--bg);
   border-top: var(--border-width) solid var(--divider);
   border-bottom: var(--border-width) solid var(--divider);
+}
+
+/* Sticky only where there's room: on phones (and phones in landscape) a sticky bar with two chip
+   rows would permanently cover a quarter of the screen. */
+@media (min-width: 720px) and (min-height: 600px) {
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
 }
 
 .toolbar__inner {
@@ -63,6 +70,13 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
   color: var(--text-muted);
+}
+
+/* Finger-sized on touch screens. */
+@media (pointer: coarse) {
+  .chip {
+    min-height: var(--control-height);
+  }
 }
 
 .chip[aria-pressed="true"] {

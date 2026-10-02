@@ -1,6 +1,6 @@
 // Spanish (Colombia) display formatting.
 
-import type { DanceEvent, EventType } from "../types";
+import type { DanceEvent, EventType, MediaType } from "../types";
 import { addDays, parseIsoDate, todayIso } from "./dates";
 
 const LOCALE = "es-CO";
@@ -26,6 +26,21 @@ export function capitalize(text: string): string {
 
 export function typeLabel(type: EventType): string {
   return TYPE_LABELS[type] ?? type;
+}
+
+const MEDIA_LABELS: Record<MediaType, string> = {
+  IMAGE: "Flyer",
+  CAROUSEL_ALBUM: "Carrusel",
+  VIDEO: "Video",
+};
+
+export function mediaLabel(type: MediaType): string {
+  return MEDIA_LABELS[type] ?? "Publicación";
+}
+
+/** "1 publicación" / "2 publicaciones" */
+export function postCountLabel(count: number): string {
+  return `${count} ${count === 1 ? "publicación" : "publicaciones"}`;
 }
 
 export function formatMoney(amountCop: number): string {
