@@ -28,6 +28,7 @@ on:
 
 permissions:
   contents: write # push the sweep-state branch of this repository
+  issues: write # the "Sweep health" issue
 
 concurrency:
   group: data
@@ -38,6 +39,8 @@ env:
   SITE_REPO: pa-bailar.github.io
   STATE_FILES: state # where the code keeps its state (config.STATE_DIR); copied to/from the sweep-state branch
   MERGE_TIMEOUT_MINUTES: 20
+  HEALTH_REPORT_FILE: ${{ github.workspace }}/health.md # written by the sweep (pa_bailar/health.py)
+  NOTIFY: jzamora5 # mentioned in the health issue, so GitHub emails them
 
 jobs:
   sweep:
@@ -76,6 +79,7 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: Run the sweep
+        id: sweep
         timeout-minutes: 35
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -97,6 +101,35 @@ jobs:
           git add -A  # new state files too (commit -a would skip them)
           git commit -qm "chore(state): sweep $(date -u +%FT%H:%MZ)"
           git push -q origin HEAD:sweep-state
+
+      # Health (pa_bailar/health.py): rules over this run and the previous ones, no AI. While there are
+      # warnings, one open issue holds the latest report; a comment (which GitHub emails) is added only when
+      # the warnings change, and the issue closes itself once they're gone.
+      - name: Update the sweep health issue
+        if: ${{ !cancelled() && steps.sweep.outputs.fingerprint != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          WARNINGS: ${{ steps.sweep.outputs.warnings }}
+          FINGERPRINT: ${{ steps.sweep.outputs.fingerprint }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          issue="$(gh issue list --label sweep-health --state open --json number --jq '.[0].number // empty')"
+          if [ "$WARNINGS" = "0" ]; then
+            if [ -n "$issue" ]; then gh issue close "$issue" --comment "All clear in [this run]($RUN_URL)."; fi
+            exit 0
+          fi
+          { cat "$HEALTH_REPORT_FILE"; echo; echo "cc @$NOTIFY"; } > comment.md
+          if [ -z "$issue" ]; then
+            gh label create sweep-health --color d93f0b --description "Opened by the daily sweep" --force
+            gh issue create --title "Sweep health: needs a look" --label sweep-health --body-file comment.md
+            exit 0
+          fi
+          previous="$(gh issue view "$issue" --json body --jq .body | grep -o 'health-fingerprint: [0-9a-f]*' || true)"
+          gh issue edit "$issue" --body-file "$HEALTH_REPORT_FILE"
+          if [ "$previous" != "health-fingerprint: $FINGERPRINT" ]; then
+            gh issue comment "$issue" --body-file comment.md
+          fi
 
       - name: Get a token for the site repository (pa-bailar-bot)
         id: app
@@ -176,4 +209,6 @@ jobs:
         run: |
           if [ -z "$HEALTHCHECK_URL" ]; then exit 0; fi
           if [ "$OUTCOME" = "success" ]; then url="$HEALTHCHECK_URL"; else url="$HEALTHCHECK_URL/fail"; fi
-          curl -fsS -m 10 --retry 3 "$url" > /dev/null
+          # The health report goes along as the ping's body: it shows in the check's event log.
+          if [ -f "$HEALTH_REPORT_FILE" ]; then body="$HEALTH_REPORT_FILE"; else body=/dev/null; fi
+          curl -fsS -m 10 --retry 3 --data-binary "@$body" "$url" > /dev/null

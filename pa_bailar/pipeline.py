@@ -87,6 +87,7 @@ class AccountStats:
     errors: int = 0
     backfill: bool = False  # this run was (part of) the account's first, deeper sweep
     fetch_failed: bool = False
+    latest_post: str | None = None  # date (YYYY-MM-DD) of the account's newest post, to notice abandoned accounts
 
 
 @dataclass
@@ -105,6 +106,8 @@ class RunStats:
     events_expired: int = 0  # dated more than EVENT_RETENTION_DAYS ago
     processed_forgotten: int = 0  # analyzed-post records older than PROCESSED_RETENTION_DAYS
     flyers_removed: int = 0
+    rate_limited: bool = False  # Instagram throttled the app: accounts after that one wait for the next run
+    out_of_time: bool = False  # the run used its time budget: some posts wait for the next run
     gemini_requests: dict[str, int] = field(default_factory=dict)
     by_account: dict[str, AccountStats] = field(default_factory=dict)
 
@@ -218,6 +221,8 @@ class Sweep:
         self._apply_retention()
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
         self.stats.gemini_requests = self.extractor.requests_this_run()
+        self.stats.rate_limited = self.rate_limited
+        self.stats.out_of_time = self.time_up_logged
         storage.save_account_state(self.accounts)
         storage.save_meta(asdict(self.stats))
         return self.stats
@@ -273,6 +278,8 @@ class Sweep:
             account_stats.fetch_failed = True
             return
 
+        if posts:
+            account_stats.latest_post = max(published_at(p) for p in posts).date().isoformat()
         window = timedelta(days=config.BACKFILL_DAYS) if backfill else self.lookback
         cutoff = datetime.now(UTC) - window
         # Oldest first, so a flyer is usually stored before the video or reminder that follows it.

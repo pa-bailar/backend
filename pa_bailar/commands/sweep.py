@@ -10,9 +10,11 @@ import logging
 import os
 from pathlib import Path
 
-from pa_bailar import config
+from pa_bailar import config, health, storage
 from pa_bailar.logs import setup_logging
 from pa_bailar.pipeline import RunStats, Sweep
+
+log = logging.getLogger(__name__)
 
 
 def summary_markdown(stats: RunStats) -> str:
@@ -51,6 +53,41 @@ def summary_markdown(stats: RunStats) -> str:
     )
 
 
+def run_url() -> str | None:
+    """This run's page on GitHub Actions (None for local runs)."""
+    parts = [os.environ.get(name) for name in ("GITHUB_SERVER_URL", "GITHUB_REPOSITORY", "GITHUB_RUN_ID")]
+    return "{}/{}/actions/runs/{}".format(*parts) if all(parts) else None
+
+
+def check_health(stats: RunStats) -> tuple[list[health.Finding], str]:
+    """Compare the run with the previous ones (health.py), add it to the history, and build the report."""
+    url = run_url()
+    history = health.load_history()
+    run = health.record_of(stats, storage.read_accounts(), url)
+    today = config.now_bogota().date()
+    findings = health.check(run, history, stats, today)
+    run.warnings = [finding.key for finding in findings if finding.level == "warning"]
+    health.save_history([*history, run])
+    review = health.events_to_review(storage.load_events(), today)
+    return findings, health.report_markdown(findings, review, url)
+
+
+def publish_health(findings: list[health.Finding], report: str) -> None:
+    """The report in the log, and for the workflow: annotations on the run page, the warning count and
+    fingerprint as step outputs, the report file for the health issue and the health-check ping."""
+    warnings = [finding for finding in findings if finding.level == "warning"]
+    for finding in findings:
+        log.log(logging.WARNING if finding.level == "warning" else logging.INFO, "Health: %s", finding.text)
+    if os.environ.get("GITHUB_ACTIONS"):
+        for finding in warnings:
+            print(f"::warning title=Sweep health::{finding.text}", flush=True)
+    if output_file := os.environ.get("GITHUB_OUTPUT"):
+        with Path(output_file).open("a", encoding="utf-8") as file:
+            file.write(f"warnings={len(warnings)}\nfingerprint={health.fingerprint(findings)}\n")
+    if report_file := os.environ.get("HEALTH_REPORT_FILE"):
+        Path(report_file).write_text(report, encoding="utf-8")
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m pa_bailar sweep", description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -79,9 +116,11 @@ def main(argv: list[str] | None = None) -> None:
         stats.errors,
         stats.gemini_requests or "none",
     )
+    findings, report = check_health(stats)
+    publish_health(findings, report)
     if summary_file := os.environ.get("GITHUB_STEP_SUMMARY"):
         with Path(summary_file).open("a", encoding="utf-8") as file:
-            file.write(summary_markdown(stats))
+            file.write(report + "\n" + summary_markdown(stats))  # health first: what needs a look
 
     # Individual posts that fail are retried next run; only a sweep where no account could be read is broken.
     if stats.accounts and stats.failed_accounts == stats.accounts:
