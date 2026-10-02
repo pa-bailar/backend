@@ -235,7 +235,7 @@ No formal versioning; `main` is continuously deployed. Optionally tag milestones
 - **Only one-time events with a date** are stored. Recurring classes are discarded at extraction.
 - **Lookback window:** 7 days (`DEFAULT_LOOKBACK_DAYS`).
 - **Retention (every sweep, `Sweep._apply_retention`):**
-  - Events dated more than `EVENT_RETENTION_DAYS` (30) ago are deleted. Git history is the archive.
+  - Events dated more than `EVENT_RETENTION_DAYS` (60) ago are deleted. Git history is the archive.
   - Their flyers are then deleted by `remove_unused_flyers`, which removes every flyer no event uses.
   - `processed_posts.json` forgets posts analyzed more than `PROCESSED_RETENTION_DAYS` (45) ago. That's longer than the 30-day first sweep and any manual `--days`, so a forgotten post is never fetched, or paid for, again.
 - **Backups:** git history is the backup, and every sweep is a commit. To restore: `git revert <sweep commit>`, or `git checkout <commit> -- data/`.
