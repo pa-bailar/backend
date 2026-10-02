@@ -106,7 +106,8 @@ jobs:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           BOT: ${{ steps.app.outputs.app-slug }}[bot]
         run: |
-          if [ -z "$(git status --porcelain -- data)" ]; then
+          # Only events and flyers count as a change: meta.json is rewritten every run (with the check time).
+          if [ -z "$(git status --porcelain -- data/events.json data/flyers)" ]; then
             echo "No new or changed events: no pull request."
             exit 0
           fi
