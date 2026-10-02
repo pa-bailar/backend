@@ -1,0 +1,20 @@
+---
+// Phones: the filters in a sheet that slides up from the bottom, opened by "Filtros" in the jump bar.
+// The list behind stays where it was. Chips are rendered by scripts/views/filters.ts.
+---
+
+<dialog class="filter-sheet" id="filter-sheet" aria-labelledby="filter-sheet-title">
+  <div class="filter-sheet__head">
+    <h2 class="filter-sheet__title" id="filter-sheet-title">Filtros</h2>
+    <button class="icon-btn" type="button" data-close-sheet aria-label="Cerrar">×</button>
+  </div>
+  <h3 class="filter-sheet__label">Tipo</h3>
+  <div class="chip-row" data-filter-row="type" role="group" aria-label="Filtrar por tipo"></div>
+  <h3 class="filter-sheet__label">Ritmo</h3>
+  <div class="chip-row" data-filter-row="style" role="group" aria-label="Filtrar por ritmo"></div>
+  <p class="account-filter" data-filter-row="account" hidden></p>
+  <div class="filter-sheet__actions">
+    <button class="btn" type="button" data-clear-filters>Quitar filtros</button>
+    <button class="btn btn--primary" type="button" data-close-sheet id="filter-sheet-results">Ver eventos</button>
+  </div>
+</dialog>

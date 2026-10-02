@@ -5,6 +5,8 @@ import EventDialog from "../components/EventDialog.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import ViewToolbar from "../components/ViewToolbar.astro";
+import JumpBar from "../components/JumpBar.astro";
+import FilterSheet from "../components/FilterSheet.astro";
 import events from "../../../data/events.json";
 import meta from "../../../data/meta.json";
 import type { DanceEvent } from "../scripts/types";
@@ -34,6 +36,7 @@ const previewImage = nextEvent ? previewImagePath(nextEvent) : null;
 >
   <SiteHeader updatedLabel={updatedLabel} />
   <ViewToolbar />
+  <JumpBar />
 
   <main class="container page-main">
     <section id="view-upcoming" role="tabpanel" aria-labelledby="tab-upcoming"></section>
@@ -42,6 +45,7 @@ const previewImage = nextEvent ? previewImagePath(nextEvent) : null;
 
   <SiteFooter accounts={accounts} />
   <EventDialog />
+  <FilterSheet />
 
   <script type="application/json" id="events-data" set:html={eventsJson} />
   <script>

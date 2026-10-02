@@ -125,6 +125,7 @@
   --stripe-height: 5px;
   --control-height: 40px; /* buttons, icon buttons, theme toggle */
   --chip-height: 32px;
+  --jump-bar-height: 56px; /* phones: sticky bar with filters and period chips */
   --sticker-size: 60px;
   --day-column-width: 200px; /* day heading column on wide screens */
   --content-width: 1120px;
