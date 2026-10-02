@@ -16,8 +16,13 @@
 name: daily-sweep
 
 on:
+  # Twice a day, at unusual minutes: GitHub delays (and under load drops) runs scheduled at the top
+  # of the hour. Two runs also mean a dropped run doesn't leave the site stale, and the midday one
+  # catches the morning's posts. They share Gemini's daily quotas (the usage is in the state cache)
+  # and never overlap (concurrency below). Bogotá is UTC-5 all year.
   schedule:
-    - cron: "0 11 * * *" # 6:00 AM Bogotá (UTC-5, no daylight saving)
+    - cron: "23 10 * * *" # 5:23 AM Bogotá
+    - cron: "47 17 * * *" # 12:47 PM Bogotá
   workflow_dispatch:
     inputs:
       days:
@@ -124,9 +129,15 @@ jobs:
         if: success()
         run: gh workflow run deploy.yml --ref main -f checked_at="$(TZ=America/Bogota date --iso-8601=seconds)"
 
-      - name: Ping health check (optional, only if the HEALTHCHECK_URL secret exists)
-        if: success()
+      # Dead man's switch (optional, only if the HEALTHCHECK_URL secret exists, e.g. a free healthchecks.io
+      # check): every run reports success or failure, and the service emails when runs fail or stop
+      # arriving at all, the case GitHub itself never reports.
+      - name: Report to the health check
+        if: ${{ always() }}
         env:
           HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+          OUTCOME: ${{ job.status }}
         run: |
-          if [ -n "$HEALTHCHECK_URL" ]; then curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL" > /dev/null; fi
+          if [ -z "$HEALTHCHECK_URL" ]; then exit 0; fi
+          if [ "$OUTCOME" = "success" ]; then url="$HEALTHCHECK_URL"; else url="$HEALTHCHECK_URL/fail"; fi
+          curl -fsS -m 10 --retry 3 "$url" > /dev/null

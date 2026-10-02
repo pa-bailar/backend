@@ -7,6 +7,11 @@ Those posts must end up as ONE event that lists all of them in `media`.
 from .models import EventDetails, EventMedia, ExtractedEvent, StoredEvent
 
 _DETAIL_FIELDS = list(EventDetails.model_fields)
+# Logistics a later post may correct (rescheduled, new prices): the newest post's value wins. Everything
+# else keeps the first known value (the flyer's title beats a reminder's caption) and is only filled in
+# when missing (a venue "to be confirmed" on the flyer, given later in a reminder).
+_UPDATABLE_FIELDS = {"date", "weekday", "start_time", "end_time", "prices"}
+_EMPTY = (None, "", [])
 
 
 def _normalize(text: str) -> str:
@@ -45,13 +50,17 @@ def find_existing(
 
 
 def merge_into(stored: StoredEvent, candidate: EventDetails, media: EventMedia) -> StoredEvent:
-    """Add a post to an existing event and fill in details it was missing (never overwrite known ones)."""
+    """Add a post to an existing event: fill in what it was missing, and take date, times and prices from
+    the post if it's the newest one announcing the event (an older post re-analyzed never overrides)."""
+    others = [m for m in stored.media if m.post_id != media.post_id]
+    is_newest = all(media.published >= other.published for other in others)
     updates = {}
     for field in _DETAIL_FIELDS:
         current, new = getattr(stored, field), getattr(candidate, field)
-        if current in (None, "", []) and new not in (None, "", []):
+        if new in _EMPTY:
+            continue
+        if current in _EMPTY or (is_newest and field in _UPDATABLE_FIELDS and new != current):
             updates[field] = new
-    others = [m for m in stored.media if m.post_id != media.post_id]
     updates["media"] = sorted([*others, media], key=media_order)
     return stored.model_copy(update=updates)
 

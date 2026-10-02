@@ -6,11 +6,15 @@ Per account:
   - Each new post is triaged by the light model; only posts that announce events are extracted by Flash.
   - Posts extracted provisionally (Flash was out of quota) are re-extracted with Flash when there's budget.
   - Posts that couldn't be analyzed (no quota left today, network errors) stay pending for the next run.
+  - A post whose caption was edited since it was analyzed (e.g. the venue added) is analyzed again.
+  - After MAX_RUN_MINUTES no new Gemini work starts; the rest waits for the next run.
 
 After all accounts: events older than EVENT_RETENTION_DAYS are deleted, then every flyer no event uses.
 """
 
+import hashlib
 import logging
+import time
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
 
@@ -60,6 +64,7 @@ class RunStats:
     events_discarded: int = 0  # recurring or without a date
     provisional: int = 0  # posts extracted by the light model this run
     upgraded: int = 0  # provisional posts re-extracted with Flash this run
+    reanalyzed: int = 0  # posts analyzed again because their caption was edited
     pending: int = 0
     errors: int = 0
     events_expired: int = 0  # dated more than EVENT_RETENTION_DAYS ago
@@ -74,6 +79,11 @@ class RunStats:
     @property
     def failed_accounts(self) -> int:
         return sum(1 for stats in self.by_account.values() if stats.fetch_failed)
+
+
+def _caption_hash(post: Post) -> str:
+    """Short fingerprint of a post's caption, to notice when the academy edits it."""
+    return hashlib.sha256((post.get("caption") or "").encode()).hexdigest()[:16]
 
 
 def _is_publishable(event: ExtractedEvent) -> bool:
@@ -135,6 +145,8 @@ class Sweep:
         self.processed = storage.load_processed_posts()
         self.accounts = storage.load_account_state()
         self.stats = RunStats()
+        self.started = time.monotonic()
+        self.time_up_logged = False
 
     def run(self) -> RunStats:
         try:
@@ -218,12 +230,22 @@ class Sweep:
             if published < cutoff:
                 continue
             record = self.processed.get(post["id"])
+            caption_hash = _caption_hash(post)
             if record is None:
                 log.info("   %s %-14s %s", f"{published:%Y-%m-%d}", post["media_type"], post["permalink"])
-                if not self._analyze_new_post(account, post, published):
+                if self._out_of_time() or not self._analyze_new_post(account, post, published):
                     account_stats.pending += 1
                     self.stats.pending += 1
-            elif record.provisional and self.extractor.can_extract_with_flash():
+            elif record.caption_hash is None:
+                record.caption_hash = caption_hash  # analyzed before captions were fingerprinted
+                self._save()
+            elif record.caption_hash != caption_hash:
+                if self._out_of_time():
+                    continue  # still edited next run: analyzed then
+                log.info("   %s caption edited, analyzing again %s", f"{published:%Y-%m-%d}", post["permalink"])
+                if self._analyze_new_post(account, post, published):
+                    self.stats.reanalyzed += 1
+            elif record.provisional and self.extractor.can_extract_with_flash() and not self._out_of_time():
                 log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
                 self._upgrade_post(account, post, published)
 
@@ -231,6 +253,14 @@ class Sweep:
             state.backfill_done = True
             log.info("   first sweep complete: from now on, regular sweep")
         storage.save_account_state(self.accounts)
+
+    def _out_of_time(self) -> bool:
+        """True once the run has used its time budget (MAX_RUN_MINUTES): start no more Gemini work."""
+        over = time.monotonic() - self.started >= config.MAX_RUN_MINUTES * 60
+        if over and not self.time_up_logged:
+            log.warning("Run time budget used (%s min): the rest waits for the next run", config.MAX_RUN_MINUTES)
+            self.time_up_logged = True
+        return over
 
     # ---------- per post ----------
 
@@ -379,6 +409,7 @@ class Sweep:
             reason=reason,
             model=model,
             provisional=provisional,
+            caption_hash=_caption_hash(post),
         )
 
     def _save(self) -> None:

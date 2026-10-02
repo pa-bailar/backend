@@ -73,3 +73,30 @@ def test_detach_removes_the_post_and_drops_events_left_without_posts():
     result = detach_post([shared, only_p1], "p1")
     assert [e.id for e in result] == ["a"]
     assert [m.post_id for m in result[0].media] == ["p2"]
+
+
+# ---------- updates from later posts ----------
+
+
+def test_a_later_post_corrects_date_time_and_prices_but_keeps_the_title():
+    flyer = stored(
+        title="Social Espacio Seguro", start_time="20:00", posts=[media("flyer", published="2026-10-01T12:00:00+0000")]
+    )
+    update = extracted(title="¡Cambio de hora!", start_time="21:00", prices=[{"label": "General", "amount_cop": 20000}])
+    merged = merge_into(flyer, update, media("update", published="2026-10-05T12:00:00+0000"))
+    assert merged.start_time == "21:00" and merged.prices[0].amount_cop == 20000
+    assert merged.title == "Social Espacio Seguro"
+
+
+def test_a_missing_venue_is_filled_in_by_a_later_post():
+    flyer = stored(venue=None, address=None, posts=[media("flyer", published="2026-10-01T12:00:00+0000")])
+    reminder = extracted(venue="Escuela del Mambo", address="Calle 1 # 2-3")
+    merged = merge_into(flyer, reminder, media("reminder", published="2026-10-05T12:00:00+0000"))
+    assert (merged.venue, merged.address) == ("Escuela del Mambo", "Calle 1 # 2-3")
+
+
+def test_an_older_post_analyzed_again_never_overrides_newer_details():
+    event = stored(start_time="21:00", posts=[media("update", published="2026-10-05T12:00:00+0000")])
+    old_flyer = extracted(start_time="20:00")
+    merged = merge_into(event, old_flyer, media("flyer", published="2026-10-01T12:00:00+0000"))
+    assert merged.start_time == "21:00"
