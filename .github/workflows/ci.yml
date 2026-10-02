@@ -6,6 +6,13 @@ name: ci
 
 on:
   pull_request:
+    # Data-only PRs come from the daily sweep, which starts this workflow itself (workflow_dispatch).
+    # GitHub holds pull_request runs on PRs opened by the Actions bot for manual approval, and that
+    # held run blocked the auto-merge, so data-only changes don't trigger it here. (A person's PR that
+    # only touches data: run ci from the Actions tab.)
+    paths-ignore:
+      - "data/**"
+      - "backend/state/**"
   workflow_dispatch:
 
 permissions:
