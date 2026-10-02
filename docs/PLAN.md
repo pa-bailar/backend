@@ -121,6 +121,20 @@ pa-bailar/
 └─ README.md
 ```
 
+### Backend/frontend boundaries (monorepo)
+Backend and frontend share one repo but are kept independent:
+- **No shared code.** Neither imports the other. They talk only through files in `data/`.
+- **The contract is `data/`.** The backend is the only writer of `data/` and `backend/state/`; the frontend only reads `data/`. The schema is documented in `docs/DATA.md` and versioned with `meta.json.schema_version`.
+- **Separate toolchains:** Python and `requirements.txt` in `backend/`; Node and `package.json` in `frontend/`. Each installs and builds on its own.
+- **Separate pipelines by path:**
+  - CI checks only the side a PR touches (section 8.1).
+  - `deploy.yml` only runs for `frontend/**` or `data/**`.
+  - The sweep only runs the backend.
+- **Separate runtime:** the backend is never "deployed". It runs as a scheduled job, and its output is data. The frontend is deployed as a static site.
+- **Commit scopes** say which side changed: `feat(backend): …`, `fix(frontend): …`, `chore(data): …`.
+- **Why one repo:** a schema change updates both sides in one PR. There's one place for secrets, workflows and issues, and the frontend build reads `data/` without any cross-repo fetching.
+- **When to split:** if the frontend needed live data (not daily), or someone else maintained one side, the backend could publish `data/` somewhere else (a separate repo or a release asset) and the frontend fetch it at build time. Nothing in the current layout blocks that later.
+
 Conventions:
 - **Language:** file names, code, comments, commit messages and docs in English. Text visitors see on the site is in Spanish.
 - **Pinned toolchain:** Python 3.12 (`.python-version`) and Node 24 LTS (`.nvmrc`). CI reads the same files, so local and CI never drift.
@@ -285,6 +299,11 @@ General rules for all workflows:
 - **Times:** cron runs in UTC. Bogotá is UTC−5 all year (no daylight saving), so 6:00 AM Bogotá is `0 11 * * *`.
 
 ### 8.1 `ci.yml` — checks on every pull request
+Each side is only checked when its files change. A `changes` job detects which folders a PR touches.
+Skipped jobs count as passed, so the single required `ci` check never blocks a PR that only touches
+the other side. (Separate workflow files with `paths:` filters would leave a required check pending
+forever when skipped, so we use job-level conditions instead.)
+
 ```yaml
 name: ci
 on:
@@ -292,8 +311,24 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  pull-requests: read
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:  ["backend/**", ".python-version"]
+            frontend: ["frontend/**", "data/**", ".nvmrc"]
   backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults: { run: { working-directory: backend } }
@@ -305,6 +340,8 @@ jobs:
       - run: ruff check . && ruff format --check .
       - run: pytest -q
   frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults: { run: { working-directory: frontend } }
@@ -315,6 +352,13 @@ jobs:
       - run: npm ci
       - run: npx astro check
       - run: npm run build
+  ci:                       # single required check: passes if every job passed or was skipped
+    needs: [backend, frontend]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then exit 1; fi
 ```
 Set `ci` as a required status check on `main`.
 
