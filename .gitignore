@@ -1,5 +1,6 @@
-# Secrets
+# Secrets and personal data (e.g. your Instagram data export)
 .env
+backend/private/
 
 # Python
 .venv/

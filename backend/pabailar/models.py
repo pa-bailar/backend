@@ -140,6 +140,30 @@ class ProcessedPost(BaseModel):
     provisional: bool = False
 
 
+# ---------- Account discovery (tools/discover_accounts) ----------
+
+AccountKind = Literal["academy", "venue", "organizer", "dance_company", "teacher", "dance_other", "not_dance"]
+
+
+class AccountClassification(BaseModel):
+    kind: AccountKind = Field(
+        description="academy = dance school/academy; venue = bar, club or salsoteca with dancing; "
+        "organizer = events, socials, festivals or congresses; dance_company = performing group; "
+        "teacher = individual dancer or instructor; dance_other = other dance-related (shops, media, "
+        "photographers); not_dance = unrelated to dancing"
+    )
+    in_bogota: Literal["yes", "no", "unknown"] = Field(
+        description="Is it based in or regularly active in Bogotá, Colombia? Use the bio, website, "
+        "addresses, neighborhoods and captions. 'unknown' if there's no evidence either way."
+    )
+    city: str | None = Field(description="City it's based in, if stated")
+    styles: list[Style] = Field(description="Dance styles it teaches or plays, from the list")
+    announces_events: bool = Field(
+        description="Do its recent captions announce socials, parties, workshops or other dated events?"
+    )
+    reason: str = Field(description="One short sentence explaining the classification, in Spanish")
+
+
 class AccountState(BaseModel):
     """One record of backend/state/accounts.json, keyed by Instagram username."""
 

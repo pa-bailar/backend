@@ -48,6 +48,23 @@ class InstagramClient:
         )
         return self._get(fields)["business_discovery"].get("media", {}).get("data", [])
 
+    def fetch_profile(self, account: str, recent_posts: int = 5) -> dict[str, Any]:
+        """Public profile and latest captions of a Business/Creator account. Costs one API call.
+
+        Raises InstagramError for personal, private or missing accounts (Business Discovery can't see them).
+        """
+        fields = (
+            f"business_discovery.username({account})"
+            f"{{username,name,biography,website,followers_count,media_count,"
+            f"media.limit({recent_posts}){{caption,timestamp}}}}"
+        )
+        return self._get(fields)["business_discovery"]
+
+
+def is_network_error(error: InstagramError) -> bool:
+    """True when the request itself failed (worth retrying), not when Instagram rejected the account."""
+    return str(error).startswith("request failed")
+
 
 def published_at(post: Post) -> datetime:
     return datetime.fromisoformat(post["timestamp"].replace("+0000", "+00:00"))
