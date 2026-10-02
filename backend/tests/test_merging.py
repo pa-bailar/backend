@@ -9,12 +9,19 @@ from tests.factories import extracted, media, stored
 def test_gemini_link_wins_even_when_details_differ():
     event = stored("flyer-0", title="Social Espacio Seguro", start_time="20:00")
     candidate = extracted(same_as="flyer-0", title="Ven y baila este sábado", start_time=None, date="2026-10-11")
-    assert find_existing([event], "academia", candidate) is event
+    assert find_existing([event], "academia", candidate, "new-post") is event
 
 
 def test_gemini_link_to_another_account_is_ignored():
     event = stored("flyer-0", account="otra")
-    assert find_existing([event], "academia", extracted(same_as="flyer-0", date="2026-12-01")) is None
+    assert find_existing([event], "academia", extracted(same_as="flyer-0", date="2026-12-01"), "new-post") is None
+
+
+def test_events_from_the_same_post_never_merge():
+    """A schedule can list two different events on the same day and time."""
+    first = stored("p1-0", start_time="20:00", posts=[media("p1")])
+    assert find_existing([first], "academia", extracted(start_time="20:00", title="Otro"), "p1") is None
+    assert find_existing([first], "academia", extracted(same_as="p1-0"), "p1") is None
 
 
 def test_rules_match_same_account_date_and_time():
@@ -32,7 +39,7 @@ def test_rules_compare_titles_when_a_time_is_missing():
 
 
 def test_unrelated_event_is_new():
-    assert find_existing([stored()], "academia", extracted(date="2026-11-01")) is None
+    assert find_existing([stored()], "academia", extracted(date="2026-11-01"), "new-post") is None
 
 
 # ---------- merging ----------

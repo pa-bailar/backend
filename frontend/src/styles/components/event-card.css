@@ -4,19 +4,32 @@
   margin-top: var(--space-6);
 }
 
+/* Wide screens: the day heading sits in a column on the left, so days with one or two events
+   don't leave most of the row empty. */
+@media (min-width: 960px) {
+  .day-group {
+    display: grid;
+    grid-template-columns: var(--day-column-width) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  .day-group .day-heading {
+    margin-bottom: 0;
+  }
+}
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
   gap: var(--space-5) var(--space-4);
 }
 
-.event-card__hit {
+.event-card {
+  position: relative; /* anchors the stretched click area of the title button */
   display: flex;
   flex-direction: column;
-  width: 100%;
   height: 100%;
-  padding: 0;
-  text-align: left;
   background: var(--surface);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
@@ -24,8 +37,14 @@
   transition: transform var(--duration) ease;
 }
 
-.event-card__hit:hover {
+.event-card:hover {
   transform: translateY(-2px);
+}
+
+/* The focus ring goes around the whole card, since the whole card is the click target. */
+.event-card:has(.event-card__hit:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .event-card__media {
@@ -91,6 +110,26 @@
   padding-right: calc(var(--sticker-size) - var(--space-1)); /* keep clear of the sticker */
   font-family: var(--font-display);
   font-size: var(--text-xl);
+}
+
+.event-card__hit {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.event-card__hit:focus-visible {
+  outline: none; /* drawn on the card instead */
+}
+
+/* Stretch the title button's click area over the whole card. */
+.event-card__hit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
 }
 
 .event-card__meta {

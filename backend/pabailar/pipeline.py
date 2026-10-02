@@ -11,6 +11,7 @@ from .extraction import EventExtractor, ExtractionError
 from .instagram import InstagramClient, InstagramError, Post, download_image, image_urls, published_at
 from .merging import detach_post, find_existing, merge_into
 from .models import EventDetails, EventMedia, ExtractedEvent, PostAnalysis, ProcessedPost, StoredEvent
+from .normalize import normalize_event
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ class RunStats:
 
 
 def _is_publishable(event: ExtractedEvent) -> bool:
-    """Only one-time events with a date make it to the website."""
+    """Only one-time events with a valid date make it to the website (run normalize_event first)."""
     return not event.is_recurring and bool(event.date)
 
 
@@ -121,9 +122,8 @@ class Sweep:
             images = [download_image(url) for url in image_urls(post)]
             known = self._known_events(account, published)
             analysis, model = self.extractor.analyze(account, post, published, images, known)
-            publishable = (
-                [event for event in analysis.events if _is_publishable(event)] if analysis.is_event_post else []
-            )
+            cleaned = [normalize_event(event) for event in analysis.events]
+            publishable = [event for event in cleaned if _is_publishable(event)] if analysis.is_event_post else []
             flyers = _save_flyers(post["id"], publishable, images)
         except (ExtractionError, genai_errors.APIError, OSError) as error:
             # OSError covers network and image errors. The post is not marked as processed,
@@ -149,7 +149,7 @@ class Sweep:
 
     def _add_event(self, account: str, post: Post, position: int, candidate: ExtractedEvent, media: EventMedia) -> None:
         """Merge into the same event from another post, or store it as a new event."""
-        existing = find_existing(self.events, account, candidate)
+        existing = find_existing(self.events, account, candidate, post["id"])
         if existing:
             self.events[self.events.index(existing)] = merge_into(existing, candidate, media)
             self.stats.events_merged += 1

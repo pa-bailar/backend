@@ -20,12 +20,16 @@ class InstagramClient:
         self._ig_user_id = ig_user_id
 
     def _get(self, fields: str) -> dict[str, Any]:
-        response = requests.get(
-            f"{config.GRAPH_API_URL}/{self._ig_user_id}",
-            params={"fields": fields, "access_token": self._access_token},
-            timeout=config.HTTP_TIMEOUT_SECONDS,
-        )
-        data = response.json()
+        try:
+            response = requests.get(
+                f"{config.GRAPH_API_URL}/{self._ig_user_id}",
+                params={"fields": fields, "access_token": self._access_token},
+                timeout=config.HTTP_TIMEOUT_SECONDS,
+            )
+            data = response.json()
+        except (requests.RequestException, ValueError) as error:
+            # Network failure or a non-JSON answer (e.g. an HTML 5xx page): one account fails, not the run.
+            raise InstagramError(f"request failed: {error}") from error
         if "error" in data:
             raise InstagramError(data["error"].get("message", "unknown error"))
         return data

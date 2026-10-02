@@ -23,10 +23,13 @@ def _read_json(path: Path, default: Any) -> Any:
 
 
 def _write_json(path: Path, data: Any) -> None:
+    """Write atomically: a crash mid-write leaves the previous file intact instead of a truncated one."""
     path.parent.mkdir(parents=True, exist_ok=True)
     # Always LF line endings so files are identical on Windows and on the Linux CI runner.
     text = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
-    path.write_text(text, encoding="utf-8", newline="\n")
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(text, encoding="utf-8", newline="\n")
+    temporary.replace(path)
 
 
 # ---------- events ----------

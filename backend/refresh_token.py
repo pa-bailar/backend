@@ -13,7 +13,7 @@ from typing import Any
 
 import requests
 
-from pabailar import config
+from pabailar import config, storage
 from pabailar.instagram import InstagramClient, InstagramError
 
 APP_ID = config.require_env("META_APP_ID")
@@ -30,8 +30,12 @@ def graph_get(path: str, **params: Any) -> dict[str, Any]:
 
 
 def save_token(token: str) -> None:
-    text = config.ENV_FILE.read_text(encoding="utf-8")
-    text = re.sub(r"^META_ACCESS_TOKEN=.*$", f"META_ACCESS_TOKEN={token}", text, flags=re.MULTILINE)
+    """Replace META_ACCESS_TOKEN in .env, or add the line if it isn't there."""
+    line = f"META_ACCESS_TOKEN={token}"
+    text = config.ENV_FILE.read_text(encoding="utf-8") if config.ENV_FILE.exists() else ""
+    text, replaced = re.subn(r"^META_ACCESS_TOKEN=.*$", line, text, flags=re.MULTILINE)
+    if not replaced:
+        text = f"{text.rstrip()}\n{line}\n" if text.strip() else f"{line}\n"
     config.ENV_FILE.write_text(text, encoding="utf-8")
 
 
@@ -70,8 +74,9 @@ def main() -> None:
     print(f"Page token for '{page['name']}': expires {describe_expiry(page_token)}")
 
     # 3. Keep the Page token if it can use Business Discovery; otherwise fall back to the 60-day token.
+    test_account = storage.read_accounts()[0]
     try:
-        InstagramClient(page_token, IG_USER_ID).fetch_recent_posts("esferalatinaoficial")
+        InstagramClient(page_token, IG_USER_ID).fetch_recent_posts(test_account)
     except InstagramError as error:
         print(f"The Page token can't use Business Discovery ({error}); saving the 60-day token.")
         save_token(long_token)

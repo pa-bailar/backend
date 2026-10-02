@@ -31,11 +31,11 @@ HTTP_TIMEOUT_SECONDS = 30
 
 # ---------- Gemini ----------
 # Tried in order: if a model is busy, out of quota or unavailable, the next one is used.
-GEMINI_MODELS = [
-    os.environ.get("GEMINI_MODEL", "gemini-flash-latest"),
-    "gemini-3.5-flash",
-    "gemini-flash-lite-latest",
-]
+GEMINI_MODELS = list(
+    dict.fromkeys(  # GEMINI_MODEL (optional) goes first; duplicates are dropped
+        [os.environ.get("GEMINI_MODEL", "gemini-flash-latest"), "gemini-3.5-flash", "gemini-flash-lite-latest"]
+    )
+)
 SECONDS_BETWEEN_GEMINI_CALLS = 6  # stay under the free tier's requests-per-minute limit
 
 # ---------- Flyers ----------

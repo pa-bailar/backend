@@ -107,6 +107,8 @@ class EventExtractor:
         generation_config = types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=PostAnalysis,
+            # We pass no tools; disabling this also silences the SDK's warning about it.
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
 
         for model in config.GEMINI_MODELS:

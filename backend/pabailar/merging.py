@@ -28,13 +28,20 @@ def looks_like_same_event(stored: StoredEvent, account: str, candidate: EventDet
     return _normalize(stored.title) == _normalize(candidate.title)
 
 
-def find_existing(events: list[StoredEvent], account: str, candidate: ExtractedEvent) -> StoredEvent | None:
-    """The stored event this extracted one refers to, if any. Gemini's `same_as` wins over the rules."""
+def find_existing(
+    events: list[StoredEvent], account: str, candidate: ExtractedEvent, post_id: str
+) -> StoredEvent | None:
+    """The stored event this extracted one refers to, if any. Gemini's `same_as` wins over the rules.
+
+    Events that already contain `post_id` are never matched: two events announced in the same post
+    are different events, even if they share a date and time.
+    """
+    others = [e for e in events if all(m.post_id != post_id for m in e.media)]
     if candidate.same_as:
-        linked = next((e for e in events if e.id == candidate.same_as and e.account == account), None)
+        linked = next((e for e in others if e.id == candidate.same_as and e.account == account), None)
         if linked:
             return linked
-    return next((e for e in events if looks_like_same_event(e, account, candidate)), None)
+    return next((e for e in others if looks_like_same_event(e, account, candidate)), None)
 
 
 def merge_into(stored: StoredEvent, candidate: EventDetails, media: EventMedia) -> StoredEvent:
