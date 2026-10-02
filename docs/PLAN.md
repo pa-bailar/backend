@@ -586,15 +586,15 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 
 ### Phase 4 — CI
 - [x] `.github/workflows/ci.yml`.
-- [ ] Open a test PR; both jobs are green.
-- [ ] Ruleset `protect-main` on `main`: require a squash-merged PR + the `ci` check, block force pushes and deletion, **no bypass at all** (owner's decision, 2026-10-02). The daily sweep therefore publishes data through its own auto-merged PR (see Phase 6).
+- [x] Open a test PR; both jobs are green (#3: ci passed, auto-merged).
+- [x] Ruleset `protect-main` on `main`: require a squash-merged PR + the `ci` check, block force pushes and deletion, **no bypass at all** (owner's decision, 2026-10-02). The daily sweep therefore publishes data through its own auto-merged PR (see Phase 6).
 
 **Done when:** a PR with a deliberately broken test is blocked, and a fixed one merges.
 
 ### Phase 5 — Deploy
-- [ ] **Settings → Pages → Source: GitHub Actions** (done on the old repo; redo after moving to the `pa-bailar` org).
+- [x] **Settings → Pages → Source: GitHub Actions** (carried over to the `pa-bailar` org).
 - [x] `.github/workflows/deploy.yml`.
-- [ ] Run it with the manual button.
+- [x] Run it: first deploy on the #3 merge, then started by the sweep. **Live at https://pa-bailar.github.io (2026-10-02).**
 
 **Done when:** the site is live at `https://pa-bailar.github.io`, with flyers loading.
 
@@ -606,12 +606,8 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
   - Every day the sweep starts `deploy` with `checked_at`, so "Actualizado el …" shows the time of the check.
   - The workflow token can't trigger push/PR workflows, so the sweep starts `ci` and `deploy` with `workflow_dispatch`.
   - Requires "Allow GitHub Actions to create and approve pull requests" (repo and org settings).
-- [ ] Run it manually with `days = 7`; check:
-  - (a) the bot commit `chore(data): daily sweep …` appears on `main`
-  - (b) deploy is triggered
-  - (c) new events are visible on the site
-  - (d) the step summary shows the per-account table
-- [ ] Run it again immediately; check that nothing is committed (idempotent).
+- [x] Run it manually with `days = 7` (2026-10-02): token OK, 5 accounts read, no new posts → no PR (as designed), deploy started with the check time, site shows "Actualizado el 2 de octubre".
+- [ ] First run **with** new events: check that the `data` PR opens, `ci` passes on it, it auto-merges and the deploy follows. (Not exercised yet: there were no new posts.)
 - [ ] Wait for the first scheduled run the next morning.
 
 **Done when:** two consecutive scheduled runs succeed on their own.
