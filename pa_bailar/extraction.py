@@ -53,7 +53,7 @@ class EventExtractor:
 
     def triage(self, account: str, post: Post, published: datetime, images: list[bytes]) -> tuple[Triage, str]:
         """Cheap yes/no on the caption and one small image."""
-        contents: list[str | types.Part] = [TRIAGE_PROMPT.format(**_format_context(account, post, published))]
+        contents: list[types.PartUnionDict] = [TRIAGE_PROMPT.format(**_format_context(account, post, published))]
         if images:
             contents.insert(0, types.Part.from_bytes(data=_small_jpeg(images[0]), mime_type="image/jpeg"))
         # A yes/no on one small image: little reasoning needed (extraction keeps the default).
@@ -77,7 +77,7 @@ class EventExtractor:
             f"- {event.id} | {event.date} | {event.start_time or '?'} | {event.title}" for event in known_events
         )
         prompt = EXTRACTION_PROMPT.format(**_format_context(account, post, published), known_events=known or "(none)")
-        contents: list[str | types.Part] = []
+        contents: list[types.PartUnionDict] = []
         for index, image in enumerate(images):
             contents += [f"Image {index}:", types.Part.from_bytes(data=image, mime_type="image/jpeg")]
         contents.append(prompt)

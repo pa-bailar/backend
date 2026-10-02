@@ -1,6 +1,7 @@
 """Clean what Gemini returns before it is stored: the frontend relies on these formats."""
 
 import re
+from collections.abc import Sequence
 from datetime import date, time
 
 from .models import STYLES, ExtractedEvent
@@ -83,7 +84,7 @@ def normalize_style(style: str) -> str | None:
     return _STYLE_SYNONYMS.get(key, "otro")
 
 
-def normalize_styles(styles: list[str]) -> list[str]:
+def normalize_styles(styles: Sequence[str]) -> list[str]:
     """Styles from the list, without duplicates, in their original order.
 
     The generic 'salsa' / 'bachata' is dropped when a specific variant of it is present.

@@ -91,7 +91,7 @@ class ModelPool:
     def generate[T: BaseModel](
         self,
         models: tuple[str, ...],
-        contents: list[str | types.Part],
+        contents: types.ContentListUnionDict,
         schema: type[T],
         thinking: types.ThinkingLevel | None = None,
     ) -> tuple[T, str]:

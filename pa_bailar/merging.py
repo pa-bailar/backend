@@ -12,7 +12,7 @@ _DETAIL_FIELDS = list(EventDetails.model_fields)
 # else keeps the first known value (the flyer's title beats a reminder's caption) and is only filled in
 # when missing (a venue "to be confirmed" on the flyer, given later in a reminder).
 _UPDATABLE_FIELDS = {"date", "weekday", "start_time", "end_time", "prices"}
-_EMPTY = (None, "", [])
+_EMPTY: tuple[object, ...] = (None, "", [])
 
 
 def media_order(media: EventMedia) -> tuple[int, str]:

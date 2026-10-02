@@ -2,7 +2,7 @@
 
 - they read well when shared: "salsa-freestyle-con-renato-palacios-3-oct";
 - they are set once, when the event is first stored, and never recomputed: a later re-extraction that
-  rewords the title keeps the id (see Sweep._store_analysis), so shared links keep working.
+  rewords the title keeps the id (see Sweep._event_id), so shared links keep working.
 """
 
 import re

@@ -23,7 +23,6 @@ from pa_bailar.models import AccountClassification
 
 CACHE_FILE = config.PRIVATE_DIR / "discovery.json"
 REPORT_FILE = config.PRIVATE_DIR / "discovery_report.md"
-# Instagram allows ~200 calls/hour for the app; keep room for the daily sweep.
 # The Instagram app's quota is about 200 calls an hour, shared with the daily sweep: ~100 an hour here,
 # and a pause whenever Meta reports the app past USAGE_PAUSE_PERCENT of it.
 SECONDS_BETWEEN_INSTAGRAM_CALLS = 36
@@ -53,7 +52,7 @@ def main(argv: list[str] | None = None) -> None:
         len(already),
     )
 
-    instagram = InstagramClient(config.require_env("META_ACCESS_TOKEN"), config.require_env("IG_USER_ID"))
+    instagram = InstagramClient.from_env()
     pool = ModelPool(config.require_env("GEMINI_API_KEY"))
 
     # 1. Instagram: business or personal? (dance-looking usernames first)
@@ -87,9 +86,11 @@ def main(argv: list[str] | None = None) -> None:
     to_classify = [a for a in cache.values() if a.status == "business" and a.dance_hint and not a.classification]
     to_classify.sort(key=lambda a: -a.dance_hint)
     for account in to_classify[: args.max_gemini]:
+        if account.profile is None:  # business accounts always have one; nothing to classify otherwise
+            continue
         try:
             classification, model = pool.generate(
-                config.TRIAGE_MODELS, [discovery.classify_prompt(account.profile)], AccountClassification
+                config.TRIAGE_MODELS, discovery.classify_prompt(account.profile), AccountClassification
             )
         except (ExtractionError, genai_errors.APIError) as error:
             log.warning("  classification stopped: %s (run again tomorrow to continue)", error)

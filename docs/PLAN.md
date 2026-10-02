@@ -12,7 +12,7 @@
 > `run_pipeline.py`, `discover_accounts.py`, `refresh_token.py`), and `tests/`, `accounts.txt`, `state/`,
 > `private/` and `.env` sit at the repository root. Older paths below refer to the previous layout.
 
-Status: **planned, not started.** Written 2026-10-01; this replaces the earlier short version.
+Status: **implemented; this is the original plan, kept for its decisions.** The current setup is in README.md.
 Goal: put the site live for **$0**, keep it updated with a **daily sweep**, and set the project
 conventions (Git, CI/CD, data, security) that every later change follows.
 

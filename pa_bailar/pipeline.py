@@ -17,6 +17,7 @@ import logging
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
+from typing import Any, Protocol
 
 from google.genai import errors as genai_errors
 
@@ -42,6 +43,7 @@ from .models import (
     PostAnalysis,
     ProcessedPost,
     StoredEvent,
+    Triage,
 )
 from .normalize import normalize_event
 
@@ -50,6 +52,30 @@ log = logging.getLogger(__name__)
 # Errors that leave a post pending (retried next run) instead of stopping the sweep.
 # OSError covers network and image errors.
 RETRYABLE_ERRORS = (ExtractionError, genai_errors.APIError, OSError)
+
+
+class PostSource(Protocol):
+    """Where posts come from: InstagramClient (tests pass a fake)."""
+
+    def check_token(self) -> str: ...
+    def fetch_recent_posts(self, account: str, limit: int = ...) -> list[Post]: ...
+
+
+class Extractor(Protocol):
+    """What reads posts: EventExtractor (tests pass a fake)."""
+
+    def can_extract_with_flash(self) -> bool: ...
+    def requests_this_run(self) -> dict[str, int]: ...
+    def triage(self, account: str, post: Post, published: datetime, images: list[bytes]) -> tuple[Triage, str]: ...
+    def extract(
+        self,
+        account: str,
+        post: Post,
+        published: datetime,
+        images: list[bytes],
+        known_events: list[StoredEvent],
+        allow_provisional: bool = ...,
+    ) -> tuple[PostAnalysis, str, bool]: ...
 
 
 @dataclass
@@ -145,7 +171,7 @@ def _media_for(post: Post, flyer: str | None) -> EventMedia:
     )
 
 
-def _details(event: ExtractedEvent) -> dict:
+def _details(event: ExtractedEvent) -> dict[str, Any]:
     return event.model_dump(include=set(EventDetails.model_fields))
 
 
@@ -153,14 +179,12 @@ class Sweep:
     def __init__(
         self,
         lookback_days: int,
-        instagram: InstagramClient | None = None,
-        extractor: EventExtractor | None = None,
+        instagram: PostSource | None = None,
+        extractor: Extractor | None = None,
     ):
         """Clients are built from the environment unless given (tests pass fakes)."""
         self.lookback = timedelta(days=lookback_days)
-        self.instagram = instagram or InstagramClient(
-            config.require_env("META_ACCESS_TOKEN"), config.require_env("IG_USER_ID")
-        )
+        self.instagram = instagram or InstagramClient.from_env()
         self.extractor = extractor or EventExtractor(config.require_env("GEMINI_API_KEY"))
         self.events = storage.load_events()
         self.processed = storage.load_processed_posts()
@@ -307,7 +331,7 @@ class Sweep:
         if triage is not None and not triage.is_event_post:
             self.stats.count(account, "posts_analyzed")
             self.stats.posts_triaged_out += 1
-            self._record_processed(account, post, False, triage.reason, triage_model, provisional=False)
+            self._record_processed(account, post, False, triage.reason, triage_model or "-", provisional=False)
             self._save()
             log.info("     not an event: %s", triage.reason)
             return True
@@ -430,6 +454,7 @@ class Sweep:
         if previous:
             reusable.remove(previous)
             return previous.id
+        assert candidate.date, "only events with a date are stored (_is_publishable)"
         return new_event_id(candidate.title, candidate.date, {event.id for event in self.events})
 
     def _record_processed(

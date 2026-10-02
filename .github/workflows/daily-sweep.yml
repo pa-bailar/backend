@@ -23,7 +23,8 @@ on:
     inputs:
       days:
         description: "Only analyze posts from the last N days"
-        default: "7"
+        type: number
+        default: 7
 
 permissions:
   contents: write # push the sweep-state branch of this repository
@@ -35,15 +36,20 @@ concurrency:
 env:
   SITE_OWNER: pa-bailar
   SITE_REPO: pa-bailar.github.io
-  STATE_DIR: state
+  STATE_FILES: state # where the code keeps its state (config.STATE_DIR); copied to/from the sweep-state branch
   MERGE_TIMEOUT_MINUTES: 20
 
 jobs:
   sweep:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # The sweep step stops at 35 minutes (its own budget is 30); the rest (state, PR, merge wait) fits in
+    # the remaining time. A step timeout counts as a failure, so the steps that keep progress still run;
+    # a job timeout would cancel them.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Read the sweep state
         uses: actions/checkout@v7
@@ -51,22 +57,14 @@ jobs:
           ref: sweep-state
           path: sweep-state
 
-      - run: mkdir -p "$STATE_DIR" && cp sweep-state/*.json "$STATE_DIR"/
+      - run: mkdir -p "$STATE_FILES" && cp sweep-state/*.json "$STATE_FILES"/
 
-      - name: Get a token for the site repository (pa-bailar-bot)
-        id: app
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ vars.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          owner: ${{ env.SITE_OWNER }}
-          repositories: ${{ env.SITE_REPO }}
-
+      # Public: read without credentials. The App token is only created after the sweep, for the PR.
       - name: Check out the site repository
         uses: actions/checkout@v7
         with:
           repository: ${{ env.SITE_OWNER }}/${{ env.SITE_REPO }}
-          token: ${{ steps.app.outputs.token }}
+          persist-credentials: false
           path: site
 
       - uses: actions/setup-python@v7
@@ -78,6 +76,7 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: Run the sweep
+        timeout-minutes: 35
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
@@ -91,12 +90,23 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: sweep-state
         run: |
-          cp "$GITHUB_WORKSPACE/$STATE_DIR"/*.json .
+          cp "$GITHUB_WORKSPACE/$STATE_FILES"/*.json .
           if [ -z "$(git status --porcelain)" ]; then echo "State unchanged."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -qam "chore(state): sweep $(date -u +%FT%H:%MZ)"
+          git add -A  # new state files too (commit -a would skip them)
+          git commit -qm "chore(state): sweep $(date -u +%FT%H:%MZ)"
           git push -q origin HEAD:sweep-state
+
+      - name: Get a token for the site repository (pa-bailar-bot)
+        id: app
+        if: ${{ !cancelled() }}
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ env.SITE_OWNER }}
+          repositories: ${{ env.SITE_REPO }}
 
       - name: Open a data pull request in the site repository if events or flyers changed
         id: pr
@@ -111,6 +121,7 @@ jobs:
             echo "No new or changed events: no pull request."
             exit 0
           fi
+          gh auth setup-git  # git pushes with the App token (GH_TOKEN), only from here on
           bot_id="$(gh api "/users/${BOT}" --jq .id)"
           git config user.name "$BOT"
           git config user.email "${bot_id}+${BOT}@users.noreply.github.com"

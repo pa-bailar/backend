@@ -10,6 +10,7 @@ Results are cached in private/discovery.json, so the tool can stop and resume.
 
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -98,14 +99,14 @@ def save_cache(path: Path, cache: dict[str, DiscoveredAccount]) -> None:
     storage.write_json(path, {username: account.model_dump(mode="json") for username, account in cache.items()})
 
 
-def profile_hint(profile: dict[str, Any]) -> int:
+def profile_hint(profile: Mapping[str, Any]) -> int:
     captions = [item.get("caption") or "" for item in profile.get("media", {}).get("data", [])]
     return dance_score(
         profile.get("username", ""), profile.get("name") or "", profile.get("biography") or "", *captions
     )
 
 
-def classify_prompt(profile: dict[str, Any]) -> str:
+def classify_prompt(profile: Mapping[str, Any]) -> str:
     captions = [
         f"- {(item.get('caption') or '').replace(chr(10), ' ')[:300]}"
         for item in profile.get("media", {}).get("data", [])
@@ -156,24 +157,25 @@ def is_recommended(c: AccountClassification) -> bool:
 
 
 def report_sections(cache: dict[str, DiscoveredAccount], already_followed: set[str]) -> dict[str, list[ReportRow]]:
-    classified = [a for a in cache.values() if a.classification and a.username not in already_followed]
-    recommended = [a for a in classified if is_recommended(a.classification)]
-    maybe = [
-        a
-        for a in classified
-        if a not in recommended and a.classification.kind != "not_dance" and a.classification.in_bogota != "no"
+    classified = [
+        (a, a.classification) for a in cache.values() if a.classification and a.username not in already_followed
     ]
+    recommended = [a for a, c in classified if is_recommended(c)]
+    maybe = [a for a, c in classified if not is_recommended(c) and c.kind != "not_dance" and c.in_bogota != "no"]
 
     def order(accounts: list[DiscoveredAccount]) -> list[ReportRow]:
         rank = {"yes": 0, "unknown": 1, "no": 2}
-        accounts = sorted(
-            accounts,
-            key=lambda a: (
-                rank[a.classification.in_bogota],
-                not a.classification.announces_events,
-                -int((a.profile or {}).get("followers_count", 0) or 0),
-            ),
-        )
+
+        def sort_key(account: DiscoveredAccount) -> tuple[int, bool, int]:
+            c = account.classification
+            assert c is not None  # only classified accounts reach the report
+            return (
+                rank[c.in_bogota],
+                not c.announces_events,
+                -int((account.profile or {}).get("followers_count") or 0),
+            )
+
+        accounts = sorted(accounts, key=sort_key)
         return [_row(account) for account in accounts]
 
     return {"recommended": order(recommended), "maybe": order(maybe)}

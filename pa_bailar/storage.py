@@ -86,7 +86,8 @@ def save_account_state(accounts: dict[str, AccountState]) -> None:
 
 
 def load_gemini_usage() -> dict[str, Any]:
-    return read_json(config.GEMINI_USAGE_FILE, {})
+    usage: dict[str, Any] = read_json(config.GEMINI_USAGE_FILE, {})
+    return usage
 
 
 def save_gemini_usage(usage: dict[str, Any]) -> None:

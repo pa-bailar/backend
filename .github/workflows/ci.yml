@@ -1,8 +1,11 @@
-# The `ci` check required on main: lint (ruff), format check and unit tests (pytest).
+# The `ci` check required on main: lint (ruff), format check, type check (mypy, strict) and unit tests
+# (pytest). Also runs on main after each merge, so the pip cache is saved where every branch can use it.
 name: ci
 
 on:
   pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -28,5 +31,7 @@ jobs:
         run: ruff check .
       - name: Format
         run: ruff format --check .
+      - name: Type check
+        run: mypy
       - name: Unit tests
         run: pytest -q

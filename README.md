@@ -45,11 +45,13 @@ Run the sweep:
 .venv\Scripts\python -m pa_bailar sweep --days 14  # look further back
 ```
 
-Lint and format:
+Lint, format, type check and tests:
 
 ```bash
 .venv\Scripts\python -m ruff check .
 .venv\Scripts\python -m ruff format .
+.venv\Scripts\python -m mypy                  # type check (strict)
+.venv\Scripts\python -m pytest -q              # tests
 ```
 
 - Accounts to follow: `accounts.txt` (one username per line). Add as many as you like at once:

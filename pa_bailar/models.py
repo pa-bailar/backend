@@ -1,10 +1,11 @@
 """Data models: what Gemini returns and what is stored in data/events.json.
 
 These models are the source of truth for the data contract with the frontend
-(frontend/src/scripts/types.ts mirrors StoredEvent).
+(the site repository's frontend/src/scripts/types.ts mirrors StoredEvent; its check-data.mjs checks
+every data PR against the contract).
 """
 
-from typing import Literal
+from typing import Literal, get_args
 
 from pydantic import BaseModel, Field
 
@@ -35,7 +36,7 @@ Style = Literal[
     "swing",
     "otro",
 ]
-STYLES: tuple[str, ...] = Style.__args__
+STYLES: tuple[str, ...] = get_args(Style)
 
 
 class Price(BaseModel):
@@ -128,7 +129,7 @@ class StoredEvent(EventDetails):
 
 
 class ProcessedPost(BaseModel):
-    """One record of backend/state/processed_posts.json, keyed by post id."""
+    """One record of state/processed_posts.json, keyed by post id."""
 
     account: str
     permalink: str
@@ -167,7 +168,7 @@ class AccountClassification(BaseModel):
 
 
 class AccountState(BaseModel):
-    """One record of backend/state/accounts.json, keyed by Instagram username."""
+    """One record of state/accounts.json, keyed by Instagram username."""
 
     first_seen: str
     backfill_done: bool = False  # True once its first, deeper sweep has analyzed every post

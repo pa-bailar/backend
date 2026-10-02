@@ -2,13 +2,44 @@
 
 import json
 from datetime import datetime
-from typing import Any
+from typing import Any, NotRequired, TypedDict, cast
 
 import requests
 
 from . import config
 
-Post = dict[str, Any]  # one media object as returned by the Graph API
+
+class MediaItem(TypedDict, total=False):
+    """A carousel slide (or the post itself when it has no slides)."""
+
+    media_type: str
+    media_url: str
+    thumbnail_url: str
+
+
+class Post(TypedDict):
+    """One media object as returned by Business Discovery (the fields fetch_recent_posts asks for)."""
+
+    id: str
+    timestamp: str  # "2026-10-01T23:56:57+0000"
+    permalink: str
+    media_type: str  # IMAGE, CAROUSEL_ALBUM or VIDEO
+    caption: NotRequired[str]
+    media_url: NotRequired[str]
+    thumbnail_url: NotRequired[str]
+    children: NotRequired[dict[str, list[MediaItem]]]
+
+
+class Profile(TypedDict, total=False):
+    """An account's public profile (the fields fetch_profile asks for)."""
+
+    username: str
+    name: str
+    biography: str
+    website: str
+    followers_count: int
+    media_count: int
+    media: dict[str, list[dict[str, str]]]  # {"data": [{"caption": ..., "timestamp": ...}]}
 
 
 # Graph API error codes (https://developers.facebook.com/docs/graph-api/guides/error-handling).
@@ -38,15 +69,27 @@ class InstagramClient:
                 params={"fields": fields, "access_token": self._access_token},
                 timeout=config.HTTP_TIMEOUT_SECONDS,
             )
-            data = response.json()
+            data: dict[str, Any] = response.json()
         except (requests.RequestException, ValueError) as error:
             # Network failure or a non-JSON answer (e.g. an HTML 5xx page): one account fails, not the run.
             raise InstagramError(f"request failed: {error}") from error
         self._read_usage(response.headers.get("x-app-usage"))
         if "error" in data:
-            error = data["error"]
-            raise InstagramError(error.get("message", "unknown error"), code=error.get("code"))
+            payload = data["error"]
+            raise InstagramError(payload.get("message", "unknown error"), code=payload.get("code"))
         return data
+
+    @classmethod
+    def from_env(cls) -> "InstagramClient":
+        """The client for our own Instagram account, from META_ACCESS_TOKEN and IG_USER_ID."""
+        return cls(config.require_env("META_ACCESS_TOKEN"), config.require_env("IG_USER_ID"))
+
+    def _business_discovery(self, fields: str) -> dict[str, Any]:
+        """Business Discovery's answer for one account; an answer without it is an error, not a crash."""
+        answer = self._get(fields).get("business_discovery")
+        if not isinstance(answer, dict):
+            raise InstagramError("the answer has no business_discovery data")
+        return answer
 
     def _read_usage(self, header: str | None) -> None:
         """X-App-Usage: {"call_count": 28, "total_time": 25, "total_cputime": 25}, percents of the hourly quota."""
@@ -58,7 +101,7 @@ class InstagramClient:
 
     def check_token(self) -> str:
         """Cheap call that fails fast if the token is invalid. Returns our own username."""
-        return self._get("username")["username"]
+        return str(self._get("username")["username"])
 
     def fetch_recent_posts(self, account: str, limit: int = config.POSTS_PER_ACCOUNT) -> list[Post]:
         """The latest `limit` posts of a public Business/Creator account. Costs one API call."""
@@ -68,9 +111,9 @@ class InstagramClient:
             f"business_discovery.username({account})"
             f"{{media.limit({limit}){{{media_fields},children{{{child_fields}}}}}}}"
         )
-        return self._get(fields)["business_discovery"].get("media", {}).get("data", [])
+        return cast(list[Post], self._business_discovery(fields).get("media", {}).get("data", []))
 
-    def fetch_profile(self, account: str, recent_posts: int = 5) -> dict[str, Any]:
+    def fetch_profile(self, account: str, recent_posts: int = 5) -> Profile:
         """Public profile and latest captions of a Business/Creator account. Costs one API call.
 
         Raises InstagramError for personal, private or missing accounts (Business Discovery can't see them).
@@ -80,7 +123,7 @@ class InstagramClient:
             f"{{username,name,biography,website,followers_count,media_count,"
             f"media.limit({recent_posts}){{caption,timestamp}}}}"
         )
-        return self._get(fields)["business_discovery"]
+        return cast(Profile, self._business_discovery(fields))
 
 
 def is_rate_limited(error: InstagramError) -> bool:
@@ -99,7 +142,7 @@ def published_at(post: Post) -> datetime:
 
 def image_urls(post: Post) -> list[str]:
     """Images to analyze: the photo, every carousel slide, or a video's preview frame."""
-    items = post.get("children", {}).get("data", []) or [post]
+    items: list[MediaItem] = post.get("children", {}).get("data", []) or [cast(MediaItem, post)]
     urls = [item.get("media_url") if item.get("media_type") == "IMAGE" else item.get("thumbnail_url") for item in items]
     return [url for url in urls if url][: config.MAX_IMAGES_PER_POST]
 
