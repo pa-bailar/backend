@@ -16,8 +16,9 @@ from pathlib import Path
 from google.genai import errors as genai_errors
 
 from pa_bailar import config, discovery, storage
-from pa_bailar.extraction import ExtractionError, ModelPool
+from pa_bailar.gemini import ExtractionError, ModelPool
 from pa_bailar.instagram import InstagramClient, InstagramError, is_not_visible, is_rate_limited
+from pa_bailar.logs import setup_logging
 from pa_bailar.models import AccountClassification
 
 CACHE_FILE = config.PRIVATE_DIR / "discovery.json"
@@ -40,9 +41,7 @@ def main(argv: list[str] | None = None) -> None:
         "--max-gemini", type=int, default=250, help="Gemini classifications this run (shares the daily quota)"
     )
     args = parser.parse_args(argv)
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
-    for noisy in ("httpx", "google_genai", "urllib3"):
-        logging.getLogger(noisy).setLevel(logging.WARNING)
+    setup_logging()
 
     following = discovery.parse_following(args.export)
     already = set(storage.read_accounts())

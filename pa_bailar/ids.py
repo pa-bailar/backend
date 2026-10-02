@@ -6,7 +6,8 @@
 """
 
 import re
-import unicodedata
+
+from .text import fold
 
 MAX_TITLE_LENGTH = 50  # characters of the title part, cut at a word boundary
 _MONTHS = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
@@ -14,9 +15,7 @@ _MONTHS = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct",
 
 def slugify(text: str) -> str:
     """'¡Social de Halloween!' → 'social-de-halloween': lowercase ASCII words joined by hyphens."""
-    decomposed = unicodedata.normalize("NFKD", text.casefold())
-    ascii_text = "".join(char for char in decomposed if not unicodedata.combining(char))
-    return re.sub(r"[^a-z0-9]+", "-", ascii_text).strip("-")
+    return re.sub(r"[^a-z0-9]+", "-", fold(text)).strip("-")
 
 
 def _shorten(slug: str) -> str:

@@ -5,6 +5,7 @@ Those posts must end up as ONE event that lists all of them in `media`.
 """
 
 from .models import EventDetails, EventMedia, ExtractedEvent, StoredEvent
+from .text import fold
 
 _DETAIL_FIELDS = list(EventDetails.model_fields)
 # Logistics a later post may correct (rescheduled, new prices): the newest post's value wins. Everything
@@ -12,10 +13,6 @@ _DETAIL_FIELDS = list(EventDetails.model_fields)
 # when missing (a venue "to be confirmed" on the flyer, given later in a reminder).
 _UPDATABLE_FIELDS = {"date", "weekday", "start_time", "end_time", "prices"}
 _EMPTY = (None, "", [])
-
-
-def _normalize(text: str) -> str:
-    return " ".join(text.casefold().split())
 
 
 def media_order(media: EventMedia) -> tuple[int, str]:
@@ -30,7 +27,7 @@ def looks_like_same_event(stored: StoredEvent, account: str, candidate: EventDet
         return False
     if stored.start_time and candidate.start_time:
         return stored.start_time == candidate.start_time
-    return _normalize(stored.title) == _normalize(candidate.title)
+    return fold(stored.title) == fold(candidate.title)
 
 
 def find_existing(

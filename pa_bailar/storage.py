@@ -5,7 +5,6 @@ Every load and save goes through the Pydantic models, so a malformed file is nev
 
 import io
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,11 +19,11 @@ _processed_adapter = TypeAdapter(dict[str, ProcessedPost])
 _accounts_adapter = TypeAdapter(dict[str, AccountState])
 
 
-def _read_json(path: Path, default: Any) -> Any:
+def read_json(path: Path, default: Any) -> Any:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else default
 
 
-def _write_json(path: Path, data: Any) -> None:
+def write_json(path: Path, data: Any) -> None:
     """Write atomically: a crash mid-write leaves the previous file intact instead of a truncated one."""
     path.parent.mkdir(parents=True, exist_ok=True)
     # Always LF line endings so files are identical on Windows and on the Linux CI runner.
@@ -38,12 +37,12 @@ def _write_json(path: Path, data: Any) -> None:
 
 
 def load_events() -> list[StoredEvent]:
-    return _events_adapter.validate_python(_read_json(config.EVENTS_FILE, []))
+    return _events_adapter.validate_python(read_json(config.EVENTS_FILE, []))
 
 
 def save_events(events: list[StoredEvent]) -> None:
     ordered = sorted(events, key=lambda event: (event.date or "9999", event.start_time or ""))
-    _write_json(config.EVENTS_FILE, _events_adapter.dump_python(ordered, mode="json"))
+    write_json(config.EVENTS_FILE, _events_adapter.dump_python(ordered, mode="json"))
 
 
 # ---------- run metadata ----------
@@ -55,43 +54,43 @@ def save_meta(stats: dict[str, Any]) -> None:
     """data/meta.json: when the data was last refreshed (shown on the site) and what the run did."""
     meta = {
         "schema_version": SCHEMA_VERSION,
-        "generated_at": datetime.now(config.BOGOTA_TZ).isoformat(timespec="seconds"),
+        "generated_at": config.now_bogota().isoformat(timespec="seconds"),
         "stats": stats,
     }
-    _write_json(config.META_FILE, meta)
+    write_json(config.META_FILE, meta)
 
 
 # ---------- processed posts ----------
 
 
 def load_processed_posts() -> dict[str, ProcessedPost]:
-    return _processed_adapter.validate_python(_read_json(config.PROCESSED_POSTS_FILE, {}))
+    return _processed_adapter.validate_python(read_json(config.PROCESSED_POSTS_FILE, {}))
 
 
 def save_processed_posts(processed: dict[str, ProcessedPost]) -> None:
-    _write_json(config.PROCESSED_POSTS_FILE, _processed_adapter.dump_python(processed, mode="json"))
+    write_json(config.PROCESSED_POSTS_FILE, _processed_adapter.dump_python(processed, mode="json"))
 
 
 # ---------- account state (backfill) ----------
 
 
 def load_account_state() -> dict[str, AccountState]:
-    return _accounts_adapter.validate_python(_read_json(config.ACCOUNT_STATE_FILE, {}))
+    return _accounts_adapter.validate_python(read_json(config.ACCOUNT_STATE_FILE, {}))
 
 
 def save_account_state(accounts: dict[str, AccountState]) -> None:
-    _write_json(config.ACCOUNT_STATE_FILE, _accounts_adapter.dump_python(accounts, mode="json"))
+    write_json(config.ACCOUNT_STATE_FILE, _accounts_adapter.dump_python(accounts, mode="json"))
 
 
 # ---------- Gemini usage (requests per model on the current quota day) ----------
 
 
 def load_gemini_usage() -> dict[str, Any]:
-    return _read_json(config.GEMINI_USAGE_FILE, {})
+    return read_json(config.GEMINI_USAGE_FILE, {})
 
 
 def save_gemini_usage(usage: dict[str, Any]) -> None:
-    _write_json(config.GEMINI_USAGE_FILE, usage)
+    write_json(config.GEMINI_USAGE_FILE, usage)
 
 
 # ---------- accounts ----------

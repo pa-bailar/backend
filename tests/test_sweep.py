@@ -7,11 +7,11 @@ import pytest
 
 from pa_bailar import config, storage
 from pa_bailar.commands.sweep import summary_markdown
-from pa_bailar.extraction import ExtractionError
+from pa_bailar.gemini import ExtractionError
 from pa_bailar.instagram import InstagramError
 from pa_bailar.models import PostAnalysis, ProcessedPost, Triage
 from pa_bailar.pipeline import Sweep
-from tests.factories import extracted, make_image, media, stored
+from tests.factories import event_id, extracted, make_image, media, stored
 
 FLYER_URL = "https://cdn.example/flyer.jpg"
 VIDEO_THUMB_URL = "https://cdn.example/video.jpg"
@@ -91,18 +91,10 @@ class FakeExtractor:
 
 
 @pytest.fixture(autouse=True)
-def isolated_files(tmp_path, monkeypatch):
-    monkeypatch.setattr(config, "DATA_DIR", tmp_path / "data")
-    monkeypatch.setattr(config, "FLYERS_DIR", tmp_path / "data" / "flyers")
-    monkeypatch.setattr(config, "EVENTS_FILE", tmp_path / "data" / "events.json")
-    monkeypatch.setattr(config, "META_FILE", tmp_path / "data" / "meta.json")
-    monkeypatch.setattr(config, "PROCESSED_POSTS_FILE", tmp_path / "state" / "processed_posts.json")
-    monkeypatch.setattr(config, "ACCOUNT_STATE_FILE", tmp_path / "state" / "accounts.json")
-    accounts = tmp_path / "accounts.txt"
-    accounts.write_text("academia\n# comment\n@otra\n", encoding="utf-8")
-    monkeypatch.setattr(config, "ACCOUNTS_FILE", accounts)
+def two_accounts_and_fake_images(isolated_files, monkeypatch):
+    """On top of the shared isolation (conftest.py): two accounts, and images without the network."""
+    config.ACCOUNTS_FILE.write_text("academia\n# comment\n@otra\n", encoding="utf-8")
     monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: make_image())
-    return tmp_path
 
 
 def run(instagram, extractor, days=7):
@@ -125,7 +117,7 @@ def test_flyer_then_video_of_the_same_event_become_one_event_with_two_posts():
     extractor = FakeExtractor(
         {
             "flyer": event_post("flyer", title="Social", start_time="20:00"),
-            "video": event_post("video", title="Ven a bailar", same_as="social-10-oct", start_time=None),
+            "video": event_post("video", title="Ven a bailar", same_as=event_id("Social"), start_time=None),
         }
     )
 
@@ -135,7 +127,7 @@ def test_flyer_then_video_of_the_same_event_become_one_event_with_two_posts():
     assert len(events) == 1
     assert [m["post_id"] for m in events[0]["media"]] == ["flyer", "video"]
     assert events[0]["title"] == "Social" and events[0]["start_time"] == "20:00"
-    assert extractor.known_seen["video"] == ["social-10-oct"]  # Gemini was told about the earlier event
+    assert extractor.known_seen["video"] == [event_id("Social")]  # Gemini was told about the earlier event
     assert (stats.events_new, stats.events_merged) == (1, 1)
 
 
@@ -226,7 +218,7 @@ def test_provisional_extraction_is_upgraded_when_flash_is_back():
     assert read(config.PROCESSED_POSTS_FILE)["p1"]["provisional"] is False
     events = read(config.EVENTS_FILE)
     assert len(events) == 1 and events[0]["title"] == "Leído por Flash"
-    assert events[0]["id"] == "leido-por-lite-10-oct"  # the URL shared meanwhile keeps working
+    assert events[0]["id"] == event_id("Leído por Lite")  # the URL shared meanwhile keeps working
 
 
 def test_provisional_posts_wait_while_flash_is_still_out():

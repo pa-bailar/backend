@@ -5,8 +5,9 @@ Secrets come from environment variables: from .env (repository root) locally, fr
 
 import os
 from dataclasses import dataclass
-from datetime import timedelta, timezone
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 
@@ -53,11 +54,12 @@ MODEL_LIMITS = {
     "gemini-3.5-flash-lite": ModelLimit(requests_per_minute=15, requests_per_day=500),
 }
 # Each model has its own quota. Roles:
-TRIAGE_MODELS = ["gemini-3.5-flash-lite"]  # cheap yes/no: does the post announce an event?
-EXTRACTION_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash"]  # full details, best quality
-PROVISIONAL_MODELS = ["gemini-3.5-flash-lite"]  # when Flash is out: saved, then upgraded on a later run
+TRIAGE_MODELS = ("gemini-3.5-flash-lite",)  # cheap yes/no: does the post announce an event?
+EXTRACTION_MODELS = ("gemini-3.8-flash", "gemini-3.5-flash")  # full details, best quality
+PROVISIONAL_MODELS = ("gemini-3.5-flash-lite",)  # when Flash is out: saved, then upgraded on a later run
 DAILY_BUDGET_MARGIN = 2  # requests kept unused per model, for manual runs and retries
 PACING_MARGIN_SECONDS = 0.5  # added to 60 / requests_per_minute between calls to the same model
+GEMINI_TIMEOUT_SECONDS = 120  # one request; a stuck call fails instead of hanging the run
 QUOTA_TIMEZONE = "America/Los_Angeles"  # Gemini daily quotas reset at midnight Pacific time
 
 # ---------- Flyers ----------
@@ -82,7 +84,12 @@ EVENT_RETENTION_DAYS = 60
 # older posts are never fetched again, so forgetting them can't cause a second analysis.
 PROCESSED_RETENTION_DAYS = 45
 
-BOGOTA_TZ = timezone(timedelta(hours=-5))  # Colombia has no daylight saving time
+BOGOTA_TZ = ZoneInfo("America/Bogota")
+
+
+def now_bogota() -> datetime:
+    """The current time in Bogotá: dates and "today" are always Bogotá's, wherever the code runs."""
+    return datetime.now(BOGOTA_TZ)
 
 
 def require_env(name: str) -> str:

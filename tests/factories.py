@@ -1,10 +1,16 @@
 """Builders for test data."""
 
 import io
+from datetime import timedelta
 
 from PIL import Image
 
+from pa_bailar import config
+from pa_bailar.ids import new_event_id
 from pa_bailar.models import EventMedia, ExtractedEvent, StoredEvent
+
+# Always a week ahead: tests that run the sweep must not age out of its windows as real days pass.
+EVENT_DATE = (config.now_bogota().date() + timedelta(days=8)).isoformat()
 
 DETAILS = {
     "title": "Social",
@@ -15,7 +21,7 @@ DETAILS = {
     "venue": None,
     "address": None,
     "area": None,
-    "date": "2026-10-10",
+    "date": EVENT_DATE,
     "weekday": None,
     "start_time": None,
     "end_time": None,
@@ -51,3 +57,8 @@ def media(post_id: str = "p1", media_type: str = "IMAGE", published: str = "2026
 
 def stored(event_id: str = "p1-0", account: str = "academia", posts: list[EventMedia] | None = None, **details):
     return StoredEvent(**(DETAILS | details), id=event_id, account=account, media=posts or [media()])
+
+
+def event_id(title: str) -> str:
+    """The id the sweep gives a new event with this title on EVENT_DATE."""
+    return new_event_id(title, EVENT_DATE, set())

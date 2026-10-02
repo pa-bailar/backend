@@ -10,14 +10,15 @@ Results are cached in private/discovery.json, so the tool can stop and resume.
 
 import json
 import re
-import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel
 
+from . import storage
 from .models import AccountClassification
+from .text import fold
 
 DANCE_KEYWORDS = [
     "bail", "danc", "danz", "salsa", "bachat", "kizomba", "zouk", "mambo", "casino", "timba", "merengue",
@@ -42,14 +43,9 @@ Be strict about Bogotá: "yes" only with evidence (Bogotá, BTA, a Bogotá neigh
 "no" when another city or country is stated; "unknown" otherwise."""
 
 
-def _plain(text: str) -> str:
-    decomposed = unicodedata.normalize("NFKD", (text or "").casefold())
-    return "".join(char for char in decomposed if not unicodedata.combining(char))
-
-
 def dance_score(*texts: str) -> int:
     """How many dance keywords appear in the texts (accent- and case-insensitive)."""
-    plain = " ".join(_plain(text) for text in texts)
+    plain = " ".join(fold(text) for text in texts)
     return sum(1 for keyword in DANCE_KEYWORDS if keyword in plain)
 
 
@@ -99,11 +95,7 @@ def load_cache(path: Path) -> dict[str, DiscoveredAccount]:
 
 
 def save_cache(path: Path, cache: dict[str, DiscoveredAccount]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    data = {username: account.model_dump(mode="json") for username, account in cache.items()}
-    temporary = path.with_suffix(".tmp")
-    temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    temporary.replace(path)
+    storage.write_json(path, {username: account.model_dump(mode="json") for username, account in cache.items()})
 
 
 def profile_hint(profile: dict[str, Any]) -> int:
