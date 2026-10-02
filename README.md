@@ -97,6 +97,33 @@ Settings → Secrets and variables → Actions:
   App's private key), and optionally `HEALTHCHECK_URL`.
 - Variables: `APP_ID` (the pa-bailar-bot App's id).
 
+## Monitoring the sweeps
+
+Every run is checked by rules, without AI and without spending any quota (`pa_bailar/health.py`). It is
+compared with the previous runs, kept in `run_history.json` on the `sweep-state` branch (two months).
+
+- **Warnings** need a fix or a decision:
+  - an account that couldn't be read in 3 runs in a row;
+  - Instagram's rate limit, the time budget or post errors in 3 runs in a row;
+  - a backlog of pending posts that doesn't go down over 4 runs;
+  - a week of posts without a single event.
+- **Notices** are worth knowing but need nothing yet:
+  - one-off failures;
+  - Flash's quota running out;
+  - accounts with no posts in 45 days.
+- **Events to review** are upcoming events Gemini wasn't confident about, or whose date it doubted.
+
+Where to see it:
+- **The run's page** on GitHub Actions has the health report at the top of its summary, warnings as
+  annotations, and the per-account tables.
+- **The "Sweep health" issue** (label `sweep-health`) is open only while there are warnings.
+  - It always holds the latest report.
+  - A comment mentioning you is added only when the warnings change, so GitHub emails you once per new
+    problem, not every run.
+  - It closes itself when everything is clear.
+- **healthchecks.io** emails when a run fails or stops arriving. Each ping carries the report, visible in
+  the check's event log.
+
 ## Contributing
 
 `main` is what's live. Work on a branch (`feat/...`, `fix/...`), open a pull request, and use

@@ -14,5 +14,6 @@ def isolated_files(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "PROCESSED_POSTS_FILE", tmp_path / "state" / "processed_posts.json")
     monkeypatch.setattr(config, "ACCOUNT_STATE_FILE", tmp_path / "state" / "accounts.json")
     monkeypatch.setattr(config, "GEMINI_USAGE_FILE", tmp_path / "state" / "gemini_usage.json")
+    monkeypatch.setattr(config, "RUN_HISTORY_FILE", tmp_path / "state" / "run_history.json")
     monkeypatch.setattr(config, "ACCOUNTS_FILE", tmp_path / "accounts.txt")
     return tmp_path

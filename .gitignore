@@ -9,3 +9,7 @@ __pycache__/
 
 # Sweep state: kept in the sweep-state branch on CI, local files for local runs
 state/*.json
+
+# Sweep health report and issue comment (written on CI; health.md by local runs with HEALTH_REPORT_FILE)
+health.md
+comment.md

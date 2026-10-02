@@ -30,6 +30,7 @@ PRIVATE_DIR = ROOT_DIR / "private"  # your own files (Instagram export, keys): g
 PROCESSED_POSTS_FILE = STATE_DIR / "processed_posts.json"
 ACCOUNT_STATE_FILE = STATE_DIR / "accounts.json"
 GEMINI_USAGE_FILE = STATE_DIR / "gemini_usage.json"
+RUN_HISTORY_FILE = STATE_DIR / "run_history.json"  # each sweep in short, for the health checks (health.py)
 
 # ---------- Instagram (Meta Graph API) ----------
 GRAPH_API_URL = "https://graph.facebook.com/v26.0"
