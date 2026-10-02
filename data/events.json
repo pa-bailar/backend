@@ -1,9 +1,8 @@
 [
   {
-    "is_recurring": false,
-    "id": "18330914212277947-0",
     "title": "Social Espacio Seguro",
     "event_type": "social",
+    "is_recurring": false,
     "styles": [
       "salsa",
       "bachata"
@@ -49,6 +48,7 @@
     "contact": "3164952960",
     "confidence": "high",
     "doubts": [],
+    "id": "18330914212277947-0",
     "flyer": "flyers/18330914212277947.webp",
     "source": {
       "account": "zafradance",
@@ -59,10 +59,9 @@
     }
   },
   {
-    "is_recurring": false,
-    "id": "17940141273086498-0",
     "title": "Ritmos Cruzados",
     "event_type": "workshop",
+    "is_recurring": false,
     "styles": [
       "champeta",
       "salsa"
@@ -97,6 +96,7 @@
     "contact": "3135802345",
     "confidence": "high",
     "doubts": [],
+    "id": "17940141273086498-0",
     "flyer": "flyers/17940141273086498.webp",
     "source": {
       "account": "esferalatinaoficial",
@@ -107,10 +107,9 @@
     }
   },
   {
-    "is_recurring": false,
-    "id": "18382502500227795-0",
     "title": "Gran Taller Bachata Tradicional",
     "event_type": "workshop",
+    "is_recurring": false,
     "styles": [
       "bachata"
     ],
@@ -134,6 +133,7 @@
     "doubts": [
       "No se especifica el precio del taller."
     ],
+    "id": "18382502500227795-0",
     "flyer": "flyers/18382502500227795.webp",
     "source": {
       "account": "madyumdance",
@@ -144,10 +144,9 @@
     }
   },
   {
-    "is_recurring": false,
-    "id": "17985388479076791-0",
     "title": "Social Amor y Amistad",
     "event_type": "social",
+    "is_recurring": false,
     "styles": [
       "salsa",
       "bachata"
@@ -191,6 +190,7 @@
       "No se especifica la dirección exacta de la sede de Esfera Latina",
       "No se indica la hora de finalización del evento"
     ],
+    "id": "17985388479076791-0",
     "flyer": "flyers/17985388479076791.webp",
     "source": {
       "account": "esferalatinaoficial",
@@ -201,10 +201,9 @@
     }
   },
   {
-    "is_recurring": false,
-    "id": "18382266040226570-0",
     "title": "Gran Taller de Dancehall",
     "event_type": "workshop",
+    "is_recurring": false,
     "styles": [
       "dancehall"
     ],
@@ -228,6 +227,7 @@
     "doubts": [
       "No se especifica el lugar ni el precio del taller."
     ],
+    "id": "18382266040226570-0",
     "flyer": "flyers/18382266040226570.webp",
     "source": {
       "account": "madyumdance",
@@ -238,10 +238,9 @@
     }
   },
   {
-    "is_recurring": false,
-    "id": "18379762747224169-0",
     "title": "Super Clase Champeta",
     "event_type": "workshop",
+    "is_recurring": false,
     "styles": [
       "champeta"
     ],
@@ -279,6 +278,7 @@
     "contact": "3164952960",
     "confidence": "high",
     "doubts": [],
+    "id": "18379762747224169-0",
     "flyer": "flyers/18379762747224169.webp",
     "source": {
       "account": "zafradance",
@@ -289,10 +289,9 @@
     }
   },
   {
-    "is_recurring": false,
-    "id": "18485647252129232-0",
     "title": "Salsa Freestyle con Renato Palacios",
     "event_type": "workshop",
+    "is_recurring": false,
     "styles": [
       "salsa",
       "mambo",
@@ -323,6 +322,7 @@
       "No se especifica el precio de la clase",
       "No se proporciona la dirección exacta, solo se menciona Madelena y Escuela del Mambo"
     ],
+    "id": "18485647252129232-0",
     "flyer": "flyers/18485647252129232.webp",
     "source": {
       "account": "madyumdance",
@@ -333,10 +333,9 @@
     }
   },
   {
-    "is_recurring": false,
-    "id": "18386541976234092-0",
     "title": "Social Espacio Seguro",
     "event_type": "social",
+    "is_recurring": false,
     "styles": [
       "salsa",
       "bachata",
@@ -379,6 +378,7 @@
     "contact": "3164952960",
     "confidence": "high",
     "doubts": [],
+    "id": "18386541976234092-0",
     "flyer": "flyers/18386541976234092.webp",
     "source": {
       "account": "zafradance",
@@ -389,7 +389,6 @@
     }
   },
   {
-    "id": "18112581790860968-0",
     "title": "International Experience con Alex e Isa",
     "event_type": "workshop",
     "is_recurring": false,
@@ -415,6 +414,7 @@
     "doubts": [
       "No especifica hora ni precio en el flyer"
     ],
+    "id": "18112581790860968-0",
     "flyer": "flyers/18112581790860968-1.webp",
     "source": {
       "account": "esferalatinaoficial",
@@ -425,7 +425,6 @@
     }
   },
   {
-    "id": "18112581790860968-1",
     "title": "Ritmos Cruzados con Mancho Osorio & Alex Salsita",
     "event_type": "workshop",
     "is_recurring": false,
@@ -451,6 +450,7 @@
     "doubts": [
       "No especifica hora ni precio en el flyer"
     ],
+    "id": "18112581790860968-1",
     "flyer": "flyers/18112581790860968-1.webp",
     "source": {
       "account": "esferalatinaoficial",
@@ -461,7 +461,6 @@
     }
   },
   {
-    "id": "18112581790860968-2",
     "title": "VideoClass con Omar Crespo",
     "event_type": "workshop",
     "is_recurring": false,
@@ -486,6 +485,7 @@
     "doubts": [
       "No especifica hora ni precio en el flyer"
     ],
+    "id": "18112581790860968-2",
     "flyer": "flyers/18112581790860968-1.webp",
     "source": {
       "account": "esferalatinaoficial",
@@ -496,7 +496,6 @@
     }
   },
   {
-    "id": "18112581790860968-3",
     "title": "Clase Dinamita de Heels",
     "event_type": "workshop",
     "is_recurring": false,
@@ -519,6 +518,7 @@
     "doubts": [
       "No especifica hora ni precio en el flyer"
     ],
+    "id": "18112581790860968-3",
     "flyer": "flyers/18112581790860968-1.webp",
     "source": {
       "account": "esferalatinaoficial",
@@ -529,10 +529,9 @@
     }
   },
   {
-    "is_recurring": false,
-    "id": "18129749683771543-0",
     "title": "Social de Halloween",
     "event_type": "social",
+    "is_recurring": false,
     "styles": [
       "salsa",
       "bachata"
@@ -557,6 +556,7 @@
       "El número de WhatsApp proporcionado en la imagen tiene 9 dígitos.",
       "Los géneros de baile no están especificados explícitamente, se asumen salsa y bachata por el perfil de la academia."
     ],
+    "id": "18129749683771543-0",
     "flyer": "flyers/18129749683771543.webp",
     "source": {
       "account": "bembeacademiadebaile",
@@ -567,7 +567,6 @@
     }
   },
   {
-    "id": "18112581790860968-4",
     "title": "Social Halloween",
     "event_type": "social",
     "is_recurring": false,
@@ -590,6 +589,7 @@
     "doubts": [
       "No especifica hora ni precio en el flyer"
     ],
+    "id": "18112581790860968-4",
     "flyer": "flyers/18112581790860968-1.webp",
     "source": {
       "account": "esferalatinaoficial",
@@ -600,10 +600,9 @@
     }
   },
   {
-    "is_recurring": false,
-    "id": "18104347286615308-0",
     "title": "Elysium Madyum Gran Aniversario 2026",
     "event_type": "social",
+    "is_recurring": false,
     "styles": [
       "salsa",
       "bachata"
@@ -631,6 +630,7 @@
     "doubts": [
       "No se especifica la hora de inicio ni el lugar exacto del evento."
     ],
+    "id": "18104347286615308-0",
     "flyer": "flyers/18104347286615308.webp",
     "source": {
       "account": "madyumdance",

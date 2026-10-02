@@ -1,0 +1,14 @@
+[project]
+name = "pabailar"
+version = "0.1.0"
+description = "Collects one-time dance events in Bogotá from Instagram and writes them to data/."
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, import order, naming, pyupgrade, bugbear, simplify
+select = ["E", "W", "F", "I", "N", "UP", "B", "SIM"]

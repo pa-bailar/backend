@@ -4,6 +4,7 @@
 # Python
 .venv/
 __pycache__/
+.ruff_cache/
 
 # Node / Astro
 node_modules/
