@@ -23,8 +23,11 @@
   --wine-600: #5a2a30;
   --wine-500: #6e2a33;
   --cream-50: #fff8ec;
+  --cream-75: #f7eddc; /* cards: one step under the near-white */
   --cream-100: #f3e6d3;
+  --cream-150: #ecddc6; /* page: aged offset paper of 1970s salsa flyers */
   --cream-200: #e9dcc7;
+  --cream-250: #e2d1b6; /* image wells, a step under the page */
   --cream-300: #d9c6aa;
   --cocoa-500: #6e4a44;
   --cocoa-300: #c9afa3;
@@ -41,9 +44,9 @@
 
   /* ---------- Layer 2: semantic colors (light, dark) ---------- */
   /* Surfaces */
-  --bg: light-dark(var(--cream-100), var(--wine-900));
-  --surface: light-dark(var(--cream-50), var(--wine-800));
-  --surface-sunken: light-dark(var(--cream-200), var(--wine-950));
+  --bg: light-dark(var(--cream-150), var(--wine-900));
+  --surface: light-dark(var(--cream-75), var(--wine-800));
+  --surface-sunken: light-dark(var(--cream-250), var(--wine-950));
   --backdrop: light-dark(rgb(42 15 20 / 0.6), rgb(16 5 8 / 0.75));
 
   /* Lines */

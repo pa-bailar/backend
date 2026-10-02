@@ -3,7 +3,7 @@
 
 import type { DanceEvent, EventMedia } from "../types";
 import { byId, escapeHtml } from "../lib/dom";
-import { formatLongDate, formatMoney, formatTime, mediaLabel, placeLabel, typeLabel } from "../lib/format";
+import { formatLongDate, formatMoney, formatTime, mediaLabel, placeLabel, stylesLabel, typeLabel } from "../lib/format";
 import { flyerUrl, googleCalendarUrl, whatsappShareUrl } from "../lib/links";
 
 let currentEvent: DanceEvent | null = null;
@@ -63,7 +63,7 @@ function dialogHtml(event: DanceEvent, selected: number): string {
   const rows = detailRows(event)
     .map(([term, value]) => `<dt>${term}</dt><dd>${escapeHtml(value)}</dd>`)
     .join("");
-  const styles = event.styles.map((style) => `<span class="tag">${escapeHtml(style)}</span>`).join("");
+  const styles = stylesLabel(event.styles);
 
   return `
     <button class="event-dialog__close" data-close-dialog aria-label="Cerrar">×</button>
@@ -77,7 +77,7 @@ function dialogHtml(event: DanceEvent, selected: number): string {
       <h2 class="event-dialog__title" id="event-dialog-title">${escapeHtml(event.title)}</h2>
       <dl class="detail-list">${rows}</dl>
       ${pricesHtml(event)}
-      ${styles ? `<div class="tag-list">${styles}</div>` : ""}
+      ${styles ? `<p class="style-list">${escapeHtml(styles)}</p>` : ""}
       <div class="event-dialog__actions">
         <a class="btn btn--primary" href="${permalink}" target="_blank" rel="noopener">Ver en Instagram</a>
         <a class="btn btn--whatsapp" href="${escapeHtml(whatsappShareUrl(event))}" target="_blank" rel="noopener">Compartir por WhatsApp</a>

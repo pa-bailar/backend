@@ -33,6 +33,18 @@ export function daysInMonth(month: Date): number {
   return new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
 }
 
+/** Sunday that ends the (Monday-first) week containing `iso`. */
+export function endOfWeek(iso: string): string {
+  const date = parseIsoDate(iso);
+  const daysToSunday = (7 - date.getDay()) % 7;
+  return addDays(iso, daysToSunday);
+}
+
+/** Whole days from `fromIso` to `toIso` (0 = same day). */
+export function daysBetween(fromIso: string, toIso: string): number {
+  return Math.round((parseIsoDate(toIso).getTime() - parseIsoDate(fromIso).getTime()) / DAY_MS);
+}
+
 /** Column of the month's first day in a Monday-first week (0 = Monday). */
 export function mondayOffset(month: Date): number {
   return (month.getDay() + 6) % 7;
