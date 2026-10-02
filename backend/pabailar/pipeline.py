@@ -1,7 +1,7 @@
 """The sweep: fetch recent posts, analyze new ones with Gemini, store one-time events and their flyers."""
 
 import logging
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
 
 from google.genai import errors as genai_errors
@@ -17,6 +17,15 @@ log = logging.getLogger(__name__)
 
 
 @dataclass
+class AccountStats:
+    posts_analyzed: int = 0
+    events_new: int = 0
+    events_merged: int = 0
+    errors: int = 0
+    fetch_failed: bool = False
+
+
+@dataclass
 class RunStats:
     accounts: int = 0
     posts_analyzed: int = 0
@@ -25,6 +34,14 @@ class RunStats:
     events_discarded: int = 0  # recurring or without a date
     errors: int = 0
     flyers_removed: int = 0
+    by_account: dict[str, AccountStats] = field(default_factory=dict)
+
+    def account(self, name: str) -> AccountStats:
+        return self.by_account.setdefault(name, AccountStats())
+
+    @property
+    def failed_accounts(self) -> int:
+        return sum(1 for stats in self.by_account.values() if stats.fetch_failed)
 
 
 def _is_publishable(event: ExtractedEvent) -> bool:
@@ -70,10 +87,18 @@ def _details(event: ExtractedEvent) -> dict:
 
 
 class Sweep:
-    def __init__(self, lookback_days: int):
+    def __init__(
+        self,
+        lookback_days: int,
+        instagram: InstagramClient | None = None,
+        extractor: EventExtractor | None = None,
+    ):
+        """Clients are built from the environment unless given (tests pass fakes)."""
         self.cutoff = datetime.now(UTC) - timedelta(days=lookback_days)
-        self.instagram = InstagramClient(config.require_env("META_ACCESS_TOKEN"), config.require_env("IG_USER_ID"))
-        self.extractor = EventExtractor(config.require_env("GEMINI_API_KEY"))
+        self.instagram = instagram or InstagramClient(
+            config.require_env("META_ACCESS_TOKEN"), config.require_env("IG_USER_ID")
+        )
+        self.extractor = extractor or EventExtractor(config.require_env("GEMINI_API_KEY"))
         self.events = storage.load_events()
         self.processed = storage.load_processed_posts()
         self.stats = RunStats()
@@ -93,15 +118,19 @@ class Sweep:
             self._process_account(account)
 
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
+        storage.save_meta(asdict(self.stats))
         return self.stats
 
     def _process_account(self, account: str) -> None:
         log.info("== @%s", account)
+        account_stats = self.stats.account(account)
         try:
             posts = self.instagram.fetch_recent_posts(account)
         except InstagramError as error:
             log.error("   could not fetch posts: %s", error)
             self.stats.errors += 1
+            account_stats.errors += 1
+            account_stats.fetch_failed = True
             return
 
         # Oldest first, so a flyer is usually stored before the video or reminder that follows it.
@@ -130,9 +159,11 @@ class Sweep:
             # so it's retried on the next run.
             log.error("     failed, will retry next run: %s", error)
             self.stats.errors += 1
+            self.stats.account(account).errors += 1
             return
 
         self.stats.posts_analyzed += 1
+        self.stats.account(account).posts_analyzed += 1
         self.stats.events_discarded += len(analysis.events) - len(publishable)
         self._record_processed(account, post, analysis, model)
         # If this post was analyzed before, forget what it contributed and add it again below.
@@ -153,11 +184,13 @@ class Sweep:
         if existing:
             self.events[self.events.index(existing)] = merge_into(existing, candidate, media)
             self.stats.events_merged += 1
+            self.stats.account(account).events_merged += 1
             log.info("     same event as an earlier post, merged: %s %s", existing.date, existing.title)
             return
         event = StoredEvent(**_details(candidate), id=f"{post['id']}-{position}", account=account, media=[media])
         self.events.append(event)
         self.stats.events_new += 1
+        self.stats.account(account).events_new += 1
         log.info("     event: %s %s | %s [%s]", event.date, event.start_time or "", event.title, event.event_type)
 
     def _record_processed(self, account: str, post: Post, analysis: PostAnalysis, model: str) -> None:

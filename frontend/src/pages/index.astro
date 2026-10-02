@@ -6,20 +6,28 @@ import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import ViewToolbar from "../components/ViewToolbar.astro";
 import events from "../../../data/events.json";
+import meta from "../../../data/meta.json";
 
 const accounts = [...new Set(events.map((event) => event.account))].sort();
 // Escape "<" so a caption can never end the inline JSON script block early.
 const eventsJson = JSON.stringify(events).replace(/</g, "\\u003c");
-const updatedLabel = new Date().toLocaleDateString("es-CO", {
+// When the data was last checked: the daily sweep passes PUBLIC_CHECKED_AT to the build; otherwise
+// (local builds, code deploys) the time of the last data change recorded in meta.json.
+const checkedAt = import.meta.env.PUBLIC_CHECKED_AT || meta.generated_at;
+const updatedLabel = new Date(checkedAt).toLocaleDateString("es-CO", {
   day: "numeric",
   month: "long",
   timeZone: "America/Bogota",
 });
+// Link previews show the flyer of the next upcoming event.
+const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" }); // YYYY-MM-DD
+const previewImage = events.find((event) => event.date >= today)?.media[0]?.flyer ?? null;
 ---
 
 <BaseLayout
   title="Pa' Bailar · Bogotá"
   description="Sociales y talleres de baile en Bogotá: salsa, bachata, mambo y más, en un solo lugar."
+  image={previewImage}
 >
   <SiteHeader updatedLabel={updatedLabel} />
   <ViewToolbar />

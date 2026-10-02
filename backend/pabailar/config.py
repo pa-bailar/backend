@@ -18,6 +18,7 @@ load_dotenv(ENV_FILE)
 # Public output, read by the website.
 DATA_DIR = PROJECT_DIR / "data"
 EVENTS_FILE = DATA_DIR / "events.json"
+META_FILE = DATA_DIR / "meta.json"
 FLYERS_DIR = DATA_DIR / "flyers"
 # Backend-only input and state.
 ACCOUNTS_FILE = BACKEND_DIR / "accounts.txt"

@@ -43,7 +43,7 @@ Everything is centered on one GitHub repository. There are no servers to maintai
                       └────────────────────────────────────────────────────────────────────────────┘
                                          │                                   │
                           Instagram Graph API (Meta)              GitHub Pages (public site)
-                          Gemini API (Google)                     https://<user>.github.io/pa-bailar/
+                          Gemini API (Google)                     https://pa-bailar.github.io
 ```
 
 How the layers map:
@@ -284,7 +284,7 @@ After a local run, commit the data like any other change, or just let the next s
 ## 7. Frontend
 
 ### Changes needed for deployment
-1. **Base path:** GitHub Pages serves the site at `https://<user>.github.io/pa-bailar/`. Set `site` and `base: "/pa-bailar/"` in `astro.config.mjs`.
+1. **Address:** the repo lives in the `pa-bailar` GitHub organization as `pa-bailar.github.io`, so GitHub Pages serves it at the root of `https://pa-bailar.github.io` (no name of a person in the URL, no base path). `site` is set in `astro.config.mjs`; asset URLs use `import.meta.env.BASE_URL`, so a base path would still work.
    - The flyer and data URLs already use `import.meta.env.BASE_URL`; verify every link and asset path.
    - Cloudflare Pages or a custom domain would use `base: "/"`.
 2. **"Updated" stamp from data:** read `data/meta.json.generated_at` instead of the build time, so the page shows when the data was really refreshed.
@@ -568,39 +568,44 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 ### Phase 2 — Backend ready for CI
 - [x] Token health check at start; clear error message. *(cleanup PR)*
 - [x] Exit codes: fail only on broken runs (invalid token, missing secret, every account failed). *(cleanup PR)*
-- [ ] Write `data/meta.json` + `$GITHUB_STEP_SUMMARY` table.
+- [x] Write `data/meta.json` + `$GITHUB_STEP_SUMMARY` table (per-account).
 - [x] Validate `events.json` against the Pydantic models on load and save. *(cleanup PR)*
 - [x] `ruff` config; fix lint issues. *(cleanup PR)*
-- [ ] Offline tests with fixtures (section 6.8).
-- [ ] `docs/DATA.md` (schema + rules).
+- [x] Offline tests with fixtures, incl. an end-to-end sweep with fake Instagram/Gemini (`tests/test_sweep.py`).
+- [x] `docs/DATA.md` (schema + rules).
 
 **Done when:** `ruff check`, `pytest` and a local pipeline run all pass.
 
 ### Phase 3 — Frontend ready for hosting
-- [ ] `site` + `base` in `astro.config.mjs`; verify all asset URLs with the base path.
-- [ ] "Updated" date from `meta.json`.
-- [ ] `404.astro`, Open Graph meta tags.
-- [ ] `astro check` passes.
+- [x] `site` in `astro.config.mjs`; asset URLs verified with a base path too.
+- [x] "Updated" date from `meta.json`.
+- [x] `404.astro`, Open Graph meta tags (preview image = next event's flyer).
+- [x] `astro check` passes.
 
-**Done when:** `npm run build` output works when served under `/pa-bailar/` (test with `npm run preview`).
+**Done when:** `npm run build` output works at the final address.
 
 ### Phase 4 — CI
-- [ ] `.github/workflows/ci.yml`.
+- [x] `.github/workflows/ci.yml`.
 - [ ] Open a test PR; both jobs are green.
-- [ ] Branch protection/ruleset on `main`: require PR + `ci`, block force push, **allow GitHub Actions to bypass** (for data commits).
+- [ ] Ruleset `protect-main` on `main`: require a squash-merged PR + the `ci` check, block force pushes and deletion, **no bypass at all** (owner's decision, 2026-10-02). The daily sweep therefore publishes data through its own auto-merged PR (see Phase 6).
 
 **Done when:** a PR with a deliberately broken test is blocked, and a fixed one merges.
 
 ### Phase 5 — Deploy
-- [ ] **Settings → Pages → Source: GitHub Actions**.
-- [ ] `.github/workflows/deploy.yml`.
+- [ ] **Settings → Pages → Source: GitHub Actions** (done on the old repo; redo after moving to the `pa-bailar` org).
+- [x] `.github/workflows/deploy.yml`.
 - [ ] Run it with the manual button.
 
-**Done when:** the site is live at `https://<user>.github.io/pa-bailar/`, with flyers loading.
+**Done when:** the site is live at `https://pa-bailar.github.io`, with flyers loading.
 
 ### Phase 6 — Daily sweep
-- [ ] Add secrets `GEMINI_API_KEY`, `META_ACCESS_TOKEN` and `IG_USER_ID`.
-- [ ] `.github/workflows/daily-sweep.yml`.
+- [x] Add secrets `GEMINI_API_KEY`, `META_ACCESS_TOKEN` and `IG_USER_ID` (they survived the move to the org).
+- [x] `.github/workflows/daily-sweep.yml`, data through PRs, and **only when events or flyers change**:
+  - The sweep pushes a `data/sweep-…` branch, opens a PR labeled `data`, starts `ci` on it, and enables auto-merge (squash). After the merge it starts `deploy`.
+  - Days without new events open no PR. `backend/state/processed_posts.json` survives between runs in the Actions cache and is committed with the next real change.
+  - Every day the sweep starts `deploy` with `checked_at`, so "Actualizado el …" shows the time of the check.
+  - The workflow token can't trigger push/PR workflows, so the sweep starts `ci` and `deploy` with `workflow_dispatch`.
+  - Requires "Allow GitHub Actions to create and approve pull requests" (repo and org settings).
 - [ ] Run it manually with `days = 7`; check:
   - (a) the bot commit `chore(data): daily sweep …` appears on `main`
   - (b) deploy is triggered
@@ -612,8 +617,8 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 **Done when:** two consecutive scheduled runs succeed on their own.
 
 ### Phase 7 — Monitoring, security, maintenance
-- [ ] healthchecks.io check + `HEALTHCHECK_URL` secret + ping step.
-- [ ] `.github/dependabot.yml`.
+- [ ] healthchecks.io check + `HEALTHCHECK_URL` secret (ping step is ready and skips itself until the secret exists; needs a healthchecks.io account).
+- [x] `.github/dependabot.yml`.
 - [ ] `docs/RUNBOOK.md` (section 13).
 - [ ] Optional: stale-data warning on the page.
 

@@ -5,6 +5,7 @@ Every load and save goes through the Pydantic models, so a malformed file is nev
 
 import io
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +43,21 @@ def load_events() -> list[StoredEvent]:
 def save_events(events: list[StoredEvent]) -> None:
     ordered = sorted(events, key=lambda event: (event.date or "9999", event.start_time or ""))
     _write_json(config.EVENTS_FILE, _events_adapter.dump_python(ordered, mode="json"))
+
+
+# ---------- run metadata ----------
+
+SCHEMA_VERSION = 1  # bump on breaking changes to events.json
+
+
+def save_meta(stats: dict[str, Any]) -> None:
+    """data/meta.json: when the data was last refreshed (shown on the site) and what the run did."""
+    meta = {
+        "schema_version": SCHEMA_VERSION,
+        "generated_at": datetime.now(config.BOGOTA_TZ).isoformat(timespec="seconds"),
+        "stats": stats,
+    }
+    _write_json(config.META_FILE, meta)
 
 
 # ---------- processed posts ----------

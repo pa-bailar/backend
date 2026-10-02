@@ -7,9 +7,34 @@ Usage (from the backend folder):
 
 import argparse
 import logging
+import os
+from pathlib import Path
 
 from pabailar import config
-from pabailar.pipeline import Sweep
+from pabailar.pipeline import RunStats, Sweep
+
+
+def summary_markdown(stats: RunStats) -> str:
+    """Markdown table shown on the GitHub Actions run page."""
+    rows = [
+        f"| @{account} | {'❌ fetch failed' if s.fetch_failed else s.posts_analyzed} "
+        f"| {s.events_new} | {s.events_merged} | {s.errors} |"
+        for account, s in stats.by_account.items()
+    ]
+    return "\n".join(
+        [
+            "## Daily sweep",
+            "",
+            f"{stats.posts_analyzed} posts analyzed · {stats.events_new} new events · "
+            f"{stats.events_merged} merged into existing events · {stats.events_discarded} discarded "
+            f"(recurring/undated) · {stats.flyers_removed} flyers removed · {stats.errors} errors",
+            "",
+            "| Account | Posts analyzed | New events | Merged | Errors |",
+            "|---|---|---|---|---|",
+            *rows,
+            "",
+        ]
+    )
 
 
 def main() -> None:
@@ -39,7 +64,12 @@ def main() -> None:
         stats.flyers_removed,
         stats.errors,
     )
-    if stats.accounts and stats.errors >= stats.accounts:
+    if summary_file := os.environ.get("GITHUB_STEP_SUMMARY"):
+        with Path(summary_file).open("a", encoding="utf-8") as file:
+            file.write(summary_markdown(stats))
+
+    # Individual posts that fail are retried next run; only a sweep where no account could be read is broken.
+    if stats.accounts and stats.failed_accounts == stats.accounts:
         raise SystemExit("Every account failed. Check the logs above.")
 
 
