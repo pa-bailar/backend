@@ -1,18 +1,19 @@
 // Event viewer on the home page: a dialog with one slide per event on screen, in list order.
 //   - Swipe sideways (or ‹ ›, or the arrow keys) for the previous/next event; scroll up/down to read.
-//   - Where to swipe is signaled by the neighbors' edges peeking at the sides, the "3 de 9" counter and,
-//     until the visitor first swipes, a one-time nudge toward the next event.
-//   - Close with ×, Escape, the phone's back button, or (phones) by pulling the viewer down from the top.
+//   - Each event fills the width, like an Instagram post. Swiping is signaled by the "3 de 9" counter with
+//     ‹ › and, until the visitor first swipes, a nudge that briefly shows the next event.
+//   - Close with ×, Escape, the phone's back button, or by dragging it down (lib/sheet.ts); every way
+//     of closing slides it away instead of making it vanish.
 // The address bar shows the current event's own URL (/evento/<id>/): opening pushes it to the history,
 // so "back" closes the viewer; swiping replaces it, so back still closes instead of stepping events.
 
 import type { DanceEvent } from "../types";
 import { byId } from "../lib/dom";
 import { eventPath } from "../lib/links";
+import { dismissSheet, initSheet } from "../lib/sheet";
 import { eventDetailHtml, handleMediaTabClick } from "./eventDetail";
 
 const HINT_KEY = "swipe-hint-seen";
-const CLOSE_DISTANCE = 110; // px pulled down that close the viewer
 const SETTLE_DELAY = 120; // ms without scrolling that count as "the swipe ended"
 
 let list: DanceEvent[] = [];
@@ -98,60 +99,11 @@ function markHintSeen() {
 
 function maybeHint() {
   if (list.length < 2 || hintSeen() || prefersReducedMotion()) return;
-  const current = slides()[index];
-  const direction = index < list.length - 1 ? "next" : "previous";
-  current.classList.add(`is-hinting-${direction}`);
-  current.addEventListener("animationend", () => current.classList.remove(`is-hinting-${direction}`), { once: true });
-}
-
-// ---------- pull down to close (phones) ----------
-
-function initPullToClose() {
-  const element = dialog();
-  let startX = 0;
-  let startY = 0;
-  let pulling: boolean | null = null; // null = direction not decided yet
-  let distance = 0;
-
-  element.addEventListener(
-    "touchstart",
-    (touch) => {
-      const slide = slides()[index];
-      const fromBar = (touch.target as HTMLElement).closest(".viewer-bar");
-      // Only from the top: the bar, or a slide that isn't scrolled down.
-      pulling = fromBar || (slide && slide.scrollTop <= 0) ? null : false;
-      startX = touch.touches[0].clientX;
-      startY = touch.touches[0].clientY;
-      distance = 0;
-    },
-    { passive: true },
-  );
-
-  element.addEventListener(
-    "touchmove",
-    (touch) => {
-      if (pulling === false) return;
-      const dx = touch.touches[0].clientX - startX;
-      const dy = touch.touches[0].clientY - startY;
-      if (pulling === null) {
-        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-        pulling = dy > 0 && Math.abs(dy) > Math.abs(dx); // downwards: pull; sideways or up: swipe/scroll
-        if (!pulling) return;
-        element.classList.add("is-pulling");
-      }
-      distance = Math.max(dy, 0);
-      element.style.transform = `translateY(${distance}px)`;
-    },
-    { passive: true },
-  );
-
-  element.addEventListener("touchend", () => {
-    if (!pulling) return;
-    pulling = false;
-    element.classList.remove("is-pulling");
-    element.style.transform = "";
-    if (distance > CLOSE_DISTANCE) element.close();
-  });
+  const hint = `is-hinting-${index < list.length - 1 ? "next" : "previous"}`;
+  const stop = () => track().classList.remove(hint);
+  track().classList.add(hint);
+  track().addEventListener("animationend", stop, { once: true });
+  dialog().addEventListener("touchstart", stop, { once: true, passive: true }); // the visitor took over
 }
 
 // ---------- open, close, history ----------
@@ -189,7 +141,7 @@ export function initEventDialog(find: (id: string) => DanceEvent | undefined) {
     const stepButton = target.closest<HTMLElement>("[data-step]");
     if (stepButton) step(Number(stepButton.dataset.step));
     // Close on × or a tap on the backdrop (the dialog element itself).
-    else if (target === element || target.closest("[data-close-dialog]")) element.close();
+    else if (target === element || target.closest("[data-close-dialog]")) dismissSheet(element);
   });
 
   element.addEventListener("keydown", (key) => {
@@ -216,9 +168,12 @@ export function initEventDialog(find: (id: string) => DanceEvent | undefined) {
   window.addEventListener("popstate", (domEvent) => {
     const eventId = (domEvent.state as HistoryState | null)?.eventId;
     const event = eventId ? findEvent(eventId) : undefined;
+    // Safari's edge swipe already animates going back: close at once instead of animating twice.
+    const browserAnimated = (domEvent as PopStateEvent & { hasUAVisualTransition?: boolean }).hasUAVisualTransition;
     if (event) openEventDialog(event, list.length ? list : [event], { pushHistory: false });
-    else if (element.open) element.close();
+    else if (element.open) dismissSheet(element, { instant: Boolean(browserAnimated) });
   });
 
-  initPullToClose();
+  // Drag down from the top bar, or from the event when it's scrolled to the top.
+  initSheet(element, (target) => Boolean(target.closest(".viewer-bar")) || (slides()[index]?.scrollTop ?? 0) <= 0);
 }

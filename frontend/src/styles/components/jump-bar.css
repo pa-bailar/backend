@@ -29,6 +29,12 @@
   flex: none;
 }
 
+/* A line between the button and the period chips. */
+.jump-bar__inner > .jump-bar__periods {
+  padding-left: var(--space-2);
+  border-left: var(--border-width) solid var(--divider);
+}
+
 /* Period chips scroll sideways; the filter button stays put. */
 .jump-bar__periods {
   display: flex;
@@ -38,6 +44,14 @@
   padding-right: var(--space-4);
   overflow-x: auto;
   scrollbar-width: none;
+  /* Chips come to rest aligned, and fade out at the edges instead of being sliced. */
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--space-2);
+  mask-image: linear-gradient(to right, transparent, #000 var(--space-2), #000 calc(100% - var(--space-6)), transparent);
+}
+
+.jump-bar__periods > * {
+  scroll-snap-align: start;
 }
 
 .jump-bar__periods::-webkit-scrollbar {

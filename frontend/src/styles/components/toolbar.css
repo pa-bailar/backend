@@ -60,6 +60,15 @@
   display: none;
 }
 
+/* Phones: the filter chips live in the filter sheet (opened from the jump bar), not in rows that
+   scroll sideways and cut chips at the edge. Wider screens show them here. */
+@media (max-width: 719px) {
+  .toolbar [data-filter-row="type"],
+  .toolbar [data-filter-row="style"] {
+    display: none;
+  }
+}
+
 .chip-row {
   display: flex;
   gap: var(--space-2);
