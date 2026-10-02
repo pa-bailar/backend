@@ -15,23 +15,34 @@ from pabailar.pipeline import RunStats, Sweep
 
 
 def summary_markdown(stats: RunStats) -> str:
-    """Markdown table shown on the GitHub Actions run page."""
-    rows = [
-        f"| @{account} | {'❌ fetch failed' if s.fetch_failed else s.posts_analyzed} "
-        f"| {s.events_new} | {s.events_merged} | {s.errors} |"
+    """Markdown tables shown on the GitHub Actions run page."""
+    account_rows = [
+        f"| @{account}{' (new)' if s.backfill else ''} | {'❌ fetch failed' if s.fetch_failed else s.posts_analyzed} "
+        f"| {s.events_new} | {s.events_merged} | {s.pending} | {s.errors} |"
         for account, s in stats.by_account.items()
+    ]
+    model_rows = [
+        f"| {model} | {stats.gemini_requests.get(model, 0)} | {limit.requests_per_day} |"
+        for model, limit in config.MODEL_LIMITS.items()
     ]
     return "\n".join(
         [
             "## Daily sweep",
             "",
-            f"{stats.posts_analyzed} posts analyzed · {stats.events_new} new events · "
-            f"{stats.events_merged} merged into existing events · {stats.events_discarded} discarded "
-            f"(recurring/undated) · {stats.flyers_removed} flyers removed · {stats.errors} errors",
+            f"{stats.posts_analyzed} posts analyzed ({stats.posts_triaged_out} ruled out by triage) · "
+            f"{stats.events_new} new events · {stats.events_merged} merged into existing events · "
+            f"{stats.events_discarded} discarded (recurring/undated) · {stats.provisional} provisional · "
+            f"{stats.upgraded} upgraded · {stats.pending} pending for next run · {stats.errors} errors",
             "",
-            "| Account | Posts analyzed | New events | Merged | Errors |",
-            "|---|---|---|---|---|",
-            *rows,
+            "| Account | Posts analyzed | New events | Merged | Pending | Errors |",
+            "|---|---|---|---|---|---|",
+            *account_rows,
+            "",
+            "### Gemini requests",
+            "",
+            "| Model | This run | Daily limit |",
+            "|---|---|---|",
+            *model_rows,
             "",
         ]
     )
@@ -54,15 +65,19 @@ def main() -> None:
     stats = Sweep(lookback_days=args.days).run()
 
     logging.info(
-        "\nDone: %s accounts, %s posts analyzed, %s new events, %s posts merged into existing events, "
-        "%s recurring/undated discarded, %s flyers removed, %s errors.",
+        "\nDone: %s accounts, %s posts analyzed (%s ruled out by triage), %s new events, %s merged, "
+        "%s discarded, %s provisional, %s upgraded, %s pending, %s errors. Gemini requests: %s",
         stats.accounts,
         stats.posts_analyzed,
+        stats.posts_triaged_out,
         stats.events_new,
         stats.events_merged,
         stats.events_discarded,
-        stats.flyers_removed,
+        stats.provisional,
+        stats.upgraded,
+        stats.pending,
         stats.errors,
+        stats.gemini_requests or "none",
     )
     if summary_file := os.environ.get("GITHUB_STEP_SUMMARY"):
         with Path(summary_file).open("a", encoding="utf-8") as file:

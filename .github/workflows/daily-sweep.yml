@@ -5,9 +5,11 @@
 # through the same path as code:
 #   sweep → (only if events or flyers changed) data/ branch → PR → ci → auto-merge → deploy
 #
-# Days without new events open no PR. The list of analyzed posts (backend/state) is kept in the
-# Actions cache between runs, so posts aren't sent to Gemini twice; it is committed with the next
+# Days without new events open no PR. The sweep's state (backend/state: analyzed posts, accounts'
+# first-sweep progress, today's Gemini usage) is kept in the Actions cache between runs, so posts
+# aren't sent to Gemini twice and quotas are shared by same-day runs; it is committed with the next
 # real change. Losing the cache only means re-analyzing a few posts.
+# Bump STATE_CACHE_VERSION when the state format changes, so the repo's committed state is used once.
 #
 # Events created with the workflow token don't trigger other workflows, so this workflow starts
 # `ci` and `deploy` itself with workflow_dispatch (the one event the token is allowed to trigger).
@@ -33,7 +35,8 @@ concurrency:
 
 env:
   GH_TOKEN: ${{ github.token }}
-  STATE_FILE: backend/state/processed_posts.json
+  STATE_DIR: backend/state
+  STATE_CACHE_VERSION: v2
   MERGE_TIMEOUT_MINUTES: 20
 
 jobs:
@@ -43,12 +46,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Restore the analyzed-posts state
+      - name: Restore the sweep state
         uses: actions/cache/restore@v6
         with:
-          path: ${{ env.STATE_FILE }}
-          key: sweep-state-${{ github.run_id }}
-          restore-keys: sweep-state-
+          path: ${{ env.STATE_DIR }}
+          key: sweep-state-${{ env.STATE_CACHE_VERSION }}-${{ github.run_id }}
+          restore-keys: sweep-state-${{ env.STATE_CACHE_VERSION }}-
 
       - uses: actions/setup-python@v7
         with:
@@ -67,12 +70,12 @@ jobs:
           LOOKBACK_DAYS: ${{ inputs.days || '7' }}
         run: python run_pipeline.py --days "$LOOKBACK_DAYS"
 
-      - name: Save the analyzed-posts state
+      - name: Save the sweep state
         if: ${{ !cancelled() }}
         uses: actions/cache/save@v6
         with:
-          path: ${{ env.STATE_FILE }}
-          key: sweep-state-${{ github.run_id }}
+          path: ${{ env.STATE_DIR }}
+          key: sweep-state-${{ env.STATE_CACHE_VERSION }}-${{ github.run_id }}
 
       - name: Open a data pull request if events or flyers changed
         id: pr

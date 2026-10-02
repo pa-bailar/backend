@@ -311,10 +311,8 @@
     "event_type": "workshop",
     "is_recurring": false,
     "styles": [
-      "salsa",
-      "mambo",
-      "afro",
-      "rumba"
+      "salsa en línea",
+      "afro"
     ],
     "organizer": "Madyum",
     "venue": "Escuela del Mambo",
@@ -358,7 +356,6 @@
     "event_type": "social",
     "is_recurring": false,
     "styles": [
-      "salsa",
       "bachata",
       "salsa caleña"
     ],

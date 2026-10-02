@@ -1,11 +1,62 @@
 """Clean what Gemini returns before it is stored: the frontend relies on these formats."""
 
 import re
+import unicodedata
 from datetime import date, time
 
-from .models import ExtractedEvent
+from .models import STYLES, ExtractedEvent
 
 _TIME_PATTERN = re.compile(r"^(\d{1,2}):(\d{2})$")
+
+
+def _key(text: str) -> str:
+    """Lowercase, single spaces, no accents: 'Salsa  Caleña' → 'salsa calena'."""
+    decomposed = unicodedata.normalize("NFKD", text.casefold())
+    return " ".join("".join(char for char in decomposed if not unicodedata.combining(char)).split())
+
+
+# Accent-insensitive names and synonyms → the style list in models.py.
+_STYLE_SYNONYMS = {
+    **{_key(style): style for style in STYLES},
+    "mambo": "salsa en línea",
+    "on1": "salsa en línea",
+    "on2": "salsa en línea",
+    "salsa on1": "salsa en línea",
+    "salsa on2": "salsa en línea",
+    "salsa linea": "salsa en línea",
+    "salsa new york": "salsa en línea",
+    "salsa ny": "salsa en línea",
+    "salsa los angeles": "salsa en línea",
+    "salsa la": "salsa en línea",
+    "casino": "salsa cubana",
+    "salsa casino": "salsa cubana",
+    "rueda": "salsa cubana",
+    "rueda de casino": "salsa cubana",
+    "timba": "salsa cubana",
+    "calena": "salsa caleña",
+    "salsa estilo caleno": "salsa caleña",
+    "estilo caleno": "salsa caleña",
+    "salsa cali": "salsa caleña",
+    "sensual": "bachata sensual",
+    "bachata tradicional": "bachata dominicana",
+    "bachata moderna": "bachata",
+    "bachata fusion": "bachata",
+    "chachacha": "cha cha chá",
+    "cha cha cha": "cha cha chá",
+    "son cubano": "son",
+    "brazilian zouk": "zouk",
+    "zouk brasileno": "zouk",
+    "reggaeton": "urbano",
+    "regueton": "urbano",
+    "hip hop": "urbano",
+    "street": "urbano",
+    "rumba": "afro",
+    "rumba cubana": "afro",
+    "afrobeat": "afro",
+    "afrohouse": "afro",
+    "west coast swing": "swing",
+    "lindy hop": "swing",
+}
 
 
 def parse_iso_date(value: str | None) -> str | None:
@@ -30,14 +81,29 @@ def parse_time(value: str | None) -> str | None:
         return None
 
 
+def normalize_style(style: str) -> str | None:
+    """A style from the list for any spelling or synonym; 'otro' for unknown ones, None for blanks."""
+    key = _key(style)
+    if not key:
+        return None
+    return _STYLE_SYNONYMS.get(key, "otro")
+
+
 def normalize_styles(styles: list[str]) -> list[str]:
-    """Lowercase, trimmed, without duplicates, in their original order."""
+    """Styles from the list, without duplicates, in their original order.
+
+    The generic 'salsa' / 'bachata' is dropped when a specific variant of it is present.
+    """
     seen: dict[str, None] = {}
     for style in styles:
-        cleaned = " ".join(style.casefold().split())
-        if cleaned:
-            seen.setdefault(cleaned, None)
-    return list(seen)
+        normalized = normalize_style(style)
+        if normalized:
+            seen.setdefault(normalized, None)
+    result = list(seen)
+    for family in ("salsa", "bachata"):
+        if family in result and any(style.startswith(f"{family} ") for style in result):
+            result.remove(family)
+    return result
 
 
 def normalize_event(event: ExtractedEvent) -> ExtractedEvent:

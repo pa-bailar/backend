@@ -5,7 +5,7 @@
 import type { AppState, DanceEvent, EventType } from "../types";
 import { byId, escapeHtml } from "../lib/dom";
 import { capitalize, typeLabel } from "../lib/format";
-import { eventsInView } from "../state";
+import { STYLE_FAMILIES, eventsInView } from "../state";
 
 function chipHtml(attribute: "type" | "style", value: string, label: string, active: boolean): string {
   return `<button class="chip" data-${attribute}="${escapeHtml(value)}" aria-pressed="${active}">${escapeHtml(label)}</button>`;
@@ -15,10 +15,19 @@ function withSelected<T extends string>(options: T[], selected: T | "all"): T[] 
   return selected === "all" || options.includes(selected) ? options : [...options, selected];
 }
 
+/** Styles present, plus the family chip ("Salsa", "Bachata") whenever one of its variants is present. */
+function styleOptions(events: DanceEvent[]): string[] {
+  const present = new Set(events.flatMap((event) => event.styles));
+  for (const family of STYLE_FAMILIES) {
+    if ([...present].some((style) => style.startsWith(`${family} `))) present.add(family);
+  }
+  return [...present].sort((a, b) => a.localeCompare(b, "es"));
+}
+
 export function renderFilters(events: DanceEvent[], state: AppState) {
   const visible = eventsInView(events, state);
   const types = withSelected([...new Set(visible.map((event) => event.event_type))], state.typeFilter);
-  const styles = withSelected([...new Set(visible.flatMap((event) => event.styles))].sort(), state.styleFilter);
+  const styles = withSelected(styleOptions(visible), state.styleFilter);
 
   byId("type-filters").innerHTML = [
     chipHtml("type", "all", "Todo", state.typeFilter === "all"),

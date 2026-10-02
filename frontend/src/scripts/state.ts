@@ -14,9 +14,16 @@ export function createInitialState(): AppState {
   };
 }
 
+/** Styles with variants: filtering by the family ("salsa") also matches its variants ("salsa caleña"). */
+export const STYLE_FAMILIES = ["salsa", "bachata"];
+
+export function styleMatches(eventStyle: string, filter: string): boolean {
+  return eventStyle === filter || (STYLE_FAMILIES.includes(filter) && eventStyle.startsWith(`${filter} `));
+}
+
 export function matchesFilters(event: DanceEvent, state: AppState): boolean {
   const typeOk = state.typeFilter === "all" || event.event_type === state.typeFilter;
-  const styleOk = state.styleFilter === "all" || event.styles.includes(state.styleFilter);
+  const styleOk = state.styleFilter === "all" || event.styles.some((style) => styleMatches(style, state.styleFilter));
   return typeOk && styleOk;
 }
 
