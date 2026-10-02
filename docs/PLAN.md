@@ -653,6 +653,16 @@ Each phase ends in a working state. Work happens on a branch → PR → merge (o
 
 ## 14. Future items (not part of go-live)
 
+Known gaps from the 2026-10-01 audit (not fixed yet, by design):
+- "Actualizado el …" shows the build date, not the data date. Fixed by `meta.json` in Phase 2.
+- Merging a post fills in missing details but keeps the old `doubts` (e.g. "sin hora" after a video supplies the time).
+- `processed_posts.json` grows forever. Prune it with the retention work.
+- Images are sent to Gemini as JPEG without checking the actual format (Instagram serves JPEG today).
+- No end-to-end pipeline test with mocked Instagram/Gemini yet (Phase 2).
+- Gemini's `same_as` linking hasn't been exercised on a real repost yet; check the first runs.
+- View tabs don't support arrow-key navigation (full ARIA tabs pattern).
+- Fonts load from Google Fonts. Self-hosting them would remove a third-party request.
+
 - Design system and restyle (pending user choice A/B/C).
 - Past-event retention and archive.
 - Pull-request preview deploys (needs Cloudflare Pages).
