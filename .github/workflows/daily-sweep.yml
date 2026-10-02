@@ -1,25 +1,21 @@
-# Every morning: collect new events from Instagram, publish real changes through a pull request,
-# and republish the site with the time of the check.
+# Twice a day: collect new events from Instagram and publish real changes to the (public) site
+# repository through a pull request.
 #
-# main only accepts pull requests that pass the `ci` check, with no exceptions, so the data goes
-# through the same path as code:
-#   sweep → (only if events or flyers changed) data/ branch → PR → ci → auto-merge → deploy
+#   this repo (private): sweep ── data PR ──▶ pa-bailar.github.io: ci → auto-merge → deploy
 #
-# Days without new events open no PR. The sweep's state (backend/state: analyzed posts, accounts'
-# first-sweep progress, today's Gemini usage) is kept in the Actions cache between runs, so posts
-# aren't sent to Gemini twice and quotas are shared by same-day runs; it is committed with the next
-# real change. Losing the cache only means re-analyzing a few posts.
-# Bump STATE_CACHE_VERSION when the state format changes, so the repo's committed state is used once.
-#
-# Events created with the workflow token don't trigger other workflows, so this workflow starts
-# `ci` and `deploy` itself with workflow_dispatch (the one event the token is allowed to trigger).
+# - The site repository is reached with the pa-bailar-bot GitHub App (vars.APP_ID, secrets.APP_PRIVATE_KEY).
+#   Its pull requests trigger the site's ci like anyone's, and its merges trigger the deploy.
+# - Days without new events open no PR; the site is still republished with the time of the check.
+# - The sweep's state (analyzed posts, accounts' first-sweep progress, today's Gemini usage) lives in
+#   this repository's sweep-state branch: read before the run, written back after it, so posts aren't
+#   sent to Gemini twice and the two daily runs share the quotas.
 name: daily-sweep
 
 on:
   # Twice a day, at unusual minutes: GitHub delays (and under load drops) runs scheduled at the top
   # of the hour. Two runs also mean a dropped run doesn't leave the site stale, and the midday one
-  # catches the morning's posts. They share Gemini's daily quotas (the usage is in the state cache)
-  # and never overlap (concurrency below). Bogotá is UTC-5 all year.
+  # catches the morning's posts. They share Gemini's daily quotas (the usage is in the state) and never
+  # overlap (concurrency below). Bogotá is UTC-5 all year.
   schedule:
     - cron: "23 10 * * *" # 5:23 AM Bogotá
     - cron: "47 17 * * *" # 12:47 PM Bogotá
@@ -30,18 +26,16 @@ on:
         default: "7"
 
 permissions:
-  contents: write # push the data branch
-  pull-requests: write # open the data PR and enable auto-merge
-  actions: write # start ci and deploy, save the state cache
+  contents: write # push the sweep-state branch of this repository
 
 concurrency:
   group: data
   cancel-in-progress: false
 
 env:
-  GH_TOKEN: ${{ github.token }}
+  SITE_OWNER: pa-bailar
+  SITE_REPO: pa-bailar.github.io
   STATE_DIR: backend/state
-  STATE_CACHE_VERSION: v2
   MERGE_TIMEOUT_MINUTES: 20
 
 jobs:
@@ -51,12 +45,29 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Restore the sweep state
-        uses: actions/cache/restore@v6
+      - name: Read the sweep state
+        uses: actions/checkout@v7
         with:
-          path: ${{ env.STATE_DIR }}
-          key: sweep-state-${{ env.STATE_CACHE_VERSION }}-${{ github.run_id }}
-          restore-keys: sweep-state-${{ env.STATE_CACHE_VERSION }}-
+          ref: sweep-state
+          path: sweep-state
+
+      - run: mkdir -p "$STATE_DIR" && cp sweep-state/*.json "$STATE_DIR"/
+
+      - name: Get a token for the site repository (pa-bailar-bot)
+        id: app
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ env.SITE_OWNER }}
+          repositories: ${{ env.SITE_REPO }}
+
+      - name: Check out the site repository
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.SITE_OWNER }}/${{ env.SITE_REPO }}
+          token: ${{ steps.app.outputs.token }}
+          path: site
 
       - uses: actions/setup-python@v7
         with:
@@ -72,47 +83,57 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          DATA_DIR: ${{ github.workspace }}/site/data
           LOOKBACK_DAYS: ${{ inputs.days || '7' }}
         run: python run_pipeline.py --days "$LOOKBACK_DAYS"
 
+      # Kept even when the sweep failed partway: its progress (analyzed posts) is real.
       - name: Save the sweep state
         if: ${{ !cancelled() }}
-        uses: actions/cache/save@v6
-        with:
-          path: ${{ env.STATE_DIR }}
-          key: sweep-state-${{ env.STATE_CACHE_VERSION }}-${{ github.run_id }}
-
-      - name: Open a data pull request if events or flyers changed
-        id: pr
-        if: ${{ !cancelled() }} # keep progress from a sweep that failed partway (it still shows as failed)
+        working-directory: sweep-state
         run: |
-          if [ -z "$(git status --porcelain -- data/events.json data/flyers)" ]; then
-            echo "No new or changed events today: no pull request."
-            exit 0
-          fi
+          cp "$GITHUB_WORKSPACE/$STATE_DIR"/*.json .
+          if [ -z "$(git status --porcelain)" ]; then echo "State unchanged."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -qam "chore(state): sweep $(date -u +%FT%H:%MZ)"
+          git push -q origin HEAD:sweep-state
+
+      - name: Open a data pull request in the site repository if events or flyers changed
+        id: pr
+        if: ${{ !cancelled() }} # keep progress from a sweep that failed partway (it still shows as failed)
+        working-directory: site
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          BOT: ${{ steps.app.outputs.app-slug }}[bot]
+        run: |
+          if [ -z "$(git status --porcelain -- data)" ]; then
+            echo "No new or changed events: no pull request."
+            exit 0
+          fi
+          bot_id="$(gh api "/users/${BOT}" --jq .id)"
+          git config user.name "$BOT"
+          git config user.email "${bot_id}+${BOT}@users.noreply.github.com"
           day="$(date -u +%F)"
           branch="data/sweep-${day}-${GITHUB_RUN_ID}"
           git switch -c "$branch"
-          git add data/ backend/state/
+          git add data/
           git commit -m "chore(data): daily sweep ${day}"
           git push origin "$branch"
-          url="$(gh pr create --base main --head "$branch" --label data \
+          url="$(gh pr create --repo "$SITE_OWNER/$SITE_REPO" --base main --head "$branch" --label data \
             --title "chore(data): daily sweep ${day}" \
-            --body "Automatic data update from [daily-sweep run ${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}). Merges itself when \`ci\` passes.")"
+            --body "Automatic data update from the daily sweep (run ${GITHUB_RUN_ID} of the backend). Merges itself when \`ci\` passes.")"
+          gh pr merge "$url" --auto --squash --delete-branch
           echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "branch=$branch" >> "$GITHUB_OUTPUT"
           echo "Opened $url"
 
-      - name: Check the data PR and merge it when ci passes
+      # Its merge triggers the site's deploy (with meta.json's time, which is this sweep's).
+      - name: Wait for the data PR to merge
         if: ${{ !cancelled() && steps.pr.outputs.url != '' }}
         env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
           PR_URL: ${{ steps.pr.outputs.url }}
-          BRANCH: ${{ steps.pr.outputs.branch }}
         run: |
-          gh workflow run ci.yml --ref "$BRANCH"
-          gh pr merge "$PR_URL" --auto --squash --delete-branch
           deadline=$(( $(date +%s) + MERGE_TIMEOUT_MINUTES * 60 ))
           while true; do
             state="$(gh pr view "$PR_URL" --json state --jq .state)"
@@ -125,9 +146,13 @@ jobs:
             sleep 30
           done
 
-      - name: Publish the site with the time of this check
-        if: success()
-        run: gh workflow run deploy.yml --ref main -f checked_at="$(TZ=America/Bogota date --iso-8601=seconds)"
+      - name: Republish the site with the time of this check (days without new events)
+        if: ${{ success() && steps.pr.outputs.url == '' }}
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          gh workflow run deploy.yml --repo "$SITE_OWNER/$SITE_REPO" --ref main \
+            -f checked_at="$(TZ=America/Bogota date --iso-8601=seconds)"
 
       # Dead man's switch (optional, only if the HEALTHCHECK_URL secret exists, e.g. a free healthchecks.io
       # check): every run reports success or failure, and the service emails when runs fail or stop

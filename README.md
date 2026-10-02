@@ -1,22 +1,21 @@
-# Pa' Bailar · Bogotá
+# Pa' Bailar · backend (private)
 
 Collects one-time dance events (socials and workshops) from the Instagram accounts of Bogotá's
-dance academies and shows them on a web page with a calendar.
+dance academies (Instagram → Gemini) and publishes them to the site,
+[pa-bailar/pa-bailar.github.io](https://github.com/pa-bailar/pa-bailar.github.io) (public), with a
+pull request twice a day. The site, its design system and the data contract (`docs/DATA.md`) live there.
 
 ```
-backend/    Python data collector: Instagram -> Gemini -> data/
-frontend/   Astro web page that displays data/
-data/       events.json + flyers/ (written by the backend, read by the frontend)
-docs/       plan, design system and project documentation
+backend/    Python collector: Instagram -> Gemini -> the site repository's data/
+docs/       plan, architecture and conventions (PLAN.md)
 ```
 
-- [docs/PLAN.md](docs/PLAN.md): architecture, deployment, Git workflow and conventions
-- [docs/DESIGN.md](docs/DESIGN.md): design system (tokens, themes, components)
+Local folders: this repository in `Code\pa-bailar`, the site in `Code\pa-bailar-web` (a local
+sweep writes into `..\pa-bailar-web\data`; set `DATA_DIR` to change it).
 
 ## Requirements
 
 - Python 3.12 (`.python-version`)
-- Node.js 24 (`.nvmrc`)
 
 ## Backend
 
@@ -49,7 +48,8 @@ Lint and format:
   out the rest waits for the next day. Accounts already in their regular sweep always go first, so a
   backlog never delays today's events.
 - Already-analyzed posts are remembered in `backend/state/processed_posts.json`, so re-runs only
-  spend Gemini quota on new posts.
+  spend Gemini quota on new posts. On GitHub the state lives in the `sweep-state` branch (local runs
+  keep their own copy in `backend/state/`, git-ignored).
 - If the Instagram token stops working, paste a new one from the Graph API Explorer into `.env`
   and run `.venv\Scripts\python refresh_token.py`.
 
@@ -69,40 +69,22 @@ How it works:
 - **The report** is written to `private/discovery_report.md`.
 - **Runs resume:** run it again to continue where it stopped. Each run is capped (`--max-instagram`, `--max-gemini`) so it doesn't eat the daily sweep's quota.
 
-## Frontend
-
-From `frontend/`:
-
-```bash
-npm ci          # first time
-npm run dev     # local preview at http://localhost:4321
-npm run check   # type check + color contrast (WCAG AA)
-npm run build   # static site in frontend/dist/
-```
-
-Besides the home page, the build makes one page per event (`/evento/<id>/`, what shared links open),
-a JPEG link preview per event (`/og/<id>.jpg`) and a subscribable calendar feed (`/calendario.ics`).
-
-## Visit statistics
-
-[GoatCounter](https://jzamora9.goatcounter.com) (free, no cookies, no consent banner needed): page visits, each event opened in the viewer, and clicks on Instagram, WhatsApp, calendar, "Cómo llegar" and the calendar subscription (`data-track`, `frontend/src/scripts/lib/analytics.ts`). Shared WhatsApp links carry `utm_source=whatsapp`. Local testing (localhost) isn't counted.
-
 ## Deployment
 
-Live at **https://pa-bailar.github.io**. Everything runs on GitHub Actions:
+Everything runs on GitHub Actions:
 
 | Workflow | When | What |
 |---|---|---|
-| `ci` | Every pull request (and started by the sweep for its data PR) | Backend lint + unit tests, frontend type check + build. The final `ci` job is the required check. |
-| `daily-sweep` | Every day at 5:23 AM and 12:47 PM Bogotá, or *Run workflow* | Instagram → Gemini. Only if events or flyers changed: opens a `data` PR, runs `ci` on it and auto-merges it. Every day: republishes the site with the check time. |
-| `deploy` | Push to `main` touching `frontend/` or `data/`, started by the sweep, or *Run workflow* | Builds the site and publishes it to GitHub Pages |
+| `ci` | Every pull request | Lint, format check and unit tests. The required check on `main`. |
+| `daily-sweep` | Every day at 5:23 AM and 12:47 PM Bogotá, or *Run workflow* | Instagram → Gemini, writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is saved to the `sweep-state` branch. |
 
 `main` is protected by the `protect-main` ruleset with **no bypass**: changes only arrive through
-squash-merged pull requests that pass `ci`; force pushes and deletion are blocked. The daily data
-follows the same path. Data PRs carry the `data` label, so they're easy to filter or mute.
+squash-merged pull requests that pass `ci`; force pushes and deletion are blocked.
 
-Secrets (Settings → Secrets and variables → Actions): `GEMINI_API_KEY`, `META_ACCESS_TOKEN`,
-`IG_USER_ID`, and optionally `HEALTHCHECK_URL`.
+Settings → Secrets and variables → Actions:
+- Secrets: `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `APP_PRIVATE_KEY` (the pa-bailar-bot
+  App's private key), and optionally `HEALTHCHECK_URL`.
+- Variables: `APP_ID` (the pa-bailar-bot App's id).
 
 ## Contributing
 
