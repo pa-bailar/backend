@@ -50,6 +50,22 @@ Lint and format:
 - If the Instagram token stops working, paste a new one from the Graph API Explorer into `.env`
   and run `.venv\Scripts\python refresh_token.py`.
 
+### Finding new academies among the accounts you follow
+
+1. Download your Instagram data: Accounts Center → Your information and permissions → Download your information → "Followers and following" (HTML or JSON).
+2. Put `following.html` (or `.json`) in `backend/private/`. That folder is git-ignored; your data never leaves your PC.
+3. Run:
+
+```bash
+.venv\Scripts\python discover_accounts.py private\following.html
+```
+
+How it works:
+- **Instagram** checks each followed account, dance-looking usernames first, 20 s apart. Personal and private accounts are skipped.
+- **Gemini Flash-Lite** classifies the business accounts with a dance hint: academy, venue, organizer… and whether they're in Bogotá.
+- **The report** is written to `private/discovery_report.md`.
+- **Runs resume:** run it again to continue where it stopped. Each run is capped (`--max-instagram`, `--max-gemini`) so it doesn't eat the daily sweep's quota.
+
 ## Frontend
 
 From `frontend/`:
