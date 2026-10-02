@@ -122,7 +122,7 @@ class EventMedia(BaseModel):
 class StoredEvent(EventDetails):
     """One record of data/events.json: one event, announced by one or more posts."""
 
-    id: str  # "<first post_id>-<index>", stable even when more posts are added
+    id: str  # readable and never changed once set, e.g. "social-de-halloween-24-oct" (ids.py); the event's URL
     account: str
     media: list[EventMedia]  # main post first: images before videos, then oldest first
 
