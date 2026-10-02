@@ -12,13 +12,12 @@
 name: daily-sweep
 
 on:
-  # Twice a day, at unusual minutes: GitHub delays (and under load drops) runs scheduled at the top
-  # of the hour. Two runs also mean a dropped run doesn't leave the site stale, and the midday one
-  # catches the morning's posts. They share Gemini's daily quotas (the usage is in the state) and never
-  # overlap (concurrency below). Bogotá is UTC-5 all year.
-  schedule:
-    - cron: "23 10 * * *" # 5:23 AM Bogotá
-    - cron: "47 17 * * *" # 12:47 PM Bogotá
+  # Started twice a day (5:23 AM and 12:47 PM Bogotá) by cron-job.org, which calls GitHub's "run workflow"
+  # API with a token limited to Actions on this repository: GitHub's own `schedule` never fired in this
+  # repository (a known, undocumented problem of new private repositories), so it isn't used. See the
+  # README, "Deployment". Two runs a day: the midday one catches the morning's posts, and a missed run
+  # doesn't leave the site stale. They share Gemini's daily quotas (the usage is in the state) and never
+  # overlap (concurrency below).
   workflow_dispatch:
     inputs:
       days:
