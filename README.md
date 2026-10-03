@@ -16,7 +16,9 @@ pa_bailar/            the collector (one Python package)
   merging.py, ids.py, normalize.py, storage.py, models.py, discovery.py, config.py
 tests/                unit and end-to-end tests (no network)
 docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, monitoring (start here)
+docs/ADMIN.md         the admin tools and the admin page (work in progress)
 docs/PLAN.md          the original go-live plan, kept for its decisions
+admin-web/            the admin page, hosted on Cloudflare Pages (docs/ADMIN.md)
 accounts.txt          the academies to follow
 state/                local sweep state (git-ignored; on GitHub: the sweep-state branch)
 .claude/              Claude Code: workspace instructions, skills, hooks (Working with Claude Code, below)
