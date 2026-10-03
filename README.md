@@ -19,6 +19,7 @@ docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, mon
 docs/PLAN.md          the original go-live plan, kept for its decisions
 accounts.txt          the academies to follow
 state/                local sweep state (git-ignored; on GitHub: the sweep-state branch)
+.claude/              Claude Code: workspace instructions, skills, hooks (Working with Claude Code, below)
 private/              your own files: Instagram export, App key, discovery results (git-ignored)
 ```
 
@@ -172,3 +173,35 @@ Where to see it:
 `main` is what's live. Work on a branch (`feat/...`, `fix/...`), open a pull request, and use
 [Conventional Commits](https://www.conventionalcommits.org/) messages. Details in
 [docs/PLAN.md](docs/PLAN.md#4-git-workflow).
+
+## Working with Claude Code
+
+Claude Code sessions start in the folder that holds both repositories (`Code`), so that's where Claude Code
+looks for instructions, skills and hooks. The files themselves are versioned here, in `.claude/`:
+
+| File | What it is |
+|---|---|
+| `.claude/WORKSPACE.md` | The instructions for every session: the two repositories, how changes are made, what never to touch |
+| `.claude/skills/<name>/SKILL.md` | Skills: step-by-step procedures Claude follows. `sync-docs` updates the docs to match a branch before its pull request |
+| `.claude/hooks/require-docs-sync.mjs` | Blocks opening a pull request (`gh pr create`) until `sync-docs` has run at the branch's latest commit, which it records in `.git/docs-synced` |
+
+The `Code` folder points at them (set up once per computer):
+
+- `Code\CLAUDE.md` contains `@pa-bailar/.claude/WORKSPACE.md`, which loads the instructions.
+- `Code\.claude\skills` is a junction to this repository's `.claude\skills` (PowerShell, from `Code`):
+  `New-Item -ItemType Junction -Path .claude\skills -Target pa-bailar\.claude\skills`
+- `Code\.claude\settings.json` runs the hook before every Bash command:
+
+  ```json
+  {
+    "hooks": {
+      "PreToolUse": [
+        { "matcher": "Bash", "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/pa-bailar/.claude/hooks/require-docs-sync.mjs\"" }
+        ] }
+      ]
+    }
+  }
+  ```
+
+Skills and instructions load when a session starts: a new or changed skill shows up in the next session.
