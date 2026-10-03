@@ -255,6 +255,7 @@ def test_one_account_failing_does_not_stop_the_others_and_meta_is_written():
     assert stats.failed_accounts == 1 and stats.events_new == 1
     meta = read(config.META_FILE)
     assert meta["schema_version"] == 1 and meta["generated_at"]
+    assert meta["accounts"] == ["academia", "otra"]  # every account swept, with or without events
     assert meta["stats"]["by_account"]["academia"]["fetch_failed"] is True
     summary = summary_markdown(stats)
     assert "@academia" in summary and "Gemini requests" in summary
