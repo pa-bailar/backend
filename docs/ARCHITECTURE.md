@@ -445,7 +445,8 @@ Notes on the prompts and parameters:
     classes, programs spread over several weeks, recaps, showcases or tutorials, nor anything that isn't
     about dancing (like a drawing workshop at a dance venue). It quotes the words academies use
     ("social", "taller", "todos los jueves", "así se vivió"…), which helps the lighter model most;
-  - how to pick the event type and the styles (from a fixed list);
+  - how to pick the event type (social, workshop, concert, congress, festival, competition, show, other: a
+    multi-day dance congress is a `congress`, its workshops included) and the styles (from a fixed list);
   - how to resolve dates without a year;
   - how to rate confidence (high, medium or low);
   - when to set `same_as` (section 9).
