@@ -21,7 +21,7 @@ from typing import Any, Protocol
 
 from google.genai import errors as genai_errors
 
-from . import clips, config, links, storage
+from . import clips, config, links, public_post, storage
 from .extraction import EventExtractor
 from .gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError
 from .ids import new_event_id
@@ -31,6 +31,7 @@ from .instagram import (
     Post,
     download_image,
     image_urls,
+    is_not_visible,
     is_rate_limited,
     published_at,
     slide_count,
@@ -216,6 +217,8 @@ class AddedPost:
     model: str | None
     provisional: bool
     events: list[StoredEvent]  # the events it became or joined, as stored
+    public: bool = False  # read from its public page (public_post.py): the API couldn't give it
+    readable: bool = True  # the API can read the account (so it's swept); False: personal or private
 
 
 def hours_overdue(state: AccountState | None, now: datetime) -> float:
@@ -346,35 +349,40 @@ class Sweep:
     # ---------- one post, from the admin tools ----------
 
     def add_post(self, url: str, account: str | None = None) -> AddedPost:
-        """Publish the events of one post by hand (`sweep --post`, from `admin add-post`): find it among the
-        account's latest posts and extract it, without triage (whoever asks knows it's an event). A post
-        analyzed before is analyzed again. An account that isn't swept yet is added to accounts.txt."""
+        """Publish the events of one post by hand (`sweep --post`, from `admin add-post`), without triage
+        (whoever asks knows it's an event). A post analyzed before is analyzed again.
+
+        The post comes from Instagram's API, among the account's latest; when the API can't give it (a personal or
+        private account, a collaboration listed under another account, Instagram's limit), from its public page
+        (public_post.py), which also names the author when the link doesn't. An account the API can read and
+        isn't swept yet is added to accounts.txt."""
         code = links.post_code(url)
         if not code:
             raise AddPostError("Ese enlace no es de una publicación de Instagram (instagram.com/p/…).")
         known = next((record for record in self.processed.values() if links.same_post(record.permalink, code)), None)
         account = account or (known.account if known else None) or links.account_in_link(url)
+        public: tuple[str, Post] | None = None
         if not account:
-            raise AddPostError(
-                "No sé de qué cuenta es: el enlace no lo dice y no la tengo registrada. Indica la @cuenta."
-            )
+            public = self._public_post(code)
+            account = public[0]
 
+        post: Post | None = None
+        readable = True
+        from_public = False
         try:
             self.instagram.check_token()
             posts = self.instagram.fetch_recent_posts(account, limit=config.ADMIN_POST_SEARCH)
+            post = next((post for post in posts if links.same_post(post["permalink"], code)), None)
         except InstagramError as error:
-            raise AddPostError(
-                f"No pude leer @{account} en Instagram ({error}). Si es una cuenta personal o privada, la API no "
-                "la puede ver."
-            ) from error
-        post = next((post for post in posts if links.same_post(post["permalink"], code)), None)
+            log.info("   the API can't give @%s's posts (%s): reading the post's public page", account, error)
+            readable = not is_not_visible(error)
         if post is None:
-            raise AddPostError(
-                f"La publicación no está entre las últimas {config.ADMIN_POST_SEARCH} de @{account}. ¿Es una "
-                "colaboración publicada desde otra cuenta, o se borró? Revisa la @cuenta."
-            )
+            public = public or self._public_post(code)
+            post, from_public = public[1], True
+            if public[0] != account:  # a collaboration: the post is its author's
+                account, readable = public[0], False
 
-        added = storage.add_account(account)
+        added = readable and not from_public and storage.add_account(account)
         if added:
             self.accounts.setdefault(account, AccountState(first_seen=config.now_bogota().date().isoformat()))
             log.info("@%s added to accounts.txt", account)
@@ -390,8 +398,24 @@ class Sweep:
         record = self.processed[post["id"]]
         events = [event for event in self.events if event.id in record.event_ids]
         return AddedPost(
-            account, added, post["permalink"], record.outcome, record.reason, record.model, record.provisional, events
+            account,
+            added,
+            post["permalink"],
+            record.outcome,
+            record.reason,
+            record.model,
+            record.provisional,
+            events,
+            public=from_public,
+            readable=readable,
         )
+
+    def _public_post(self, code: str) -> tuple[str, Post]:
+        """The post from its public page, or AddPostError saying why it couldn't be read."""
+        try:
+            return public_post.fetch_public_post(code)
+        except public_post.PublicPostError as error:
+            raise AddPostError(f"No pude leer la publicación: la API de Instagram no la entrega y {error}.") from error
 
     def _extract_post(self, account: str, post: Post, published: datetime) -> None:
         """Extract and store one post without triage, or raise AddPostError saying why it couldn't."""
