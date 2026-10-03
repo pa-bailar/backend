@@ -98,7 +98,7 @@ In words:
 
 | Repository | Visibility | Owns | Does not own |
 |---|---|---|---|
-| `pa-bailar/backend` (this one) | Private | The collector: the `pa_bailar` Python package, `accounts.txt`, the prompts, the sweep workflow, the sweep state (`sweep-state` branch), the health checks, local tools (`discover`, `refresh-token`) | The data files and the site: it only writes them into a checkout of the site repository and proposes them through a PR |
+| `pa-bailar/backend` (this one) | Private | The collector: the `pa_bailar` Python package, `accounts.txt`, the prompts, the sweep workflow, the sweep state (`sweep-state` branch), the health checks, local tools (`discover`, `refresh-token`), the admin page (`admin-web/`, docs/ADMIN.md) | The data files and the site: it only writes them into a checkout of the site repository and proposes them through a PR |
 | `pa-bailar/pa-bailar.github.io` | Public | The site (`frontend/`, Astro), the published data (`data/events.json`, `data/meta.json`, `data/flyers/`), the data contract (`docs/DATA.md`), its CI and the GitHub Pages deploy | Collecting data. It never calls Instagram or Gemini |
 
 **Why two repositories:**
@@ -183,7 +183,16 @@ Every service the system depends on. All of them are on free plans.
 | **Schedule** | **Period 12 hours, grace 2 hours:** the runs are 12 hours apart, so a single missed run is noticed within about 14 hours |
 | **Cost** | Free |
 
-### 3.6 Services used by the site only
+### 3.6 Cloudflare Pages
+
+| | |
+|---|---|
+| **What for** | Hosting the admin page (`https://pa-bailar-admin.pages.dev`) and its server functions, which will hold the sign-in with GitHub. GitHub Pages can't: it's not free for a private repository and has no server side |
+| **How** | Cloudflare builds `admin-web/` from this repository on every push to `main`. Its GitHub connection is limited to this repository |
+| **Status** | A placeholder page for now. The admin tools are described in [`docs/ADMIN.md`](ADMIN.md) |
+| **Cost** | Free |
+
+### 3.7 Services used by the site only
 
 - **GoatCounter:** visit statistics without cookies.
 - **Google Fonts:** the site's typefaces.
@@ -191,7 +200,7 @@ Every service the system depends on. All of them are on free plans.
 
 They're described in the site repository's `docs/ARCHITECTURE.md`. The backend doesn't use them.
 
-### 3.7 Your computer
+### 3.8 Your computer
 
 - **The discovery tool runs locally.** `python -m pa_bailar discover` reads your Instagram data export
   from `private/`, which is never committed (section 12.1).
