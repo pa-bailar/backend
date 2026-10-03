@@ -1,0 +1,61 @@
+<!doctype html>
+<!--
+  Pa' Bailar admin page (docs/ADMIN.md), served by Cloudflare Pages from this folder (admin-web/).
+  For now a placeholder: the login with GitHub, the status and the tools come next.
+-->
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Pa' Bailar · Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&family=Instrument+Sans:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: light-dark(#ecddc6, #161112);
+        --text: light-dark(#2a0f14, #f3e6d3);
+        --muted: light-dark(#6e4a44, #c9afa3);
+        --logo: light-dark(#c8321c, #f2c12e);
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Instrument Sans", system-ui, sans-serif;
+      }
+      main { max-width: 28rem; }
+      .stripes i { display: block; height: 6px; margin-bottom: 5px; }
+      h1 { font-family: Shrikhand, serif; font-weight: 400; color: var(--logo); font-size: 2.5rem; margin: 0.5rem 0 0; }
+      .tagline { font-family: "Bodoni Moda", serif; font-style: italic; margin: 0 0 1.5rem; }
+      .status { color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="stripes" aria-hidden="true">
+        <i style="background: #c8321c"></i><i style="background: #e8791c"></i><i style="background: #e9b021"></i>
+      </div>
+      <h1>Pa' Bailar</h1>
+      <p class="tagline">Admin</p>
+      <p>En construcción: aquí estarán el estado de los barridos y las herramientas para revisar y agregar eventos.</p>
+      <p class="status" id="status">Comprobando el servidor…</p>
+    </main>
+    <script>
+      // The server functions (functions/) answer: the hosting is set up right.
+      fetch("/api/health")
+        .then((response) => response.json())
+        .then((body) => (document.getElementById("status").textContent = body.ok ? "Servidor: listo ✓" : "Servidor: sin respuesta"))
+        .catch(() => (document.getElementById("status").textContent = "Servidor: sin respuesta"));
+    </script>
+  </body>
+</html>
