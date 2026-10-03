@@ -35,7 +35,7 @@ jobs:
       !github.event.issue.pull_request &&
       !contains(github.event.issue.labels.*.name, 'sweep-health')
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45 # adding a post may wait for a running sweep (up to 35 min)
     steps:
       - uses: actions/checkout@v7
         with:
@@ -99,15 +99,6 @@ jobs:
           git pull -q --rebase origin main
           git push -q origin HEAD:main
 
-      - name: Start adding the post (sweep workflow)
-        if: steps.answer.outputs.action == 'add-post'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          LINK: ${{ steps.answer.outputs.link }}
-          ACCOUNT: ${{ steps.answer.outputs.account }}
-        run: gh workflow run daily-sweep.yml -f post_url="$LINK" -f account="$ACCOUNT" -f issue="$ISSUE"
-
       - name: Reply
         if: ${{ !cancelled() }}
         env:
@@ -121,3 +112,30 @@ jobs:
           fi
           gh issue comment "$ISSUE" --body-file reply.md
           if [ "$DONE" = "true" ]; then gh issue close "$ISSUE" --reason completed; fi
+
+      # GitHub keeps only one waiting run per concurrency group ("data"): a newer one cancels it. So this waits
+      # until no sweep is running or waiting before starting one, instead of queueing behind it.
+      - name: Start adding the post (sweep workflow)
+        if: steps.answer.outputs.action == 'add-post'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          LINK: ${{ steps.answer.outputs.link }}
+          ACCOUNT: ${{ steps.answer.outputs.account }}
+        run: |
+          for _ in $(seq 1 70); do
+            busy="$(gh run list --workflow daily-sweep.yml --limit 20 --json status \
+              --jq '[.[] | select(.status != "completed")] | length')"
+            if [ "$busy" = "0" ]; then break; fi
+            echo "A sweep is running or waiting: checking again in 30 s"
+            sleep 30
+          done
+          gh workflow run daily-sweep.yml -f post_url="$LINK" -f account="$ACCOUNT" -f issue="$ISSUE"
+
+      - name: Say that adding it couldn't start
+        if: failure() && steps.answer.outputs.action == 'add-post'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: gh issue comment "$ISSUE" --body "❌ No pude empezar a agregarla. Detalles en [la ejecución]($RUN_URL)."

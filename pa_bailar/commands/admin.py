@@ -72,7 +72,11 @@ def answer(request: inbox.Request) -> tuple[str, bool]:
         return run_add_account(request.account), True
     if request.action == "add-post" and request.link:
         target = f" de @{request.account}" if request.account else ""
-        return f"⏳ Leyendo la publicación{target} para publicarla. Te respondo aquí en unos minutos.", False
+        return (
+            f"⏳ Voy a leer la publicación{target} para publicarla: te respondo aquí en unos minutos (si hay un "
+            "barrido en curso, espera a que termine).",
+            False,
+        )
     return inbox.HELP, True
 
 

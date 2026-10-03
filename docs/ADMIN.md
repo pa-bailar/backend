@@ -1,56 +1,148 @@
 # Pa' Bailar admin tools
 
 Tools for running Pa' Bailar day to day: see how the sweeps and quotas are doing, find out why an event isn't
-on the site, add one by hand, fix a wrong detail. **Work in progress:** this page grows with each step.
+on the site, add a post or an account by hand.
 
-| Step | What | State |
+| What | Where | State |
 |---|---|---|
-| Admin page | Sign in with GitHub, the status dashboard | Done (needs the one-time setup below) |
-| 1. Status | `admin status`: sweeps, Gemini and Instagram usage, accounts, events | Done |
-| 2. Events | `admin why`, `admin add-post`, `admin add-account`, and the issues inbox | Planned |
-| 3. Admin page tools | Check or add a post from a link, on the page | Planned |
-| 4. Corrections | `corrections.json` and `admin fix`, fed by the site's report form | Planned |
+| **The admin page**: status dashboard, check or add a post, add an account | https://pa-bailar-admin.jzamorac-9.workers.dev | Done |
+| **The admin inbox**: the same requests as issues in this repository, from the GitHub app | Issues → New issue | Done |
+| **Commands** on your computer: `admin status`, `admin why`, `admin add-account`, `sweep --post` | Terminal | Done |
+| Corrections: `corrections.json` and `admin fix`, fed by the site's report form | | Planned |
 
-None of these tools is AI: they are fixed checks over what the sweep records. Only adding a post sends it
-to Gemini (one request).
+**None of these tools is AI.** They're fixed checks over what the sweeps record (`state/` on the
+`sweep-state` branch). Only adding a post sends it to Gemini: one request, from the same daily budget as the
+sweeps.
 
-## `admin status`: how it's doing
+## Using it
+
+### From the admin page
+
+Open https://pa-bailar-admin.jzamorac-9.workers.dev and sign in with GitHub (only `jzamora5` gets in).
+
+- **Revisar o agregar un evento:** paste a post's Instagram link.
+  - **Revisar:** whether its event is on the site and, if not, why. An answer in about a minute.
+  - **Agregar:** reads the post and publishes its event. A few minutes: it waits for a running sweep to
+    finish, then publishes through the usual data PR. If the account isn't swept yet, it's added too.
+  - **@cuenta:** only needed when the link doesn't say the account and the post was never analyzed (share
+    links usually look like `instagram.com/p/<code>/`, without the account).
+- **Agregar una cuenta a los barridos:** checks that Instagram can read it (business or creator accounts
+  only), then adds it. The next sweep reads its last 30 days of posts.
+- **Pedidos recientes:** the latest requests; tap one to see its answer again.
+- **Below:** the sweeps (✅ or ⚠️, with links to the runs), Gemini usage per model and when it resets,
+  Instagram, accounts and events. It's the latest `status.json`, as of the last sweep.
+
+Each request is an issue in this repository (label `admin`), answered by the `admin` workflow: the page
+opens it and shows the answer when it arrives.
+
+### From GitHub (the inbox)
+
+In this repository: **Issues → New issue → "Pedido a las herramientas de administración"**, or any new issue or
+comment of yours that the inbox understands (`pa_bailar/inbox.py`):
+
+| Write | It does |
+|---|---|
+| A post's Instagram link | **Revisar**: why its event is or isn't on the site |
+| `/agregar` and the link (and `@cuenta` if needed) | **Agregar**: reads the post and publishes it |
+| `/cuenta @academia` | Adds the account to the sweeps |
+| `/estado` | The status, as on the page |
+| Anything else | The list above |
+
+The answer arrives as a comment (from github-actions), and the issue closes once it's done. Writing again on
+a closed issue works too. Only your issues and comments count (`jzamora5`, in `.github/workflows/admin.yml`).
+
+### From your computer
+
+From the repository root (`.env` has the keys):
 
 ```bash
 .venv\Scripts\python -m pa_bailar admin status
+.venv\Scripts\python -m pa_bailar admin why https://www.instagram.com/p/<code>/ [--account @x] [--json]
+.venv\Scripts\python -m pa_bailar admin add-account @academia
+.venv\Scripts\python -m pa_bailar sweep --post https://www.instagram.com/p/<code>/ [--account @x]
 ```
 
-From the repository root, on your computer (it reads `.env` for the Instagram check). It shows, in Spanish:
+They read the sweeps' latest state from the `sweep-state` branch, fetched each time. `sweep --post` and
+`add-account` change `accounts.txt` and the data in `..\pa-bailar-web\data` on your computer: commit and open
+the PRs yourself, or use the page or the inbox, which do it.
 
-- **Barridos:** the latest sweeps (✅ or ⚠️ with what went wrong: Instagram's limit, time, accounts that
-  couldn't be read, errors), with a link to each run, and the next two.
-- **Gemini hoy:** requests per model against its daily budget, and when the quota resets.
-- **Instagram:** whether the token works, and how much of the app's hourly quota is used (one call;
-  `--no-instagram` skips it).
-- **Cuentas y eventos:** accounts swept, those still in their first (deeper) sweep, posts analyzed,
-  provisional events waiting for Flash, upcoming events on the site, discovery progress.
+## What the answers mean
 
-`--json` gives the same as data. After every sweep, the workflow saves it as `status.json` on the
-`sweep-state` branch: that's what the admin page shows. The sweeps' state comes from the
-`sweep-state` branch, fetched each time, so it's current even if you haven't run anything locally.
+### Revisar (`admin why`, `pa_bailar/why.py`)
+
+The checks, in the order a post goes through the sweep:
+
+1. **Was the post analyzed?** The sweeps record every analyzed post (`processed_posts.json`) with what became
+   of it:
+   - **Está en el sitio:** it became events (links to them), or joined an event another post announced.
+   - **Ya pasó su fecha:** the event left the site after its date.
+   - **Gemini dijo que no es un evento:** with Gemini's reason. If it's wrong, **Agregar** reads it again
+     without that first filter.
+   - **Se descartó a propósito:** an event that repeats (a weekly class) or without a clear date. The site only
+     lists one-time dated events.
+   - **Gemini no pudo leerla**, or **se quitó a mano** (removed on purpose).
+2. **If it was never analyzed:** is the account swept? If it is, one Instagram call finds the post among the
+   account's latest 50, and its date says why:
+   - **posted after the last sweep:** the next sweep takes it (Agregar publishes it now);
+   - **the account was added recently** and hasn't been swept yet;
+   - **older than 7 days:** the sweeps only check recent posts;
+   - **the last sweep couldn't read the account**, or **is waiting** for Gemini quota or time;
+   - **not among the account's latest:** a collaboration posted from another account, or deleted.
+
+### Agregar (`sweep --post`)
+
+The sweep workflow runs in single-post mode (`sweep --post`), one at a time with the sweeps:
+
+1. Finds the post among the account's latest 50 (one Instagram call); adds the account if it isn't swept.
+2. Extracts it with Gemini **without the first filter** (whoever asks knows it's an event): Flash, or
+   Flash-Lite as provisional when Flash's quota is used up.
+3. Publishes through the usual data PR (it merges itself and the site deploys), and answers: the events it
+   became (with links), or why not (not an event, recurring, no date, no Gemini quota left today).
+
+Such runs don't count for the health checks, and don't report to healthchecks.io.
+
+## How it works
+
+```mermaid
+flowchart LR
+    P["Admin page<br/>(Cloudflare Worker)"] -- "opens an issue<br/>(your GitHub sign-in)" --> I["Issue, label admin"]
+    G["GitHub app<br/>(issue or comment)"] --> I
+    I -- "issues / issue_comment" --> A["admin workflow<br/>admin inbox"]
+    A -- "status, why, add-account" --> C["Comment with<br/>the answer"]
+    A -- "add-post: gh workflow run" --> S["daily-sweep workflow<br/>sweep --post"]
+    S -- "data PR" --> SITE["Site"]
+    S --> C
+    P -- "reads the comments" --> C
+```
+
+- **`.github/workflows/admin.yml`:** runs on new issues and comments, only from `jzamora5`. It reads the
+  sweep state and the site's `events.json`, runs `python -m pa_bailar admin inbox`, comments the answer and
+  closes the issue. An added account is committed to `main` (`accounts.txt`). Adding a post starts the sweep
+  workflow with `post_url`, `account` and `issue`.
+- **`.github/workflows/daily-sweep.yml`**, with `post_url`: `sweep --post` instead of the sweep, then the same
+  state save and data PR; it commits an added account and answers on the issue.
+- **`.github/ISSUE_TEMPLATE/admin.yml`:** the form (Acción, Enlace, Cuenta). The page writes its issues the
+  same way.
 
 ## The admin page
 
 - **Where:** https://pa-bailar-admin.jzamorac-9.workers.dev, the Cloudflare Worker `pa-bailar-admin` (free).
   Cloudflare deploys it from this repository's `admin-web/` folder on every push to `main`.
-- **What it shows:** the latest sweeps (with links to their runs), Gemini usage per model, the Instagram
-  token, accounts and events: the latest `status.json`, as of the last sweep.
 - **Files:**
   - `admin-web/wrangler.jsonc`: the Worker's settings. Its `name` must match the Worker's name in Cloudflare.
-  - `admin-web/public/`: the page, served as it is.
   - `admin-web/public/`: the page (`index.html`, `app.js`, `admin.css`), with no data in it.
-  - `admin-web/src/index.js`: the server side: `/auth/login`, `/auth/callback`, `/auth/logout`,
-    `/api/health`, `/api/me`, `/api/status`.
+  - `admin-web/src/index.js`: the server side:
+    - sign-in: `/auth/login`, `/auth/callback`, `/auth/logout`;
+    - data: `/api/health`, `/api/me`, `/api/status`;
+    - requests: `/api/requests` (POST opens a request issue, GET lists the latest) and
+      `/api/requests/<number>` (its answers).
 - **Sign-in:** "Iniciar sesión con GitHub", through the `pa-bailar-admin` GitHub App. Only `jzamora5`
-  (`ALLOWED_USER` in `wrangler.jsonc`) gets in. The session is a cookie holding the GitHub token, encrypted
-  with `SESSION_SECRET`; it lasts 30 days and renews the 8-hour GitHub token by itself. Nothing to paste or
-  renew. The page reads the status with your own GitHub access, limited to what the App may do: read the
-  backend repository, open issues, see runs.
+  (`ALLOWED_USER` in `wrangler.jsonc`) gets in.
+  - The session is a cookie holding the GitHub token, encrypted with `SESSION_SECRET`.
+  - It lasts 30 days and renews the 8-hour GitHub token by itself. Nothing to paste or renew.
+  - Everything is read and written with your own GitHub access, limited to what the App may do: read this
+    repository, open issues and comment, see runs.
+  - Requests are only accepted from the page itself (same origin).
 
 ### Cloudflare setup (done once)
 
@@ -61,10 +153,10 @@ From the repository root, on your computer (it reads `.env` for the Instagram ch
    - **Build command:** empty
    - **Deploy command:** `npx wrangler deploy`
    - **Enable preview builds:** off, so only `main` is published
-   - **Protect with Cloudflare Access:** off (the page will have its own sign-in with GitHub)
+   - **Protect with Cloudflare Access:** off (the page has its own sign-in with GitHub)
    - **Advanced settings → path:** `/admin-web`
    - **API token:** let Cloudflare create one (it's for Cloudflare's own build, kept inside Cloudflare)
-4. **Deploy.** The page says "Servidor: listo ✓" when the server side works.
+4. **Deploy.**
 
 ### Sign-in setup (done once)
 
