@@ -150,6 +150,9 @@ def main(argv: list[str] | None = None) -> None:
         help=f"only analyze posts published in the last N days (default {config.DEFAULT_LOOKBACK_DAYS}, "
         f"at most {config.MAX_LOOKBACK_DAYS})",
     )
+    parser.add_argument(
+        "--all", action="store_true", help="read every account now, not only those whose turn it is (once a day)"
+    )
     parser.add_argument("--post", help="add one post by hand instead (its Instagram link): `admin add-post`")
     parser.add_argument("--account", help="with --post: the @account, if the link doesn't say it")
     args = parser.parse_args(argv)
@@ -159,7 +162,7 @@ def main(argv: list[str] | None = None) -> None:
         add_post(args.post, links.account_name(args.account) if args.account else None)
         return
 
-    stats = Sweep(lookback_days=args.days).run()
+    stats = Sweep(lookback_days=args.days, all_accounts=args.all).run()
 
     logging.info(
         "\nDone: %s accounts, %s posts analyzed (%s ruled out by triage), %s new events, %s merged, "

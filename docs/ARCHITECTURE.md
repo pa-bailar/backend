@@ -131,8 +131,8 @@ Every service the system depends on. All of them are on free plans.
 | **What it needs** | A **Meta app** (Meta for Developers, with the Instagram Graph API product). A **Facebook Page** linked to **our own Instagram professional account**, whose id is `IG_USER_ID`. An access token for that Page (`META_ACCESS_TOKEN`) |
 | **Token** | A **Page access token that doesn't expire**. It's made from a short-lived Graph API Explorer token by `python -m pa_bailar refresh-token` (section 12.2). It stops working only if it's revoked (for example, a Facebook password change) |
 | **What it can see** | Only **business and creator** accounts. Personal or private accounts answer with error 100/110 ("not visible") |
-| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used, now in the `X-Business-Use-Case-Usage` header (`call_count`, `total_cputime`, `total_time`, in percent; older apps got `X-App-Usage`). `InstagramClient.app_usage_percent` reads both and keeps the highest. The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts left out go first next run |
-| **Cost per sweep** | **1 call per account**, no matter how many posts are asked for (10 regular, 30 for a new account). Images are then downloaded from Instagram's CDN, which isn't an API call |
+| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used, now in the `X-Business-Use-Case-Usage` header (`call_count`, `total_cputime`, `total_time`, in percent; older apps got `X-App-Usage`). `InstagramClient.app_usage_percent` reads both and keeps the highest. The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
+| **Cost per sweep** | **1 call per account read**, no matter how many posts are asked for (10 regular, 30 for a new account). Each account is read about once a day, so a sweep reads about half of them (section 5). Images are then downloaded from Instagram's CDN, which isn't an API call |
 | **Cost** | Free |
 | **If it fails** | Token invalid: the run stops at the start and fails, and healthchecks.io emails you. Rate limit: the run stops calling Instagram, and the remaining accounts wait for the next run (a notice, and a warning after 3 runs in a row). One account fails: logged, and the others continue |
 
@@ -315,6 +315,26 @@ Other workflow settings:
   then the same state save and data PR. It isn't recorded in the run history, opens no health issue and
   doesn't ping healthchecks.io. GitHub keeps only one waiting run per concurrency group (a newer one cancels
   it), so the `admin` workflow waits until no sweep is running or waiting before starting one.
+
+### Whose turn it is: each account about once a day
+
+Instagram's quota for us is small (it grows with our own account's impressions), so each account is read
+about **once a day**, half of them in each sweep, instead of every account twice a day
+(`Sweep._due_accounts`, `pipeline.hours_overdue`):
+
+- **Each account's turn:** 20 hours after a sweep last read it (`SWEEP_EVERY_HOURS`: the same sweep the next
+  day finds it due). Quiet accounts, with no post in 45 days (`QUIET_AFTER_DAYS`), every 44 hours: lower
+  priority, never dropped. `accounts.json` keeps `last_swept_at` and `latest_post`.
+- **Order:** due accounts in their regular sweep before new ones (a new account's first, deeper sweep can
+  take days of quota); within each, those that waited longest first.
+- **A sweep's share:** half the accounts plus 5 (`EXTRA_ACCOUNTS_PER_RUN`), and it stops earlier at 90% of
+  Instagram's quota. Accounts not reached stay due, and having waited longest, they're first next time: a
+  short quota shortage delays a few accounts by one sweep, it can't snowball.
+- **Not over its turn:** an account whose posts still wait (Gemini's quota, time) stays due next sweep. An
+  account that couldn't be read for another reason (not visible) waits for its next turn.
+- **Watching it:** each run records the share of Instagram's quota used (`instagram_usage`), and the dashboard
+  lists accounts waiting more than a sweep past their turn.
+- **Everyone now:** `sweep --all` (the workflow's `all_accounts` input).
 
 ### 5.3 What a run decides is a failure
 
@@ -562,7 +582,7 @@ memory between runs; the site never sees it.
 | File | Content | Why it matters |
 |---|---|---|
 | `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente` or `sin fecha`, `not_event`, `rejected`) with the `event_ids` it became or joined | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
-| `accounts.json` | Per account: when first seen, `backfill_done` | Whether the account still gets the deeper first sweep |
+| `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post` | Whether the account still gets the deeper first sweep, and when its next turn is |
 | `gemini_usage.json` | Today's quota day (Pacific) and requests per model | The day's runs share the daily budgets |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
 | `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests and models the key couldn't use; warning keys | The health rules compare a run with the previous ones (section 11) |

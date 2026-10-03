@@ -188,3 +188,5 @@ class AccountState(BaseModel):
 
     first_seen: str
     backfill_done: bool = False  # True once its first, deeper sweep has analyzed every post
+    last_swept_at: str | None = None  # when a sweep last read it (ISO, Bogotá): its next turn (Sweep._due_accounts)
+    latest_post: str | None = None  # its newest post's date (YYYY-MM-DD): quiet accounts take their turn less often

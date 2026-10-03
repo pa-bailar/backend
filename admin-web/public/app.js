@@ -44,6 +44,7 @@ function runItem(run) {
     `${run.events_merged ?? 0} unidos`,
     count(run.pending ?? 0, "en espera", "en espera"),
     count(run.provisional ?? 0, "provisional", "provisionales"),
+    run.instagram_usage ? `Instagram ${run.instagram_usage}%` : "",
     ...problems,
   ].filter(Boolean);
   const mark = problems.length ? `<span class="warn" title="Con problemas">⚠️</span>` : `<span class="ok" title="Bien">✅</span>`;
@@ -94,13 +95,18 @@ function accountsCard(status) {
     discovery && [discovery.checked, `cuentas revisadas por descubrimiento (${discovery.classified} clasificadas)`],
   ].filter(Boolean);
   const pending = accounts.first_sweep_pending;
+  const waiting = accounts.waiting ?? [];
+  const late = waiting.length
+    ? `<p class="small warn" style="margin:12px 0 0">⚠️ Esperando más de un barrido después de su turno:</p>
+       <div class="chips">${waiting.map((account) => `<span>@${escapeHtml(account)}</span>`).join("")}</div>`
+    : "";
   const firstSweep = pending.length
     ? `<p class="small" style="margin:12px 0 0">En su primer barrido (más profundo):</p>
        <div class="chips">${pending.map((account) => `<span>@${escapeHtml(account)}</span>`).join("")}</div>`
     : "";
   return `<section class="card"><h2>Cuentas y eventos</h2>
     <div class="facts">${facts.map(([number, label]) => `<div class="fact"><b>${number}</b>${escapeHtml(label)}</div>`).join("")}</div>
-    ${firstSweep}</section>`;
+    ${firstSweep}${late}</section>`;
 }
 
 // ---------- the tools: requests to the admin inbox (issues the admin workflow answers) ----------

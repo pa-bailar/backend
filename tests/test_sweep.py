@@ -113,8 +113,9 @@ def two_accounts_and_fake_images(isolated_files, monkeypatch):
     monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: make_image())
 
 
-def run(instagram, extractor, days=7):
-    return Sweep(lookback_days=days, instagram=instagram, extractor=extractor).run()
+def run(instagram, extractor, days=7, all_accounts=True):
+    """A sweep. Tests read every account (consecutive sweeps), except the ones about whose turn it is."""
+    return Sweep(lookback_days=days, instagram=instagram, extractor=extractor, all_accounts=all_accounts).run()
 
 
 def read(path):
@@ -431,9 +432,64 @@ def test_the_sweep_stops_before_instagrams_limit():
     assert stats.rate_limited and stats.accounts == 0
 
 
-def test_accounts_the_limit_kept_out_go_first_next_run():
-    run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}))  # both finish their first sweep
-    storage.write_json(config.RUN_HISTORY_FILE, [{"skipped_accounts": ["otra"]}])
-    instagram = FakeInstagram({"academia": [], "otra": []})
-    run(instagram, FakeExtractor({}))
-    assert list(instagram.limits) == ["otra", "academia"]
+# ---------- whose turn it is: each account about once a day ----------
+
+
+def swept(hours_ago: float, latest_post_days_ago: int = 1) -> dict:
+    now = config.now_bogota()
+    return {
+        "first_seen": "2026-01-01",
+        "backfill_done": True,
+        "last_swept_at": (now - timedelta(hours=hours_ago)).isoformat(timespec="seconds"),
+        "latest_post": (now - timedelta(days=latest_post_days_ago)).date().isoformat(),
+    }
+
+
+def turn(states: dict, accounts: str = "academia\notra\n") -> list[str]:
+    """The accounts a scheduled sweep reads, in order, given each one's state."""
+    config.ACCOUNTS_FILE.write_text(accounts, encoding="utf-8")
+    storage.write_json(config.ACCOUNT_STATE_FILE, states)
+    instagram = FakeInstagram({name: [] for name in accounts.split()})
+    run(instagram, FakeExtractor({}), all_accounts=False)
+    return list(instagram.limits)
+
+
+def test_an_account_is_read_once_a_day():
+    assert turn({"academia": swept(21), "otra": swept(3)}) == ["academia"]  # otra was read this morning
+    assert turn({"academia": swept(3), "otra": swept(3)}) == []
+
+
+def test_the_longest_waiting_go_first():
+    assert turn({"academia": swept(25), "otra": swept(60)}) == ["otra", "academia"]
+
+
+def test_quiet_accounts_take_their_turn_every_other_day_but_never_drop_out():
+    quiet = config.QUIET_AFTER_DAYS + 5
+    assert turn({"academia": swept(30, latest_post_days_ago=quiet), "otra": swept(30)}) == ["otra"]
+    assert turn({"academia": swept(50, latest_post_days_ago=quiet), "otra": swept(3)}) == ["academia"]
+
+
+def test_reading_an_account_starts_its_next_turn():
+    assert turn({"academia": swept(30), "otra": swept(30)}) == ["academia", "otra"]
+    assert turn(storage.read_json(config.ACCOUNT_STATE_FILE, {})) == []  # just read: their turn is tomorrow
+
+
+def test_each_sweep_reads_its_share_and_the_rest_go_first_next_time(monkeypatch):
+    monkeypatch.setattr(config, "EXTRA_ACCOUNTS_PER_RUN", 0)
+    names = [f"a{i}" for i in range(6)]
+    accounts = "\n".join(names) + "\n"
+    states = {name: swept(30 + i) for i, name in enumerate(names)}  # a5 waited longest
+    first = turn(states, accounts)
+    assert first == ["a5", "a4", "a3"]  # half: two sweeps a day
+    second = turn(storage.read_json(config.ACCOUNT_STATE_FILE, {}), accounts)
+    assert second == ["a2", "a1", "a0"]
+
+
+def test_an_account_instagrams_limit_didnt_reach_stays_due():
+    states = {"academia": swept(30), "otra": swept(30)}
+    config.ACCOUNTS_FILE.write_text("academia\notra\n", encoding="utf-8")
+    storage.write_json(config.ACCOUNT_STATE_FILE, states)
+    limited = InstagramError("(#4) Application request limit reached", code=4)
+    stats = run(FakeInstagram({"academia": limited, "otra": []}), FakeExtractor({}), all_accounts=False)
+    assert stats.rate_limited
+    assert turn(storage.read_json(config.ACCOUNT_STATE_FILE, {})) == ["academia", "otra"]
