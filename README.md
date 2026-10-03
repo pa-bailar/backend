@@ -8,12 +8,14 @@ pull request twice a day. The site, its design system and the data contract (`do
 **How it all fits together, with diagrams: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).**
 
 ```
-pa_bailar/            the collector (one Python package)
+pa_bailar/            the collector (one Python package; every module in docs/ARCHITECTURE.md, Code map)
   commands/           what you run: sweep, discover, refresh_token, admin
   pipeline.py         the sweep: Instagram -> Gemini -> events, merged and stored
   instagram.py        Instagram Graph API (Business Discovery)
-  extraction.py       Gemini prompts, models, quotas
-  merging.py, ids.py, normalize.py, storage.py, models.py, discovery.py, config.py
+  public_post.py      one post from its public page, when the API can't give it (admin tools)
+  extraction.py       triage then extraction; prompts.py has the prompts, gemini.py the models and quotas
+  merging.py, ids.py, normalize.py, clips.py, storage.py, models.py, config.py
+  health.py, status.py, why.py, inbox.py, links.py, sweep_state.py, discovery.py, text.py, logs.py
 tests/                unit and end-to-end tests (no network)
 docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, monitoring (start here)
 docs/ADMIN.md         the admin tools: the admin page, the inbox, the commands
@@ -92,7 +94,7 @@ Everything runs on GitHub Actions:
 
 | Workflow | When | What |
 |---|---|---|
-| `ci` | Every pull request | Lint, format check and unit tests. The required check on `main`. |
+| `ci` | Every pull request and push to `main` | Lint, format check, types (mypy) and tests. |
 | `admin` | A new issue or comment from `jzamora5` (the admin page opens such issues) | The admin inbox: answers with a comment (check a post, add an account, the status); adding a post starts `daily-sweep` in single-post mode. See [docs/ADMIN.md](docs/ADMIN.md) |
 | `daily-sweep` | Every day at 9:00 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (each about once a day, half per sweep), writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is saved to the `sweep-state` branch. With `post_url` (from `admin`), it adds that one post instead and answers on the admin issue. |
 
@@ -134,7 +136,8 @@ Every run is checked by rules, without AI and without spending any quota (`pa_ba
 compared with the previous runs, kept in `run_history.json` on the `sweep-state` branch (two months).
 
 - **Warnings** need a fix or a decision:
-  - an account that couldn't be read in 3 runs in a row;
+  - an account that couldn't be read in 3 tries in a row (each account is tried about once a day);
+  - a Gemini model the key can't use, in 3 runs in a row;
   - Instagram's rate limit, the time budget or post errors in 3 runs in a row;
   - a backlog of pending posts that doesn't go down over 4 runs;
   - a week of posts without a single event.
