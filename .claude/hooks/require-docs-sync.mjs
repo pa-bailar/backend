@@ -13,8 +13,11 @@ import path from "node:path";
 
 const input = JSON.parse(readFileSync(0, "utf8"));
 const command = input.tool_input?.command ?? "";
-const prCreate = command.search(/\bgh\s+pr\s+create\b/);
-if (prCreate < 0) process.exit(0);
+// Only when it runs as a command (at the start, or after ; && || | ( or a new line), not when it's mentioned
+// in text, e.g. a doc being written by a heredoc.
+const match = /(?:^|&&|\|\||[;|(\n])\s*gh\s+pr\s+create\b/.exec(command);
+if (!match) process.exit(0);
+const prCreate = match.index;
 
 // "/c/Users/…" (Git Bash) → "C:/Users/…", so Node on Windows can use it.
 const nativePath = (dir) => dir.replace(/^\/([a-zA-Z])\//, (_, drive) => `${drive.toUpperCase()}:/`);
