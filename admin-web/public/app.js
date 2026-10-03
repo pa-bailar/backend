@@ -79,7 +79,7 @@ function geminiCard(gemini) {
 function instagramCard(instagram) {
   if (!instagram) return "";
   const text = instagram.ok
-    ? `<span class="ok">✓</span> El token funciona. Cuota de la app en esa hora: ${instagram.app_usage_percent}%.`
+    ? `<span class="ok">✓</span> El token funciona. Cuota de Instagram usada: ${instagram.app_usage_percent}%.`
     : `<span class="warn">⚠️</span> El token no funciona: ${escapeHtml(instagram.error)}`;
   return `<section class="card"><h2>Instagram</h2><p>${text}</p></section>`;
 }

@@ -14,7 +14,19 @@ def test_rate_limits_are_not_mistaken_for_personal_accounts():
 
 def test_app_usage_header_is_read_as_the_highest_percent():
     client = InstagramClient("token", "123")
-    client._read_usage('{"call_count": 72, "total_time": 10, "total_cputime": 5}')
+    client._read_usage('{"call_count": 72, "total_time": 10, "total_cputime": 5}', None)
     assert client.app_usage_percent == 72
-    client._read_usage("not json")
+    client._read_usage("not json", None)
     assert client.app_usage_percent == 72  # an odd header is ignored
+
+
+def test_the_business_use_case_header_instagram_sends_now_is_read_too():
+    client = InstagramClient("token", "123")
+    business = (
+        '{"1251651414708598": [{"type": "instagram", "call_count": 12, "total_cputime": 3, "total_time": 40,'
+        ' "estimated_time_to_regain_access": 0}]}'
+    )
+    client._read_usage(None, business)
+    assert client.app_usage_percent == 40
+    client._read_usage(None, None)
+    assert client.app_usage_percent == 40  # no header: the last value stays

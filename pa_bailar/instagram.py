@@ -59,7 +59,7 @@ class InstagramClient:
     def __init__(self, access_token: str, ig_user_id: str):
         self._access_token = access_token
         self._ig_user_id = ig_user_id
-        # Share of the app's hourly Graph API quota already used (0-100), from Meta's X-App-Usage header.
+        # Share of the app's Graph API quota already used (0-100), from Meta's usage headers (_read_usage).
         self.app_usage_percent = 0
 
     def _get(self, fields: str) -> dict[str, Any]:
@@ -73,7 +73,7 @@ class InstagramClient:
         except (requests.RequestException, ValueError) as error:
             # Network failure or a non-JSON answer (e.g. an HTML 5xx page): one account fails, not the run.
             raise InstagramError(f"request failed: {error}") from error
-        self._read_usage(response.headers.get("x-app-usage"))
+        self._read_usage(response.headers.get("x-app-usage"), response.headers.get("x-business-use-case-usage"))
         if "error" in data:
             payload = data["error"]
             raise InstagramError(payload.get("message", "unknown error"), code=payload.get("code"))
@@ -91,13 +91,26 @@ class InstagramClient:
             raise InstagramError("the answer has no business_discovery data")
         return answer
 
-    def _read_usage(self, header: str | None) -> None:
-        """X-App-Usage: {"call_count": 28, "total_time": 25, "total_cputime": 25}, percents of the hourly quota."""
+    def _read_usage(self, app_header: str | None, business_header: str | None) -> None:
+        """The highest share used, in percent, of what Meta reports:
+          - X-App-Usage: {"call_count": 28, "total_time": 25, "total_cputime": 25} (older apps);
+          - X-Business-Use-Case-Usage, what Instagram sends now: {"<id>": [{"type": "instagram", "call_count": 1,
+            "total_cputime": 1, "total_time": 1, "estimated_time_to_regain_access": 0}]}.
+        No header (or an odd one) keeps the last value: it never stops the sweep."""
+        percents: list[int] = []
         try:
-            usage = json.loads(header) if header else {}
-            self.app_usage_percent = max(int(value) for value in usage.values()) if usage else 0
-        except (ValueError, TypeError, AttributeError):
-            pass  # an odd header never stops the sweep
+            if app_header:
+                percents += [int(value) for value in json.loads(app_header).values()]
+            if business_header:
+                for entries in json.loads(business_header).values():
+                    for entry in entries:
+                        percents += [
+                            int(entry[key]) for key in ("call_count", "total_cputime", "total_time") if key in entry
+                        ]
+        except (ValueError, TypeError, AttributeError, KeyError):
+            return
+        if percents:
+            self.app_usage_percent = max(percents)
 
     def check_token(self) -> str:
         """Cheap call that fails fast if the token is invalid. Returns our own username."""

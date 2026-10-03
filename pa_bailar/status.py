@@ -3,7 +3,7 @@
 Plain reading of what the sweeps record (no AI, no Gemini requests):
   - the latest sweeps and the next ones (run_history.json, config.SWEEP_TIMES);
   - today's Gemini usage per model against its daily budget, and when the quota resets (gemini_usage.json);
-  - Instagram: whether the token works and how much of the app's hourly quota is used (one call, optional);
+  - Instagram: whether the token works and how much of Instagram's quota is used (one call, optional);
   - accounts followed, those still in their first, deeper sweep (accounts.txt, accounts.json);
   - analyzed posts, provisional ones waiting for Flash, upcoming events (processed_posts.json, events.json);
   - discovery progress, on your computer (private/discovery.json).
@@ -57,7 +57,7 @@ def _role(model: str) -> str:
 
 
 def check_instagram() -> dict[str, Any]:
-    """One Graph API call: does the token work, and how much of the app's hourly quota is used."""
+    """One Graph API call: does the token work, and how much of Instagram's quota is used."""
     from .instagram import InstagramClient, InstagramError  # only when asked: needs the Meta secrets
 
     try:
@@ -195,7 +195,7 @@ def markdown(status: dict[str, Any]) -> str:
     if instagram is not None:
         lines += ["### Instagram", ""]
         if instagram["ok"]:
-            lines.append(f"- Token: funciona. Cuota de la app esta hora: {instagram['app_usage_percent']}%.")
+            lines.append(f"- Token: funciona. Cuota de Instagram usada: {instagram['app_usage_percent']}%.")
         else:
             lines.append(f"- ⚠️ Token: no funciona ({instagram['error']}).")
         lines.append("")

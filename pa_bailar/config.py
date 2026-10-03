@@ -38,6 +38,9 @@ POSTS_PER_ACCOUNT = 10  # regular sweep; one API call per account regardless of 
 # The admin tools look for a post among this many of the account's latest (one API call): `admin why`, add-post.
 ADMIN_POST_SEARCH = 50
 SITE_URL = "https://pa-bailar.github.io"  # the public site, for links to events in the admin tools' answers
+# Instagram's quota for our app, as a share used (0-100, from its usage headers): the sweep stops reading
+# accounts at this level instead of running into the limit, and discover pauses earlier (its own setting).
+INSTAGRAM_USAGE_STOP = 90
 MAX_IMAGES_PER_POST = 10  # monthly schedules often show an event on slide 5 or later; still one request
 # Videos' preview clips (clips.py): when an event's image comes from a video (a reel, or a carousel's video slide),
 # a short silent clip of it plays on the site. Made with ffmpeg (on GitHub's runners; locally FFMPEG or the PATH);

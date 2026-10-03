@@ -1,8 +1,12 @@
 """The same event announced by several posts (flyer, video, reminder) becomes one event."""
 
+from datetime import date, timedelta
+
 from pa_bailar import storage
 from pa_bailar.merging import detach_post, find_existing, looks_like_same_event, merge_into, ordered_media
-from tests.factories import extracted, media, stored
+from tests.factories import EVENT_DATE, extracted, media, stored
+
+OTHER_DATE = (date.fromisoformat(EVENT_DATE) + timedelta(days=1)).isoformat()  # never the sample event's date
 
 # ---------- matching ----------
 
@@ -29,7 +33,7 @@ def test_rules_match_same_account_date_and_time():
     event = stored(start_time="20:00")
     assert looks_like_same_event(event, "academia", extracted(start_time="20:00", title="Otro título"))
     assert not looks_like_same_event(event, "academia", extracted(start_time="18:00"))
-    assert not looks_like_same_event(event, "academia", extracted(start_time="20:00", date="2026-10-11"))
+    assert not looks_like_same_event(event, "academia", extracted(start_time="20:00", date=OTHER_DATE))
     assert not looks_like_same_event(event, "otra", extracted(start_time="20:00"))
 
 

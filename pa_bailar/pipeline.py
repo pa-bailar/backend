@@ -250,6 +250,10 @@ class Sweep:
         log.info("Instagram token OK (@%s)", username)
 
         for account in self._accounts_in_order():
+            usage = getattr(self.instagram, "app_usage_percent", 0)
+            if usage >= config.INSTAGRAM_USAGE_STOP:
+                log.warning("Instagram quota %s%% used: the remaining accounts wait for the next run", usage)
+                self.rate_limited = True
             if self.rate_limited:
                 log.warning("Instagram rate limit reached: the remaining accounts wait for the next run")
                 break
@@ -278,7 +282,12 @@ class Sweep:
             state = self.accounts.get(account)
             return state is None or not state.backfill_done
 
-        return sorted(storage.read_accounts(), key=is_new)  # stable: keeps accounts.txt order within each group
+        # Accounts Instagram's limit kept the last run from reaching go first in their group, so the end of
+        # accounts.txt doesn't lose out every time.
+        history = storage.read_json(config.RUN_HISTORY_FILE, [])
+        skipped = set(history[-1].get("skipped_accounts", [])) if history else set()
+        # stable: keeps accounts.txt order within each group
+        return sorted(storage.read_accounts(), key=lambda account: (is_new(account), account not in skipped))
 
     def _apply_retention(self) -> None:
         """Delete long-past events and forget old analyzed posts, so data and flyers don't grow forever."""

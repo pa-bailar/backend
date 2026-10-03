@@ -419,3 +419,21 @@ def test_posts_where_every_model_fails_are_errors_and_retried():
 def test_models_this_key_cant_use_are_reported():
     stats = run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}, unavailable=("gemini-3.8-flash",)))
     assert stats.models_unavailable == ["gemini-3.8-flash"]
+
+
+# ---------- Instagram's quota ----------
+
+
+def test_the_sweep_stops_before_instagrams_limit():
+    instagram = FakeInstagram({"academia": [], "otra": []})
+    instagram.app_usage_percent = config.INSTAGRAM_USAGE_STOP
+    stats = run(instagram, FakeExtractor({}))
+    assert stats.rate_limited and stats.accounts == 0
+
+
+def test_accounts_the_limit_kept_out_go_first_next_run():
+    run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}))  # both finish their first sweep
+    storage.write_json(config.RUN_HISTORY_FILE, [{"skipped_accounts": ["otra"]}])
+    instagram = FakeInstagram({"academia": [], "otra": []})
+    run(instagram, FakeExtractor({}))
+    assert list(instagram.limits) == ["otra", "academia"]
