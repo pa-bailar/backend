@@ -81,7 +81,7 @@ Lint, format, type check and tests:
 ```
 
 How it works:
-- **Instagram** checks each followed account, dance-looking usernames first, 36 s apart (about 100 an hour, half the app's quota, so the daily sweeps always have room). It pauses when Meta reports the app past 60% of its hourly quota and stops at a rate limit; personal and private accounts are skipped.
+- **Instagram** checks each followed account, dance-looking usernames first, 36 s apart (about 100 an hour, half the app's quota, so the daily sweeps always have room). It pauses when Meta reports the app past 60% of its quota and stops at a rate limit; personal and private accounts are skipped.
 - **Gemini Flash-Lite** classifies the business accounts with a dance hint: academy, venue, organizer… and whether they're in Bogotá.
 - **The report** is written to `private/discovery_report.md`.
 - **Runs resume:** run it again to continue where it stopped. Each run is capped (`--max-instagram`, `--max-gemini`) so it doesn't eat the daily sweep's quota.

@@ -131,7 +131,7 @@ Every service the system depends on. All of them are on free plans.
 | **What it needs** | A **Meta app** (Meta for Developers, with the Instagram Graph API product). A **Facebook Page** linked to **our own Instagram professional account**, whose id is `IG_USER_ID`. An access token for that Page (`META_ACCESS_TOKEN`) |
 | **Token** | A **Page access token that doesn't expire**. It's made from a short-lived Graph API Explorer token by `python -m pa_bailar refresh-token` (section 12.2). It stops working only if it's revoked (for example, a Facebook password change) |
 | **What it can see** | Only **business and creator** accounts. Personal or private accounts answer with error 100/110 ("not visible") |
-| **Limits** | An hourly quota per app, about 200 calls an hour for this app. Every answer carries an `X-App-Usage` header with the percentage used, which `InstagramClient.app_usage_percent` reads. When the quota is spent, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`) |
+| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used, now in the `X-Business-Use-Case-Usage` header (`call_count`, `total_cputime`, `total_time`, in percent; older apps got `X-App-Usage`). `InstagramClient.app_usage_percent` reads both and keeps the highest. The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts left out go first next run |
 | **Cost per sweep** | **1 call per account**, no matter how many posts are asked for (10 regular, 30 for a new account). Images are then downloaded from Instagram's CDN, which isn't an API call |
 | **Cost** | Free |
 | **If it fails** | Token invalid: the run stops at the start and fails, and healthchecks.io emails you. Rate limit: the run stops calling Instagram, and the remaining accounts wait for the next run (a notice, and a warning after 3 runs in a row). One account fails: logged, and the others continue |
@@ -256,7 +256,7 @@ sequenceDiagram
     R->>R: pip install (hash-pinned requirements.txt)
     loop each account in accounts.txt (regular ones first)
         R->>IG: business_discovery.username(account){media}
-        IG-->>R: recent posts (+ X-App-Usage)
+        IG-->>R: recent posts (+ usage header)
         loop each new or changed post
             R->>R: download its images (Instagram CDN)
             R->>G: triage (Flash-Lite, caption + 1 small image)
@@ -508,7 +508,8 @@ flowchart TD
   - `is_not_visible`: 100 and 110, a personal, private or missing account;
   - `is_rate_limited`: 4, 17, 32, 613 and 80001–80009;
   - network failures and non-JSON answers become an `InstagramError` for that account only.
-- **Quota awareness:** every answer updates `app_usage_percent` from `X-App-Usage`. `discover` pauses at
+- **Quota awareness:** every answer updates `app_usage_percent` from Meta's usage headers (until 2026-10-03 only
+  `X-App-Usage` was read, which Instagram no longer sends, so this never triggered). `discover` pauses at
   60%. The sweep simply stops calling Instagram on the first rate-limit error, and the remaining accounts
   wait for the next run.
 
@@ -619,7 +620,7 @@ They run after every sweep. No AI, no quota.
 | Finding | Level | Rule |
 |---|---|---|
 | `@account` couldn't be read | Notice, then **warning** after 3 runs in a row | Renamed, private or no longer a business account? |
-| Instagram's rate limit stopped the run early | Notice, then **warning** after 3 runs in a row | Too many accounts for the app's hourly quota? |
+| Instagram's rate limit stopped the run early | Notice, then **warning** after 3 runs in a row | Too many accounts for the app's quota? Discovery or tests using it? |
 | The run used its whole time budget | Notice, then **warning** after 3 runs in a row | Is the backlog too big? |
 | Posts failed | Notice, then **warning** after 3 runs in a row | Gemini rejections, image downloads, unexpected errors. Posts waiting for quota aren't failures |
 | A Gemini model the key can't use | Notice, then **warning** after 3 runs in a row | Google may have changed the free tier: extraction falls back to Flash-Lite; `GEMINI_LITE_ONLY=1` makes that the plan |
@@ -734,7 +735,7 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
   (`.github/workflows/admin.yml`) runs it on new issues and comments from `jzamora5`.
 - **`admin status`** (`pa_bailar/status.py`): the latest and next sweeps; Gemini usage per model against
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
-  otherwise); whether the Instagram token works and the app's hourly usage (one call, `--no-instagram`
+  otherwise); whether the Instagram token works and the share of Instagram's quota used (one call, `--no-instagram`
   skips it); accounts still in their first sweep; provisional posts; upcoming events; discovery progress.
   `--json` gives the same as data. On your computer it reads the sweeps' state from the `sweep-state`
   branch.

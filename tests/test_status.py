@@ -95,5 +95,5 @@ def test_the_text_says_it_in_spanish():
     assert "Próximos: hoy 9:00 p. m. y mañana 9:00 a. m." in text
     assert "| `gemini-3.8-flash` | extraction | 18 (agotado) | 18 |" in text
     assert "La cuota se reinicia mañana 2:00 a. m." in text
-    assert "Cuota de la app esta hora: 12%" in text
+    assert "Cuota de Instagram usada: 12%" in text
     assert "1 en su primer barrido (más profundo): @nueva" in text
