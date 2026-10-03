@@ -117,8 +117,18 @@ def added_post_markdown(added: AddedPost) -> str:
             f"➕ @{added.account} no estaba en los barridos: la agregué (sus publicaciones de los últimos "
             f"{config.BACKFILL_DAYS} días se leen en el próximo barrido)."
         )
-    light = " Flash-Lite (provisional: se relee con Flash)" if added.provisional else f" {added.model}"
-    if added.outcome in ("event", "merged") and added.events:
+    # Provisional reads are upgraded to Flash by the sweeps, which only see accounts the API can read.
+    upgrade = "provisional: se relee con Flash" if added.readable and not added.public else "Flash no tenía cuota"
+    light = f" Flash-Lite ({upgrade})" if added.provisional else f" {added.model}"
+    if added.unchanged:
+        lines.append("ℹ️ Ya la había leído y no ha cambiado: no la leí de nuevo (no gasté cuota de Gemini).")
+    if added.unchanged and added.outcome in ("event", "merged"):
+        if added.events:
+            lines.append(f"✅ **Ya está en el sitio** ({len(added.events)} evento(s)):")
+            lines += [f"- [{e.title}]({links.event_url(e.id)}) · {e.date}" for e in added.events]
+        else:
+            lines.append("✅ Su evento ya pasó: sale del sitio después de su fecha.")
+    elif added.outcome in ("event", "merged") and added.events:
         verb = "Se unió a" if added.outcome == "merged" else "Publiqué"
         lines.append(f"✅ **{verb} {len(added.events)} evento(s)**, leído con{light}:")
         lines += [f"- [{e.title}]({links.event_url(e.id)}) · {e.date}" for e in added.events]

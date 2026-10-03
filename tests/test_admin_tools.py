@@ -298,3 +298,66 @@ def unseen_with_author(author):
     return why.diagnose(
         LINK, "academia", read=state(), fetch_posts=lambda account: [], author_of=lambda code: author, now=NOW
     )
+
+
+# ---------- one post, one identity; Gemini only when it can change something ----------
+
+RATE_LIMITED = InstagramError("Application request limit reached", code=4)
+
+
+def test_adding_an_unchanged_post_again_spends_no_gemini_request():
+    sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK, "academia")
+    again = sweep({"academia": [post("p1")]}, {})
+    added = again.add_post(LINK, "academia")
+    assert added.unchanged and added.outcome == "event" and len(added.events) == 1
+    assert again.extractor.extracted_posts == []
+
+
+def test_an_edited_caption_is_read_again():
+    sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK, "academia")
+    edited = {**post("p1"), "caption": "Cambio de lugar: ahora en Casa Latina"}
+    again = sweep({"academia": [edited]}, {"p1": event_post("p1", venue="Casa Latina")})
+    added = again.add_post(LINK, "academia")
+    assert not added.unchanged and again.extractor.extracted_posts == ["p1"]
+    assert added.events[0].venue == "Casa Latina"
+
+
+def test_a_post_the_filter_called_not_an_event_is_read_when_added():
+    from pa_bailar.models import ProcessedPost
+
+    filtered = ProcessedPost(**record(is_event_post=False, outcome="not_event"), caption_hash=None)
+    storage.save_processed_posts({"p1": filtered})
+    added = sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK, "academia")
+    assert not added.unchanged and added.outcome == "event"
+
+
+def test_a_post_added_from_its_public_page_is_the_same_post_for_the_sweeps(monkeypatch):
+    from tests.test_sweep import FakeExtractor, FakeInstagram, run
+
+    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", public_page("academia"))
+    added = sweep({"academia": RATE_LIMITED}, {"public-p1": event_post("public-p1")}).add_post(LINK, "academia")
+    assert added.public and "public-p1" in storage.load_processed_posts()
+
+    extractor = FakeExtractor({})  # no prepared answers: any Gemini request would fail the test
+    run(FakeInstagram({"academia": [post("p1")]}), extractor)
+    assert extractor.extracted_posts == []
+    assert set(storage.load_processed_posts()) == {"p1"}  # under the API's id from now on
+    [event] = storage.load_events()
+    assert [media.post_id for media in event.media] == ["p1"]  # one post: its flyer isn't added twice
+
+
+def test_a_post_read_through_the_api_keeps_its_id_when_read_from_its_public_page(monkeypatch):
+    sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK, "academia")
+    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", public_page("academia"))
+    again = sweep({"academia": RATE_LIMITED}, {})
+    added = again.add_post(LINK, "academia")
+    assert added.public and added.unchanged and again.extractor.extracted_posts == []
+    assert set(storage.load_processed_posts()) == {"p1"}
+
+
+def test_the_answer_says_an_unchanged_post_wasnt_read_again():
+    from pa_bailar.commands.sweep import added_post_markdown
+
+    sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK, "academia")
+    answer = added_post_markdown(sweep({"academia": [post("p1")]}, {}).add_post(LINK, "academia"))
+    assert "no gasté cuota de Gemini" in answer and "Ya está en el sitio" in answer and "Publiqué" not in answer

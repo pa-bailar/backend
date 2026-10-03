@@ -17,7 +17,7 @@ import logging
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, date, datetime, timedelta
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 from google.genai import errors as genai_errors
 
@@ -219,6 +219,13 @@ class AddedPost:
     events: list[StoredEvent]  # the events it became or joined, as stored
     public: bool = False  # read from its public page (public_post.py): the API couldn't give it
     readable: bool = True  # the API can read the account (so it's swept); False: personal or private
+    unchanged: bool = False  # analyzed before and unchanged: not read again (no Gemini request)
+
+
+# What a post analyzed before became, when reading it again by hand can't change it (caption unchanged):
+# published or merged, or discarded (recurring, no date) by the extraction itself. "not_event" (the filter)
+# and "rejected" are read again: whoever asks says it's an event, and the extraction skips the filter.
+SETTLED_OUTCOMES = ("event", "merged", "discarded")
 
 
 def hours_overdue(state: AccountState | None, now: datetime) -> float:
@@ -350,16 +357,21 @@ class Sweep:
 
     def add_post(self, url: str, account: str | None = None) -> AddedPost:
         """Publish the events of one post by hand (`sweep --post`, from `admin add-post`), without triage
-        (whoever asks knows it's an event). A post analyzed before is analyzed again.
+        (whoever asks knows it's an event).
 
         The post comes from Instagram's API, among the account's latest; when the API can't give it (a personal or
         private account, a collaboration listed under another account, Instagram's limit), from its public page
         (public_post.py), which also names the author when the link doesn't. An account the API can read and
-        isn't swept yet is added to accounts.txt."""
+        isn't swept yet is added to accounts.txt.
+
+        Gemini only reads it when that can change something: a post analyzed before is read again only if its
+        caption changed, or if it was filtered out as "not an event" or rejected (whoever asks says it is one).
+        Otherwise the answer is what it already became."""
         code = links.post_code(url)
         if not code:
             raise AddPostError("Ese enlace no es de una publicación de Instagram (instagram.com/p/…).")
-        known = next((record for record in self.processed.values() if links.same_post(record.permalink, code)), None)
+        known_id = self._record_id(code)
+        known = self.processed.get(known_id) if known_id else None
         account = account or (known.account if known else None) or links.account_in_link(url)
         public: tuple[str, Post] | None = None
         if not account:
@@ -381,24 +393,30 @@ class Sweep:
             post, from_public = public[1], True
             if public[0] != account:  # a collaboration: the post is its author's
                 account, readable = public[0], False
+        if known_id and known_id != post["id"]:
+            post = self._one_identity(known_id, post)
 
         added = readable and not from_public and storage.add_account(account)
         if added:
             self.accounts.setdefault(account, AccountState(first_seen=config.now_bogota().date().isoformat()))
             log.info("@%s added to accounts.txt", account)
-        published = published_at(post)
-        log.info("   %s %-14s %s (by hand)", f"{published:%Y-%m-%d}", post["media_type"], post["permalink"])
-        self._extract_post(account, post, published)
-
-        self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
-        self.stats.gemini_requests = self.extractor.requests_this_run()
+        record = self.processed.get(post["id"])
+        unchanged = record is not None and record.outcome in SETTLED_OUTCOMES and self._same_caption(post)
+        if unchanged:
+            log.info("   analyzed before and unchanged: not read again %s", post["permalink"])
+        else:
+            published = published_at(post)
+            log.info("   %s %-14s %s (by hand)", f"{published:%Y-%m-%d}", post["media_type"], post["permalink"])
+            self._extract_post(account, post, published)
+            self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
+            self.stats.gemini_requests = self.extractor.requests_this_run()
         storage.save_account_state(self.accounts)
         storage.save_meta(asdict(self.stats))
 
         record = self.processed[post["id"]]
         events = [event for event in self.events if event.id in record.event_ids]
         return AddedPost(
-            account,
+            record.account,
             added,
             post["permalink"],
             record.outcome,
@@ -408,7 +426,51 @@ class Sweep:
             events,
             public=from_public,
             readable=readable,
+            unchanged=unchanged,
         )
+
+    # ---------- one post, one identity: the API's id, or public-<id> when read from its public page ----------
+
+    def _record_id(self, code: str, public_only: bool = False) -> str | None:
+        """The id under which a post (by its link's code) was analyzed, if it was."""
+        return next(
+            (
+                post_id
+                for post_id, record in self.processed.items()
+                if (not public_only or post_id.startswith(public_post.ID_PREFIX))
+                and links.same_post(record.permalink, code)
+            ),
+            None,
+        )
+
+    def _one_identity(self, known_id: str, post: Post) -> Post:
+        """The same post under two ids (read once through the API, once from its public page): keep one. The
+        API's id wins, so the sweeps recognize it."""
+        if known_id.startswith(public_post.ID_PREFIX) and not post["id"].startswith(public_post.ID_PREFIX):
+            self._rename_post(known_id, post["id"])
+            return post
+        return cast(Post, {**post, "id": known_id})
+
+    def _rename_post(self, old: str, new: str) -> None:
+        """Move a post's record and its place in events to a new id (flyers and clips keep their file names)."""
+        self.processed[new] = self.processed.pop(old)
+        for event in self.events:
+            for media in event.media:
+                if media.post_id == old:
+                    media.post_id = new
+        log.info("   %s is %s: the same post, now under the API's id", old, new)
+        self._save()
+
+    def _same_caption(self, post: Post) -> bool:
+        """Whether the post's caption is the one analyzed: its fingerprint or, for a post read before from its
+        public page (whose caption may be spaced differently), the caption stored with its events."""
+        record = self.processed[post["id"]]
+        if record.caption_hash == _caption_hash(post):
+            return True
+        stored = next(
+            (media.caption for event in self.events for media in event.media if media.post_id == post["id"]), None
+        )
+        return stored is not None and " ".join(stored.split()) == " ".join((post.get("caption") or "").split())
 
     def _public_post(self, code: str) -> tuple[str, Post]:
         """The post from its public page, or AddPostError saying why it couldn't be read."""
@@ -465,7 +527,7 @@ class Sweep:
             published = published_at(post)
             if published < cutoff:
                 continue
-            record = self.processed.get(post["id"])
+            record = self.processed.get(post["id"]) or self._adopt_public_record(post)
             caption_hash = _caption_hash(post)
             if record is None:
                 log.info("   %s %-14s %s", f"{published:%Y-%m-%d}", post["media_type"], post["permalink"])
@@ -492,6 +554,19 @@ class Sweep:
             state.backfill_done = True
             log.info("   first sweep complete: from now on, regular sweep")
         storage.save_account_state(self.accounts)
+
+    def _adopt_public_record(self, post: Post) -> ProcessedPost | None:
+        """A post added by hand from its public page, now among the account's posts: the same post, not a new
+        one (no second Gemini request). It's analyzed again only if its caption changed since."""
+        code = links.post_code(post["permalink"])
+        known_id = self._record_id(code, public_only=True) if code else None
+        if known_id is None:
+            return None
+        self._rename_post(known_id, post["id"])
+        record = self.processed[post["id"]]
+        if self._same_caption(post):
+            record.caption_hash = _caption_hash(post)  # the API's spacing from now on
+        return record
 
     def _complete_media(self, posts: list[Post]) -> None:
         """Add what posts stored before clips and slide counts existed are missing, from their fresh copy

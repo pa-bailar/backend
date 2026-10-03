@@ -3,7 +3,14 @@
 from datetime import date, timedelta
 
 from pa_bailar import storage
-from pa_bailar.merging import detach_post, find_existing, looks_like_same_event, merge_into, ordered_media
+from pa_bailar.merging import (
+    detach_post,
+    find_existing,
+    looks_like_same_event,
+    looks_like_shared_event,
+    merge_into,
+    ordered_media,
+)
 from tests.factories import EVENT_DATE, extracted, media, stored
 
 OTHER_DATE = (date.fromisoformat(EVENT_DATE) + timedelta(days=1)).isoformat()  # never the sample event's date
@@ -121,3 +128,62 @@ def test_an_older_post_analyzed_again_never_overrides_newer_details():
     old_flyer = extracted(start_time="20:00")
     merged = merge_into(event, old_flyer, media("flyer", published="2026-10-01T12:00:00+0000"))
     assert merged.start_time == "21:00"
+
+
+# ---------- the same event from two accounts (an organizer and its venue, collaborators) ----------
+
+
+def test_an_organizer_and_its_venue_posting_the_same_social_merge():
+    """Sept 19, 2026: @distritosocialbog listed Bachatamanía's social, and @bachatamania_bogota posted it too."""
+    venue_post = stored(
+        account="distritosocialbog",
+        title="Bachatamanía - Clase y social 100% bachata",
+        start_time="20:30",
+        organizer="Bachatamanía",
+    )
+    organizer_post = extracted(
+        title="Social de amor y amistad 100% Bachata",
+        start_time="20:30",
+        venue="Distrito Social",
+        organizer="Bachatamaniá Bogotá",
+    )
+    assert find_existing([venue_post], "bachatamania_bogota", organizer_post, "new-post") is venue_post
+
+
+def test_a_congress_shared_by_its_collaborators_merges():
+    congress = stored(account="levelupbfc", title="Level Up Bachata Fusion Congress", organizer="LuDance")
+    assert looks_like_shared_event(congress, "ludancestudios", extracted(title="Congreso Level Up Bachata Fusion"))
+    assert looks_like_shared_event(congress, "otra", extracted(title="Level Up Fusion Congress 2026"))
+
+
+def test_different_events_on_the_same_night_stay_apart():
+    social = stored(account="academia", title="Social de salsa", start_time="20:00", venue="Casa Latina")
+    # Two academies' socials at the same time: common words only, no venue in common.
+    assert not looks_like_shared_event(social, "otra", extracted(title="Social de salsa caleña", start_time="20:00"))
+    # Different venues, even naming each other.
+    assert not looks_like_shared_event(
+        social,
+        "otra",
+        extracted(title="Social de salsa", start_time="20:00", venue="Salsa Camará", organizer="Academia"),
+    )
+    # Different times, even with the same title.
+    assert not looks_like_shared_event(social, "otra", extracted(title="Social de salsa", start_time="22:00"))
+    # Another date.
+    assert not looks_like_shared_event(
+        social, "otra", extracted(title="Social de salsa", start_time="20:00", date=OTHER_DATE)
+    )
+    # The same account is the other rule's job (looks_like_same_event).
+    assert not looks_like_shared_event(social, "academia", extracted(title="Social de salsa", start_time="20:00"))
+
+
+def test_a_city_name_in_a_title_doesnt_name_an_account():
+    social = stored(account="academia", title="Gran social Bogotá", start_time="20:00")
+    assert not looks_like_shared_event(social, "bogotadanceclub", extracted(title="Noche Bogotá", start_time="20:00"))
+
+
+def test_the_same_account_rule_comes_first():
+    mine = stored("p1-0", account="academia", start_time="20:00", title="Social")
+    theirs = stored(
+        "p2-0", account="otra", start_time="20:00", title="Social", organizer="Academia", posts=[media("p2")]
+    )
+    assert find_existing([theirs, mine], "academia", extracted(start_time="20:00"), "new-post") is mine
