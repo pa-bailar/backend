@@ -4,6 +4,7 @@ import re
 from collections.abc import Sequence
 from datetime import date, time
 
+from . import config
 from .models import STYLES, ExtractedEvent
 from .text import fold
 
@@ -121,16 +122,35 @@ def normalize_contact(contact: str | None) -> str | None:
     return f"WhatsApp {number}" if _WHATSAPP.search(text) else number
 
 
+def parse_end_date(start: str | None, end: str | None, doubts: list[str]) -> str | None:
+    """The last day of an event over several consecutive days, after its first day (`start`, already parsed) and
+    at most MAX_EVENT_DAYS in all; otherwise None (a one-day event). A range that can't be right is noted as a
+    doubt, so the event is reviewed (health.events_to_review)."""
+    end = parse_iso_date(end)
+    if not start or not end or end == start:
+        return None
+    days = (date.fromisoformat(end) - date.fromisoformat(start)).days + 1
+    if days < 1:
+        doubts.append("fecha final anterior a la inicial")
+        return None
+    if days > config.MAX_EVENT_DAYS:
+        doubts.append("dura más de una semana: revisar fechas")
+        return None
+    return end
+
+
 def normalize_event(event: ExtractedEvent) -> ExtractedEvent:
     """A copy with valid dates and times (invalid ones become None), clean styles and no negative prices."""
     doubts = list(event.doubts)
     start_time, end_time = parse_time(event.start_time), parse_time(event.end_time)
     if event.start_time and not start_time:
         doubts.append(f"Hora de inicio no reconocida: {event.start_time}")
+    start = parse_iso_date(event.date)
     return event.model_copy(
         update={
             "title": " ".join(event.title.split()),
-            "date": parse_iso_date(event.date),
+            "date": start,
+            "end_date": parse_end_date(start, event.end_date, doubts),
             "start_time": start_time,
             "end_time": end_time,
             "styles": normalize_styles(event.styles),

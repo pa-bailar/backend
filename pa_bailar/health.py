@@ -7,7 +7,7 @@ sweep-state branch with the rest of the state) and returns what needs a look:
     model this key can no longer use), a backlog that doesn't go down, a week of posts without a single event.
   - notices: worth knowing, nothing to do yet. This run's one-off problems, Flash's quota running out,
     accounts without posts for weeks, upcoming events worth a second look (Gemini wasn't confident, or
-    doubted the date).
+    doubted the date, or a congress or festival has a single day).
 
 The sweep puts the report at the top of the run's summary on GitHub. The workflow keeps an open "Sweep
 health" issue while there are warnings (commenting, so GitHub emails, only when they change) and sends
@@ -26,7 +26,7 @@ from pydantic import BaseModel, TypeAdapter
 from . import config, storage
 from .models import StoredEvent
 from .pipeline import RunStats
-from .text import fold
+from .text import dates_label, fold
 
 HISTORY_RUNS = 120  # runs kept: two a day, two months
 REPEATED_RUNS = 3  # a problem in this many runs in a row is a pattern, not bad luck
@@ -249,14 +249,24 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
     return sorted(findings, key=lambda finding: finding.level != "warning")
 
 
+SINGLE_DAY_DOUBT = "un solo día: ¿faltan fechas?"  # a congress or festival usually lasts several days
+
+
+def review_reasons(event: StoredEvent) -> list[str]:
+    """Why an event is worth a second look (empty: it isn't): its doubts when Gemini wasn't confident or doubted
+    the date, and a congress or festival dated on one day only (its other days may be missing)."""
+    reasons = []
+    if event.confidence != "high" or any(DATE_DOUBT.search(fold(doubt)) for doubt in event.doubts):
+        reasons += event.doubts or ["no details"]
+    if event.event_type in ("congress", "festival") and not event.end_date:
+        reasons.append(SINGLE_DAY_DOUBT)
+    return reasons
+
+
 def events_to_review(events: list[StoredEvent], today: date) -> list[StoredEvent]:
-    """Upcoming events worth a second look: Gemini wasn't confident, or doubted the date."""
-
-    def doubts_date(event: StoredEvent) -> bool:
-        return any(DATE_DOUBT.search(fold(doubt)) for doubt in event.doubts)
-
-    upcoming = [event for event in events if (event.date or "") >= today.isoformat()]
-    return [event for event in upcoming if event.confidence != "high" or doubts_date(event)]
+    """Upcoming events (until their last day) worth a second look (review_reasons)."""
+    upcoming = [event for event in events if (event.last_day or "") >= today.isoformat()]
+    return [event for event in upcoming if review_reasons(event)]
 
 
 def fingerprint(findings: list[Finding]) -> str:
@@ -277,11 +287,17 @@ def report_markdown(findings: list[Finding], review: list[StoredEvent], run_url:
     if notices:
         lines += ["### Notices", "", *(f"- {finding.text}" for finding in notices), ""]
     if review:
-        lines += ["### Events to review", "", "Gemini wasn't confident about them, or doubted the date:", ""]
+        lines += [
+            "### Events to review",
+            "",
+            "Gemini wasn't confident about them or doubted the date, or a congress or festival has a single day:",
+            "",
+        ]
         for event in review:
-            doubts = "; ".join(event.doubts) or "no details"
+            reasons = "; ".join(review_reasons(event))
             link = f"[{event.title}]({event.media[0].permalink})" if event.media else event.title
-            lines.append(f"- {event.date} · {link} (@{event.account}, {event.confidence} confidence): {doubts}")
+            when = dates_label(event.date, event.end_date)
+            lines.append(f"- {when} · {link} (@{event.account}, {event.confidence} confidence): {reasons}")
         lines.append("")
     if run_url:
         lines += [f"[Run log]({run_url})", ""]

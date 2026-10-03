@@ -11,7 +11,7 @@ from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedReque
 from pa_bailar.instagram import InstagramError
 from pa_bailar.models import PostAnalysis, ProcessedPost, Triage
 from pa_bailar.pipeline import Sweep
-from tests.factories import event_id, extracted, make_image, media, stored
+from tests.factories import EVENT_DATE, event_id, extracted, make_image, media, stored
 
 FLYER_URL = "https://cdn.example/flyer.jpg"
 VIDEO_THUMB_URL = "https://cdn.example/video.jpg"
@@ -524,3 +524,45 @@ def test_an_edited_caption_is_extracted_again_without_the_filter_and_a_cancelled
     run(FakeInstagram({"academia": [cancelled], "otra": []}), extractor)
     assert extractor.extracted_posts == ["p1"]
     assert read(config.EVENTS_FILE) == []
+
+
+# ---------- events over several days ----------
+
+
+def test_events_stored_before_end_dates_existed_still_load():
+    event = stored().model_dump(mode="json")
+    del event["end_date"]
+    config.EVENTS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    config.EVENTS_FILE.write_text(json.dumps([event]), encoding="utf-8")
+    [loaded] = storage.load_events()
+    assert loaded.end_date is None and loaded.last_day == loaded.date
+
+
+def test_an_event_over_several_days_keeps_its_first_day_in_its_id_and_expires_after_its_last_day():
+    last_day = (datetime.fromisoformat(EVENT_DATE) + timedelta(days=2)).date().isoformat()
+    analysis = event_post("p1", title="Congreso de bachata", event_type="congress", end_date=last_day)
+    run(FakeInstagram({"academia": [post("p1")], "otra": []}), FakeExtractor({"p1": analysis}))
+    [event] = read(config.EVENTS_FILE)
+    assert event["id"] == event_id("Congreso de bachata")  # its first day, like any event's
+    assert (event["date"], event["end_date"]) == (EVENT_DATE, last_day)
+
+
+def test_past_events_expire_by_their_last_day():
+    retention = config.EVENT_RETENTION_DAYS
+    ended_recently = stored(
+        "ended-recently", date=days_ago_date(retention + 2), end_date=days_ago_date(retention - 1), posts=[media("a")]
+    )
+    ended_long_ago = stored(
+        "ended-long-ago", date=days_ago_date(retention + 4), end_date=days_ago_date(retention + 1), posts=[media("b")]
+    )
+    storage.save_events([ended_recently, ended_long_ago])
+    stats = run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}))
+    assert [event.id for event in storage.load_events()] == ["ended-recently"] and stats.events_expired == 1
+
+
+def test_a_congress_under_way_is_still_a_known_event_for_new_posts():
+    congress = stored("congreso", date=days_ago_date(2), end_date=days_ago_date(-2), posts=[media("old")])
+    storage.save_events([congress])
+    extractor = FakeExtractor({"p1": event_post("p1", same_as="congreso")})
+    run(FakeInstagram({"academia": [post("p1", days_ago=0)], "otra": []}), extractor)
+    assert extractor.known_seen["p1"] == ["congreso"]

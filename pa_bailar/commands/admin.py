@@ -80,8 +80,9 @@ def answer(request: inbox.Request) -> tuple[str, bool]:
         return run_add_account(request.account), True
     if request.action == "add-post" and request.link:
         target = f" de @{request.account}" if request.account else ""
+        verb = "volver a leer" if request.again else "leer"
         return (
-            f"⏳ Voy a leer la publicación{target} para publicarla: te respondo aquí en unos minutos (si hay un "
+            f"⏳ Voy a {verb} la publicación{target} para publicarla: te respondo aquí en unos minutos (si hay un "
             "barrido en curso, espera a que termine).",
             False,
         )
@@ -138,7 +139,11 @@ def main(argv: list[str] | None = None) -> None:
         reply, done = answer(request)
         Path(os.environ.get("INBOX_REPLY", "reply.md")).write_text(reply, encoding="utf-8")
         _write_outputs(
-            action=request.action, link=request.link or "", account=request.account or "", done=str(done).lower()
+            action=request.action,
+            link=request.link or "",
+            account=request.account or "",
+            again=str(request.again).lower(),
+            done=str(done).lower(),
         )
         print(reply)
 

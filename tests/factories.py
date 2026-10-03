@@ -22,6 +22,7 @@ DETAILS = {
     "address": None,
     "area": None,
     "date": EVENT_DATE,
+    "end_date": None,
     "weekday": None,
     "start_time": None,
     "end_time": None,

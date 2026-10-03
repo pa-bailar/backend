@@ -11,6 +11,7 @@
 #   sent to Gemini twice and the two daily runs share the quotas.
 # - Started with `post_url` (by the admin workflow, docs/ADMIN.md), it adds that one post by hand instead of
 #   sweeping (`sweep --post`), then answers on the admin issue. Such runs don't count for the health checks.
+#   With `again` ("Volver a leer"), the post is read again even if it was read before and hasn't changed.
 name: daily-sweep
 run-name: ${{ inputs.post_url && format('Add a post by hand (#{0})', inputs.issue) || 'Sweep' }}
 
@@ -40,6 +41,10 @@ on:
       issue:
         description: "Admin tools: the issue to answer"
         required: false
+      again:
+        description: "Admin tools: read the post again even if it was read before and hasn't changed"
+        type: boolean
+        default: false
 
 permissions:
   contents: write # push the sweep-state branch of this repository
@@ -154,9 +159,10 @@ jobs:
           ACCOUNT: ${{ inputs.account }}
           ADMIN_REPORT_FILE: ${{ github.workspace }}/admin-report.md
           ALL_ACCOUNTS: ${{ inputs.all_accounts && '--all' || '' }}
+          AGAIN: ${{ inputs.again && '--again' || '' }}
         run: |
           if [ -n "$POST_URL" ]; then
-            python -m pa_bailar sweep --post "$POST_URL" ${ACCOUNT:+--account "$ACCOUNT"}
+            python -m pa_bailar sweep --post "$POST_URL" ${ACCOUNT:+--account "$ACCOUNT"} $AGAIN
           else
             python -m pa_bailar sweep --days "$LOOKBACK_DAYS" $ALL_ACCOUNTS
           fi

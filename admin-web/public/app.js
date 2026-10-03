@@ -147,8 +147,10 @@ function toolsCard() {
       <div class="tool__buttons">
         <button class="button" type="submit" data-action="why">Revisar</button>
         <button class="button button--outline" type="submit" data-action="add-post">Agregar</button>
+        <button class="button button--outline" type="submit" data-action="add-post-again">Volver a leer</button>
       </div>
-      <p class="small muted">Revisar dice si su evento está en el sitio y, si no, por qué. Agregar la lee y la publica.</p>
+      <p class="small muted">Revisar dice si su evento está en el sitio y, si no, por qué. Agregar la lee y la publica.
+        Volver a leer la lee otra vez aunque ya se haya leído (si su evento quedó con datos equivocados).</p>
     </form>
     <form id="account-form" class="tool">
       <label for="new-account">Agregar una cuenta a los barridos</label>

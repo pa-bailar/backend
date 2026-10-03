@@ -136,3 +136,26 @@ def test_an_account_read_every_other_run_still_warns_after_three_failed_tries():
     assert levels(check(failing, history)) == {"fetch:academia": "warning"}
     read_fine = record(read_accounts=["academia"])
     assert levels(check(failing, [failing, read_fine, failing])) == {"fetch:academia": "notice"}
+
+
+def test_events_over_several_days_are_reviewed_until_their_last_day():
+    under_way = stored(
+        "under-way",
+        date=(TODAY - timedelta(days=1)).isoformat(),
+        end_date=(TODAY + timedelta(days=1)).isoformat(),
+        confidence="medium",
+    )
+    assert [event.id for event in health.events_to_review([under_way], TODAY)] == ["under-way"]
+
+
+def test_a_congress_or_festival_on_a_single_day_is_reviewed():
+    future = (TODAY + timedelta(days=5)).isoformat()
+    last_day = (TODAY + timedelta(days=7)).isoformat()
+    events = [
+        stored("one-day", title="Level Up Congress", date=future, event_type="congress"),
+        stored("festival", date=future, end_date=last_day, event_type="festival"),
+        stored("social", date=future, event_type="social"),
+    ]
+    assert [event.id for event in health.events_to_review(events, TODAY)] == ["one-day"]
+    report = health.report_markdown([], health.events_to_review(events, TODAY))
+    assert f"{future} · [Level Up Congress]" in report and health.SINGLE_DAY_DOUBT in report

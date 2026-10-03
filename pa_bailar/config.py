@@ -115,8 +115,13 @@ BACKFILL_DAYS = 30
 # sweep step's 35-minute timeout (the job's is 60): the steps after it still save the state and the data.
 MAX_RUN_MINUTES = 30
 
+# Events over several consecutive days (a congress, a festival weekend) have an end_date: at most this many
+# days in all. A longer range is dropped as a misreading (normalize.py), and the event keeps its first day.
+MAX_EVENT_DAYS = 7
+
 # ---------- Retention ----------
-# Events dated more than this many days ago are deleted, and their flyers with them (git history keeps both).
+# Events whose last day was more than this many days ago are deleted, and their flyers with them (git history
+# keeps both).
 EVENT_RETENTION_DAYS = 60
 # Records of analyzed posts are forgotten after this many days. Must exceed BACKFILL_DAYS and the lookback:
 # older posts are never fetched again, so forgetting them can't cause a second analysis.
