@@ -6,13 +6,32 @@ on the site, add one by hand, fix a wrong detail. **Work in progress:** this pag
 | Step | What | State |
 |---|---|---|
 | Admin page hosting | A page with its own server side, a Cloudflare Worker | Placeholder |
-| 1. Status | `admin status`: sweeps, Gemini and Instagram usage, token expiry, accounts | Next |
+| 1. Status | `admin status`: sweeps, Gemini and Instagram usage, accounts, events | Done |
 | 2. Events | `admin why`, `admin add-post`, `admin add-account`, and the issues inbox | Planned |
 | 3. Admin page | Sign in with GitHub, dashboard, check or add a post from a link | Planned |
 | 4. Corrections | `corrections.json` and `admin fix`, fed by the site's report form | Planned |
 
 None of these tools is AI: they are fixed checks over what the sweep records. Only adding a post sends it
 to Gemini (one request).
+
+## `admin status`: how it's doing
+
+```bash
+.venv\Scripts\python -m pa_bailar admin status
+```
+
+From the repository root, on your computer (it reads `.env` for the Instagram check). It shows, in Spanish:
+
+- **Barridos:** the latest sweeps (✅ or ⚠️ with what went wrong: Instagram's limit, time, accounts that
+  couldn't be read, errors), with a link to each run, and the next two.
+- **Gemini hoy:** requests per model against its daily budget, and when the quota resets.
+- **Instagram:** whether the token works, and how much of the app's hourly quota is used (one call;
+  `--no-instagram` skips it).
+- **Cuentas y eventos:** accounts swept, those still in their first (deeper) sweep, posts analyzed,
+  provisional events waiting for Flash, upcoming events on the site, discovery progress.
+
+`--json` gives the same as data (the admin page will show it). The sweeps' state comes from the
+`sweep-state` branch, fetched each time, so it's current even if you haven't run anything locally.
 
 ## The admin page
 
