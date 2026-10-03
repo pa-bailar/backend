@@ -189,7 +189,7 @@ Every service the system depends on. All of them are on free plans.
 |---|---|
 | **What for** | Hosting the admin page (Worker `pa-bailar-admin`, at `https://pa-bailar-admin.jzamorac-9.workers.dev`) and its server side: the sign-in with GitHub (the `pa-bailar-admin` GitHub App) and reading the status. GitHub Pages can't: it's not free for a private repository and has no server side |
 | **How** | Cloudflare's build (Workers Builds) deploys `admin-web/` (`wrangler.jsonc`) from this repository on every push to `main`, no preview builds. Its GitHub connection is limited to this repository |
-| **Status** | Sign-in with GitHub and the status dashboard. The admin tools are described in [`docs/ADMIN.md`](ADMIN.md) |
+| **Status** | Sign-in with GitHub, the status dashboard and the admin tools. Installable on Android, where it receives posts shared from Instagram. Described in [`docs/ADMIN.md`](ADMIN.md) |
 | **Cost** | Free |
 
 ### 3.7 Instagram's public post pages (fallback)
