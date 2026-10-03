@@ -35,6 +35,9 @@ RUN_HISTORY_FILE = STATE_DIR / "run_history.json"  # each sweep in short, for th
 # ---------- Instagram (Meta Graph API) ----------
 GRAPH_API_URL = "https://graph.facebook.com/v26.0"
 POSTS_PER_ACCOUNT = 10  # regular sweep; one API call per account regardless of this number
+# The admin tools look for a post among this many of the account's latest (one API call): `admin why`, add-post.
+ADMIN_POST_SEARCH = 50
+SITE_URL = "https://pa-bailar.github.io"  # the public site, for links to events in the admin tools' answers
 MAX_IMAGES_PER_POST = 10  # monthly schedules often show an event on slide 5 or later; still one request
 HTTP_TIMEOUT_SECONDS = 30
 

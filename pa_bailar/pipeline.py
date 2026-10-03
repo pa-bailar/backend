@@ -21,7 +21,7 @@ from typing import Any, Protocol
 
 from google.genai import errors as genai_errors
 
-from . import config, storage
+from . import config, links, storage
 from .extraction import EventExtractor
 from .gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError
 from .ids import new_event_id
@@ -178,6 +178,24 @@ def _media_for(post: Post, flyer: str | None) -> EventMedia:
     )
 
 
+class AddPostError(Exception):
+    """add_post couldn't do it: the message says why, in Spanish, for the admin tools' answer."""
+
+
+@dataclass
+class AddedPost:
+    """What add_post did, for the admin tools' answer."""
+
+    account: str
+    account_added: bool  # it wasn't swept: added to accounts.txt (its older posts load on the next sweep)
+    permalink: str
+    outcome: str | None  # ProcessedPost.outcome
+    reason: str  # Gemini's
+    model: str | None
+    provisional: bool
+    events: list[StoredEvent]  # the events it became or joined, as stored
+
+
 def _details(event: ExtractedEvent) -> dict[str, Any]:
     return event.model_dump(include=set(EventDetails.model_fields))
 
@@ -263,6 +281,73 @@ class Sweep:
                 "Retention: %s past events deleted, %s old post records forgotten", self.stats.events_expired, len(old)
             )
             self._save()
+
+    # ---------- one post, from the admin tools ----------
+
+    def add_post(self, url: str, account: str | None = None) -> AddedPost:
+        """Publish the events of one post by hand (`sweep --post`, from `admin add-post`): find it among the
+        account's latest posts and extract it, without triage (whoever asks knows it's an event). A post
+        analyzed before is analyzed again. An account that isn't swept yet is added to accounts.txt."""
+        code = links.post_code(url)
+        if not code:
+            raise AddPostError("Ese enlace no es de una publicación de Instagram (instagram.com/p/…).")
+        known = next((record for record in self.processed.values() if links.same_post(record.permalink, code)), None)
+        account = account or (known.account if known else None) or links.account_in_link(url)
+        if not account:
+            raise AddPostError(
+                "No sé de qué cuenta es: el enlace no lo dice y no la tengo registrada. Indica la @cuenta."
+            )
+
+        try:
+            self.instagram.check_token()
+            posts = self.instagram.fetch_recent_posts(account, limit=config.ADMIN_POST_SEARCH)
+        except InstagramError as error:
+            raise AddPostError(
+                f"No pude leer @{account} en Instagram ({error}). Si es una cuenta personal o privada, la API no "
+                "la puede ver."
+            ) from error
+        post = next((post for post in posts if links.same_post(post["permalink"], code)), None)
+        if post is None:
+            raise AddPostError(
+                f"La publicación no está entre las últimas {config.ADMIN_POST_SEARCH} de @{account}. ¿Es una "
+                "colaboración publicada desde otra cuenta, o se borró? Revisa la @cuenta."
+            )
+
+        added = storage.add_account(account)
+        if added:
+            self.accounts.setdefault(account, AccountState(first_seen=config.now_bogota().date().isoformat()))
+            log.info("@%s added to accounts.txt", account)
+        published = published_at(post)
+        log.info("   %s %-14s %s (by hand)", f"{published:%Y-%m-%d}", post["media_type"], post["permalink"])
+        self._extract_post(account, post, published)
+
+        self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
+        self.stats.gemini_requests = self.extractor.requests_this_run()
+        storage.save_account_state(self.accounts)
+        storage.save_meta(asdict(self.stats))
+
+        record = self.processed[post["id"]]
+        events = [event for event in self.events if event.id in record.event_ids]
+        return AddedPost(
+            account, added, post["permalink"], record.outcome, record.reason, record.model, record.provisional, events
+        )
+
+    def _extract_post(self, account: str, post: Post, published: datetime) -> None:
+        """Extract and store one post without triage, or raise AddPostError saying why it couldn't."""
+        if not self.extractor.can_analyze():
+            raise AddPostError("No queda cuota de Gemini hoy: inténtalo después de las 2:00 a. m.")
+        try:
+            images = _download_images(post)
+            known = self._known_events(account, published)
+            analysis, model, provisional = self.extractor.extract(account, post, published, images, known)
+        except RejectedRequestError as error:
+            raise AddPostError(f"Gemini no pudo leer la publicación ({error}).") from error
+        except QuotaExhaustedError as error:
+            raise AddPostError("No queda cuota de Gemini hoy: inténtalo después de las 2:00 a. m.") from error
+        except RETRYABLE_ERRORS as error:
+            raise AddPostError(f"Algo falló al leerla ({error}). Inténtalo de nuevo en un rato.") from error
+        if not self._store_analysis(account, post, images, analysis, model, provisional):
+            raise AddPostError("No se pudo guardar el flyer. Inténtalo de nuevo en un rato.")
 
     # ---------- per account ----------
 

@@ -1,0 +1,123 @@
+# The admin inbox (docs/ADMIN.md): issues and comments in this repository that ask the admin tools for
+# something (check a post, add a post or an account, the status), answered with a comment. Only the admin's
+# own issues and comments count; the admin page (admin-web/) opens such issues for them.
+#
+# No AI here: `python -m pa_bailar admin inbox` (pa_bailar/inbox.py) reads the request with fixed patterns.
+# Adding a post needs Gemini and writes the site's data, so it continues in the sweep workflow (one at a time
+# with the sweeps: concurrency "data"), which comments the result on the same issue.
+name: admin
+
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write # accounts.txt, when an account is added
+  issues: write # the answer
+  actions: write # start the sweep workflow to add a post
+
+concurrency:
+  group: admin-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+env:
+  STATE_FILES: state
+  ISSUE: ${{ github.event.issue.number }}
+
+jobs:
+  answer:
+    # Only the admin (the bot's own comments never start workflows), and never on pull requests or the
+    # sweep health issue.
+    if: >-
+      github.event.sender.login == 'jzamora5' &&
+      !github.event.issue.pull_request &&
+      !contains(github.event.issue.labels.*.name, 'sweep-health')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Read the sweep state
+        uses: actions/checkout@v7
+        with:
+          ref: sweep-state
+          path: sweep-state
+          persist-credentials: false
+      - run: mkdir -p "$STATE_FILES" && cp sweep-state/*.json "$STATE_FILES"/
+
+      - name: Check out the site's data (to see which events are on the site)
+        uses: actions/checkout@v7
+        with:
+          repository: pa-bailar/pa-bailar.github.io
+          path: site
+          sparse-checkout: data/events.json
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Label the issue as an admin request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh label create admin --color 5319e7 --description "Admin tools (docs/ADMIN.md)" --force
+          gh issue edit "$ISSUE" --add-label admin
+
+      - name: Answer
+        id: answer
+        env:
+          # The request, as data: never pasted into a script.
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          DATA_DIR: ${{ github.workspace }}/site/data
+          INBOX_REPLY: ${{ github.workspace }}/reply.md
+        run: python -m pa_bailar admin inbox
+
+      - name: Save the added account
+        if: steps.answer.outputs.action == 'add-account'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACCOUNT: ${{ steps.answer.outputs.account }}
+        run: |
+          if git diff --quiet -- accounts.txt; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          gh auth setup-git
+          git commit -qm "chore(accounts): add @${ACCOUNT} (admin inbox, #${ISSUE})" -- accounts.txt
+          git pull -q --rebase origin main
+          git push -q origin HEAD:main
+
+      - name: Start adding the post (sweep workflow)
+        if: steps.answer.outputs.action == 'add-post'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          LINK: ${{ steps.answer.outputs.link }}
+          ACCOUNT: ${{ steps.answer.outputs.account }}
+        run: gh workflow run daily-sweep.yml -f post_url="$LINK" -f account="$ACCOUNT" -f issue="$ISSUE"
+
+      - name: Reply
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DONE: ${{ steps.answer.outputs.done }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ ! -s reply.md ] || [ "${{ job.status }}" != "success" ]; then
+            echo "❌ Algo falló al responder. Detalles en [la ejecución]($RUN_URL)." > reply.md
+          fi
+          gh issue comment "$ISSUE" --body-file reply.md
+          if [ "$DONE" = "true" ]; then gh issue close "$ISSUE" --reason completed; fi

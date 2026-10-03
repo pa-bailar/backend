@@ -9,7 +9,10 @@
 # - The sweep's state (analyzed posts, accounts' first-sweep progress, today's Gemini usage) lives in
 #   this repository's sweep-state branch: read before the run, written back after it, so posts aren't
 #   sent to Gemini twice and the two daily runs share the quotas.
+# - Started with `post_url` (by the admin workflow, docs/ADMIN.md), it adds that one post by hand instead of
+#   sweeping (`sweep --post`), then answers on the admin issue. Such runs don't count for the health checks.
 name: daily-sweep
+run-name: ${{ inputs.post_url && format('Add a post by hand (#{0})', inputs.issue) || 'Sweep' }}
 
 on:
   # Started twice a day (9:00 AM and 9:00 PM Bogotá) by cron-job.org, which calls GitHub's "run workflow"
@@ -24,6 +27,15 @@ on:
         description: "Only analyze posts from the last N days (1 to 30)"
         type: number
         default: 7
+      post_url:
+        description: "Admin tools: add this one post by hand instead of sweeping"
+        required: false
+      account:
+        description: "Admin tools: the post's @account, if its link doesn't say it"
+        required: false
+      issue:
+        description: "Admin tools: the issue to answer"
+        required: false
 
 permissions:
   contents: write # push the sweep-state branch of this repository
@@ -90,7 +102,15 @@ jobs:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           DATA_DIR: ${{ github.workspace }}/site/data
           LOOKBACK_DAYS: ${{ inputs.days || '7' }}
-        run: python -m pa_bailar sweep --days "$LOOKBACK_DAYS"
+          POST_URL: ${{ inputs.post_url }}
+          ACCOUNT: ${{ inputs.account }}
+          ADMIN_REPORT_FILE: ${{ github.workspace }}/admin-report.md
+        run: |
+          if [ -n "$POST_URL" ]; then
+            python -m pa_bailar sweep --post "$POST_URL" ${ACCOUNT:+--account "$ACCOUNT"}
+          else
+            python -m pa_bailar sweep --days "$LOOKBACK_DAYS"
+          fi
 
       # The admin page (admin-web/, docs/ADMIN.md) shows this: `admin status` as data, saved with the state.
       # One Graph API call (is the token working, the app's hourly usage); no Gemini.
@@ -118,6 +138,20 @@ jobs:
           git commit -qm "chore(state): sweep $(date -u +%FT%H:%MZ)"
           gh auth setup-git  # git pushes with GH_TOKEN, which only this step has
           git push -q origin HEAD:sweep-state
+
+      # add-post adds the account when it isn't swept yet (storage.add_account).
+      - name: Save an account added by hand
+        if: ${{ !cancelled() && inputs.post_url != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- accounts.txt; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          gh auth setup-git
+          git commit -qm "chore(accounts): add the account of a post added by hand (#${{ inputs.issue }})" -- accounts.txt
+          git pull -q --rebase origin main
+          git push -q origin HEAD:main
 
       # Health (pa_bailar/health.py): rules over this run and the previous ones, no AI. While there are
       # warnings, one open issue holds the latest report; a comment (which GitHub emails) is added only when
@@ -165,6 +199,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           BOT: ${{ steps.app.outputs.app-slug }}[bot]
+          WHAT: ${{ inputs.post_url && 'post added by hand' || 'daily sweep' }}
         run: |
           # Only events and flyers count as a change: meta.json is rewritten every run (with the check time).
           if [ -z "$(git status --porcelain -- data/events.json data/flyers)" ]; then
@@ -179,11 +214,11 @@ jobs:
           branch="data/sweep-${day}-${GITHUB_RUN_ID}"
           git switch -c "$branch"
           git add data/
-          git commit -m "chore(data): daily sweep ${day}"
+          git commit -m "chore(data): ${WHAT} ${day}"
           git push origin "$branch"
           url="$(gh pr create --repo "$SITE_OWNER/$SITE_REPO" --base main --head "$branch" --label data \
-            --title "chore(data): daily sweep ${day}" \
-            --body "Automatic data update from the daily sweep (run ${GITHUB_RUN_ID} of the backend). Merges itself when \`ci\` passes.")"
+            --title "chore(data): ${WHAT} ${day}" \
+            --body "Automatic data update (${WHAT}, run ${GITHUB_RUN_ID} of the backend). Merges itself when \`ci\` passes.")"
           gh pr merge "$url" --auto --squash --delete-branch
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Opened $url"
@@ -208,7 +243,7 @@ jobs:
           done
 
       - name: Republish the site with the time of this check (days without new events)
-        if: ${{ success() && steps.pr.outputs.url == '' }}
+        if: ${{ success() && steps.pr.outputs.url == '' && inputs.post_url == '' }}
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
         run: |
@@ -219,7 +254,7 @@ jobs:
       # check): every run reports success or failure, and the service emails when runs fail or stop
       # arriving at all, the case GitHub itself never reports.
       - name: Report to the health check
-        if: ${{ always() }}
+        if: ${{ always() && inputs.post_url == '' }}
         env:
           HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
           OUTCOME: ${{ job.status }}
@@ -229,3 +264,23 @@ jobs:
           # The health report goes along as the ping's body: it shows in the check's event log.
           if [ -f "$HEALTH_REPORT_FILE" ]; then body="$HEALTH_REPORT_FILE"; else body=/dev/null; fi
           curl -fsS -m 10 --retry 3 --data-binary "@$body" "$url" > /dev/null
+
+      # Admin tools: the answer to "add this post", on the issue that asked (and the issue closes).
+      - name: Answer on the admin issue
+        if: ${{ always() && inputs.issue != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: ${{ inputs.issue }}
+          PR_URL: ${{ steps.pr.outputs.url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          report="$GITHUB_WORKSPACE/admin-report.md"
+          if [ ! -s "$report" ]; then echo "❌ Algo falló al agregarla." > "$report"; fi
+          if [ "${{ job.status }}" != "success" ]; then
+            echo "" >> "$report"; echo "⚠️ La ejecución tuvo un problema: [detalles]($RUN_URL)." >> "$report"
+          elif [ -n "$PR_URL" ]; then
+            echo "" >> "$report"; echo "Publicado en el sitio ([cambio de datos]($PR_URL))." >> "$report"
+          fi
+          gh issue comment "$ISSUE" --body-file "$report"
+          gh issue close "$ISSUE" --reason completed

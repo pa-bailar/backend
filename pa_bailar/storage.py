@@ -111,6 +111,30 @@ def read_accounts() -> list[str]:
     return [line.strip().lstrip("@") for line in lines if line.strip() and not line.strip().startswith("#")]
 
 
+ADDED_BY_ADMIN = "# Added with the admin tools (admin add-account, add-post)"
+
+
+def add_account(account: str) -> bool:
+    """Add an account to accounts.txt, in the admin tools' section (created before the commented-out notes at
+    the end, if needed). False if it's already swept."""
+    if account in read_accounts():
+        return False
+    lines = config.ACCOUNTS_FILE.read_text(encoding="utf-8").splitlines()
+    if ADDED_BY_ADMIN in lines:
+        at = lines.index(ADDED_BY_ADMIN) + 1
+        while at < len(lines) and lines[at].strip() and not lines[at].startswith("#"):
+            at += 1  # after the section's last account
+        lines.insert(at, account)
+    else:
+        # Before the first "# ----" separator (the notes that aren't swept), or at the end.
+        at = next((i for i, line in enumerate(lines) if line.startswith("# ----")), len(lines))
+        while at > 0 and not lines[at - 1].strip():
+            at -= 1
+        lines[at:at] = ["", ADDED_BY_ADMIN, account]
+    config.ACCOUNTS_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    return True
+
+
 # ---------- flyers ----------
 
 
