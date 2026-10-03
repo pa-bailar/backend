@@ -425,7 +425,7 @@ Notes on the prompts and parameters:
 - **Temperature** stays at the default, as Google advises for Gemini 3 models.
 - **The extraction prompt covers:**
   - what is and isn't an event (one-time socials, workshops, concerts… but not regular classes,
-    recaps or tutorials);
+    recaps or tutorials, nor anything that isn't about dancing, like a drawing workshop at a dance venue);
   - how to pick the event type and the styles (from a fixed list);
   - how to resolve dates without a year;
   - how to rate confidence (high, medium or low);
