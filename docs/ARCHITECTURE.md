@@ -183,12 +183,12 @@ Every service the system depends on. All of them are on free plans.
 | **Schedule** | **Period 12 hours, grace 2 hours:** the runs are 12 hours apart, so a single missed run is noticed within about 14 hours |
 | **Cost** | Free |
 
-### 3.6 Cloudflare Pages
+### 3.6 Cloudflare Workers
 
 | | |
 |---|---|
-| **What for** | Hosting the admin page (`https://pa-bailar-admin.pages.dev`) and its server functions, which will hold the sign-in with GitHub. GitHub Pages can't: it's not free for a private repository and has no server side |
-| **How** | Cloudflare builds `admin-web/` from this repository on every push to `main`. Its GitHub connection is limited to this repository |
+| **What for** | Hosting the admin page (Worker `pa-bailar-admin`, on its `workers.dev` address) and its server side, which will hold the sign-in with GitHub. GitHub Pages can't: it's not free for a private repository and has no server side |
+| **How** | Cloudflare's build (Workers Builds) deploys `admin-web/` (`wrangler.jsonc`) from this repository on every push to `main`, no preview builds. Its GitHub connection is limited to this repository |
 | **Status** | A placeholder page for now. The admin tools are described in [`docs/ADMIN.md`](ADMIN.md) |
 | **Cost** | Free |
 

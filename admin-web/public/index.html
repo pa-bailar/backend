@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  Pa' Bailar admin page (docs/ADMIN.md), served by Cloudflare Pages from this folder (admin-web/).
+  Pa' Bailar admin page (docs/ADMIN.md), served by a Cloudflare Worker from admin-web/ (wrangler.jsonc).
   For now a placeholder: the login with GitHub, the status and the tools come next.
 -->
 <html lang="es">
@@ -51,7 +51,7 @@
       <p class="status" id="status">Comprobando el servidor…</p>
     </main>
     <script>
-      // The server functions (functions/) answer: the hosting is set up right.
+      // The Worker (src/index.js) answers: the hosting is set up right.
       fetch("/api/health")
         .then((response) => response.json())
         .then((body) => (document.getElementById("status").textContent = body.ok ? "Servidor: listo ✓" : "Servidor: sin respuesta"))

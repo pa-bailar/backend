@@ -1,0 +1,11 @@
+// Cloudflare Worker for the admin page (docs/ADMIN.md): the files in public/ are served as they are; the
+// requests they don't cover (/api/...) go to src/index.js. Cloudflare builds it from this folder on every
+// push to main. The name must match the Worker's name in Cloudflare.
+{
+  "name": "pa-bailar-admin",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "assets": { "directory": "./public" },
+  "workers_dev": true,
+  "preview_urls": false
+}
