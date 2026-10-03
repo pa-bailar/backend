@@ -16,6 +16,8 @@ _EVENT_DEFINITION = """What counts as an event (one-time, with a specific date):
 - socials, parties, anniversaries, concerts, festivals, competitions, shows;
 - one-time workshops, masterclasses and special classes with guest teachers.
 What does NOT count:
+- anything that isn't about dancing, even when a dance academy or venue hosts it or posts it: drawing,
+  painting, theater, music lessons, yoga, markets, talks, sports (e.g. "taller de dibujo" at an academy);
 - regular classes and courses, weekly or recurring nights;
 - recaps of past events, student showcases, wedding choreographies, tutorials, motivational posts,
   general ads without a specific date;
