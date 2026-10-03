@@ -548,8 +548,9 @@ flowchart TD
 
 ## 9. One event, many posts: identity and merging
 
-Academies announce the same event several times: the flyer, then a video, then a reminder. Those posts
-must become **one event** that lists all of them in `media`. `pa_bailar/merging.py`.
+Academies announce the same event several times: the flyer, then a video, then a reminder. An organizer
+and its venue, or two collaborators, may each post it too. Those posts must become **one event** that lists
+all of them in `media`. `pa_bailar/merging.py`. None of this costs a Gemini request beyond the extraction.
 
 ```mermaid
 flowchart TD
@@ -557,7 +558,9 @@ flowchart TD
     L -->|"yes, and that event<br/>doesn't already contain P"| MERGE["Merge into it"]
     L -->|no| RULE{"Rule: same account and date, and<br/>same start time (or same title<br/>when a time is missing)?"}
     RULE -->|yes| MERGE
-    RULE -->|no| NEW["New event<br/>id: title-day-month"]
+    RULE -->|no| SHARED{"Rule: another account's event,<br/>same date, no clash in time or venue,<br/>and strong signs it's the same?"}
+    SHARED -->|yes| MERGE
+    SHARED -->|no| NEW["New event<br/>id: title-day-month"]
     MERGE --> F["Fill in what the event was missing.<br/>If P is the newest post: date, weekday,<br/>start and end time, prices from P"]
     F --> O["media sorted: flyers first, then videos;<br/>newest first (the latest flyer is the cover)"]
 ```
@@ -565,7 +568,23 @@ flowchart TD
 - **Gemini links first:** the extraction prompt lists the account's known upcoming events (id, date,
   time, title), and Gemini sets `same_as` when the post announces one of them again. The rule-based match
   is the fallback.
+- **Another account's event** (`looks_like_shared_event`): Gemini only sees this account's events, so
+  across accounts it's rules only. Same date; never with different start times or different venues (when
+  both are known); and one of:
+  - one event names the other's account (its organizer, venue or contact, or a title word: "Bachatamanía"
+    for `@bachatamania_bogota`, "Distrito Social" for `@distritosocialbog`), plus the same start time or a
+    title word in common;
+  - the same venue and start time, plus a title word in common;
+  - two or more distinctive title words in common ("Level Up … Fusion Congress").
+
+  Words every dance title shares (social, clase, bachata, salsa…) and place names (Bogotá) don't count. The
+  event stays under the account that posted it first, and gains the other post's flyer. Over the site's
+  history this merges the one real duplicate (Sept 19, 2026) and nothing else.
 - **Two events in the same post are never merged** with each other.
+- **One post, one identity:** the API and the post's public page (section 3.7) know a post by different
+  ids (`public-<id>` for the page). Posts are matched by their link's code, so the same post is never
+  analyzed twice: a post added by hand from its public page is renamed to the API's id when a sweep first
+  sees it (`Sweep._adopt_public_record`), and a post read again by hand keeps the id it has.
 - **The cover is the latest flyer:** an event's posts are sorted flyers (photos and carousels)
   first, then videos, newest first within each (`ordered_media`). The first post is what the card,
   the link previews and the detail show first. A corrected or updated flyer replaces the first
@@ -763,7 +782,9 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
 - **`sweep --post <link>`** (`Sweep.add_post`): one post by hand, without triage. Adds the account if it isn't
   swept. When the API doesn't give the post (not visible, not among the latest 50, a collaboration, the rate
   limit), it reads the post's public page (section 3.7; its id is `public-<id>`) and doesn't add an account
-  the API can't read. `AddPostError` says in Spanish why it couldn't (neither source worked, no quota).
+  the API can't read. A post analyzed before is only read again (one Gemini request) when its caption changed
+  or it was filtered out as "not an event" or rejected; otherwise the answer is what it already became
+  (`SETTLED_OUTCOMES`). `AddPostError` says in Spanish why it couldn't (neither source worked, no quota).
 - **`admin inbox`** (`pa_bailar/inbox.py`): reads an issue or comment with fixed patterns (a link, `/agregar`,
   `/cuenta @x`, `/estado`, or the issue form's fields) and writes the answer; the `admin` workflow
   (`.github/workflows/admin.yml`) runs it on new issues and comments from `jzamora5`.

@@ -24,6 +24,8 @@ from curl_cffi import requests
 from . import config
 from .instagram import MediaItem, Post
 
+ID_PREFIX = "public-"  # a post read here: the API knows it by another id (pipeline.py matches them by link)
+
 EMBED_URL = "https://www.instagram.com/p/{code}/embed/captioned/"
 _CONTEXT = re.compile(r'"contextJSON":"((?:[^"\\]|\\.)*)"')
 _AUTHOR = re.compile(r'class="UsernameText">([^<]+)<')
@@ -59,7 +61,7 @@ def _post(code: str, post_id: str, media_type: str, caption: str, **media: Any) 
     return cast(
         Post,
         {
-            "id": f"public-{post_id}",
+            "id": f"{ID_PREFIX}{post_id}",
             "media_type": media_type,
             "permalink": f"https://www.instagram.com/p/{code}/",
             "timestamp": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S+0000"),

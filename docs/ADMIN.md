@@ -111,7 +111,14 @@ The sweep workflow runs in single-post mode (`sweep --post`), one at a time with
    and slides; the answer says "La leí desde su página pública". An account the API can't read (personal or
    private) isn't added to the sweeps, and the answer says so.
 2. Extracts it with Gemini **without the first filter** (whoever asks knows it's an event): Flash, or
-   Flash-Lite as provisional when Flash's quota is used up.
+   Flash-Lite as provisional when Flash's quota is used up. **Only when that can change something:** a post
+   analyzed before, with the same caption, isn't read again (no Gemini request): the answer says "Ya la había
+   leído y no ha cambiado" and links its events. It is read again when its caption changed, or when the
+   first filter had called it "not an event" or Gemini had rejected it. Sharing the same post twice never
+   duplicates its event, whether it was read through the API or from its public page. A provisional read is
+   upgraded to Flash by a later sweep only if the sweeps read that account: a post from its public page
+   keeps its Flash-Lite read (adding it again doesn't redo it while its caption is the same), and the answer
+   says "Flash no tenía cuota" instead of "se relee con Flash".
 3. Publishes through the usual data PR (it merges itself and the site deploys), and answers: the events it
    became (with links), or why not (not an event, recurring, no date, no Gemini quota left today).
 
