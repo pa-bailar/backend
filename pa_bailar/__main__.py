@@ -4,6 +4,7 @@ Commands:
   sweep           collect new events from the accounts in accounts.txt (what the daily workflow runs)
   discover        find dance academies among the accounts you follow (from your Instagram export)
   refresh-token   turn a Graph API Explorer token into a Page token that doesn't expire
+  admin           tools for running it day to day: status (docs/ADMIN.md)
 
 `python -m pa_bailar <command> --help` shows each command's options.
 """
@@ -12,7 +13,7 @@ import importlib
 import sys
 
 # Command -> module in pa_bailar.commands. Imported only when run: each command needs different secrets.
-COMMANDS = {"sweep": "sweep", "discover": "discover", "refresh-token": "refresh_token"}
+COMMANDS = {"sweep": "sweep", "discover": "discover", "refresh-token": "refresh_token", "admin": "admin"}
 
 
 def main() -> None:

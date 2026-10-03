@@ -20,7 +20,7 @@ Contents:
 9. [One event, many posts: identity and merging](#9-one-event-many-posts-identity-and-merging)
 10. [State and outputs](#10-state-and-outputs)
 11. [Monitoring and health](#11-monitoring-and-health)
-12. [The other commands: discover and refresh-token](#12-the-other-commands-discover-and-refresh-token)
+12. [The other commands: discover, refresh-token and admin](#12-the-other-commands-discover-refresh-token-and-admin)
 13. [CI, dependencies and security](#13-ci-dependencies-and-security)
 14. [Quotas and capacity](#14-quotas-and-capacity)
 15. [Failure modes and runbook](#15-failure-modes-and-runbook)
@@ -223,6 +223,7 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 | `META_APP_ID`, `META_APP_SECRET` | Secret | Local `.env` only | `refresh-token` | Never on GitHub: only the token command needs them |
 | `APP_PRIVATE_KEY` | Secret | GitHub Actions secret (the `.pem` file stays in `private/`) | "Get a token" step | pa-bailar-bot's private key, used to mint a short-lived installation token |
 | `APP_ID` | Variable | GitHub Actions variable | "Get a token" step | `5164772` |
+| `GEMINI_LITE_ONLY` | Variable | GitHub Actions variable (optional) | Sweep step | `1`: Flash-Lite also extracts, as final results (`config.LITE_ONLY`). For when Flash isn't available to the key; unset otherwise |
 | `HEALTHCHECK_URL` | Secret | GitHub Actions secret | "Report to the health check" step | The check's ping URL. Optional: without it the step does nothing |
 | `GITHUB_TOKEN` | Automatic | Created by GitHub per run | Save the state, health issue | Permissions `contents: write` and `issues: write` (workflow level). Only handed to the steps that need it |
 | cron-job.org token | Secret | cron-job.org only | The two cron jobs | Fine-grained PAT, Actions read/write on this repository only |
@@ -441,7 +442,8 @@ Notes on the prompts and parameters:
 ```mermaid
 flowchart TD
     S["generate(models, …)"] --> M{"Next model in order"}
-    M -->|none left| E["ExtractionError:<br/>post stays pending"]
+    M -->|"none left: all out of<br/>quota or unavailable"| Q["QuotaExhaustedError:<br/>post waits (not an error)"]
+    M -->|"none left after<br/>failures"| E["ExtractionError:<br/>post retried, counted as an error"]
     M --> B{"Daily budget left?<br/>(limit − 2, shared by<br/>today's runs)"}
     B -->|no| M
     B -->|yes| PACE["Wait for its pace<br/>(60 / RPM + 0.5 s)"] --> CALL["Call (counted as spent)"]
@@ -450,7 +452,7 @@ flowchart TD
     CALL -->|"5xx busy"| BACK["Back off 5 s × attempt"] --> RETRY
     CALL -->|"429 per-minute"| WAIT["Wait 60 s"] --> RETRY
     CALL -->|"429 daily, or<br/>429 again"| EXH["Mark model used up for today"] --> M
-    CALL -->|"404 model not<br/>available to this key"| EXH
+    CALL -->|"403 or 404: model not<br/>available to this key"| UNAV["Listed as unavailable<br/>(health warning)"] --> EXH
     CALL -->|"other 4xx"| REJ["RejectedRequestError:<br/>post recorded as rejected"]
     RETRY -->|yes| B
     RETRY -->|no| M
@@ -459,8 +461,19 @@ flowchart TD
 - **Budget:** each model's daily limit minus 2, kept free for manual runs and retries
   (`DAILY_BUDGET_MARGIN`).
 - **Shared across the day's runs:** usage is saved in `state/gemini_usage.json` with its quota day,
-  which is midnight to midnight Pacific time. So the 9:00 AM and 9:00 PM runs share one day's budget,
-  and so does `discover` when run locally on the same day.
+  which is midnight to midnight Pacific time. So the 9:00 AM and 9:00 PM runs share one day's budget.
+  `discover`, run on your computer, uses the same key but keeps its own count: it reads the sweeps' usage
+  from the `sweep-state` branch and always leaves them `DISCOVERY_LEAVES_FOR_SWEEPS` (250) Flash-Lite
+  requests (section 12.1).
+- **Waiting isn't failing:** when every model asked for is out of today's quota (or not available to the
+  key), the pool raises `QuotaExhaustedError` and the post simply waits for a later run. Only real failures
+  (busy servers, bad answers) count as errors. Before downloading a new post's images, the sweep checks that
+  some model still has quota (`EventExtractor.can_analyze`).
+- **A model the key can't use** (403 or 404, e.g. if Google took it out of the free tier) is skipped for the
+  day like a spent one and listed in the run's `models_unavailable`. Repeated over 3 runs, it's a health
+  warning (section 11.1).
+- **Lite-only mode:** the repository variable `GEMINI_LITE_ONLY=1` makes Flash-Lite the extraction model, with
+  final (not provisional) results (`config.LITE_ONLY`). It's the switch for a Flash cutoff.
 - **Pace:** calls to the same model are spaced to its per-minute limit.
 - **Timeout:** each request gives up after 120 seconds, so a stuck call can't hang the run.
 
@@ -531,10 +544,10 @@ memory between runs; the site never sees it.
 
 | File | Content | Why it matters |
 |---|---|---|
-| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
+| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente` or `sin fecha`, `not_event`, `rejected`) with the `event_ids` it became or joined | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
 | `accounts.json` | Per account: when first seen, `backfill_done` | Whether the account still gets the deeper first sweep |
 | `gemini_usage.json` | Today's quota day (Pacific) and requests per model | The day's runs share the daily budgets |
-| `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests; warning keys | The health rules compare a run with the previous ones (section 11) |
+| `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests and models the key couldn't use; warning keys | The health rules compare a run with the previous ones (section 11) |
 
 ```mermaid
 flowchart LR
@@ -543,7 +556,9 @@ flowchart LR
     W -- "commit + push<br/>(save step, even after a failed sweep)" --> B
 ```
 
-Locally, the same files live in `state/` (git-ignored), so local runs keep their own state.
+Locally, the same files live in `state/` (git-ignored), so local runs keep their own state. Tools that
+need the sweeps' state on your computer (`admin status`, `discover`'s Gemini allowance) read the branch
+itself: `pa_bailar/sweep_state.py` fetches it and reads each file with `git show`.
 
 ### 10.2 Outputs (the site repository's `data/`)
 
@@ -589,7 +604,8 @@ They run after every sweep. No AI, no quota.
 | `@account` couldn't be read | Notice, then **warning** after 3 runs in a row | Renamed, private or no longer a business account? |
 | Instagram's rate limit stopped the run early | Notice, then **warning** after 3 runs in a row | Too many accounts for the app's hourly quota? |
 | The run used its whole time budget | Notice, then **warning** after 3 runs in a row | Is the backlog too big? |
-| Posts failed | Notice, then **warning** after 3 runs in a row | Gemini rejections, image downloads, unexpected errors |
+| Posts failed | Notice, then **warning** after 3 runs in a row | Gemini rejections, image downloads, unexpected errors. Posts waiting for quota aren't failures |
+| A Gemini model the key can't use | Notice, then **warning** after 3 runs in a row | Google may have changed the free tier: extraction falls back to Flash-Lite; `GEMINI_LITE_ONLY=1` makes that the plan |
 | Pending posts | Notice, or **warning** when the backlog hasn't gone down in 4 runs | The quotas or the time are too small for the accounts followed |
 | No events in a week | **Warning** | 14 runs with at least 10 posts analyzed and not a single event: are triage or extraction rejecting everything? |
 | Flash's quota ran out | Notice | Posts were extracted provisionally |
@@ -627,7 +643,7 @@ link, every decision, every Gemini model used, and every event stored or merged.
 
 ---
 
-## 12. The other commands: discover and refresh-token
+## 12. The other commands: discover, refresh-token and admin
 
 `python -m pa_bailar <command>` (`pa_bailar/__main__.py`). Each command imports only what it needs and
 reads only its own secrets, so the sweep never needs the Meta app's secret.
@@ -654,6 +670,10 @@ flowchart TD
 
 - **Resumable:** results are cached in `private/discovery.json`, and every run continues where the last
   stopped. Each run is capped (`--max-instagram`, `--max-gemini`).
+- **Leaves Gemini quota for the sweeps:** the key's quota is shared, but the sweeps' usage is on the
+  `sweep-state` branch, not in your `state/`. Before classifying, it reads what the sweeps used today and
+  classifies at most the daily budget minus that, minus its own use, minus `DISCOVERY_LEAVES_FOR_SWEEPS`
+  (250, for today's later sweeps).
 - **Keeps out of the sweep's way:** it pauses from an hour before each sweep time until 45 minutes after
   (`discovery.near_sweep`), because Meta counts calls over a rolling hour and the sweep must find the
   quota free.
@@ -678,6 +698,18 @@ flowchart LR
     S1 --> G["Copy into the META_ACCESS_TOKEN<br/>GitHub secret"]
     S2 --> G
 ```
+
+### 12.3 `admin`: running it day to day
+
+`python -m pa_bailar admin <tool>` (`pa_bailar/commands/admin.py`), the tools behind the admin page.
+They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](ADMIN.md) is the guide.
+
+- **`admin status`** (`pa_bailar/status.py`): the latest and next sweeps; Gemini usage per model against
+  its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
+  otherwise); whether the Instagram token works and the app's hourly usage (one call, `--no-instagram`
+  skips it); accounts still in their first sweep; provisional posts; upcoming events; discovery progress.
+  `--json` gives the same as data. On your computer it reads the sweeps' state from the `sweep-state`
+  branch.
 
 ---
 
@@ -772,6 +804,10 @@ flowchart LR
     MAIN["__main__.py<br/>(command router)"] --> SW["commands/sweep.py"]
     MAIN --> DI["commands/discover.py"]
     MAIN --> RT["commands/refresh_token.py"]
+    MAIN --> AD["commands/admin.py"]
+    AD --> ST["status.py"]
+    ST --> SS["sweep_state.py"]
+    DI --> SS
     SW --> PL["pipeline.py<br/>(Sweep)"]
     SW --> HE["health.py"]
     PL --> IGC["instagram.py"]
@@ -804,6 +840,8 @@ flowchart LR
 | `pipeline.py` | `Sweep`: accounts, posts, storing, retention, run statistics |
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, `accounts.txt` |
 | `health.py` | Run history, health rules, events to review, the report and its fingerprint |
+| `status.py` | What `admin status` shows: sweeps, Gemini usage, Instagram, accounts, events (data and Spanish text) |
+| `sweep_state.py` | The sweeps' latest state on your computer: reads the `sweep-state` branch with git |
 | `discovery.py` | Parsing the Instagram export, dance hints, the classification prompt, the report, quiet windows around sweeps |
 | `text.py`, `logs.py` | Accent-insensitive comparison, logging setup |
-| `commands/*.py` | The three commands: arguments, wiring, exit codes, GitHub outputs |
+| `commands/*.py` | The commands (sweep, discover, refresh-token, admin): arguments, wiring, exit codes, GitHub outputs |

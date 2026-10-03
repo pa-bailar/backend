@@ -3,8 +3,8 @@
 After each run, `check` compares it with the previous ones (config.RUN_HISTORY_FILE, kept on the
 sweep-state branch with the rest of the state) and returns what needs a look:
   - warnings: something to fix or decide. A problem repeated over several runs (an account that can't be
-    read, posts that keep failing, Instagram's rate limit or the time budget cutting every run short), a
-    backlog that doesn't go down, a week of posts without a single event.
+    read, posts that keep failing, Instagram's rate limit or the time budget cutting every run short, a Gemini
+    model this key can no longer use), a backlog that doesn't go down, a week of posts without a single event.
   - notices: worth knowing, nothing to do yet. This run's one-off problems, Flash's quota running out,
     accounts without posts for weeks, upcoming events worth a second look (Gemini wasn't confident, or
     doubted the date).
@@ -58,6 +58,7 @@ class RunRecord(BaseModel):
     rate_limited: bool
     out_of_time: bool
     gemini_requests: dict[str, int]
+    models_unavailable: list[str] = []  # Gemini models this key couldn't use (e.g. taken out of the free tier)
     warnings: list[str] = []  # keys of the warnings found (Finding.key)
 
 
@@ -89,6 +90,7 @@ def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) 
         rate_limited=stats.rate_limited,
         out_of_time=stats.out_of_time,
         gemini_requests=stats.gemini_requests,
+        models_unavailable=stats.models_unavailable,
     )
 
 
@@ -160,6 +162,17 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
         f"Posts failed in each of the last {{runs}} runs ({run.post_errors} this run): Gemini rejections, "
         "image downloads or unexpected errors. See the run's log.",
         f"{run.post_errors} posts failed this run (tried again next run). See the run's log.",
+    )
+
+    unavailable = ", ".join(run.models_unavailable)
+    findings += _repeated(
+        runs,
+        lambda r: bool(r.models_unavailable),
+        "models-unavailable",
+        f"Gemini said this key can't use {unavailable} in the last {{runs}} runs: did Google change the free "
+        "tier? Extraction falls back to Flash-Lite meanwhile. To make that the plan, set the repository "
+        "variable GEMINI_LITE_ONLY to 1 (docs/ARCHITECTURE.md, Gemini).",
+        f"Gemini said this key can't use {unavailable} this run (it's tried again next run).",
     )
 
     backlog = runs[-STUCK_RUNS:]

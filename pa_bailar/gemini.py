@@ -2,8 +2,12 @@
 
 `ModelPool` calls models in a preferred order, spaces calls per model (requests per minute), stops using a
 model when its daily budget is spent, and persists the day's usage so several runs on the same day share
-it. Errors: `ExtractionError` (no model could answer now: retry later) and `RejectedRequestError` (Gemini
-refused the request itself: retrying won't help).
+it. Errors: `ExtractionError` (no model could answer now: retry later), `QuotaExhaustedError` (its kind for
+when every model is out of today's quota or not offered to this key: nothing failed, the post just waits) and
+`RejectedRequestError` (Gemini refused the request itself: retrying won't help).
+
+A model Gemini says isn't available to this key (404 or 403, e.g. if Google took it out of the free tier) is
+skipped for the rest of the day like a spent one, and listed in `unavailable` for the health checks.
 """
 
 import logging
@@ -29,16 +33,21 @@ class ExtractionError(RuntimeError):
     """No Gemini model could answer (all out of quota, unavailable or failing). Worth retrying later."""
 
 
+class QuotaExhaustedError(ExtractionError):
+    """Every model asked for is out of today's quota or not available to this key: nothing failed, the work
+    waits for a later run."""
+
+
 class RejectedRequestError(ExtractionError):
     """Gemini refused this request itself (e.g. an image it can't read): retrying won't help."""
 
 
-def _quota_day() -> str:
+def quota_day() -> str:
     """Gemini daily quotas reset at midnight Pacific time."""
     return datetime.now(ZoneInfo(config.QUOTA_TIMEZONE)).date().isoformat()
 
 
-def _daily_budget(model: str) -> int:
+def daily_budget(model: str) -> int:
     limit = config.MODEL_LIMITS[model]
     return max(0, limit.requests_per_day - config.DAILY_BUDGET_MARGIN)
 
@@ -56,14 +65,19 @@ class ModelPool:
         self._client = client or genai.Client(
             api_key=api_key, http_options=types.HttpOptions(timeout=config.GEMINI_TIMEOUT_SECONDS * 1000)
         )
-        self._day = _quota_day()
+        self._day = quota_day()
         usage = storage.load_gemini_usage()
         self._used: Counter[str] = Counter(usage.get("requests", {}) if usage.get("day") == self._day else {})
         self._last_call: dict[str, float] = {}
         self.requests_this_run: Counter[str] = Counter()
+        self.unavailable: set[str] = set()  # models Gemini said this key can't use (this run)
+
+    def used(self, model: str) -> int:
+        """Requests to `model` counted today (this pool's usage file)."""
+        return self._used[model]
 
     def has_budget(self, model: str) -> bool:
-        return self._used[model] < _daily_budget(model)
+        return self._used[model] < daily_budget(model)
 
     def any_budget(self, models: tuple[str, ...]) -> bool:
         return any(self.has_budget(model) for model in models)
@@ -74,7 +88,7 @@ class ModelPool:
         self._persist()
 
     def _exhaust(self, model: str) -> None:
-        self._used[model] = max(self._used[model], _daily_budget(model))
+        self._used[model] = max(self._used[model], daily_budget(model))
         self._persist()
 
     def _persist(self) -> None:
@@ -108,6 +122,7 @@ class ModelPool:
             # We pass no tools; disabling this also silences the SDK's warning about it.
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
+        failed = False  # a model was tried and failed (busy, bad answer), as opposed to all out of quota
         for model in models:
             for attempt in range(1, ATTEMPTS_PER_MODEL + 1):
                 if not self.has_budget(model):
@@ -122,13 +137,16 @@ class ModelPool:
                     if isinstance(response.parsed, schema):
                         return response.parsed, model
                     log.info("    %s returned no valid JSON, retrying", model)
+                    failed = True
                 except errors.ServerError as error:
                     log.info("    %s busy (%s), retrying", model, error.code)
+                    failed = True
                     if attempt < ATTEMPTS_PER_MODEL:
                         time.sleep(SERVER_ERROR_BACKOFF_SECONDS * attempt)
                 except errors.ClientError as error:
-                    if error.code == 404:  # model not available to this key
-                        log.warning("    %s is not available to this API key", model)
+                    if error.code in (403, 404):  # not available to this key (e.g. no longer in the free tier)
+                        log.warning("    %s is not available to this API key (%s)", model, error.code)
+                        self.unavailable.add(model)
                         self._exhaust(model)
                         break
                     if error.code == 429 and (attempt > 1 or _is_daily_quota_error(error)):
@@ -141,4 +159,6 @@ class ModelPool:
                         continue
                     # Any other 4xx is about the request itself (e.g. an unreadable image): permanent.
                     raise RejectedRequestError(f"{model} rejected the request: {error}") from error
+        if not failed:
+            raise QuotaExhaustedError(f"no quota left today ({', '.join(models) or 'no model'})")
         raise ExtractionError(f"no model could answer ({', '.join(models)})")

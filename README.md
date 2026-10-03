@@ -9,7 +9,7 @@ pull request twice a day. The site, its design system and the data contract (`do
 
 ```
 pa_bailar/            the collector (one Python package)
-  commands/           what you run: sweep, discover, refresh_token
+  commands/           what you run: sweep, discover, refresh_token, admin
   pipeline.py         the sweep: Instagram -> Gemini -> events, merged and stored
   instagram.py        Instagram Graph API (Business Discovery)
   extraction.py       Gemini prompts, models, quotas

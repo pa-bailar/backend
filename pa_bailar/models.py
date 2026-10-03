@@ -132,6 +132,9 @@ class StoredEvent(EventDetails):
     media: list[EventMedia]  # main post first: flyers before videos, newest first (merging.ordered_media)
 
 
+PostOutcome = Literal["event", "merged", "discarded", "not_event", "rejected"]
+
+
 class ProcessedPost(BaseModel):
     """One record of state/processed_posts.json, keyed by post id."""
 
@@ -145,6 +148,12 @@ class ProcessedPost(BaseModel):
     provisional: bool = False
     # Fingerprint of the caption analyzed: if the academy edits it (e.g. adds the venue), it's analyzed again.
     caption_hash: str | None = None
+    # What became of it, so `admin why` can explain a missing event (None: analyzed before this was recorded):
+    #   event: published as new events · merged: added to events another post announced · discarded: an event
+    #   post whose events weren't publishable (`detail`: "recurrente", "sin fecha") · not_event · rejected
+    outcome: PostOutcome | None = None
+    event_ids: list[str] = []  # the events it became or was merged into
+    detail: str | None = None
 
 
 # ---------- Account discovery (python -m pa_bailar discover) ----------

@@ -7,7 +7,7 @@ import pytest
 
 from pa_bailar import config, storage
 from pa_bailar.commands.sweep import summary_markdown
-from pa_bailar.gemini import ExtractionError, RejectedRequestError
+from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError
 from pa_bailar.instagram import InstagramError
 from pa_bailar.models import PostAnalysis, ProcessedPost, Triage
 from pa_bailar.pipeline import Sweep
@@ -60,29 +60,41 @@ class FakeExtractor:
         flash_available: bool = True,
         out_of_quota: bool = False,
         rejected: frozenset[str] = frozenset(),
+        failing: frozenset[str] = frozenset(),
+        unavailable: tuple[str, ...] = (),
     ):
         self.analyses = analyses
         self.not_events = not_events
         self.flash_available = flash_available
         self.out_of_quota = out_of_quota
         self.rejected = rejected  # post ids Gemini refuses (e.g. an image it can't read)
+        self.failing = failing  # post ids where every model fails (busy, bad answers): an error, retried
+        self.unavailable = unavailable  # models Gemini says this key can't use
         self.known_seen: dict[str, list[str]] = {}
         self.extracted_posts: list[str] = []
 
     def can_extract_with_flash(self) -> bool:
         return self.flash_available
 
+    def can_analyze(self) -> bool:
+        return not self.out_of_quota
+
+    def models_unavailable(self) -> list[str]:
+        return list(self.unavailable)
+
     def requests_this_run(self) -> dict[str, int]:
         return {"fake-flash": len(self.extracted_posts)}
 
     def triage(self, account, post, published, images):
         if self.out_of_quota:
-            raise ExtractionError("no quota")
+            raise QuotaExhaustedError("no quota")
         return Triage(is_event_post=post["id"] not in self.not_events, reason="triage"), "fake-lite"
 
     def extract(self, account, post, published, images, known_events, allow_provisional=True):
         if self.out_of_quota:
-            raise ExtractionError("no quota")
+            raise QuotaExhaustedError("no quota")
+        if post["id"] in self.failing:
+            raise ExtractionError("every model failed")
         if post["id"] in self.rejected:
             raise RejectedRequestError("400 bad image")
         self.known_seen[post["id"]] = [event.id for event in known_events]
@@ -90,7 +102,7 @@ class FakeExtractor:
         if self.flash_available:
             return self.analyses[post["id"]], "fake-flash", False
         if not allow_provisional:
-            raise ExtractionError("flash out of quota")
+            raise QuotaExhaustedError("flash out of quota")
         return self.analyses[post["id"]], "fake-lite", True
 
 
@@ -368,3 +380,41 @@ def test_an_unexpected_error_loses_one_account_not_the_run():
 
     stats = run(Broken({"academia": [], "otra": [post("p1")]}), FakeExtractor({"p1": event_post("p1")}))
     assert stats.errors == 1 and stats.events_new == 1
+
+
+# ---------- what became of each post (admin why) ----------
+
+
+def test_each_analyzed_post_records_what_became_of_it():
+    posts = [post("new"), post("again", "VIDEO"), post("weekly"), post("tutorial")]
+    instagram = FakeInstagram({"academia": posts, "otra": []})
+    weekly = PostAnalysis(is_event_post=True, reason="", events=[extracted(title="Clase", is_recurring=True)])
+    extractor = FakeExtractor(
+        {"new": event_post("new"), "again": event_post("again", same_as=event_id(extracted().title)), "weekly": weekly},
+        not_events={"tutorial"},
+    )
+    run(instagram, extractor)
+
+    records = storage.load_processed_posts()
+    assert (records["new"].outcome, records["new"].event_ids) == ("event", [event_id(extracted().title)])
+    assert (records["again"].outcome, records["again"].event_ids) == ("merged", [event_id(extracted().title)])
+    assert (records["weekly"].outcome, records["weekly"].detail) == ("discarded", "recurrente")
+    assert records["tutorial"].outcome == "not_event"
+
+
+def test_waiting_for_quota_is_not_an_error():
+    instagram = FakeInstagram({"academia": [post("p1"), post("p2")], "otra": []})
+    stats = run(instagram, FakeExtractor({}, out_of_quota=True))
+    assert stats.pending == 2 and stats.errors == 0
+
+
+def test_posts_where_every_model_fails_are_errors_and_retried():
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    stats = run(instagram, FakeExtractor({}, failing=frozenset({"p1"})))
+    assert stats.pending == 1 and stats.errors == 1
+    assert "p1" not in storage.load_processed_posts()
+
+
+def test_models_this_key_cant_use_are_reported():
+    stats = run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}, unavailable=("gemini-3.8-flash",)))
+    assert stats.models_unavailable == ["gemini-3.8-flash"]
