@@ -21,7 +21,7 @@ from typing import Any, Protocol
 
 from google.genai import errors as genai_errors
 
-from . import config, links, storage
+from . import clips, config, links, storage
 from .extraction import EventExtractor
 from .gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError
 from .ids import new_event_id
@@ -33,6 +33,8 @@ from .instagram import (
     image_urls,
     is_rate_limited,
     published_at,
+    slide_count,
+    video_url,
 )
 from .merging import detach_post, find_existing, merge_into
 from .models import (
@@ -152,30 +154,48 @@ def _image_index(event: ExtractedEvent, image_count: int) -> int:
     return 0
 
 
-def _save_flyers(post_id: str, events: list[ExtractedEvent], images: list[bytes]) -> list[str | None]:
+Flyer = tuple[str, int] | None  # a saved flyer's path and the slide (image index) it comes from
+
+
+def _save_flyers(post_id: str, events: list[ExtractedEvent], images: list[bytes]) -> list[Flyer]:
     """The flyer of each event: the image Gemini says shows it. Each image is saved once, so events
     announced together on one image (e.g. a monthly schedule) share that file."""
     if not images:
         return [None] * len(events)
     saved: dict[int, str] = {}
-    flyers: list[str | None] = []
+    flyers: list[Flyer] = []
     for event in events:
         image_index = _image_index(event, len(images))
         if image_index not in saved:
             saved[image_index] = storage.save_flyer(images[image_index], f"{post_id}-{image_index}")
-        flyers.append(saved[image_index])
+        flyers.append((saved[image_index], image_index))
     return flyers
 
 
-def _media_for(post: Post, flyer: str | None) -> EventMedia:
+def _clip_for(post: Post, image_index: int) -> str | None:
+    """A preview clip when the flyer's slide is a video (clips.py), else None."""
+    url = video_url(post, image_index)
+    return clips.make_clip(url, f"{post['id']}-{image_index}") if url else None
+
+
+def _media_for(post: Post, flyer: Flyer) -> EventMedia:
     return EventMedia(
         post_id=post["id"],
         permalink=post["permalink"],
         media_type=post["media_type"],
         published=post["timestamp"],
-        flyer=flyer,
+        flyer=flyer[0] if flyer else None,
         caption=post.get("caption"),
+        preview=_clip_for(post, flyer[1]) if flyer else None,
+        slides=slide_count(post),
     )
+
+
+def _flyer_slide(flyer: str) -> int:
+    """ "flyers/<post id>-<slide>.webp" → the slide; 0 for flyers saved before slides were in their names."""
+    stem = flyer.rsplit("/", 1)[-1].removesuffix(".webp")
+    _, dash, slide = stem.rpartition("-")
+    return int(slide) if dash and slide.isdigit() else 0
 
 
 class AddPostError(Exception):
@@ -396,10 +416,29 @@ class Sweep:
                 log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
                 self._upgrade_post(account, post, published)
 
+        self._complete_media(posts)
         if backfill and account_stats.pending == 0:
             state.backfill_done = True
             log.info("   first sweep complete: from now on, regular sweep")
         storage.save_account_state(self.accounts)
+
+    def _complete_media(self, posts: list[Post]) -> None:
+        """Add what posts stored before clips and slide counts existed are missing, from their fresh copy
+        (Instagram's video links expire, so only posts just fetched can get a clip)."""
+        by_id = {post["id"]: post for post in posts}
+        changed = False
+        for event in self.events:
+            for media in event.media:
+                post = by_id.get(media.post_id)
+                if post is None:
+                    continue
+                if media.slides is None and (slides := slide_count(post)):
+                    media.slides, changed = slides, True
+                needs_clip = media.preview is None and media.flyer and media.media_type != "IMAGE"
+                if needs_clip and media.flyer and (preview := _clip_for(post, _flyer_slide(media.flyer))):
+                    media.preview, changed = preview, True
+        if changed:
+            self._save()
 
     def _out_of_time(self) -> bool:
         """True once the run has used its time budget (MAX_RUN_MINUTES): start no more Gemini work."""

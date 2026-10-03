@@ -39,6 +39,14 @@ POSTS_PER_ACCOUNT = 10  # regular sweep; one API call per account regardless of 
 ADMIN_POST_SEARCH = 50
 SITE_URL = "https://pa-bailar.github.io"  # the public site, for links to events in the admin tools' answers
 MAX_IMAGES_PER_POST = 10  # monthly schedules often show an event on slide 5 or later; still one request
+# Videos' preview clips (clips.py): when an event's image comes from a video (a reel, or a carousel's video slide),
+# a short silent clip of it plays on the site. Made with ffmpeg (on GitHub's runners; locally FFMPEG or the PATH);
+# without ffmpeg there are just no clips.
+PREVIEWS_DIR = DATA_DIR / "previews"
+CLIP_SECONDS = 6
+CLIP_WIDTH = 480
+CLIP_MAX_DOWNLOAD_MB = 80  # longer videos are skipped
+FFMPEG = os.environ.get("FFMPEG", "ffmpeg")
 HTTP_TIMEOUT_SECONDS = 30
 
 # ---------- Gemini ----------

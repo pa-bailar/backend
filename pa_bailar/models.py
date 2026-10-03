@@ -122,6 +122,9 @@ class EventMedia(BaseModel):
     published: str  # ISO timestamp from Instagram
     flyer: str | None  # image saved under data/, e.g. "flyers/<post_id>-<slide>.webp"
     caption: str | None
+    # When the flyer is a video's frame: a few silent seconds of it (clips.py), e.g. "previews/<post_id>-<slide>.mp4"
+    preview: str | None = None
+    slides: int | None = None  # carousels: how many slides (the site says there's more to see)
 
 
 class StoredEvent(EventDetails):
