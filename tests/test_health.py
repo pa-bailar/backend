@@ -126,3 +126,13 @@ def test_handles_in_the_report_never_mention_github_users():
     report = health.report_markdown([finding], [event])
     assert "@zafradance" not in report and "@djsalsa" not in report and "@academia" not in report
     assert "@⁠zafradance" in report  # reads the same, but isn't a mention
+
+
+def test_an_account_read_every_other_run_still_warns_after_three_failed_tries():
+    """Each account is read about once a day: the runs that didn't try it don't break the streak."""
+    failing = record(failed_accounts=["academia"], read_accounts=["otra"])
+    other_turn = record(read_accounts=["otra"])  # academia wasn't its turn
+    history = [failing, other_turn, failing, other_turn]
+    assert levels(check(failing, history)) == {"fetch:academia": "warning"}
+    read_fine = record(read_accounts=["academia"])
+    assert levels(check(failing, [failing, read_fine, failing])) == {"fetch:academia": "notice"}

@@ -13,10 +13,9 @@ Plain reading of what the sweeps record (no AI, no Gemini requests):
 from collections.abc import Callable
 from datetime import datetime, time, timedelta
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from . import config, discovery, storage, sweep_state
-from .gemini import daily_budget, quota_day
+from .gemini import daily_budget, quota_day, quota_reset
 from .models import AccountState
 from .pipeline import hours_overdue
 
@@ -36,13 +35,6 @@ def next_sweeps(now: datetime, count: int = 2) -> list[datetime]:
                 upcoming.append(moment)
         day += timedelta(days=1)
     return upcoming
-
-
-def quota_reset(now: datetime) -> datetime:
-    """When Gemini's daily quotas reset next (midnight Pacific), in Bogotá time."""
-    pacific = now.astimezone(ZoneInfo(config.QUOTA_TIMEZONE))
-    midnight = datetime.combine(pacific.date() + timedelta(days=1), time(0), pacific.tzinfo)
-    return midnight.astimezone(config.BOGOTA_TZ)
 
 
 def _role(model: str) -> str:

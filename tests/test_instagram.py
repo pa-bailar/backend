@@ -30,3 +30,10 @@ def test_the_business_use_case_header_instagram_sends_now_is_read_too():
     assert client.app_usage_percent == 40
     client._read_usage(None, None)
     assert client.app_usage_percent == 40  # no header: the last value stays
+
+
+def test_access_tokens_never_reach_error_text():
+    from pa_bailar.instagram import redact
+
+    text = "HTTPSConnectionPool: Max retries with url: /v26.0/1?fields=x&access_token=EAAB123secret (Caused by…)"
+    assert "EAAB123secret" not in redact(text) and "access_token=***" in redact(text)

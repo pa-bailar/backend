@@ -186,12 +186,22 @@ def _explain_unseen(
     result.check("ok", f"Publicada el {_date(published.isoformat())}")
     history: list[dict[str, Any]] = read(config.RUN_HISTORY_FILE.name, [])
     last = history[-1] if history else None
-    first_seen = read(config.ACCOUNT_STATE_FILE.name, {}).get(account, {}).get("first_seen")
+    account_state = read(config.ACCOUNT_STATE_FILE.name, {}).get(account, {})
+    first_seen = account_state.get("first_seen")
+    # Each account is read about once a day, not every run: compare with this account's last reading.
+    read_at = account_state.get("last_swept_at") or (last["finished_at"] if last else None)
+    tried = next(
+        (r for r in reversed(history) if account in r.get("read_accounts", []) + r.get("failed_accounts", [])),
+        last,
+    )
     result.suggestion = "add-post"
     if first_seen is None:
         result.verdict = "La cuenta se agregó hace poco y todavía no se ha barrido: entra en el próximo barrido."
-    elif last and published > datetime.fromisoformat(last["finished_at"]):
-        result.verdict = "Se publicó después del último barrido: entra en el próximo. Agregarla la publica ya."
+    elif read_at and published > datetime.fromisoformat(read_at):
+        result.verdict = (
+            "Se publicó después de la última lectura de la cuenta: entra en su próximo turno (cada cuenta se lee "
+            "una vez al día). Agregarla la publica ya."
+        )
     elif (
         first_seen
         and published.date().isoformat() < first_seen
@@ -204,8 +214,8 @@ def _explain_unseen(
         result.verdict = (
             f"Es de hace más de {config.DEFAULT_LOOKBACK_DAYS} días: los barridos solo revisan lo más reciente."
         )
-    elif last and account in last.get("failed_accounts", []):
-        result.verdict = "El último barrido no pudo leer esta cuenta."
+    elif tried and account in tried.get("failed_accounts", []):
+        result.verdict = "La última vez que le tocó, el barrido no pudo leer esta cuenta."
     elif last and last.get("pending"):
         result.verdict = "Está en espera: el último barrido se quedó sin cuota de Gemini o sin tiempo."
     else:

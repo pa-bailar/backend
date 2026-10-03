@@ -58,7 +58,34 @@ env:
   NOTIFY: jzamora5 # mentioned in the health issue, so GitHub emails them
 
 jobs:
+  # Adding a post by hand publishes it without the filter, and may add its account to main: only for a
+  # request the admin workflow passed on (an open `admin` issue by the owner). Whoever can start this workflow
+  # otherwise (the cron-job.org token) can't use it to publish anything, nor put text into a shell command.
+  request:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+    steps:
+      - name: Check the admin request
+        if: ${{ inputs.post_url != '' || inputs.issue != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ inputs.issue }}
+          POST_URL: ${{ inputs.post_url }}
+        run: |
+          if [ -z "$POST_URL" ] || ! [[ "$ISSUE" =~ ^[0-9]+$ ]]; then
+            echo "::error::Adding a post needs post_url and the number of the admin issue that asked for it."
+            exit 1
+          fi
+          ok="$(gh issue view "$ISSUE" --repo "$GITHUB_REPOSITORY" --json state,author,labels \
+            --jq '.state == "OPEN" and .author.login == env.NOTIFY and any(.labels[]; .name == "admin")')"
+          if [ "$ok" != "true" ]; then
+            echo "::error::#$ISSUE isn't an open admin request by $NOTIFY."
+            exit 1
+          fi
+
   sweep:
+    needs: request
     runs-on: ubuntu-latest
     # The sweep step stops at 35 minutes (its own budget is 30); the rest (state, PR, merge wait) fits in
     # the remaining time. A step timeout counts as a failure, so the steps that keep progress still run;
@@ -99,6 +126,19 @@ jobs:
       # Videos' preview clips (pa_bailar/clips.py) need ffmpeg; usually already on the runner.
       - name: Make sure ffmpeg is installed
         run: command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+
+      # The sweep reads the events from the site's main: if an earlier data PR never merged (its ci failed,
+      # or it timed out), sweeping now would leave its events behind for good (their posts are already marked
+      # as analyzed). Stop until it's merged or fixed; the failed run emails, like any failure.
+      - name: Make sure the last data PR merged
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open="$(gh pr list --repo "$SITE_OWNER/$SITE_REPO" --label data --state open --json url --jq '.[].url')"
+          if [ -n "$open" ]; then
+            echo "::error::A data PR hasn't merged: ${open}. Merge or fix it first (its events aren't on main)."
+            exit 1
+          fi
 
       - name: Run the sweep
         id: sweep
@@ -153,12 +193,13 @@ jobs:
         if: ${{ !cancelled() && inputs.post_url != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ inputs.issue }}
         run: |
           if git diff --quiet -- accounts.txt; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           gh auth setup-git
-          git commit -qm "chore(accounts): add the account of a post added by hand (#${{ inputs.issue }})" -- accounts.txt
+          git commit -qm "chore(accounts): add the account of a post added by hand (#${ISSUE})" -- accounts.txt
           git pull -q --rebase origin main
           git push -q origin HEAD:main
 

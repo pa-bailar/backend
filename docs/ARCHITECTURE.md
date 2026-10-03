@@ -293,7 +293,13 @@ sequenceDiagram
 
 ### 5.2 The workflow's steps
 
-`.github/workflows/daily-sweep.yml`, one job (`sweep`) on `ubuntu-latest`. Job limit: 60 minutes.
+`.github/workflows/daily-sweep.yml`, two jobs on `ubuntu-latest`:
+- **`request`** checks an add-post request before anything else runs (only with `post_url` or `issue`):
+  `issue` must be a number, and that issue an open `admin` issue by `jzamora5` (the inbox reopens an
+  answered issue before starting the add). Otherwise the run fails
+  and the sweep job doesn't start: whoever can start the workflow (the cron-job.org token) can't publish a
+  post with it. The inputs only reach shell commands through environment variables.
+- **`sweep`** (after `request`), the steps below. Job limit: 60 minutes.
 
 | # | Step | Runs when | What it does | Credentials |
 |---|---|---|---|---|
@@ -304,6 +310,7 @@ sequenceDiagram
 | 5 | Set up Python | Always | Python from `.python-version` (3.12), pip cache | |
 | 6 | Install | Always | `pip install -r requirements.txt`, every package pinned and hash-checked | |
 | 6b | Make sure ffmpeg is installed | Always | For videos' preview clips (`clips.py`); usually already on the runner | |
+| 6c | Make sure the last data PR merged | Always | Fails if a `data` PR is still open in the site repository: the sweep reads the events from the site's `main`, so sweeping past an unmerged PR would lose its events for good (their posts are already marked analyzed). Merge or fix it first | `GITHUB_TOKEN` (reads the public site repository) |
 | 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x]`, one post by hand. Otherwise `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 8 | Write the status for the admin page | Unless cancelled; its failure doesn't fail the run | `python -m pa_bailar admin status --json` → `state/status.json`, saved with the state (one Graph API call, no Gemini). The admin page reads it | `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 9 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real | `GITHUB_TOKEN` (this step only) |
@@ -314,7 +321,6 @@ sequenceDiagram
 | 13 | Wait for the data PR to merge | A PR was opened | Polls every 30 s, up to 20 minutes. Fails if the PR is closed or doesn't merge in time | App token |
 | 14 | Republish the site | Success, no PR, not `post_url` | `gh workflow run deploy.yml -f checked_at=<now in Bogotá>`, so "Actualizado el" stays current on days without new events | App token |
 | 15 | Report to the health check | Always, except `post_url` runs | Pings `HEALTHCHECK_URL` (success) or `HEALTHCHECK_URL/fail`, with the report as the body | `HEALTHCHECK_URL` |
-
 | 16 | Answer on the admin issue | `issue` given (admin tools) | Comments the result of adding the post (`ADMIN_REPORT_FILE`) and the data PR, then closes the issue | `GITHUB_TOKEN` |
 
 Other workflow settings:
@@ -392,7 +398,7 @@ flowchart TD
 
 - **New accounts go last:** loading a new account's older posts can take several days of Gemini quota,
   and must never use up the quota for today's posts of the accounts already followed
-  (`_accounts_in_order`).
+  (`Sweep._due_accounts`).
 - **A new account's first sweep** reads up to 30 posts from the last 30 days. It's "done" once all of them
   have been analyzed; if the quota or the time runs out, it continues in the next run.
 - **Saved after every post:** `events.json` and `processed_posts.json` are written after each post, so an
@@ -410,13 +416,15 @@ flowchart TD
     N --> T{"Time budget<br/>(30 min) used?"}
     T -->|yes| PEND["Pending: next run"]
     T -->|no| IMG["Download images<br/>(photo, carousel slides, video frame)"]
-    RE --> IMG
+    RE --> IMG2["Download images"] -->|"it had events: no triage, the<br/>extraction decides again and takes<br/>its old events off if they are gone"| EX
+    IMG2 -->|"it had none"| TR
     IMG -->|fails| PEND
     IMG --> TR["Triage: Flash-Lite<br/>caption + first image (512 px)"]
     TR -->|"not an event"| REC["Record as analyzed"]
     TR -->|"event, or triage unavailable"| EX["Extraction: Flash<br/>every image + caption + this account's known events"]
     EX -->|"Flash out of quota"| PROV["Extraction: Flash-Lite<br/>marked provisional"]
-    EX -->|"rejected by Gemini (4xx)"| REJ["Record as rejected<br/>never retried"]
+    EX -->|"rejected by Gemini (4xx),<br/>or its answer blocked"| REJ["Record as rejected<br/>never retried"]
+    EX -->|"the API key doesn't work"| STOP["Stop the run (it fails):<br/>nothing recorded, read next run"]
     EX -->|"no model could answer"| PEND
     EX --> ST["Store (6.3)"]
     PROV --> ST
@@ -499,7 +507,9 @@ flowchart TD
     CALL -->|"429 per-minute"| WAIT["Wait 60 s"] --> RETRY
     CALL -->|"429 daily, or<br/>429 again"| EXH["Mark model used up for today"] --> M
     CALL -->|"403 or 404: model not<br/>available to this key"| UNAV["Listed as unavailable<br/>(health warning)"] --> EXH
-    CALL -->|"other 4xx"| REJ["RejectedRequestError:<br/>post recorded as rejected"]
+    CALL -->|"blocked answer<br/>(safety filter…)"| REJ["RejectedRequestError:<br/>post recorded as rejected"]
+    CALL -->|"key invalid, expired<br/>or revoked (400/401)"| KEY["GeminiKeyError:<br/>the run stops, no post recorded"]
+    CALL -->|"other 4xx"| REJ
     RETRY -->|yes| B
     RETRY -->|no| M
 ```
@@ -515,6 +525,11 @@ flowchart TD
   key), the pool raises `QuotaExhaustedError` and the post simply waits for a later run. Only real failures
   (busy servers, bad answers) count as errors. Before downloading a new post's images, the sweep checks that
   some model still has quota (`EventExtractor.can_analyze`).
+- **A key that doesn't work** (400 `API_KEY_INVALID`, "API key expired", 401) raises `GeminiKeyError`,
+  which isn't an `ExtractionError`: the sweep stops and fails (the failed run emails), and no post is
+  recorded as rejected, so all of them are read once the key is replaced (section 15).
+- **A blocked answer** (a safety filter: `SAFETY`, `PROHIBITED_CONTENT`…) is rejected at once instead of
+  being retried 3 times per model: it would be blocked every time.
 - **A model the key can't use** (403 or 404, e.g. if Google took it out of the free tier) is skipped for the
   day like a spent one and listed in the run's `models_unavailable`. Repeated over 3 runs, it's a health
   warning (section 11.1).
@@ -541,8 +556,10 @@ flowchart TD
   - network failures and non-JSON answers become an `InstagramError` for that account only.
 - **Quota awareness:** every answer updates `app_usage_percent` from Meta's usage headers (until 2026-10-03 only
   `X-App-Usage` was read, which Instagram no longer sends, so this never triggered). `discover` pauses at
-  60%. The sweep simply stops calling Instagram on the first rate-limit error, and the remaining accounts
-  wait for the next run.
+  60%. The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`), or on the first rate-limit error,
+  and the remaining accounts go first next run.
+- **The token never shows in errors:** it travels in the URL, and connection errors quote the URL, so
+  `instagram.redact` removes it before an error's text reaches logs, `status.json` or an admin answer.
 
 ---
 
@@ -669,7 +686,7 @@ They run after every sweep. No AI, no quota.
 
 | Finding | Level | Rule |
 |---|---|---|
-| `@account` couldn't be read | Notice, then **warning** after 3 runs in a row | Renamed, private or no longer a business account? |
+| `@account` couldn't be read | Notice, then **warning** after 3 failed tries in a row | Renamed, private or no longer a business account? Each account is read about once a day, so runs that didn't try it (`RunRecord.read_accounts`) don't break the streak |
 | Instagram's rate limit stopped the run early | Notice, then **warning** after 3 runs in a row | Too many accounts for the app's quota? Discovery or tests using it? |
 | The run used its whole time budget | Notice, then **warning** after 3 runs in a row | Is the backlog too big? |
 | Posts failed | Notice, then **warning** after 3 runs in a row | Gemini rejections, image downloads, unexpected errors. Posts waiting for quota aren't failures |
@@ -807,7 +824,7 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
 - `mypy` (strict, with the Pydantic plugin);
 - `pytest`.
 
-There are 122 tests. They use fake Instagram and Gemini clients, so no network or quota is involved. The
+The tests use fake Instagram and Gemini clients, so no network or quota is involved. The
 autouse fixture `isolated_files` sends every file a test writes to a temporary folder.
 
 ### 13.2 Dependencies
@@ -825,7 +842,8 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 |---|---|
 | A compromised dependency reading the repository token during the sweep | No checkout keeps credentials (`persist-credentials: false`). The write token is only in the "save the state" step, and the App token is minted after the sweep |
 | Secrets exposed to steps that don't need them | The Gemini and Meta secrets are only in the sweep step's environment. The Meta app secret isn't on GitHub at all |
-| A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting |
+| A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. Adding a post by hand (`post_url`) needs an open `admin` issue by `jzamora5` (the `request` job, section 5.2), and inputs never reach shell code directly, so the token can't publish a post or run commands |
+| The Meta token in error text | It's sent in the URL; `instagram.redact` removes it from every error before logs, `status.json` or admin answers (section 8) |
 | Bad data on the public site | The site's `ci` checks every data PR against the contract (`check-data.mjs`) before it can merge, and the site's `main` only takes squash-merged PRs that pass `ci` |
 | Private files committed | `.env` and `private/` are git-ignored. `private/` holds your Instagram export, the discovery results and the App's `.pem` |
 | Tagging strangers from the health issue | Handles in reports are neutralized (section 11.2) |
@@ -835,11 +853,12 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 
 ## 14. Quotas and capacity
 
-With **50 followed accounts** and two runs a day:
+With **50 followed accounts** and two runs a day (each account read about once a day: section 5,
+"Whose turn it is"):
 
 | Resource | Limit | Use per run | Use per day | Headroom |
 |---|---|---|---|---|
-| Instagram app calls | ~200 / hour | 50 (1 per account) | 100 | Comfortable. `discover` keeps clear of sweep times |
+| Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | About 30 (half the accounts, plus up to 5 late ones) | About 55 | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
 | Gemini Flash-Lite | 500 / day (498 usable) | 1 triage per new post, plus provisional extractions | Usually 20–80 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days |
 | Gemini Flash (two models) | 20 / day each (36 usable) | 1 per post that announces events | Usually under 20 | Tight while new accounts load (provisional fallback); fine afterwards |
 | GitHub Actions minutes (private repository) | 2,000 / month | 3–5 min normally; up to ~35 while new accounts load | ~10 normally | ~300 a month normally; heavy loading weeks stay under the limit. Set an Actions spending limit of $0 so runs stop instead of being charged |
@@ -850,8 +869,8 @@ With **50 followed accounts** and two runs a day:
 **The time budget:** a run stops starting Gemini work after 30 minutes (`MAX_RUN_MINUTES`). The step
 itself stops at 35, and the job at 60, leaving room for the state, the PR and the merge.
 
-**Adding accounts:** each new account costs 1 Instagram call per run, plus a one-time load of up to 30
-older posts. Regular accounts always go first, so new ones never crowd out today's posts.
+**Adding accounts:** each new account costs about 1 Instagram call a day, plus a one-time load of up to
+30 older posts. Regular accounts always go first, so new ones never crowd out today's posts.
 
 ---
 
@@ -870,6 +889,8 @@ older posts. Regular accounts always go first, so new ones never crowd out today
 | Warning: rate limit in 3 runs | Too many accounts, or `discover` running at sweep times | Reduce `discover` runs. Spread accounts across the two runs if needed |
 | Warning: backlog stuck | Gemini's free quota is too small for the posts coming in | Lower `POSTS_PER_ACCOUNT`, remove inactive accounts, or check AI Studio's current limits and update `MODEL_LIMITS` |
 | Warning: no events in a week | A prompt or the triage rejecting everything (for example, a model change) | Read "not an event" reasons in the logs; tune `prompts.py` |
+| "Gemini API key doesn't work" (the run fails) | The key was revoked, expired or deleted | Create a key in Google AI Studio and update `GEMINI_API_KEY` (`.env` and the GitHub secret). No post was marked: they're read on the next run (`GeminiKeyError`) |
+| "A data PR hasn't merged" (the run fails at step 6c) | An earlier data PR's `ci` failed, or it took more than 20 minutes | Open it in the site repository: fix what `ci` says and merge it (or merge it if it just needed time). Sweeps resume on the next run |
 | Gemini model names stop working (404) | Google retired a model | The pool skips it automatically. Update `MODEL_LIMITS` and the role tuples in `config.py` to current models |
 | An event on the site is wrong | Gemini misread a flyer | Check it under "Events to review". Editing `data/events.json` by hand in a site PR works, but a later re-extraction of that post (edited caption) can overwrite it |
 

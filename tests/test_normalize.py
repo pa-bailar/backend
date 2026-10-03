@@ -101,3 +101,13 @@ def test_negative_prices_are_removed():
 )
 def test_contacts_are_kept_only_when_the_site_can_link_them(raw, clean):
     assert normalize_contact(raw) == clean
+
+
+def test_prices_without_a_label_are_dropped_and_untitled_events_arent_published():
+    from pa_bailar.pipeline import _is_publishable
+
+    event = normalize_event(
+        extracted(prices=[Price(label=" ", amount_cop=20000), Price(label="General", amount_cop=0)])
+    )
+    assert [price.label for price in event.prices] == ["General"]  # the site's check-data requires a label
+    assert not _is_publishable(normalize_event(extracted(title="  ")))

@@ -64,7 +64,8 @@ def parse(text: str) -> Request:
 
     if "acción" in fields or "accion" in fields:
         action = _ACTIONS.get((fields.get("acción") or fields.get("accion") or "").lower(), "help")
-        post = fields.get("enlace") or link
+        field_link = _LINK.search(fields.get("enlace") or "")
+        post = field_link.group(0) if field_link else link  # the link alone, never what follows it
         if action in ("why", "add-post") and not (post and links.post_code(post)):
             return Request("help")
         if action == "add-account" and not account:

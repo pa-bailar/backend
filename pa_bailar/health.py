@@ -48,6 +48,9 @@ class RunRecord(BaseModel):
     run_url: str | None = None
     accounts: int
     failed_accounts: list[str]  # couldn't be read
+    # Every account the run tried to read (failed ones too). Each account is read about once a day, so a run
+    # that didn't try one says nothing about it. Empty in records from before this was kept.
+    read_accounts: list[str] = []
     skipped_accounts: list[str]  # its turn, but not reached (its share, or Instagram's limit): first next run
     posts_analyzed: int
     events_new: int
@@ -81,6 +84,7 @@ def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) 
         run_url=run_url,
         accounts=stats.accounts,
         failed_accounts=failed,
+        read_accounts=sorted(stats.by_account),
         skipped_accounts=[account for account in stats.due_accounts if account not in stats.by_account],
         posts_analyzed=stats.posts_analyzed,
         events_new=stats.events_new,
@@ -103,10 +107,14 @@ class Finding:
     text: str  # Markdown
 
 
-def _streak(runs: list[RunRecord], happened: Callable[[RunRecord], bool]) -> int:
-    """How many of the latest runs, in a row, had it."""
+def _streak(
+    runs: list[RunRecord], happened: Callable[[RunRecord], bool], applies: Callable[[RunRecord], bool] | None = None
+) -> int:
+    """How many of the latest runs, in a row, had it. Runs it doesn't apply to (`applies`) are skipped."""
     count = 0
     for run in reversed(runs):
+        if applies is not None and not applies(run):
+            continue
         if not happened(run):
             break
         count += 1
@@ -114,10 +122,16 @@ def _streak(runs: list[RunRecord], happened: Callable[[RunRecord], bool]) -> int
 
 
 def _repeated(
-    runs: list[RunRecord], happened: Callable[[RunRecord], bool], key: str, warning: str, notice: str
+    runs: list[RunRecord],
+    happened: Callable[[RunRecord], bool],
+    key: str,
+    warning: str,
+    notice: str,
+    applies: Callable[[RunRecord], bool] | None = None,
 ) -> list[Finding]:
-    """A warning when it happened in REPEATED_RUNS runs in a row, a notice when only in this one."""
-    streak = _streak(runs, happened)
+    """A warning when it happened in REPEATED_RUNS runs in a row (among those it applies to), a notice when
+    only in this one."""
+    streak = _streak(runs, happened, applies)
     if streak >= REPEATED_RUNS:
         return [Finding("warning", key, warning.format(runs=streak))]
     return [Finding("notice", key, notice)] if streak else []
@@ -133,13 +147,18 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
         def failed(r: RunRecord, account: str = account) -> bool:
             return account in r.failed_accounts
 
+        def tried(r: RunRecord, account: str = account) -> bool:
+            # Older records don't list what was read: they count, as before.
+            return not r.read_accounts or account in r.read_accounts or account in r.failed_accounts
+
         findings += _repeated(
             runs,
             failed,
             f"fetch:{account}",
-            f"@{account} couldn't be read in the last {{runs}} runs: renamed, private or no longer a "
+            f"@{account} couldn't be read in the last {{runs}} tries: renamed, private or no longer a "
             "business or creator account? Check it on Instagram and update accounts.txt.",
-            f"@{account} couldn't be read this run (it's tried again next run).",
+            f"@{account} couldn't be read this run (it's tried again on its next turn).",
+            applies=tried,
         )
     findings += _repeated(
         runs,

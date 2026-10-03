@@ -93,10 +93,12 @@ The checks, in the order a post goes through the sweep:
    account. When the public page names another author, the post is a collaboration: it's its author's,
    shown on both profiles, and the checks follow the author. Is that account swept? If it is, one Instagram
    call finds the post among the account's latest 50, and its date says why:
-   - **posted after the last sweep:** the next sweep takes it (Agregar publishes it now);
+   - **posted after the account was last read:** its next turn takes it (each account is read about once
+     a day; Agregar publishes it now);
    - **the account was added recently** and hasn't been swept yet;
    - **older than 7 days:** the sweeps only check recent posts;
-   - **the last sweep couldn't read the account**, or **is waiting** for Gemini quota or time;
+   - **the last sweep that tried the account couldn't read it**, or **the last sweep is waiting** for
+     Gemini quota or time;
    - **not among the account's latest:** an older post, or a collaboration posted from another account;
    - **the API can't read the account:** a personal or private account. The sweeps can't follow it, but
      Agregar reads the post from its public page.

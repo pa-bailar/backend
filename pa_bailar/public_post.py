@@ -57,14 +57,17 @@ def parse_embed(code: str, page: str) -> tuple[str, Post]:
     return parsed
 
 
-def _post(code: str, post_id: str, media_type: str, caption: str, **media: Any) -> Post:
+def _post(code: str, post_id: str, media_type: str, caption: str, taken_at: int | None = None, **media: Any) -> Post:
+    """In the API's shape. `taken_at`: when it was published (Unix time); unknown, now (the page's HTML
+    doesn't say), so it counts as the newest post of its event."""
+    moment = datetime.fromtimestamp(taken_at, UTC) if taken_at else datetime.now(UTC)
     return cast(
         Post,
         {
             "id": f"{ID_PREFIX}{post_id}",
             "media_type": media_type,
             "permalink": f"https://www.instagram.com/p/{code}/",
-            "timestamp": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S+0000"),
+            "timestamp": moment.strftime("%Y-%m-%dT%H:%M:%S+0000"),
             "caption": caption,
             **media,
         },
@@ -91,16 +94,18 @@ def _from_structured_data(code: str, page: str) -> tuple[str, Post] | None:
         return None
     media = (context.get("gql_data") or {}).get("shortcode_media") or {}
     author = (media.get("owner") or {}).get("username")
-    if not author or not media.get("id"):
+    # The id names its flyer and clip files: digits only.
+    if not author or not str(media.get("id", "")).isdigit():
         return None
+    taken_at = media.get("taken_at_timestamp") if isinstance(media.get("taken_at_timestamp"), int) else None
     edges = (media.get("edge_media_to_caption") or {}).get("edges") or [{}]
     caption = edges[0].get("node", {}).get("text", "")
     media_type = _VIDEO_TYPES.get(media.get("__typename", ""), "IMAGE")
     if media_type == "CAROUSEL_ALBUM":
         children = [_item(edge["node"]) for edge in (media.get("edge_sidecar_to_children") or {}).get("edges", [])]
-        return author, _post(code, media["id"], media_type, caption, children={"data": children})
+        return author, _post(code, media["id"], media_type, caption, taken_at, children={"data": children})
     files = {key: value for key, value in _item(media).items() if key != "media_type"}
-    return author, _post(code, media["id"], media_type, caption, **files)
+    return author, _post(code, media["id"], media_type, caption, taken_at, **files)
 
 
 def _from_page(code: str, page: str) -> tuple[str, Post] | None:
