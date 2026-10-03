@@ -21,41 +21,57 @@ const SESSION_COOKIE = "session";
 const STATE_COOKIE = "oauth_state";
 const SESSION_DAYS = 30;
 
+// Security headers on every answer from here (JSON, redirects): none of them is a page, so the policy allows
+// nothing. The static files get theirs, with the page's policy, from public/_headers.
+const SECURITY_HEADERS = {
+  "Content-Security-Policy": "default-src 'none'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Strict-Transport-Security": "max-age=31536000",
+};
+
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
-    try {
-      switch (url.pathname) {
-        case "/api/health":
-          return Response.json({ ok: true, configured: configured(env) });
-        case "/auth/login":
-          return login(url, env);
-        case "/auth/callback":
-          return await callback(request, url, env);
-        case "/auth/logout":
-          return redirect("/", clearCookie(SESSION_COOKIE));
-        case "/api/me":
-          return await withSession(request, env, (session) => Response.json({ login: session.login }));
-        case "/api/status":
-          return await withSession(request, env, (session) => readStatus(session, env));
-        case "/api/requests":
-          if (request.method === "POST") {
-            if (request.headers.get("Origin") !== url.origin) return new Response("Forbidden", { status: 403 });
-            return await withSession(request, env, (session) => createRequest(request, session, env));
-          }
-          return await withSession(request, env, (session) => listRequests(session, env));
-        default: {
-          const match = url.pathname.match(/^\/api\/requests\/(\d+)$/);
-          if (match) return await withSession(request, env, (session) => readRequest(match[1], session, env));
-          return new Response("Not found", { status: 404 });
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      return Response.json({ error: "Algo falló en el servidor." }, { status: 500 });
-    }
+    const response = await route(request, env);
+    for (const [name, value] of Object.entries(SECURITY_HEADERS)) response.headers.set(name, value);
+    return response;
   },
 };
+
+async function route(request, env) {
+  const url = new URL(request.url);
+  try {
+    switch (url.pathname) {
+      case "/api/health":
+        return Response.json({ ok: true, configured: configured(env) });
+      case "/auth/login":
+        return login(url, env);
+      case "/auth/callback":
+        return await callback(request, url, env);
+      case "/auth/logout":
+        return redirect("/", clearCookie(SESSION_COOKIE));
+      case "/api/me":
+        return await withSession(request, env, (session) => Response.json({ login: session.login }));
+      case "/api/status":
+        return await withSession(request, env, (session) => readStatus(session, env));
+      case "/api/requests":
+        if (request.method === "POST") {
+          if (request.headers.get("Origin") !== url.origin) return new Response("Forbidden", { status: 403 });
+          return await withSession(request, env, (session) => createRequest(request, session, env));
+        }
+        return await withSession(request, env, (session) => listRequests(session, env));
+      default: {
+        const match = url.pathname.match(/^\/api\/requests\/(\d+)$/);
+        if (match) return await withSession(request, env, (session) => readRequest(match[1], session, env));
+        return new Response("Not found", { status: 404 });
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: "Algo falló en el servidor." }, { status: 500 });
+  }
+}
 
 const configured = (env) => Boolean(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET && env.SESSION_SECRET);
 

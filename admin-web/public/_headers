@@ -1,0 +1,12 @@
+# Security headers for the static files (index.html, app.js, admin.css, the manifest, icons). Cloudflare reads
+# this file and doesn't serve it (docs/ADMIN.md). The Worker's own answers (/auth/*, /api/*) get theirs in
+# src/index.js. The page only loads its own files and Google Fonts, and only talks to its own Worker.
+# Referrer-Policy isn't no-referrer: that would send "Origin: null" with the page's POSTs, which the Worker rejects.
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'; connect-src 'self'; manifest-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), browsing-topics=()
+  Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000

@@ -69,7 +69,7 @@ function geminiCard(gemini) {
       return `<div class="model">
         <div class="model__row"><span><code>${escapeHtml(model.model)}</code> <span class="muted">${escapeHtml(roles)}</span></span>
           <span>${model.used} / ${model.budget}${full ? ` <span class="warn">agotado</span>` : ""}</span></div>
-        <div class="meter${full ? " full" : ""}"><i style="width:${share}%"></i></div></div>`;
+        <div class="meter${full ? " full" : ""}"><i data-share="${share}"></i></div></div>`;
     })
     .join("");
   const liteOnly = gemini.lite_only ? `<p class="small">Modo solo Flash-Lite activo (GEMINI_LITE_ONLY).</p>` : "";
@@ -97,11 +97,11 @@ function accountsCard(status) {
   const pending = accounts.first_sweep_pending;
   const waiting = accounts.waiting ?? [];
   const late = waiting.length
-    ? `<p class="small warn" style="margin:12px 0 0">⚠️ Esperando más de un barrido después de su turno:</p>
+    ? `<p class="small warn chips-title">⚠️ Esperando más de un barrido después de su turno:</p>
        <div class="chips">${waiting.map((account) => `<span>@${escapeHtml(account)}</span>`).join("")}</div>`
     : "";
   const firstSweep = pending.length
-    ? `<p class="small" style="margin:12px 0 0">En su primer barrido (más profundo):</p>
+    ? `<p class="small chips-title">En su primer barrido (más profundo):</p>
        <div class="chips">${pending.map((account) => `<span>@${escapeHtml(account)}</span>`).join("")}</div>`
     : "";
   return `<section class="card"><h2>Cuentas y eventos</h2>
@@ -294,6 +294,8 @@ function showDashboard(status) {
     accountsCard(status),
     `<p class="small muted">Datos del barrido de ${when(status.generated_at)}</p>`,
   ].join("");
+  // The meters' fill, set here: the Content Security Policy (public/_headers) blocks style="" in the HTML.
+  main.querySelectorAll(".meter i[data-share]").forEach((bar) => (bar.style.width = `${bar.dataset.share}%`));
   initTools();
   useSharedLink();
 }

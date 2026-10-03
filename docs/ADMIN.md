@@ -157,7 +157,8 @@ flowchart LR
   - `admin-web/wrangler.jsonc`: the Worker's settings. Its `name` must match the Worker's name in Cloudflare.
   - `admin-web/public/`: the page (`index.html`, `app.js`, `admin.css`), with no data in it, and what
     makes it installable: `manifest.webmanifest` (name, colors, icons in `icons/`) with a
-    `share_target`, so Android sends shared posts to `/?text=<link>`.
+    `share_target`, so Android sends shared posts to `/?text=<link>`. `_headers` gives these files their
+    security headers (below); Cloudflare applies it and doesn't serve it.
   - `admin-web/icons-src/make-icons.mjs`: draws those icons, the site's record on marigold with a wrench badge,
     so the two apps can't be confused on the phone (`node admin-web/icons-src/make-icons.mjs`).
   - `admin-web/src/index.js`: the server side:
@@ -172,6 +173,23 @@ flowchart LR
   - Everything is read and written with your own GitHub access, limited to what the App may do: read this
     repository, open issues and comment, see runs.
   - Requests are only accepted from the page itself (same origin).
+- **Security headers** on every answer, the page's files (`public/_headers`) and the Worker's own JSON and
+  redirects (`SECURITY_HEADERS` in `src/index.js`):
+  - **Content-Security-Policy.** The page may load only its own files (`app.js`, `admin.css`, the manifest and
+    icons) and Google Fonts, and talk only to its own Worker:
+    `default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com;
+    font-src https://fonts.gstatic.com; img-src 'self'; connect-src 'self'; manifest-src 'self';
+    form-action 'none'; base-uri 'none'; frame-ancestors 'none'`. No inline scripts or `style=""` attributes:
+    `app.js` sets the meters' width through `element.style`. The Worker's answers aren't pages, so theirs allows
+    nothing (`default-src 'none'`).
+  - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` (no other site can frame the page),
+    `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security`. The page's files also get
+    `Permissions-Policy` (no camera, microphone, location, sensors, payments or USB) and
+    `Cross-Origin-Opener-Policy: same-origin`.
+  - Not `Referrer-Policy: no-referrer`: with it, the browser sends `Origin: null` with the page's POSTs, and the
+    Worker would reject every request.
+  - To check them: `curl -sI https://pa-bailar-admin.jzamorac-9.workers.dev/` (the page) and
+    `curl -sI https://pa-bailar-admin.jzamorac-9.workers.dev/api/health` (the Worker).
 
 ### Cloudflare setup (done once)
 
