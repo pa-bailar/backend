@@ -15,8 +15,8 @@ from pathlib import Path
 
 from google.genai import errors as genai_errors
 
-from pa_bailar import config, discovery, storage
-from pa_bailar.gemini import ExtractionError, ModelPool
+from pa_bailar import config, discovery, storage, sweep_state
+from pa_bailar.gemini import ExtractionError, ModelPool, daily_budget, quota_day
 from pa_bailar.instagram import InstagramClient, InstagramError, is_not_visible, is_rate_limited
 from pa_bailar.logs import setup_logging
 from pa_bailar.models import AccountClassification
@@ -31,6 +31,17 @@ USAGE_PAUSE_SECONDS = 10 * 60
 QUIET_PAUSE_SECONDS = 5 * 60  # rechecks while the daily sweep has the quota (discovery.near_sweep)
 
 log = logging.getLogger("discover")
+
+
+def gemini_allowance(pool: ModelPool) -> int:
+    """Flash-Lite requests discovery may still use today. The key's quota is shared with the sweeps, whose
+    usage is on the sweep-state branch, not in this computer's state/: the daily budget, minus what the
+    sweeps used, what discovery used, and config.DISCOVERY_LEAVES_FOR_SWEEPS for today's later sweeps."""
+    model = config.TRIAGE_MODELS[0]
+    sweep_state.refresh()
+    usage = sweep_state.read(config.GEMINI_USAGE_FILE.name, {})
+    by_sweeps = usage.get("requests", {}).get(model, 0) if usage.get("day") == quota_day() else 0
+    return max(0, daily_budget(model) - by_sweeps - pool.used(model) - config.DISCOVERY_LEAVES_FOR_SWEEPS)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -86,10 +97,17 @@ def main(argv: list[str] | None = None) -> None:
                      f", dance hint {hint}" if hint else "")  # fmt: skip
         discovery.save_cache(CACHE_FILE, cache)
 
-    # 2. Gemini: classify business accounts with a dance hint
+    # 2. Gemini: classify business accounts with a dance hint, within what the sweeps leave
     to_classify = [a for a in cache.values() if a.status == "business" and a.dance_hint and not a.classification]
     to_classify.sort(key=lambda a: -a.dance_hint)
-    for account in to_classify[: args.max_gemini]:
+    allowance = gemini_allowance(pool)
+    if to_classify and allowance < args.max_gemini:
+        log.info(
+            "Gemini: %s classifications today at most, leaving the daily sweeps %s Flash-Lite requests",
+            allowance,
+            config.DISCOVERY_LEAVES_FOR_SWEEPS,
+        )
+    for account in to_classify[: min(args.max_gemini, allowance)]:
         if account.profile is None:  # business accounts always have one; nothing to classify otherwise
             continue
         try:

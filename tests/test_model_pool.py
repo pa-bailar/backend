@@ -80,17 +80,33 @@ def test_models_without_budget_are_skipped_without_a_request(pool):
     assert fake.calls == ["gemini-3.5-flash"]
 
 
-def test_no_model_left_raises_extraction_error(pool):
-    with_models(pool, {"gemini-3.8-flash": [client_error(404, "not found")]})
-    with pytest.raises(gemini.ExtractionError):
+def test_no_quota_left_is_its_own_error_not_a_failure(pool):
+    pool._used["gemini-3.8-flash"] = config.MODEL_LIMITS["gemini-3.8-flash"].requests_per_day
+    with pytest.raises(gemini.QuotaExhaustedError):
         pool.generate(["gemini-3.8-flash"], [], Triage)
+
+
+@pytest.mark.parametrize("code", [403, 404])
+def test_a_model_this_key_cant_use_is_skipped_and_reported(pool, code):
+    fake = with_models(pool, {"gemini-3.8-flash": [client_error(code, "not available")], "gemini-3.5-flash": [ANSWER]})
+    assert pool.generate(["gemini-3.8-flash", "gemini-3.5-flash"], [], Triage)[1] == "gemini-3.5-flash"
+    assert pool.unavailable == {"gemini-3.8-flash"} and not pool.has_budget("gemini-3.8-flash")
+    assert fake.calls == ["gemini-3.8-flash", "gemini-3.5-flash"]
+
+
+def test_models_that_keep_failing_raise_a_plain_extraction_error(pool):
+    bad = "not json"
+    with_models(pool, {"gemini-3.8-flash": [bad, bad, bad]})
+    with pytest.raises(gemini.ExtractionError) as raised:
+        pool.generate(["gemini-3.8-flash"], [], Triage)
+    assert not isinstance(raised.value, gemini.QuotaExhaustedError)
 
 
 def test_usage_is_saved_and_counted_per_day(pool):
     with_models(pool, {"gemini-3.5-flash-lite": [ANSWER]})
     pool.generate(["gemini-3.5-flash-lite"], [], Triage)
     saved = gemini.storage.load_gemini_usage()
-    assert saved == {"day": gemini._quota_day(), "requests": {"gemini-3.5-flash-lite": 1}}
+    assert saved == {"day": gemini.quota_day(), "requests": {"gemini-3.5-flash-lite": 1}}
 
 
 def test_a_request_gemini_refuses_is_permanent_not_retried(pool):

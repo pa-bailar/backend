@@ -23,7 +23,7 @@ from google.genai import errors as genai_errors
 
 from . import config, storage
 from .extraction import EventExtractor
-from .gemini import ExtractionError, RejectedRequestError
+from .gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError
 from .ids import new_event_id
 from .instagram import (
     InstagramClient,
@@ -41,6 +41,7 @@ from .models import (
     EventMedia,
     ExtractedEvent,
     PostAnalysis,
+    PostOutcome,
     ProcessedPost,
     StoredEvent,
     Triage,
@@ -65,6 +66,8 @@ class Extractor(Protocol):
     """What reads posts: EventExtractor (tests pass a fake)."""
 
     def can_extract_with_flash(self) -> bool: ...
+    def can_analyze(self) -> bool: ...
+    def models_unavailable(self) -> list[str]: ...
     def requests_this_run(self) -> dict[str, int]: ...
     def triage(self, account: str, post: Post, published: datetime, images: list[bytes]) -> tuple[Triage, str]: ...
     def extract(
@@ -83,8 +86,8 @@ class AccountStats:
     posts_analyzed: int = 0
     events_new: int = 0
     events_merged: int = 0
-    pending: int = 0  # posts left for the next run (no quota, errors)
-    errors: int = 0
+    pending: int = 0  # posts left for the next run (no quota or time left, or an error)
+    errors: int = 0  # real failures only: waiting for quota or time isn't an error
     backfill: bool = False  # this run was (part of) the account's first, deeper sweep
     fetch_failed: bool = False
     latest_post: str | None = None  # date (YYYY-MM-DD) of the account's newest post, to notice abandoned accounts
@@ -109,6 +112,7 @@ class RunStats:
     rate_limited: bool = False  # Instagram throttled the app: accounts after that one wait for the next run
     out_of_time: bool = False  # the run used its time budget: some posts wait for the next run
     gemini_requests: dict[str, int] = field(default_factory=dict)
+    models_unavailable: list[str] = field(default_factory=list)  # Gemini models this key couldn't use
     by_account: dict[str, AccountStats] = field(default_factory=dict)
 
     def account(self, name: str) -> AccountStats:
@@ -221,6 +225,7 @@ class Sweep:
         self._apply_retention()
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
         self.stats.gemini_requests = self.extractor.requests_this_run()
+        self.stats.models_unavailable = self.extractor.models_unavailable()
         self.stats.rate_limited = self.rate_limited
         self.stats.out_of_time = self.time_up_logged
         storage.save_account_state(self.accounts)
@@ -323,6 +328,8 @@ class Sweep:
 
     def _analyze_new_post(self, account: str, post: Post, published: datetime) -> bool:
         """Triage, then extract if it's an event. False when the post must be retried next run."""
+        if not self.extractor.can_analyze():
+            return False  # no quota left today: it waits (no download, not an error)
         try:
             images = _download_images(post)
         except OSError as error:
@@ -339,6 +346,7 @@ class Sweep:
             self.stats.count(account, "posts_analyzed")
             self.stats.posts_triaged_out += 1
             self._record_processed(account, post, False, triage.reason, triage_model or "-", provisional=False)
+            self._set_outcome(post, "not_event")
             self._save()
             log.info("     not an event: %s", triage.reason)
             return True
@@ -352,8 +360,12 @@ class Sweep:
             log.warning("     Gemini rejected the post, skipping it: %s", error)
             self.stats.count(account, "errors")
             self._record_processed(account, post, False, f"rechazado por Gemini: {error}", "-", provisional=False)
+            self._set_outcome(post, "rejected")
             self._save()
             return True
+        except QuotaExhaustedError as error:
+            log.info("     waits for the next run: %s", error)
+            return False
         except RETRYABLE_ERRORS as error:
             return self._retry_later(account, str(error))
 
@@ -410,8 +422,18 @@ class Sweep:
 
         if not publishable:
             log.info("     skipped: %s", analysis.reason)
-        for candidate, flyer in zip(publishable, flyers, strict=True):
+        results = [
             self._add_event(account, post, candidate, _media_for(post, flyer), reusable, count=count_as_new)
+            for candidate, flyer in zip(publishable, flyers, strict=True)
+        ]
+        if results:
+            merged_only = all(merged for _, merged in results)
+            self._set_outcome(post, "merged" if merged_only else "event", [event_id for event_id, _ in results])
+        elif analysis.is_event_post and analysis.events:
+            reasons = sorted({"recurrente" if event.is_recurring else "sin fecha" for event in cleaned})
+            self._set_outcome(post, "discarded", detail=", ".join(reasons))
+        else:
+            self._set_outcome(post, "not_event")
         self._save()
         return True
 
@@ -433,8 +455,8 @@ class Sweep:
         media: EventMedia,
         reusable: list[StoredEvent],
         count: bool = True,
-    ) -> None:
-        """Merge into the same event from another post, or store it as a new event.
+    ) -> tuple[str, bool]:
+        """Merge into the same event from another post, or store it as a new event: (its id, merged?).
 
         `count=False` for re-extractions (upgrades), which replace events instead of adding new ones.
         """
@@ -444,7 +466,7 @@ class Sweep:
             if count:
                 self.stats.count(account, "events_merged")
             log.info("     same event as an earlier post, merged: %s %s", existing.date, existing.title)
-            return
+            return existing.id, True
         event = StoredEvent(
             **_details(candidate), id=self._event_id(candidate, reusable), account=account, media=[media]
         )
@@ -452,6 +474,7 @@ class Sweep:
         if count:
             self.stats.count(account, "events_new")
         log.info("     event: %s %s | %s [%s]", event.date, event.start_time or "", event.title, event.event_type)
+        return event.id, False
 
     def _event_id(self, candidate: ExtractedEvent, reusable: list[StoredEvent]) -> str:
         """The id of the event this post announced before (same date first), else a new readable one."""
@@ -477,6 +500,12 @@ class Sweep:
             provisional=provisional,
             caption_hash=_caption_hash(post),
         )
+
+    def _set_outcome(
+        self, post: Post, outcome: PostOutcome, event_ids: list[str] | None = None, detail: str | None = None
+    ) -> None:
+        record = self.processed[post["id"]]
+        record.outcome, record.event_ids, record.detail = outcome, event_ids or [], detail
 
     def _save(self) -> None:
         """Save after every post so progress survives an interrupted run."""

@@ -54,11 +54,19 @@ MODEL_LIMITS = {
     "gemini-3.5-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3.5-flash-lite": ModelLimit(requests_per_minute=15, requests_per_day=500),
 }
+# Lite-only mode (GEMINI_LITE_ONLY=1, a repository variable on CI): Flash-Lite also does extraction, as final
+# results, not provisional ones. For when Flash isn't available, e.g. if Google took it out of the free tier.
+LITE_ONLY = os.environ.get("GEMINI_LITE_ONLY", "").strip() == "1"
 # Each model has its own quota. Roles:
 TRIAGE_MODELS = ("gemini-3.5-flash-lite",)  # cheap yes/no: does the post announce an event?
-EXTRACTION_MODELS = ("gemini-3.8-flash", "gemini-3.5-flash")  # full details, best quality
-PROVISIONAL_MODELS = ("gemini-3.5-flash-lite",)  # when Flash is out: saved, then upgraded on a later run
+# Full details, best quality.
+EXTRACTION_MODELS = ("gemini-3.5-flash-lite",) if LITE_ONLY else ("gemini-3.8-flash", "gemini-3.5-flash")
+# When Flash is out: saved, then upgraded on a later run (none in lite-only mode).
+PROVISIONAL_MODELS: tuple[str, ...] = () if LITE_ONLY else ("gemini-3.5-flash-lite",)
 DAILY_BUDGET_MARGIN = 2  # requests kept unused per model, for manual runs and retries
+# discover (run on your computer) shares the Gemini key with the sweeps, but its usage isn't in theirs: it
+# reads what the sweeps used today (sweep-state branch) and leaves them at least this many Flash-Lite requests.
+DISCOVERY_LEAVES_FOR_SWEEPS = 250
 PACING_MARGIN_SECONDS = 0.5  # added to 60 / requests_per_minute between calls to the same model
 GEMINI_TIMEOUT_SECONDS = 120  # one request; a stuck call fails instead of hanging the run
 QUOTA_TIMEZONE = "America/Los_Angeles"  # Gemini daily quotas reset at midnight Pacific time

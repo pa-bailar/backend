@@ -48,6 +48,14 @@ class EventExtractor:
     def can_extract_with_flash(self) -> bool:
         return self.pool.any_budget(config.EXTRACTION_MODELS)
 
+    def can_analyze(self) -> bool:
+        """Some model still has quota today for a new post (triage, extraction or provisional extraction)."""
+        return self.pool.any_budget((*config.TRIAGE_MODELS, *config.EXTRACTION_MODELS, *config.PROVISIONAL_MODELS))
+
+    def models_unavailable(self) -> list[str]:
+        """Models Gemini said this key can't use, this run (gemini.ModelPool.unavailable)."""
+        return sorted(self.pool.unavailable)
+
     def requests_this_run(self) -> dict[str, int]:
         return dict(self.pool.requests_this_run)
 

@@ -85,6 +85,7 @@ jobs:
         timeout-minutes: 35
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_LITE_ONLY: ${{ vars.GEMINI_LITE_ONLY }} # "1": Flash-Lite extracts too (config.LITE_ONLY)
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           DATA_DIR: ${{ github.workspace }}/site/data
