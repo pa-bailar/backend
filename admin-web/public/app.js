@@ -1,6 +1,6 @@
 // The admin page in the browser: who's signed in, then the dashboard drawn from `admin status` (status.json,
 // written by each sweep: pa_bailar/status.py). All data comes from the Worker (src/index.js), after GitHub
-// sign-in; this file has none.
+// sign-in; this file has none. A post shared to the installed page (Android's share menu) fills in the tools.
 
 const main = document.getElementById("main");
 const userLine = document.getElementById("user");
@@ -245,6 +245,46 @@ function initTools() {
   loadRequests();
 }
 
+// ---------- a post shared from Instagram (Android's share menu: manifest.webmanifest's share_target) ----------
+
+const SHARED_KEY = "shared-post";
+const SHARED_MAX_AGE_MS = 30 * 60 * 1000;
+const INSTAGRAM_POST = /https?:\/\/(?:www\.|m\.)?instagram\.com\/(?:[\w.]+\/)?(?:p|reel|reels|tv)\/[\w-]+\/?/i;
+let sharedFallback = null; // when the browser's storage is blocked
+
+/** Keep a shared post's link (Android sends it as ?text= or ?url=), so it survives the GitHub sign-in. */
+function keepSharedLink(params) {
+  const text = ["url", "text", "link"].map((name) => params.get(name) ?? "").join(" ");
+  const link = text.match(INSTAGRAM_POST)?.[0]; // without Instagram's tracking (?igsh=…)
+  if (!link) return false;
+  sharedFallback = link;
+  try {
+    localStorage.setItem(SHARED_KEY, JSON.stringify({ link, at: Date.now() }));
+  } catch {}
+  return true;
+}
+
+/** The shared link waiting to be used, once. */
+function takeSharedLink() {
+  let link = sharedFallback;
+  try {
+    const kept = JSON.parse(localStorage.getItem(SHARED_KEY) ?? "null");
+    localStorage.removeItem(SHARED_KEY);
+    if (kept && Date.now() - kept.at < SHARED_MAX_AGE_MS) link = kept.link;
+  } catch {}
+  sharedFallback = null;
+  return link;
+}
+
+function useSharedLink() {
+  const link = takeSharedLink();
+  if (!link) return;
+  document.getElementById("post-link").value = link;
+  document
+    .getElementById("post-form")
+    .insertAdjacentHTML("afterbegin", `<p class="shared">📎 Enlace recibido: elige <b>Revisar</b> o <b>Agregar</b>.</p>`);
+}
+
 function showDashboard(status) {
   main.innerHTML = [
     toolsCard(),
@@ -255,6 +295,7 @@ function showDashboard(status) {
     `<p class="small muted">Datos del barrido de ${when(status.generated_at)}</p>`,
   ].join("");
   initTools();
+  useSharedLink();
 }
 
 function showMessage(html) {
@@ -268,15 +309,17 @@ function showSignIn(note) {
 }
 
 async function start() {
-  const error = new URLSearchParams(location.search).get("error");
-  if (error) history.replaceState(null, "", "/");
+  const params = new URLSearchParams(location.search);
+  const error = params.get("error");
+  const shared = keepSharedLink(params);
+  if (error || shared) history.replaceState(null, "", "/");
 
   const health = await fetch("/api/health").then((response) => response.json()).catch(() => null);
   if (!health) return showMessage(`<p>No se pudo contactar el servidor.</p>`);
   if (!health.configured) return showMessage(`<p>${MESSAGES.config}</p>`);
 
   const me = await fetch("/api/me");
-  if (me.status === 401) return showSignIn(MESSAGES[error]);
+  if (me.status === 401) return showSignIn(MESSAGES[error] ?? (shared ? "Inicia sesión para usar el enlace que compartiste." : ""));
   const { login } = await me.json();
   userLine.hidden = false;
   userLine.innerHTML = `@${escapeHtml(login)} · <a href="/auth/logout">Salir</a>`;

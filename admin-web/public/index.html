@@ -2,13 +2,17 @@
 <!--
   Pa' Bailar admin page (docs/ADMIN.md), served by a Cloudflare Worker from admin-web/ (wrangler.jsonc).
   This file has no data: after signing in with GitHub, app.js asks the Worker (src/index.js) for the status.
+  Installed on Android (manifest.webmanifest), it shows up in the share menu: a shared post opens it with the link.
 -->
 <html lang="es">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#161112" />
     <title>Pa' Bailar · Admin</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/192.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

@@ -100,6 +100,14 @@ h3 { margin: 16px 0 6px; font-size: 15px; }
 }
 .tool__buttons, .tool__row { display: flex; gap: 8px; flex-wrap: wrap; }
 .tool__row input { flex: 1 1 12rem; width: auto; }
+.shared { /* a post shared from Instagram's share menu (app.js) */
+  margin: 0 0 4px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--bg);
+  border-radius: var(--radius);
+  font-size: 14px;
+}
 .button--outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
 #answer:not(:empty) { border-top: 1px solid var(--divider); padding-top: 12px; }
 .answer__head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; align-items: baseline; overflow-wrap: anywhere; }
