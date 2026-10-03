@@ -1,0 +1,87 @@
+/* Pa' Bailar admin page: the site's colors and fonts (pa-bailar-web, styles/tokens.css), phone first. */
+
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#ecddc6, #161112);
+  --surface: light-dark(#f7eddc, #231c1c);
+  --border: light-dark(#2a0f14, #7d6b69);
+  --divider: light-dark(#d9c6aa, #3a2f2e);
+  --text: light-dark(#2a0f14, #f3e6d3);
+  --muted: light-dark(#6e4a44, #c9afa3);
+  --logo: light-dark(#c8321c, #f2c12e);
+  --accent: light-dark(#c8321c, #f08a24);
+  --ok: light-dark(#2e6b3a, #7fc98d);
+  --warn: light-dark(#a3410f, #f2a65a);
+  --bar: light-dark(#e8791c, #f08a24);
+  --bar-full: light-dark(#c8321c, #e2452b);
+  --action: light-dark(#a3410f, #f2c12e);
+  --on-action: light-dark(#ffffff, #2a0f14);
+  --radius: 8px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Instrument Sans", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.top, main { max-width: 44rem; margin: 0 auto; padding: 16px; }
+.stripes i { display: block; height: 5px; margin-bottom: 4px; }
+.stripes i:nth-child(1) { background: #c8321c; }
+.stripes i:nth-child(2) { background: #e8791c; }
+.stripes i:nth-child(3) { background: #e9b021; }
+.top__row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+h1 { margin: 8px 0 0; font-family: Shrikhand, serif; font-weight: 400; font-size: 2rem; color: var(--logo); }
+h1 span { font-family: "Bodoni Moda", serif; font-style: italic; font-size: 1.25rem; color: var(--text); }
+h2 { margin: 0 0 8px; font-family: "Bodoni Moda", serif; font-style: italic; font-weight: 500; font-size: 1.3rem; }
+a { color: var(--accent); }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--action);
+  color: var(--on-action);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.runs { list-style: none; margin: 0; padding: 0; }
+.runs li { padding: 8px 0; border-top: 1px solid var(--divider); }
+.runs li:first-child { border-top: 0; padding-top: 0; }
+.runs .when { font-weight: 600; }
+.ok { color: var(--ok); }
+.warn { color: var(--warn); }
+
+.model { margin-bottom: 10px; }
+.model__row { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.model code { font-size: 13px; }
+.meter { height: 8px; border-radius: 4px; background: var(--divider); overflow: hidden; margin-top: 4px; }
+.meter i { display: block; height: 100%; background: var(--bar); }
+.meter.full i { background: var(--bar-full); }
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 10px; }
+.fact { background: var(--bg); border-radius: var(--radius); padding: 10px 12px; }
+.fact b { display: block; font-size: 1.5rem; line-height: 1.2; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chips span { border: 1px solid var(--divider); border-radius: 999px; padding: 2px 10px; font-size: 13px; }

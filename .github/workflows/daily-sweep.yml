@@ -92,6 +92,17 @@ jobs:
           LOOKBACK_DAYS: ${{ inputs.days || '7' }}
         run: python -m pa_bailar sweep --days "$LOOKBACK_DAYS"
 
+      # The admin page (admin-web/, docs/ADMIN.md) shows this: `admin status` as data, saved with the state.
+      # One Graph API call (is the token working, the app's hourly usage); no Gemini.
+      - name: Write the status for the admin page
+        if: ${{ !cancelled() }}
+        continue-on-error: true # the page can wait; the state must still be saved
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          DATA_DIR: ${{ github.workspace }}/site/data
+        run: python -m pa_bailar admin status --json > "$STATE_FILES/status.json.tmp" && mv "$STATE_FILES/status.json.tmp" "$STATE_FILES/status.json"
+
       # Kept even when the sweep failed partway: its progress (analyzed posts) is real.
       - name: Save the sweep state
         if: ${{ !cancelled() }}
