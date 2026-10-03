@@ -39,7 +39,7 @@ Pa' Bailar has no server. Everything runs on free services:
 ```mermaid
 flowchart LR
     subgraph Outside["Outside services"]
-        CJ["cron-job.org<br/>5:23 AM and 12:47 PM Bogotá"]
+        CJ["cron-job.org<br/>9:00 AM and 9:00 PM Bogotá"]
         IG["Instagram Graph API<br/>(Meta, Business Discovery)"]
         GM["Gemini API<br/>(Google AI Studio)"]
         HC["healthchecks.io"]
@@ -166,9 +166,9 @@ Every service the system depends on. All of them are on free plans.
 
 | | |
 |---|---|
-| **What for** | Starting the sweep at fixed times: **5:23 AM and 12:47 PM, Bogotá time** |
+| **What for** | Starting the sweep at fixed times: **9:00 AM and 9:00 PM, Bogotá time**, 12 hours apart |
 | **Why not GitHub's own `schedule`** | It never fired in this repository. That's a known, undocumented problem of new private repositories, with no fix from GitHub, and community reports describe runs delayed by hours or dropped. The workflow has **no `schedule:` trigger** on purpose: if GitHub's scheduler started working, every run would happen twice |
-| **The two jobs** | `pa-bailar sweep 5:23` and `pa-bailar sweep 12:47`, time zone America/Bogota |
+| **The two jobs** | `pa-bailar sweep 9:00` and `pa-bailar sweep 21:00`, time zone America/Bogota |
 | **The request** | `POST https://api.github.com/repos/pa-bailar/backend/actions/workflows/daily-sweep.yml/dispatches`, with body `{"ref":"main"}` and headers `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json` and `Authorization: Bearer <token>`. GitHub answers `204 No Content` |
 | **Token** | A **fine-grained personal access token**, owned by the `pa-bailar` organization, limited to this repository and to **Actions: read and write**. It can start and cancel runs; it can't read the code or the secrets. Stored only in cron-job.org |
 | **Cost** | Free |
@@ -180,7 +180,7 @@ Every service the system depends on. All of them are on free plans.
 |---|---|
 | **What for** | A dead man's switch: it emails when a sweep **fails**, or when **no sweep arrives** in time, which is the case GitHub itself never reports |
 | **How** | The workflow's last step always runs. It pings `HEALTHCHECK_URL` on success, or `HEALTHCHECK_URL/fail` on failure, with the run's health report as the body, so the report shows in the check's event log |
-| **Schedule** | **Period 17 hours, grace 2 hours.** The runs are uneven: about 7½ hours from morning to midday, and 16½ from midday to the next morning. So a single missed run is noticed within about 19 hours |
+| **Schedule** | **Period 12 hours, grace 2 hours:** the runs are 12 hours apart, so a single missed run is noticed within about 14 hours |
 | **Cost** | Free |
 
 ### 3.6 Services used by the site only
@@ -447,7 +447,7 @@ flowchart TD
 - **Budget:** each model's daily limit minus 2, kept free for manual runs and retries
   (`DAILY_BUDGET_MARGIN`).
 - **Shared across the day's runs:** usage is saved in `state/gemini_usage.json` with its quota day,
-  which is midnight to midnight Pacific time. So the 5:23 AM and 12:47 PM runs share one day's budget,
+  which is midnight to midnight Pacific time. So the 9:00 AM and 9:00 PM runs share one day's budget,
   and so does `discover` when run locally on the same day.
 - **Pace:** calls to the same model are spaced to its per-minute limit.
 - **Timeout:** each request gives up after 120 seconds, so a stuck call can't hang the run.
@@ -554,7 +554,7 @@ Five layers, each catching what the others can't:
 flowchart TB
     subgraph Start["Did the sweep start?"]
         CJ["cron-job.org<br/>email when the call to GitHub fails"]
-        HC["healthchecks.io<br/>email when no run arrives in 17 h + 2 h"]
+        HC["healthchecks.io<br/>email when no run arrives in 12 h + 2 h"]
     end
     subgraph Run["Did it work?"]
         FAIL["Failed run → healthchecks.io /fail → email"]

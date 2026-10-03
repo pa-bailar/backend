@@ -12,7 +12,7 @@
 name: daily-sweep
 
 on:
-  # Started twice a day (5:23 AM and 12:47 PM Bogotá) by cron-job.org, which calls GitHub's "run workflow"
+  # Started twice a day (9:00 AM and 9:00 PM Bogotá) by cron-job.org, which calls GitHub's "run workflow"
   # API with a token limited to Actions on this repository: GitHub's own `schedule` never fired in this
   # repository (a known, undocumented problem of new private repositories), so it isn't used. See the
   # README, "Deployment". Two runs a day: the midday one catches the morning's posts, and a missed run
