@@ -37,10 +37,11 @@ Each request is an issue in this repository (label `admin`), answered by the `ad
 opens it and shows the answer when it arrives.
 
 **Sharing from Instagram (Android):** install the page once (Chrome → ⋮ → "Instalar app" or "Agregar a la
-pantalla principal"). It then shows up as **PB Admin** in the share menu: on a post, the paper plane →
-"Compartir en…" → PB Admin. The page opens with the post's link filled in (without Instagram's `?igsh=`
-tracking): tap Revisar or Agregar. If the session ended, it asks you to sign in and keeps the link for 30
-minutes. iPhones don't support sharing to web pages: there, copy the link and paste it.
+pantalla principal"). It then shows up as **PB Admin** (the record on marigold, with a wrench) in the share
+menu: on a post, the paper plane → "Compartir en…" → PB Admin. The page opens with the post's link filled in
+(without Instagram's `?igsh=` tracking): tap Revisar or Agregar. If the session ended, it asks you to sign in
+and keeps the link for 30 minutes. iPhones don't support sharing to web pages: there, copy the link and paste
+it.
 
 ### From GitHub (the inbox)
 
@@ -146,8 +147,10 @@ flowchart LR
 - **Files:**
   - `admin-web/wrangler.jsonc`: the Worker's settings. Its `name` must match the Worker's name in Cloudflare.
   - `admin-web/public/`: the page (`index.html`, `app.js`, `admin.css`), with no data in it, and what
-    makes it installable: `manifest.webmanifest` (name, colors, icons in `icons/`, the site's) with a
+    makes it installable: `manifest.webmanifest` (name, colors, icons in `icons/`) with a
     `share_target`, so Android sends shared posts to `/?text=<link>`.
+  - `admin-web/icons-src/make-icons.mjs`: draws those icons, the site's record on marigold with a wrench badge,
+    so the two apps can't be confused on the phone (`node admin-web/icons-src/make-icons.mjs`).
   - `admin-web/src/index.js`: the server side:
     - sign-in: `/auth/login`, `/auth/callback`, `/auth/logout`;
     - data: `/api/health`, `/api/me`, `/api/status`;
