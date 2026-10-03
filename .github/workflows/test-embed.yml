@@ -24,3 +24,20 @@ jobs:
           r = requests.get("https://www.instagram.com/p/Dc_Jsv6R6Wu/embed/captioned/", impersonate="chrome")
           print("curl_cffi:", r.status_code, len(r.text), "bytes | author:", "levelupbfc" in r.text, "| caption:", 'class="Caption"' in r.text)
           PY
+      - name: A profile's recent posts, logged out (curl_cffi)
+        run: |
+          python - <<'PY'
+          import json, time
+          from curl_cffi import requests
+          for name in ["levelupbfc", "ludancestudios"]:
+              r = requests.get(f"https://www.instagram.com/api/v1/users/web_profile_info/?username={name}",
+                               headers={"x-ig-app-id": "936619743392459"}, impersonate="chrome")
+              try:
+                  user = r.json()["data"]["user"]
+                  edges = user["edge_owner_to_timeline_media"]["edges"]
+                  print(name, r.status_code, "| professional:", user.get("is_professional_account"), "| private:", user.get("is_private"),
+                        "| posts:", len(edges), [e["node"]["shortcode"] for e in edges[:5]])
+              except Exception as error:
+                  print(name, r.status_code, "no data:", r.text[:150].replace("\n", " "))
+              time.sleep(4)
+          PY
