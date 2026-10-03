@@ -102,6 +102,16 @@ def lookback_days(value: str) -> int:
 def added_post_markdown(added: AddedPost) -> str:
     """The admin tools' answer after adding a post by hand, in Spanish."""
     lines: list[str] = []
+    if added.public:
+        lines.append(
+            "📄 La leí desde su página pública: la API de Instagram no la entrega (cuenta personal, colaboración "
+            "o límite)."
+        )
+    if not added.readable:
+        lines.append(
+            f"ℹ️ La API no puede leer @{added.account} (cuenta personal o privada): no entra en los barridos. "
+            "Sus próximos eventos se agregan así, con el enlace."
+        )
     if added.account_added:
         lines.append(
             f"➕ @{added.account} no estaba en los barridos: la agregué (sus publicaciones de los últimos "

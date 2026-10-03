@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from typing import Any, Literal
 
 from . import config, links, storage, sweep_state
-from .instagram import InstagramError, Post, published_at
+from .instagram import InstagramError, Post, is_not_visible, published_at
 
 Mark = Literal["ok", "no", "info"]
 Suggestion = Literal["add-post", "none"]
@@ -56,9 +56,11 @@ def diagnose(
     *,
     read: Callable[[str, Any], Any] = sweep_state.read,
     fetch_posts: Callable[[str], list[Post]] | None = None,
+    author_of: Callable[[str], str | None] | None = None,
     now: datetime | None = None,
 ) -> Diagnosis:
-    """`fetch_posts(account)` lists the account's latest posts (one Instagram call); None skips that step."""
+    """`fetch_posts(account)` lists the account's latest posts (one Instagram call); `author_of(code)` reads who
+    published a post from its public page (public_post.py). None skips either step."""
     now = now or config.now_bogota()
     result = Diagnosis(link=url.strip())
     code = links.post_code(url)
@@ -77,15 +79,19 @@ def diagnose(
         _explain_record(result, record, events, today, swept=record["account"] in followed)
         return result
 
-    result.account = account or links.account_in_link(url)
+    author = author_of(code) if author_of else None
+    result.account = account or links.account_in_link(url) or author
     if not result.account:
         result.check("info", "No tengo registrada esta publicación.")
-        result.verdict = "El enlace no dice de qué cuenta es: indica la @cuenta para revisarla."
+        result.verdict = "El enlace no dice de qué cuenta es y su página pública no se pudo leer: indica la @cuenta."
         return result
+    if author and author != result.account:  # a collaboration: the post is its author's, shown on both profiles
+        result.check("info", f"La publicó @{author}, en colaboración con @{result.account}.")
+        result.account = author
     if result.account not in followed:
         result.check("no", f"@{result.account} no está en los barridos.")
         result.verdict = (
-            "Ninguna publicación de esa cuenta se revisa. Agregarla la publica y suma la cuenta a los barridos."
+            "Esa cuenta no se revisa. Agregar publica esta publicación, y suma la cuenta si Instagram deja leerla."
         )
         result.suggestion = "add-post"
         return result
@@ -163,13 +169,17 @@ def _explain_unseen(
     try:
         posts = fetch_posts(account)
     except InstagramError as error:
-        result.check("no", f"No pude leer @{account} en Instagram ({error}).")
-        result.verdict = "Inténtalo de nuevo en un rato."
+        if is_not_visible(error):
+            result.check("no", f"La API de Instagram no puede leer @{account}: es una cuenta personal o privada.")
+            result.verdict = "Los barridos no pueden seguirla. Agregar la lee desde su página pública."
+        else:
+            result.check("no", f"No pude leer @{account} en Instagram ({error}).")
+            result.verdict = "Inténtalo de nuevo en un rato, o agrégala: Agregar la lee desde su página pública."
         return
     post = next((p for p in posts if links.same_post(p["permalink"], code)), None)
     if post is None:
         result.check("no", f"No está entre las últimas {config.ADMIN_POST_SEARCH} publicaciones de @{account}.")
-        result.verdict = "¿Es una colaboración publicada desde otra cuenta, o se borró? Revisa la @cuenta."
+        result.verdict = "Es antigua, o es una colaboración de otra cuenta. Agregar la lee desde su página pública."
         return
 
     published = published_at(post).astimezone(config.BOGOTA_TZ)

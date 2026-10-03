@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pytest
 
-from pa_bailar import config, inbox, links, storage, why
+from pa_bailar import config, inbox, links, public_post, storage, why
 from pa_bailar.instagram import InstagramError
 from pa_bailar.pipeline import AddPostError
 from tests.factories import extracted, stored
@@ -14,10 +14,15 @@ NOW = datetime(2026, 10, 3, 10, 0, tzinfo=config.BOGOTA_TZ)
 LINK = "https://www.instagram.com/p/p1/?igsh=abc"
 
 
+def no_public_page(code):
+    raise public_post.PublicPostError("su página pública no respondió")
+
+
 @pytest.fixture(autouse=True)
 def accounts(isolated_files, monkeypatch):
     monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: b"")
     monkeypatch.setattr("pa_bailar.pipeline._download_images", lambda post: [])
+    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", no_public_page)  # never the network
     config.ACCOUNTS_FILE.write_text(
         "# Academies\nacademia\n\n# ----\n# Salsa bars: not swept\n# bar_salsero\n", encoding="utf-8"
     )
@@ -164,12 +169,12 @@ def test_why_explains_a_post_the_sweeps_havent_seen():
 
 def test_why_says_when_the_post_isnt_among_the_accounts_latest():
     result = unseen("2026-10-02T15:00:00+0000", LAST_RUN, fetch=lambda account: [])
-    assert result.verdict.startswith("¿Es una colaboración")
+    assert result.verdict.startswith("Es antigua, o es una colaboración")
 
 
 def test_why_text():
     text = why.markdown(why.diagnose(LINK, "otra", read=state(), now=NOW))
-    assert text.startswith("**Ninguna publicación de esa cuenta se revisa.")
+    assert text.startswith("**Esa cuenta no se revisa.")
     assert "❌ @otra no está en los barridos." in text and "**Agregar**" in text
 
 
@@ -214,12 +219,82 @@ def test_add_post_adds_an_account_that_isnt_swept():
 @pytest.mark.parametrize(
     ("posts", "account", "extractor", "message"),
     [
-        ({"academia": []}, "academia", {}, "no está entre las últimas"),
-        ({"academia": InstagramError("not visible")}, "academia", {}, "No pude leer @academia"),
-        ({"academia": [post("p1")]}, None, {}, "Indica la @cuenta"),
+        ({"academia": []}, "academia", {}, "No pude leer la publicación"),
+        ({"academia": InstagramError("not visible", code=110)}, "academia", {}, "No pude leer la publicación"),
+        ({"academia": [post("p1")]}, None, {}, "No pude leer la publicación"),
         ({"academia": [post("p1")]}, "academia", {"out_of_quota": True}, "No queda cuota de Gemini"),
     ],
 )
 def test_add_post_says_why_it_couldnt(posts, account, extractor, message):
     with pytest.raises(AddPostError, match=message):
         sweep(posts, {}, **extractor).add_post(LINK, account)
+
+
+# ---------- the public page fallback (public_post.py) ----------
+
+
+def public_page(author: str):
+    def fetch(code):
+        return author, {**post("public-p1"), "permalink": f"https://www.instagram.com/p/{code}/"}
+
+    return fetch
+
+
+def test_a_personal_accounts_post_is_read_from_its_public_page(monkeypatch):
+    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", public_page("personal"))
+    not_visible = InstagramError("Invalid user id", code=110)
+    added = sweep({"personal": not_visible}, {"public-p1": event_post("public-p1")}).add_post(LINK, "personal")
+    assert added.public and not added.readable and added.outcome == "event"
+    assert "personal" not in storage.read_accounts()  # the API can't read it: it can't be swept
+
+
+def test_the_public_page_names_the_author_when_the_link_doesnt(monkeypatch):
+    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", public_page("academia"))
+    added = sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK)
+    assert added.account == "academia" and not added.public  # found through the API, once the author is known
+
+
+def test_a_collaboration_is_its_authors_post(monkeypatch):
+    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", public_page("organizador"))
+    added = sweep({"academia": [], "organizador": []}, {"public-p1": event_post("public-p1")}).add_post(
+        LINK, "academia"
+    )
+    assert added.account == "organizador" and added.public and added.outcome == "event"
+
+
+def test_reading_a_real_embed_page():
+    page = (
+        '<div class="UsernameText">levelupbfc</div><img class="EmbeddedMediaImage" alt="" '
+        'src="https://cdn.example/flyer.jpg?a=1&amp;b=2"/><div class="Caption">levelupbfc<br/><br/>BACHATEROS, '
+        'prepárense &amp; vengan<br/>En noviembre llega un congreso<div class="CaptionComments"></div></div>'
+    )
+    author, found = public_post.parse_embed("Dc_Jsv6R6Wu", page)
+    assert author == "levelupbfc" and found["media_type"] == "IMAGE"
+    assert found["media_url"] == "https://cdn.example/flyer.jpg?a=1&b=2"
+    assert found["caption"].startswith("BACHATEROS, prepárense & vengan\nEn noviembre")
+    with pytest.raises(public_post.PublicPostError):
+        public_post.parse_embed("x", "<html>Instagram</html>")  # the empty page plain scripts get
+
+
+def test_why_finds_the_author_on_the_public_page():
+    result = why.diagnose(LINK, read=state(), author_of=lambda code: "otra", now=NOW)
+    assert result.account == "otra" and "no está en los barridos" in result.checks[0][1]
+
+
+def test_why_explains_a_collaboration():
+    result = unseen_with_author("organizador")
+    assert "La publicó @organizador, en colaboración con @academia." in [text for _, text in result.checks]
+
+
+def test_why_explains_an_account_the_api_cant_read():
+    def not_visible(account):
+        raise InstagramError("Invalid user id", code=110)
+
+    result = why.diagnose(LINK, "academia", read=state(), fetch_posts=not_visible, now=NOW)
+    assert "cuenta personal o privada" in result.checks[-1][1] and "página pública" in result.verdict
+
+
+def unseen_with_author(author):
+    return why.diagnose(
+        LINK, "academia", read=state(), fetch_posts=lambda account: [], author_of=lambda code: author, now=NOW
+    )

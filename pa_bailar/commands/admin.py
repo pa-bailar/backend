@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pa_bailar import config, inbox, links, status, storage, sweep_state, why
+from pa_bailar import config, inbox, links, public_post, status, storage, sweep_state, why
 
 if TYPE_CHECKING:
     from pa_bailar.instagram import InstagramClient
@@ -38,7 +38,15 @@ def run_why(link: str, account: str | None) -> why.Diagnosis:
     with contextlib.suppress(SystemExit):  # no Meta secrets: the answer skips the Instagram check
         client = _instagram()
     fetch = (lambda name: client.fetch_recent_posts(name, limit=config.ADMIN_POST_SEARCH)) if client else None
-    return why.diagnose(link, account, fetch_posts=fetch)
+    return why.diagnose(link, account, fetch_posts=fetch, author_of=public_author)
+
+
+def public_author(code: str) -> str | None:
+    """Who published a post, from its public page (public_post.py); None if it can't be read."""
+    try:
+        return public_post.fetch_public_post(code)[0]
+    except public_post.PublicPostError:
+        return None
 
 
 def run_add_account(account: str) -> str:
