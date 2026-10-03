@@ -7,7 +7,10 @@
     "reason": "El post promociona un social de salsa y bachata con clase previa el sábado 3 de octubre.",
     "model": "gemini-flash-latest",
     "provisional": false,
-    "caption_hash": "1269b911392b18d0"
+    "caption_hash": "1269b911392b18d0",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18198040588376870": {
     "account": "zafradance",
@@ -17,7 +20,10 @@
     "reason": "Es un video tutorial de un paso de baile y publicidad general sin fechas ni horarios específicos.",
     "model": "gemini-flash-latest",
     "provisional": false,
-    "caption_hash": "81d1c61a73e883d6"
+    "caption_hash": "81d1c61a73e883d6",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18379762747224169": {
     "account": "zafradance",
@@ -27,7 +33,10 @@
     "reason": "Anuncia una super clase de champeta para el domingo 27 de septiembre.",
     "model": "gemini-flash-latest",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18142103065599867": {
     "account": "zafradance",
@@ -37,7 +46,10 @@
     "reason": "Es una publicación promocional general de la academia sin fechas ni horarios de clases o eventos.",
     "model": "gemini-flash-latest",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17944206615322562": {
     "account": "zafradance",
@@ -47,7 +59,10 @@
     "reason": "El post es un tutorial con consejos de baile y no anuncia ningún evento ni clase con fecha u horario específico.",
     "model": "gemini-flash-latest",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18330914212277947": {
     "account": "zafradance",
@@ -57,7 +72,10 @@
     "reason": "Anuncia un social de salsa y bachata el sábado 5 de septiembre con clase y parejas de baile.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18129749683771543": {
     "account": "bembeacademiadebaile",
@@ -67,7 +85,10 @@
     "reason": "Anuncio de un social de Halloween el 24 de octubre en la academia Bembé.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "37270f0283cca8f0"
+    "caption_hash": "37270f0283cca8f0",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18092662847433715": {
     "account": "bembeacademiadebaile",
@@ -77,7 +98,10 @@
     "reason": "La publicación muestra un video de práctica o motivación en una academia sin anunciar una fecha, hora o evento específico para el público.",
     "model": "gemini-flash-lite-latest",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17866733517659910": {
     "account": "bembeacademiadebaile",
@@ -87,7 +111,10 @@
     "reason": "El post es de carácter promocional mostrando una clase de bachata, pero no especifica horarios, fechas, precios ni detalles de un evento o clase abierta en particular.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18113166034873802": {
     "account": "bembeacademiadebaile",
@@ -97,7 +124,10 @@
     "reason": "Es un anuncio general de clases personalizadas sin fechas, horarios o eventos específicos programados.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18194856820389461": {
     "account": "bembeacademiadebaile",
@@ -107,7 +137,10 @@
     "reason": "El post es una presentación del Grupo de Formación de la academia y no anuncia un evento, clase o taller con fecha o detalles específicos.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18125277811839771": {
     "account": "bembeacademiadebaile",
@@ -117,7 +150,10 @@
     "reason": "Es una publicacion informativa sobre como llegar a la academia, no anuncia ningun evento o clase con fecha y horario especifico.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17985388479076791": {
     "account": "esferalatinaoficial",
@@ -127,7 +163,10 @@
     "reason": "El post anuncia un evento social con clase de bachata el viernes 25 de septiembre.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17940141273086498": {
     "account": "esferalatinaoficial",
@@ -137,7 +176,10 @@
     "reason": "Anuncia una clase especial de Champeta + Salsa el jueves 10 de septiembre.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17966843337172267": {
     "account": "esferalatinaoficial",
@@ -147,7 +189,10 @@
     "reason": "El post es un agradecimiento y resumen de la participación de la academia en el Boston Salsa Festival, siendo un recuento de un evento ya pasado.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18485647252129232": {
     "account": "madyumdance",
@@ -157,7 +202,10 @@
     "reason": "Anuncia un workshop/clase especial de Salsa Freestyle con Renato Palacios para este sábado.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "e5530ab6a0eb9f59"
+    "caption_hash": "e5530ab6a0eb9f59",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18179940502441318": {
     "account": "madyumdance",
@@ -167,7 +215,10 @@
     "reason": "El post promociona servicios de coreografías para bodas y no anuncia un evento abierto al público.",
     "model": "gemini-flash-lite-latest",
     "provisional": false,
-    "caption_hash": "32745348c79dad3a"
+    "caption_hash": "32745348c79dad3a",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18445168045134487": {
     "account": "madyumdance",
@@ -177,7 +228,10 @@
     "reason": "El post es un recuerdo o resumen de un taller que ya pasó, mencionando que habrá otro próximo sábado pero sin detallar la fecha ni el horario específico.",
     "model": "gemini-flash-lite-latest",
     "provisional": false,
-    "caption_hash": "a4cef9ae98416f1b"
+    "caption_hash": "a4cef9ae98416f1b",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18382266040226570": {
     "account": "madyumdance",
@@ -187,7 +241,10 @@
     "reason": "El post anuncia un taller de dancehall organizado por Madyum para este sábado 26.",
     "model": "gemini-flash-lite-latest",
     "provisional": true,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17990723310048827": {
     "account": "madyumdance",
@@ -197,7 +254,10 @@
     "reason": "El post anuncia clases regulares de salsa en pareja nivel avanzado, aunque actualmente estén en pausa.",
     "model": "gemini-flash-lite-latest",
     "provisional": true,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18422550298154507": {
     "account": "madyumdance",
@@ -207,7 +267,10 @@
     "reason": "Es un resumen o recopilación de un taller que ya se realizó y no anuncia fechas de un próximo evento.",
     "model": "gemini-flash-latest",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18382502500227795": {
     "account": "madyumdance",
@@ -217,7 +280,10 @@
     "reason": "El post anuncia un gran taller de bachata tradicional para este sábado.",
     "model": "gemini-flash-lite-latest",
     "provisional": true,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18104347286615308": {
     "account": "madyumdance",
@@ -227,7 +293,10 @@
     "reason": "El post anuncia el gran aniversario de Madyum con fecha el 5 de diciembre.",
     "model": "gemini-flash-lite-latest",
     "provisional": true,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18389263297200452": {
     "account": "madyumdance",
@@ -237,7 +306,10 @@
     "reason": "La publicación muestra un equipo de niñas ensayando, pero no anuncia ningún evento o clase abierta al público con fecha y hora específicas.",
     "model": "gemini-flash-lite-latest",
     "provisional": false,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18336609811283206": {
     "account": "madyumdance",
@@ -247,7 +319,10 @@
     "reason": "El post anuncia clases recurrentes de bachata en pareja todos los viernes a las 8:00 pm.",
     "model": "gemini-flash-lite-latest",
     "provisional": true,
-    "caption_hash": null
+    "caption_hash": null,
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18126108809477354": {
     "account": "academiadebailepasolatino",
@@ -257,7 +332,10 @@
     "reason": "El post es un resumen o 'recap' de agradecimiento sobre un evento benéfico que ya ocurrió en el pasado y no anuncia eventos futuros.",
     "model": "gemini-flash-lite-latest",
     "provisional": false,
-    "caption_hash": "007469520c7962e2"
+    "caption_hash": "007469520c7962e2",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18112581790860968": {
     "account": "esferalatinaoficial",
@@ -267,7 +345,10 @@
     "reason": "El post presenta la programación de eventos de octubre de la academia Esfera Latina, detallando cinco eventos únicos.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "5bfd0f4cfa5e0bee"
+    "caption_hash": "5bfd0f4cfa5e0bee",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18207044776366939": {
     "account": "bureodancestudio",
@@ -277,7 +358,10 @@
     "reason": "Anuncia un workshop de tres clases el 17 de septiembre con bailarinas de Tini.",
     "model": "gemini-3.8-flash",
     "provisional": false,
-    "caption_hash": "c3b9eeea1b687bec"
+    "caption_hash": "c3b9eeea1b687bec",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18094649012398996": {
     "account": "bureodancestudio",
@@ -287,7 +371,10 @@
     "reason": "Anuncio de la semana especial de clases 'Hagámoslo Real' del 7 al 11 de septiembre de 2026 en las diferentes sedes de Bureo Dance Studio.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "e92413277ff9f2bf"
+    "caption_hash": "e92413277ff9f2bf",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18108680687599548": {
     "account": "bureodancestudio",
@@ -297,7 +384,10 @@
     "reason": "La publicación muestra imágenes del detrás de escena y ensayos, pero no anuncia un evento específico próximo.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "9b3cfe0b51bde914"
+    "caption_hash": "9b3cfe0b51bde914",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18475359718114255": {
     "account": "bureodancestudio",
@@ -307,7 +397,10 @@
     "reason": "Se anuncia un taller de coreografía de una única sesión con el bailarín invitado Lil Andrew para el miércoles 9 de septiembre.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "b0e55e2a6aa00141"
+    "caption_hash": "b0e55e2a6aa00141",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18013517321748037": {
     "account": "bureodancestudio",
@@ -317,7 +410,10 @@
     "reason": "La publicación es un mensaje motivacional y de agradecimiento sobre un cambio de sede, no anuncia ningún evento o taller específico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "00b83d7ccfba4525"
+    "caption_hash": "00b83d7ccfba4525",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17939885055096850": {
     "account": "bureodancestudio",
@@ -327,7 +423,10 @@
     "reason": "Anuncia un taller de danza de fecha única dictado por la coreógrafa Kirsten Dodgen en Bogotá.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "991242c1d32cee74"
+    "caption_hash": "991242c1d32cee74",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18126494698803654": {
     "account": "bureodancestudio",
@@ -337,7 +436,10 @@
     "reason": "El evento principal ocurrió el 14 de septiembre de 2026 y la fecha actual es posterior.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "7df1a01f239f3bf2"
+    "caption_hash": "7df1a01f239f3bf2",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18265196218306960": {
     "account": "bureodancestudio",
@@ -347,7 +449,10 @@
     "reason": "La publicación es un resumen de una clase que ya ocurrió y no anuncia un evento futuro.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "dc0adc5c95d8767b"
+    "caption_hash": "dc0adc5c95d8767b",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18125843635842523": {
     "account": "bureodancestudio",
@@ -357,7 +462,10 @@
     "reason": "La publicacion es un video de baile de recuerdo y no anuncia ningun evento futuro.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "6580accaad720f59"
+    "caption_hash": "6580accaad720f59",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18649102459032582": {
     "account": "bureodancestudio",
@@ -367,7 +475,10 @@
     "reason": "El evento anunciado ocurrió el 17 de septiembre de 2026 y la fecha actual es posterior.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "64b569e9f4fb287d"
+    "caption_hash": "64b569e9f4fb287d",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18124895125860558": {
     "account": "bureodancestudio",
@@ -377,7 +488,10 @@
     "reason": "Anuncia tres talleres de salsa y bachata con Bryan Jerez en diferentes sedes de Bureo para la semana del 22 al 24 de septiembre.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "b888230aadd9a319"
+    "caption_hash": "b888230aadd9a319",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18114879713055350": {
     "account": "bureodancestudio",
@@ -387,7 +501,10 @@
     "reason": "La publicación es un resumen de un taller y evento que ya ocurrió en el pasado.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "148e6b5900b712c2"
+    "caption_hash": "148e6b5900b712c2",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18113903033040937": {
     "account": "bureodancestudio",
@@ -397,7 +514,10 @@
     "reason": "La publicación es un resumen o recuerdo de un evento pasado y no anuncia un evento próximo con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "364ba1af49414ea8"
+    "caption_hash": "364ba1af49414ea8",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18007124306782865": {
     "account": "bureodancestudio",
@@ -407,7 +527,10 @@
     "reason": "La publicación anuncia una promoción de paquetes y descuentos por tiempo limitado en lugar de un evento específico como un taller o fiesta.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "c4f9c27b81359799"
+    "caption_hash": "c4f9c27b81359799",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18036448199836668": {
     "account": "ludancestudios",
@@ -417,7 +540,10 @@
     "reason": "La publicacion es un recuento de un taller que ya ocurrio en el pasado.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "193f9e89eea1451e"
+    "caption_hash": "193f9e89eea1451e",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18154168786450664": {
     "account": "ludancestudios",
@@ -427,7 +553,10 @@
     "reason": "Se anuncia la fiesta del primer aniversario de LuDance Estudio el 10 de octubre con puesta en escena y fiesta crossover.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "0e4fe1a700fb8919"
+    "caption_hash": "0e4fe1a700fb8919",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18621881713023553": {
     "account": "ludancestudios",
@@ -437,7 +566,10 @@
     "reason": "La publicación anuncia clases regulares de heels que ocurren todos los viernes, lo cual no cuenta como un evento de fecha única.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "69af32b12467b3aa"
+    "caption_hash": "69af32b12467b3aa",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18090013664183863": {
     "account": "ludancestudios",
@@ -447,7 +579,10 @@
     "reason": "El evento BACHATA FUSION EXPERIENCE ocurrió el 26 y 27 de septiembre y la fecha actual es posterior.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "732808243e8963b1"
+    "caption_hash": "732808243e8963b1",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17908918632471320": {
     "account": "ludancestudios",
@@ -457,7 +592,10 @@
     "reason": "La publicación es una celebración de aniversario y un video recapitulativo, pero no anuncia un evento próximo específico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "f6f227b402a71bd5"
+    "caption_hash": "f6f227b402a71bd5",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18130959460746898": {
     "account": "ludancestudios",
@@ -467,7 +605,10 @@
     "reason": "La publicación anuncia una clase regular y recurrente de salsa los sábados, la cual no cuenta como un evento único.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "05640328dfb832da"
+    "caption_hash": "05640328dfb832da",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18413821672080522": {
     "account": "ludancestudios",
@@ -477,7 +618,10 @@
     "reason": "El post es un recuerdo o resumen de un taller que ya ocurrió y no anuncia un evento próximo con una fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "624fb7666149a718"
+    "caption_hash": "624fb7666149a718",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18129795415671668": {
     "account": "ritmosacademiadebaile",
@@ -487,7 +631,10 @@
     "reason": "La publicación muestra un video de una clase regular de baile sin anunciar ningún evento específico próximo.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "1875214d5715e969"
+    "caption_hash": "1875214d5715e969",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18199884541372721": {
     "account": "ritmosacademiadebaile",
@@ -497,7 +644,10 @@
     "reason": "Se anuncia la presentación de un show de teatro musical de salsa el 1 de noviembre de 2026.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "4f973031e210228e"
+    "caption_hash": "4f973031e210228e",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18069630428738274": {
     "account": "ritmosacademiadebaile",
@@ -507,7 +657,10 @@
     "reason": "Anuncia una función del musical 'Entre Ritmos y Latidos' el 1 de noviembre de 2026 en el Teatro Libre Chapinero.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "bd7cffaa9d97dd59"
+    "caption_hash": "bd7cffaa9d97dd59",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18333258193274240": {
     "account": "studio110dance",
@@ -517,7 +670,10 @@
     "reason": "El post anuncia clases regulares de baile para adultos mayores sin especificar una fecha concreta para un evento único.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "0d59487cfe782a1e"
+    "caption_hash": "0d59487cfe782a1e",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18125773468889093": {
     "account": "studio110dance",
@@ -527,7 +683,10 @@
     "reason": "El video explica cómo llegar a la sede de la academia y no anuncia ningún evento específico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "f6869a32b532e91b"
+    "caption_hash": "f6869a32b532e91b",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18046982273805992": {
     "account": "bogotadanceclub.academy",
@@ -537,7 +696,10 @@
     "reason": "La publicación es un meme o contenido humorístico sobre las clases de baile y no anuncia ningún evento específico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "7033a675dfa4e402"
+    "caption_hash": "7033a675dfa4e402",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17931879759384676": {
     "account": "bogotadanceclub.academy",
@@ -547,7 +709,10 @@
     "reason": "La publicación promociona clases regulares y espacios generales de la academia pero no anuncia un evento específico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "0a68ed14c2e54d50"
+    "caption_hash": "0a68ed14c2e54d50",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17947203279275710": {
     "account": "bogotadanceclub.academy",
@@ -557,7 +722,10 @@
     "reason": "La publicación muestra un video de humor sobre una actividad pasada de amigo secreto y no anuncia ningún evento futuro.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "3d2d12d438a616ef"
+    "caption_hash": "3d2d12d438a616ef",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18069384140744326": {
     "account": "bogotadanceclub.academy",
@@ -567,7 +735,10 @@
     "reason": "La publicación muestra la coreografía resultante de una clase regular y no anuncia ningún evento próximo.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "2891e93bb47b1288"
+    "caption_hash": "2891e93bb47b1288",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17915582604448980": {
     "account": "bogotadanceclub.academy",
@@ -577,7 +748,10 @@
     "reason": "La publicación anuncia un espacio recurrente semanal (todos los lunes) dirigido a alumnos regulares, lo cual no califica como un evento único.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "47156b7a315be8c1"
+    "caption_hash": "47156b7a315be8c1",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18107461136192690": {
     "account": "bogotadanceclub.academy",
@@ -587,7 +761,10 @@
     "reason": "La publicación es un mensaje reflexivo y de agradecimiento que no anuncia ningún evento específico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "589ccc5a66df774c"
+    "caption_hash": "589ccc5a66df774c",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18218113489342549": {
     "account": "bogotadanceclub.academy",
@@ -597,7 +774,10 @@
     "reason": "La publicacion es una promocion general para parejas pero no anuncia un evento especifico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "ca100fd088435276"
+    "caption_hash": "ca100fd088435276",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18150230383557404": {
     "account": "bogotadanceclub.academy",
@@ -607,7 +787,10 @@
     "reason": "La publicacion anuncia clases regulares semanales todos los martes en lugar de un evento unico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "d745293482197a94"
+    "caption_hash": "d745293482197a94",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18112428938584718": {
     "account": "bogotadanceclub.academy",
@@ -617,7 +800,10 @@
     "reason": "La publicación es un resumen fotográfico de una celebración pasada de amor y amistad.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "8c00ae33abb6e0cf"
+    "caption_hash": "8c00ae33abb6e0cf",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18149714359529479": {
     "account": "bogotadanceclub.academy",
@@ -627,7 +813,10 @@
     "reason": "El video muestra un momento divertido de una clase regular de merengue sin anunciar ningún evento específico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "635ffdfaed487b35"
+    "caption_hash": "635ffdfaed487b35",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17971442750947663": {
     "account": "bogotadanceclub.academy",
@@ -637,7 +826,10 @@
     "reason": "El video es un meme humorístico sobre clases de baile regulares y no anuncia ningún evento específico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "38d3e6d9675be020"
+    "caption_hash": "38d3e6d9675be020",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18113027366013830": {
     "account": "bogotadanceclub.academy",
@@ -647,7 +839,10 @@
     "reason": "El post invita a tomar clases regulares escribiendo la palabra BACHATA, pero no anuncia un evento especifico unico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "f59f389a4aca237d"
+    "caption_hash": "f59f389a4aca237d",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18026404658885665": {
     "account": "bogotadanceclub.academy",
@@ -657,7 +852,10 @@
     "reason": "El post promociona clases regulares y no anuncia un evento puntual con fecha especifica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "5dbe11bc3f4d0462"
+    "caption_hash": "5dbe11bc3f4d0462",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17974630266132703": {
     "account": "bogotadanceclub.academy",
@@ -667,7 +865,10 @@
     "reason": "La publicación es un meme humorístico sobre bailar en la academia y no anuncia ningún evento específico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "fc7fbed8c8d6810c"
+    "caption_hash": "fc7fbed8c8d6810c",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17905684278510537": {
     "account": "academyfeel",
@@ -677,7 +878,10 @@
     "reason": "El texto menciona un evento pasado en Cali ya ocurrido.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "fc6f2e82a73833fa"
+    "caption_hash": "fc6f2e82a73833fa",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18127381486751149": {
     "account": "academyfeel",
@@ -687,7 +891,10 @@
     "reason": "La publicación es una celebración de un premio obtenido en el pasado y no anuncia un evento próximo con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "76b5d0b9d76b5e7d"
+    "caption_hash": "76b5d0b9d76b5e7d",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17907969771545676": {
     "account": "academyfeel",
@@ -697,7 +904,10 @@
     "reason": "La publicación es un resumen y agradecimiento por una competencia que ya ocurrió en el pasado.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "f284ce7cfd861593"
+    "caption_hash": "f284ce7cfd861593",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18094427084387144": {
     "account": "soondanz_company",
@@ -707,7 +917,10 @@
     "reason": "La publicación promociona clases regulares de salsa sin anunciar un evento único con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "345438d4f58bcee8"
+    "caption_hash": "345438d4f58bcee8",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17984251284078552": {
     "account": "soondanz_company",
@@ -717,7 +930,10 @@
     "reason": "El post es un recuento de una clase pasada de Heels y promociona la siguiente sin especificar una fecha.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "86e0e82087d79372"
+    "caption_hash": "86e0e82087d79372",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18356056747221099": {
     "account": "soondanz_company",
@@ -727,7 +943,10 @@
     "reason": "La publicacion muestra un video de una clase regular de baile pasada y no anuncia ningun evento unico o taller especial con fecha especifica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "52f885d7942af593"
+    "caption_hash": "52f885d7942af593",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18029912528681157": {
     "account": "soondanz_company",
@@ -737,7 +956,10 @@
     "reason": "La publicación promociona clases regulares y continuas de bachata en lugar de un evento único con una fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "a58a3e708c94eacc"
+    "caption_hash": "a58a3e708c94eacc",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17913794670446865": {
     "account": "imperiolatino",
@@ -747,7 +969,10 @@
     "reason": "La publicación promociona las clases regulares y descuentos semanales de la academia, no un evento único con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "ee8bd9b7aa7a9127"
+    "caption_hash": "ee8bd9b7aa7a9127",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18143422915496924": {
     "account": "imperiolatino",
@@ -757,7 +982,10 @@
     "reason": "La publicación promociona las clases regulares de bachata con la profesora Sara Acero y no anuncia ningún evento o taller de fecha única.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "1d4c80826eb105d1"
+    "caption_hash": "1d4c80826eb105d1",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18176212447433419": {
     "account": "imperiolatino",
@@ -767,7 +995,10 @@
     "reason": "El evento anunciado ocurrió el 19 de septiembre de 2026 y la fecha actual es posterior.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "b2e1b96deb7c0947"
+    "caption_hash": "b2e1b96deb7c0947",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18177695947442451": {
     "account": "imperiolatino",
@@ -777,7 +1008,10 @@
     "reason": "La publicación anuncia la incorporación de un nuevo profesor de ballet y clases regulares, pero no un evento único con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "c52c5cf2f1648d91"
+    "caption_hash": "c52c5cf2f1648d91",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18128846989785657": {
     "account": "imperiolatino",
@@ -787,7 +1021,10 @@
     "reason": "El post es un resumen (recap) de un evento que ya ocurrió y no anuncia una fecha futura.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "49a607d3e9ba0d29"
+    "caption_hash": "49a607d3e9ba0d29",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18100745444632280": {
     "account": "imperiolatino",
@@ -797,7 +1034,10 @@
     "reason": "El anuncio es sobre alquiler de espacio y no sobre un evento específico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "d3c26a3995fedee5"
+    "caption_hash": "d3c26a3995fedee5",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17905517349593677": {
     "account": "imperiolatino",
@@ -807,7 +1047,10 @@
     "reason": "La publicación anuncia descuentos por pago oportuno de mensualidades y no un evento único.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "e28fd59cd7c2f9d9"
+    "caption_hash": "e28fd59cd7c2f9d9",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18016554014926349": {
     "account": "mambo_y_control",
@@ -817,7 +1060,10 @@
     "reason": "El post anuncia clases regulares de los sábados y no un evento único con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "5c742543e4c0582d"
+    "caption_hash": "5c742543e4c0582d",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17881005324522990": {
     "account": "mambo_y_control",
@@ -827,7 +1073,10 @@
     "reason": "El post recomienda aplicaciones para bailar y menciona un futuro curso pero no anuncia un evento específico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "2c9bf00610acae24"
+    "caption_hash": "2c9bf00610acae24",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18071762753721686": {
     "account": "mambo_y_control",
@@ -837,7 +1086,10 @@
     "reason": "La publicación anuncia clases regulares semanales de salsa, las cuales no cuentan como un evento único.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "f0aefea824f479e0"
+    "caption_hash": "f0aefea824f479e0",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17896591305398161": {
     "account": "mambo_y_control",
@@ -847,7 +1099,10 @@
     "reason": "El post anuncia clases regulares y horarios fijos semanales en lugar de un evento único con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "d05b910dc24ac7a3"
+    "caption_hash": "d05b910dc24ac7a3",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18018174977930391": {
     "account": "distritosocialbog",
@@ -857,7 +1112,10 @@
     "reason": "Anuncia el evento de aniversario de Distrito Social con fecha del 31 de octubre al 2 de noviembre de 2026, con la presencia de Ricardo y Laura.",
     "model": "gemini-3.5-flash",
     "provisional": false,
-    "caption_hash": "5efb1247df342786"
+    "caption_hash": "5efb1247df342786",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18409856125080489": {
     "account": "distritosocialbog",
@@ -867,7 +1125,10 @@
     "reason": "La publicación anuncia una programación de talleres y eventos especiales para el mes de septiembre.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "9df5968618ba5a69"
+    "caption_hash": "9df5968618ba5a69",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18127890811762567": {
     "account": "distritosocialbog",
@@ -877,7 +1138,10 @@
     "reason": "La publicación anuncia un evento de aniversario con la participación de Esteban y Valery.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "8fb4dfab721ef77b"
+    "caption_hash": "8fb4dfab721ef77b",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18101050046369055": {
     "account": "distritosocialbog",
@@ -887,7 +1151,10 @@
     "reason": "El post anuncia una clase magistral de Jack and Jill con bailarines invitados para el 13 de septiembre.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "e23b3acf0eaa6714"
+    "caption_hash": "e23b3acf0eaa6714",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17939085588098200": {
     "account": "distritosocialbog",
@@ -897,7 +1164,10 @@
     "reason": "El post anuncia un evento de aniversario de tres días en Distrito Social con talleres de bachata.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "ac48442c5f78228c"
+    "caption_hash": "ac48442c5f78228c",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18091073186556725": {
     "account": "distritosocialbog",
@@ -907,7 +1177,10 @@
     "reason": "El post anuncia el aniversario de Distrito Social con Duane y Aleja.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "b5ee62e6cff02521"
+    "caption_hash": "b5ee62e6cff02521",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18438785839135774": {
     "account": "distritosocialbog",
@@ -917,7 +1190,10 @@
     "reason": "El post anuncia un festival de aniversario de tres días con talleres y sociales.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "46fe7de43348d8c9"
+    "caption_hash": "46fe7de43348d8c9",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18101899421631677": {
     "account": "distritosocialbog",
@@ -927,7 +1203,10 @@
     "reason": "El post anuncia un evento social de Halloween para el 31 de octubre de 2026.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "5336ec2f0cd9ab14"
+    "caption_hash": "5336ec2f0cd9ab14",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18133094761730072": {
     "account": "distritosocialbog",
@@ -937,7 +1216,10 @@
     "reason": "El post anuncia un festival de tres días organizado por Distrito Social.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "f4a8cf30218774b9"
+    "caption_hash": "f4a8cf30218774b9",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17925664512421185": {
     "account": "distritosocialbog",
@@ -947,7 +1229,10 @@
     "reason": "El post anuncia los eventos del aniversario de Distrito Social los días 31 de octubre, 1 y 2 de noviembre.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "e03207ab45878163"
+    "caption_hash": "e03207ab45878163",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18169606639420327": {
     "account": "distritosocialbog",
@@ -957,7 +1242,10 @@
     "reason": "La publicación es un resumen o recuerdo de un taller de improvisación que ya ocurrió, por lo que no anuncia un evento futuro.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "6e6a4deb8ef12498"
+    "caption_hash": "6e6a4deb8ef12498",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18150552889543035": {
     "account": "distritosocialbog",
@@ -967,7 +1255,10 @@
     "reason": "El post anuncia un evento de aniversario con múltiples días y actividades.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "92d3ba63ced4d2b0"
+    "caption_hash": "92d3ba63ced4d2b0",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18125678203891135": {
     "account": "distritosocialbog",
@@ -977,127 +1268,182 @@
     "reason": "La publicación promociona la venta de camisetas y productos de aniversario, pero no anuncia ningún evento específico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "962f120c7f4d9bdf"
+    "caption_hash": "962f120c7f4d9bdf",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18021267338925064": {
     "account": "distritosocialbog",
     "permalink": "https://www.instagram.com/p/DdwtU46JlFG/",
-    "processed_at": "2026-10-02T13:23:18-05:00",
+    "processed_at": "2026-10-03T09:03:11-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia los preparativos y el festival de aniversario de Distrito Social para el 31 de octubre, 1 y 2 de noviembre.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "17e5bd4ba1deaa85"
+    "reason": "Anuncia el festival Distrito Social Aniversario del 31 de octubre al 2 de noviembre.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "17e5bd4ba1deaa85",
+    "outcome": "merged",
+    "event_ids": [
+      "distrito-social-aniversario-31-oct"
+    ],
+    "detail": null
   },
   "18334628131261291": {
     "account": "distritosocialbog",
     "permalink": "https://www.instagram.com/reel/Ddzawbytb5W/",
-    "processed_at": "2026-10-02T13:23:26-05:00",
+    "processed_at": "2026-10-03T09:04:38-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia los talleres, social y fiesta de aniversario de Distrito Social del 31 de octubre al 2 de noviembre.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "9cccfddb90f60443"
+    "reason": "Anuncia el festival de aniversario de Distrito Social del 31 de octubre al 2 de noviembre.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "9cccfddb90f60443",
+    "outcome": "merged",
+    "event_ids": [
+      "distrito-social-aniversario-31-oct"
+    ],
+    "detail": null
   },
   "17922037542488794": {
     "account": "distritosocialbog",
     "permalink": "https://www.instagram.com/p/DdzF1yqRkuy/",
-    "processed_at": "2026-10-02T13:23:36-05:00",
-    "is_event_post": false,
-    "reason": "El post es un recordatorio del cierre del segundo corte de inscripciones para un festival y no un evento nuevo.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "270dcf83f71365d3"
+    "processed_at": "2026-10-03T09:05:27-05:00",
+    "is_event_post": true,
+    "reason": "Se anuncia el festival Distrito Social Aniversario que se llevará a cabo el 31 de octubre, 1 y 2 de noviembre.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "270dcf83f71365d3",
+    "outcome": "merged",
+    "event_ids": [
+      "distrito-social-aniversario-31-oct"
+    ],
+    "detail": null
   },
   "18136397614653925": {
     "account": "distritosocialbog",
     "permalink": "https://www.instagram.com/reel/Dd1uUJKp9_z/",
-    "processed_at": "2026-10-02T13:23:44-05:00",
+    "processed_at": "2026-10-03T09:07:16-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia un festival de aniversario de tres días con talleres y sociales.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "5b814793e0999654"
+    "reason": "Anuncia el Festival de Aniversario con talleres y social del 31 de octubre al 2 de noviembre.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
+    "caption_hash": "5b814793e0999654",
+    "outcome": "merged",
+    "event_ids": [
+      "distrito-social-aniversario-31-oct"
+    ],
+    "detail": null
   },
   "17910069849519332": {
     "account": "distritosocialbog",
     "permalink": "https://www.instagram.com/p/Dd1vOXnJacQ/",
-    "processed_at": "2026-10-02T13:23:54-05:00",
+    "processed_at": "2026-10-03T09:08:53-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia el festival de aniversario de Distrito Social que se llevará a cabo del 31 de octubre al 2 de noviembre.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "effb415f234061aa"
+    "reason": "Anuncia el Festival de Distrito Social Aniversario del 31 de octubre al 2 de noviembre de 2026.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "effb415f234061aa",
+    "outcome": "merged",
+    "event_ids": [
+      "distrito-social-aniversario-31-oct"
+    ],
+    "detail": null
   },
   "18475727074116887": {
     "account": "distritosocialbog",
     "permalink": "https://www.instagram.com/reel/Dd37MkXN4tk/",
-    "processed_at": "2026-10-02T13:24:03-05:00",
+    "processed_at": "2026-10-03T09:09:30-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia un festival de baile de tres días con talleres y social.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "0277ffc0b69ac587"
+    "reason": "Anuncia el festival de aniversario con talleres y social del 31 de octubre al 2 de noviembre.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
+    "caption_hash": "0277ffc0b69ac587",
+    "outcome": "merged",
+    "event_ids": [
+      "distrito-social-aniversario-31-oct"
+    ],
+    "detail": null
   },
   "18095793410543849": {
     "account": "distritosocialbog",
     "permalink": "https://www.instagram.com/reel/Dd4djLxNDGk/",
-    "processed_at": "2026-10-02T13:24:12-05:00",
+    "processed_at": "2026-10-03T09:10:06-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia un festival de baile de tres días con talleres y sociales en Distrito Social.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "710b802b1fd26ab6"
+    "reason": "Anuncia el festival de Distrito Social del 31 de octubre al 2 de noviembre con talleres y sociales.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "710b802b1fd26ab6",
+    "outcome": "merged",
+    "event_ids": [
+      "distrito-social-aniversario-31-oct"
+    ],
+    "detail": null
   },
   "18153059854477991": {
     "account": "distritosocialbog",
     "permalink": "https://www.instagram.com/p/Dd6iiQxxr_T/",
-    "processed_at": "2026-10-02T13:24:22-05:00",
+    "processed_at": "2026-10-03T09:10:21-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia el último día del segundo corte de preventa para un festival de aniversario.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "9173f796daa3caf8"
+    "reason": "Anuncia las fechas y venta de boletería del festival de aniversario de Distrito Social del 31 de octubre al 2 de noviembre.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "9173f796daa3caf8",
+    "outcome": "merged",
+    "event_ids": [
+      "distrito-social-aniversario-31-oct"
+    ],
+    "detail": null
   },
   "18016769585940879": {
     "account": "danceinmotionclub",
     "permalink": "https://www.instagram.com/reel/Dd2_z3ChG7A/",
-    "processed_at": "2026-10-02T13:24:32-05:00",
+    "processed_at": "2026-10-03T09:10:31-05:00",
     "is_event_post": false,
-    "reason": "El post es un video recapitulativo del show anual de la academia pero no anuncia una fecha para un próximo evento.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "b372fc08cf52b880"
+    "reason": "El post muestra una presentación del Show Anual DIM 2026 que ya se llevó a cabo y no anuncia ningún evento futuro.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "b372fc08cf52b880",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null
   },
   "18120739681906964": {
     "account": "danceinmotionclub",
     "permalink": "https://www.instagram.com/p/Dd3A1YyB_Pz/",
-    "processed_at": "2026-10-02T13:24:41-05:00",
+    "processed_at": "2026-10-03T09:10:49-05:00",
     "is_event_post": false,
-    "reason": "La publicación es solo una foto de grupo y no anuncia ningún evento próximo con fecha específica.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "c25683caf9f12ee6"
+    "reason": "El post muestra una fotografía de una presentación del grupo femenino en el Show Anual, sin anunciar un próximo evento con fecha, hora o lugar.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "c25683caf9f12ee6",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null
   },
   "18164322976483987": {
     "account": "danceinmotionclub",
     "permalink": "https://www.instagram.com/reel/Dd6bCSchsBr/",
-    "processed_at": "2026-10-02T13:24:50-05:00",
+    "processed_at": "2026-10-03T09:10:57-05:00",
     "is_event_post": false,
-    "reason": "La publicación es un video de un show pasado y no anuncia un evento próximo con fecha específica.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "98a52b46b0c76159"
+    "reason": "El post es un video de una presentacion pasada en el Show Anual DIM 2026 y no anuncia ningun evento proximo.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "98a52b46b0c76159",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null
   },
   "18113466149017426": {
     "account": "danceinmotionclub",
     "permalink": "https://www.instagram.com/p/Dd6bkJBBTUc/",
-    "processed_at": "2026-10-02T13:25:00-05:00",
+    "processed_at": "2026-10-03T09:11:12-05:00",
     "is_event_post": false,
-    "reason": "La publicación es un video o foto de presentación de grupo de baile sin fecha específica para un evento próximo.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "2cc3c9152b67d5fc"
+    "reason": "La publicación es una foto de un grupo del show anual sin información de fecha, hora o convocatoria de un evento futuro.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "2cc3c9152b67d5fc",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null
   },
   "17962219116197714": {
     "account": "danceinmotionclub",
@@ -1107,27 +1453,38 @@
     "reason": "La imagen muestra un resumen o presentación pasada sin anunciar un evento futuro con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "31469d08ed8abd33"
+    "caption_hash": "31469d08ed8abd33",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18159651883516437": {
     "account": "danceinmotionclub",
     "permalink": "https://www.instagram.com/p/Dd8vPYVBYZ7/",
-    "processed_at": "2026-10-02T13:25:13-05:00",
+    "processed_at": "2026-10-03T09:13:40-05:00",
     "is_event_post": false,
-    "reason": "El post anuncia un grupo de baile y muestra una foto de presentación pero no especifica la fecha, hora ni lugar de un evento.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "55cc20e1ad6070b8"
+    "reason": "La publicación es una foto de una presentación de un grupo de baile sin información sobre una fecha, hora o boletería de un próximo evento.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "55cc20e1ad6070b8",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null
   },
   "17902083543361973": {
     "account": "danceinmotionclub",
     "permalink": "https://www.instagram.com/p/Dd-AgpkNX3t/",
-    "processed_at": "2026-10-02T13:25:23-05:00",
+    "processed_at": "2026-10-03T09:13:47-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia un taller de salsa estilo caleño para el 17 de octubre de 2026.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "e3b0c44298fc1c14"
+    "reason": "Se anuncia un taller único de salsa estilo caleño con Daniel Tello para el sábado 17 de octubre.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "e3b0c44298fc1c14",
+    "outcome": "event",
+    "event_ids": [
+      "taller-de-salsa-estilo-caleno-17-oct"
+    ],
+    "detail": null
   },
   "18609561076049652": {
     "account": "tubailecom",
@@ -1137,7 +1494,10 @@
     "reason": "El post promociona clases privadas a domicilio y no anuncia un evento especifico unico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "553811f57a5f9e6b"
+    "caption_hash": "553811f57a5f9e6b",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18039575954816775": {
     "account": "tubailecom",
@@ -1147,7 +1507,10 @@
     "reason": "La publicación es un concurso para ganar clases de baile y no anuncia un evento específico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "2542d1e4eb7bc9e8"
+    "caption_hash": "2542d1e4eb7bc9e8",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17957743317250699": {
     "account": "tubailecom",
@@ -1157,7 +1520,10 @@
     "reason": "La publicación es un meme o video humorístico sobre amigos secretos y no anuncia ningún evento específico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "7b4f0a7c45060456"
+    "caption_hash": "7b4f0a7c45060456",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18132653167655934": {
     "account": "tubailecom",
@@ -1167,7 +1533,10 @@
     "reason": "La publicación ofrece clases de baile personalizadas para parejas como un servicio general, pero no anuncia ningún evento específico con fecha y hora.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "5d0802d95cf68a01"
+    "caption_hash": "5d0802d95cf68a01",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18420123475152701": {
     "account": "tubailecom",
@@ -1177,7 +1546,10 @@
     "reason": "La publicación anuncia un curso intensivo regular sin una fecha específica exacta.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "0ca2a38c697ae61c"
+    "caption_hash": "0ca2a38c697ae61c",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18117387673959897": {
     "account": "tubailecom",
@@ -1187,7 +1559,10 @@
     "reason": "La publicación es un tutorial de baile y no anuncia ningún evento próximo.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "ce8a8b1983ee03e3"
+    "caption_hash": "ce8a8b1983ee03e3",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18111328985123164": {
     "account": "tubailecom",
@@ -1197,7 +1572,10 @@
     "reason": "El post promociona clases privadas regulares y no anuncia un evento específico de fecha única.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "b309cfa01524ee5e"
+    "caption_hash": "b309cfa01524ee5e",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17986966299027310": {
     "account": "tubailecom",
@@ -1207,7 +1585,10 @@
     "reason": "El texto y la imagen muestran el recuento de un evento que ya ocurrió en el pasado y no anuncian un evento futuro.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "dd36f27e54f34f5a"
+    "caption_hash": "dd36f27e54f34f5a",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18104343455267314": {
     "account": "tubailecom",
@@ -1217,7 +1598,10 @@
     "reason": "El post es de tipo motivacional y promocional sobre clases regulares de baile, sin anunciar ningún evento específico de fecha única.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "6d7d57ca45c753cf"
+    "caption_hash": "6d7d57ca45c753cf",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18046796276809001": {
     "account": "mover__se",
@@ -1227,7 +1611,10 @@
     "reason": "La publicación anuncia clases regulares mensuales de flexibilidad y no un evento único con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "0933a54ffe0aeddc"
+    "caption_hash": "0933a54ffe0aeddc",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17949659403256946": {
     "account": "mover__se",
@@ -1237,7 +1624,10 @@
     "reason": "La publicacion es un mensaje motivacional sobre las clases y no anuncia ningun evento especifico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "fda7724564d7a556"
+    "caption_hash": "fda7724564d7a556",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18151270045532103": {
     "account": "mover__se",
@@ -1247,7 +1637,10 @@
     "reason": "La publicación es un anuncio genérico de expectativa sin fecha ni detalles de un evento.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "78bbc64a7cabc165"
+    "caption_hash": "78bbc64a7cabc165",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18095873720432478": {
     "account": "mover__se",
@@ -1257,7 +1650,10 @@
     "reason": "El post anuncia el evento de clausura Mover-sé 2026 de la academia de baile.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "5d7c172d42e40eb0"
+    "caption_hash": "5d7c172d42e40eb0",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18013505918746903": {
     "account": "showstarscol",
@@ -1267,7 +1663,10 @@
     "reason": "El post anuncia un evento de social de bachata y crossover el 12 de septiembre de 2026.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "78da75ca7552837b"
+    "caption_hash": "78da75ca7552837b",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18119490457941889": {
     "account": "showstarscol",
@@ -1277,7 +1676,10 @@
     "reason": "La fecha del evento ya pasó antes de la fecha actual.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "285587ba19699ac2"
+    "caption_hash": "285587ba19699ac2",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17974124537935313": {
     "account": "showstarscol",
@@ -1287,7 +1689,10 @@
     "reason": "La publicacion anuncia una promocion de descuento en planes de clases y no un evento unico como un taller o fiesta.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "426eb996c2634843"
+    "caption_hash": "426eb996c2634843",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18124482976842926": {
     "account": "showstarscol",
@@ -1297,7 +1702,10 @@
     "reason": "El post anuncia una fiesta de aniversario de la academia Show Stars el próximo sábado 26 de septiembre.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "efad3f52b8cfb0f4"
+    "caption_hash": "efad3f52b8cfb0f4",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18107639209923462": {
     "account": "showstarscol",
@@ -1307,7 +1715,10 @@
     "reason": "El post anuncia una fiesta de aniversario de la academia.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "54970668d0f60121"
+    "caption_hash": "54970668d0f60121",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18066587792777378": {
     "account": "showstarscol",
@@ -1317,7 +1728,10 @@
     "reason": "El post anuncia una fiesta de aniversario con reggaetón clásico para el 26 de septiembre de 2026.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "2c6caf1be3cb3852"
+    "caption_hash": "2c6caf1be3cb3852",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18115508507019819": {
     "account": "showstarscol",
@@ -1327,7 +1741,10 @@
     "reason": "La publicación es un post motivacional e interactivo sobre excusas para no bailar, sin anunciar ningún evento específico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "9e3123dac528d9be"
+    "caption_hash": "9e3123dac528d9be",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18209333182364945": {
     "account": "showstarscol",
@@ -1337,7 +1754,10 @@
     "reason": "La publicación es humorística sobre el trabajo en equipo y no anuncia ningún evento específico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "176f86bf07f64328"
+    "caption_hash": "176f86bf07f64328",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18185806897365695": {
     "account": "reyesdelasalsa.col",
@@ -1347,7 +1767,10 @@
     "reason": "El post anuncia una competencia internacional de salsa y bachata del 19 al 21 de marzo de 2027.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "90443b1d251eb8b7"
+    "caption_hash": "90443b1d251eb8b7",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17939961648366902": {
     "account": "reyesdelasalsa.col",
@@ -1357,7 +1780,10 @@
     "reason": "El post anuncia la competencia internacional Reyes de la Salsa del 19 al 21 de marzo de 2027.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "ab1f8fb7878d7fe1"
+    "caption_hash": "ab1f8fb7878d7fe1",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18218496433344823": {
     "account": "reyesdelasalsa.col",
@@ -1367,7 +1793,10 @@
     "reason": "El post anuncia una competencia internacional de salsa con fechas específicas en Bogotá.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "b53fb6c77b8c3102"
+    "caption_hash": "b53fb6c77b8c3102",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17910685500495782": {
     "account": "reyesdelasalsa.col",
@@ -1377,7 +1806,10 @@
     "reason": "El post anuncia la competencia internacional de baile Reyes de la Salsa del 19 al 21 de marzo de 2027.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "5e6873b228f400a7"
+    "caption_hash": "5e6873b228f400a7",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18115421941982084": {
     "account": "bachatamania_bogota",
@@ -1387,7 +1819,10 @@
     "reason": "El evento anunciado ocurrió el 25 de septiembre y la fecha actual es el 2 de octubre de 2026.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "196f2bc874cc11b6"
+    "caption_hash": "196f2bc874cc11b6",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18041124329684768": {
     "account": "bachatamania_bogota",
@@ -1397,7 +1832,10 @@
     "reason": "El post anuncia un social de bachata con clase pre social para el sábado 19 de septiembre.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "1a3301a0b5d9c2d1"
+    "caption_hash": "1a3301a0b5d9c2d1",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17896312032393668": {
     "account": "bachatamania_bogota",
@@ -1407,7 +1845,10 @@
     "reason": "El post anuncia un taller de bachata con Christian y Natalia como antesala al social.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "aee7d4b9d1f857c9"
+    "caption_hash": "aee7d4b9d1f857c9",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18107746265597196": {
     "account": "bachatamania_bogota",
@@ -1417,7 +1858,10 @@
     "reason": "El evento anunciado ocurrió el 25 de septiembre, una fecha anterior al día de hoy.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "dd86bbe06ce91d34"
+    "caption_hash": "dd86bbe06ce91d34",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17982270951095026": {
     "account": "bachatamania_bogota",
@@ -1427,7 +1871,10 @@
     "reason": "El evento ocurrió el 25 de septiembre de 2026, fecha anterior al día de hoy (2 de octubre de 2026).",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "cbf02e81e795b986"
+    "caption_hash": "cbf02e81e795b986",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18122906905711309": {
     "account": "bachatamania_bogota",
@@ -1437,7 +1884,10 @@
     "reason": "La publicacion es un recuerdo de un evento pasado y agradece a los asistentes.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "c633b7fe74507a0c"
+    "caption_hash": "c633b7fe74507a0c",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18411223324085711": {
     "account": "bachatamania_bogota",
@@ -1447,7 +1897,10 @@
     "reason": "El post anuncia un evento social de bachata programado para el 17 de octubre de 2026.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "191ef0b1734442c3"
+    "caption_hash": "191ef0b1734442c3",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17980619367080550": {
     "account": "germanbaila",
@@ -1457,7 +1910,10 @@
     "reason": "La publicación es un video humorístico sobre cómo sonaría su voz para el metro y menciona clases y fiestas regulares sin una fecha específica de evento próximo.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "bd06a0b6b89a63db"
+    "caption_hash": "bd06a0b6b89a63db",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17930487552145151": {
     "account": "germanbaila",
@@ -1467,7 +1923,10 @@
     "reason": "El post anuncia las próximas fechas del evento mensual de salsa Coca-Cola Bailable.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "1a0848bd6abce11b"
+    "caption_hash": "1a0848bd6abce11b",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18108572762327650": {
     "account": "germanbaila",
@@ -1477,7 +1936,10 @@
     "reason": "El post anuncia un evento familiar dominical recurrente de salsa con fecha y hora específicas.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "5bec6e1994e3c125"
+    "caption_hash": "5bec6e1994e3c125",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17985897396080592": {
     "account": "bogotadanceclub.academy",
@@ -1487,7 +1949,10 @@
     "reason": "El post anuncia un programa regular para adolescentes llamado BDC Teens, no un evento único con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "c85f7c60f0ee4ebe"
+    "caption_hash": "c85f7c60f0ee4ebe",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18407653663091838": {
     "account": "academiaalmadetangoe",
@@ -1497,7 +1962,10 @@
     "reason": "El evento ocurrió el 11 de septiembre, por lo que la fecha ya pasó.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "b4a05fb69cbf2230"
+    "caption_hash": "b4a05fb69cbf2230",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18114810215075112": {
     "account": "academiaalmadetangoe",
@@ -1507,7 +1975,10 @@
     "reason": "El post anuncia una clase abierta de jazz multinivel para el 14 de septiembre.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "59702105ff80099f"
+    "caption_hash": "59702105ff80099f",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18197969926388498": {
     "account": "academiaalmadetangoe",
@@ -1517,7 +1988,10 @@
     "reason": "La publicación es un resumen o recuerdo de una muestra artística pasada del primer semestre.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "22a9038e8468d531"
+    "caption_hash": "22a9038e8468d531",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18407884213094306": {
     "account": "academiaalmadetangoe",
@@ -1527,7 +2001,10 @@
     "reason": "El post anuncia tres eventos de tango con fecha y hora específicas organizados por Alma de Tango.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "671da75e3591d35f"
+    "caption_hash": "671da75e3591d35f",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18085699580306788": {
     "account": "proyectourbandance",
@@ -1537,27 +2014,44 @@
     "reason": "El video muestra una clase regular o ensayo de baile y no anuncia un evento próximo con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "c744e92d904fecd7"
+    "caption_hash": "c744e92d904fecd7",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18010811948986920": {
     "account": "proyectourbandance",
     "permalink": "https://www.instagram.com/reel/Dd6rjkiROlU/",
-    "processed_at": "2026-10-02T21:02:16-05:00",
+    "processed_at": "2026-10-03T09:14:46-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia una serie de talleres pro fondos para el 11 de octubre.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "0cef27a4505a2cc0"
+    "reason": "Anuncia tres talleres pro fondos el domingo 11 de octubre con diferentes instructores y estilos.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "0cef27a4505a2cc0",
+    "outcome": "merged",
+    "event_ids": [
+      "workshops-pro-fondos-11-oct",
+      "workshop-pro-fondos-sabroseo-11-oct",
+      "workshop-pro-fondos-coreografia-11-oct"
+    ],
+    "detail": null
   },
   "18134142721660577": {
     "account": "proyectourbandance",
     "permalink": "https://www.instagram.com/p/Dd6sikREV5M/",
-    "processed_at": "2026-10-02T21:02:38-05:00",
+    "processed_at": "2026-10-03T09:15:03-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia tres talleres de baile benéficos organizados por PUD para el domingo 11 de octubre.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "4a777eedaf2c6886"
+    "reason": "Se anuncian tres talleres de baile (workshops) pro fondos el domingo 11 de octubre en la academia PUD.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "4a777eedaf2c6886",
+    "outcome": "merged",
+    "event_ids": [
+      "workshops-pro-fondos-11-oct",
+      "workshop-pro-fondos-sabroseo-11-oct",
+      "workshop-pro-fondos-coreografia-11-oct"
+    ],
+    "detail": null
   },
   "18049519712803457": {
     "account": "espacio.64",
@@ -1567,7 +2061,10 @@
     "reason": "El post anuncia un taller de entrenamiento recurrente (varias semanas), lo cual no cuenta como un evento único.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "149df8fa07a9ce52"
+    "caption_hash": "149df8fa07a9ce52",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18184772941413158": {
     "account": "espacio.64",
@@ -1577,7 +2074,10 @@
     "reason": "El post es una guía informativa sobre los talleres escénicos del espacio y no anuncia un evento específico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "b2ecda6082e24a71"
+    "caption_hash": "b2ecda6082e24a71",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18004580819970205": {
     "account": "espacio.64",
@@ -1587,7 +2087,10 @@
     "reason": "La publicación anuncia clases regulares de pintura en lugar de un evento único o taller especial.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "1e225c207c13a3f2"
+    "caption_hash": "1e225c207c13a3f2",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18445192954127928": {
     "account": "espacio.64",
@@ -1597,7 +2100,10 @@
     "reason": "El post anuncia varios talleres y eventos presenciales especiales para el mes de septiembre en Espacio 64.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "7cf1f7b7a143c796"
+    "caption_hash": "7cf1f7b7a143c796",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18110441605999285": {
     "account": "espacio.64",
@@ -1607,7 +2113,10 @@
     "reason": "El post anuncia un club de collage y manualidades, el cual no es un evento de baile.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "616340b308becc6c"
+    "caption_hash": "616340b308becc6c",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17946754536321024": {
     "account": "espacio.64",
@@ -1617,7 +2126,10 @@
     "reason": "El post anuncia un taller de pintura para parejas, el cual no es un evento de baile.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "f860ab2ab0a13290"
+    "caption_hash": "f860ab2ab0a13290",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18125548828812573": {
     "account": "espacio.64",
@@ -1627,7 +2139,10 @@
     "reason": "El post anuncia dos eventos culturales para el 19 de septiembre de 2026 en Espacio 64.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "9176d04f15a55bce"
+    "caption_hash": "9176d04f15a55bce",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18625040047041227": {
     "account": "espacio.64",
@@ -1637,7 +2152,10 @@
     "reason": "El post anuncia un laboratorio de creación escénica de larga duración y no un evento de baile de una sola ocasión.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "7ef363dec9428cf4"
+    "caption_hash": "7ef363dec9428cf4",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18093411647640302": {
     "account": "espacio.64",
@@ -1647,7 +2165,10 @@
     "reason": "La publicacion es una entrevista o presentacion del equipo y no anuncia ningun evento futuro especifico.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "dc00301dc9ad2fdd"
+    "caption_hash": "dc00301dc9ad2fdd",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18014743958744837": {
     "account": "espacio.64",
@@ -1657,7 +2178,10 @@
     "reason": "El post anuncia un taller de entrenamiento escénico y teatro de varios módulos de larga duración que no corresponden a un evento de baile de una sola vez.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "cf6af738bfb2cfa8"
+    "caption_hash": "cf6af738bfb2cfa8",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18217550830345714": {
     "account": "espacio.64",
@@ -1667,7 +2191,10 @@
     "reason": "El evento anunciado ocurrió el 19 de septiembre y la fecha actual es 2 de octubre de 2026.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "e5d3340a48ae0dc7"
+    "caption_hash": "e5d3340a48ae0dc7",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17909187708536925": {
     "account": "espacio.64",
@@ -1677,7 +2204,10 @@
     "reason": "El post anuncia la previa de amor y amistad para el 19 de septiembre en Espacio 64.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "3108293789fa2388"
+    "caption_hash": "3108293789fa2388",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18110707181169422": {
     "account": "espacio.64",
@@ -1687,7 +2217,10 @@
     "reason": "La publicación presenta a una artista invitada para un pop up ya pasado y no anuncia un evento próximo.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "09947449f1b2d873"
+    "caption_hash": "09947449f1b2d873",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18457669492184828": {
     "account": "espacio.64",
@@ -1697,7 +2230,10 @@
     "reason": "La publicación presenta a un artista invitado en el marco de un pop up pasado, pero no anuncia un evento próximo con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "ab2de8c44956387a"
+    "caption_hash": "ab2de8c44956387a",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17907447666552777": {
     "account": "espacio.64",
@@ -1707,7 +2243,10 @@
     "reason": "La publicación es una presentación de un artista invitado (pop up gráfico) sin especificar fecha ni hora exacta.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "3ad1c882c34bdb8e"
+    "caption_hash": "3ad1c882c34bdb8e",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17899298484656476": {
     "account": "espacio.64",
@@ -1717,7 +2256,10 @@
     "reason": "El evento ocurrió en septiembre y la fecha de hoy es posterior, por lo que ya pasó.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "3a2a894b853cc2e1"
+    "caption_hash": "3a2a894b853cc2e1",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18094790768394874": {
     "account": "espacio.64",
@@ -1727,7 +2269,10 @@
     "reason": "El taller ocurrio el 28 y 30 de septiembre y la fecha actual es 2 de octubre de 2026.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "5a3d295e46b1769b"
+    "caption_hash": "5a3d295e46b1769b",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18132106027673068": {
     "account": "espacio.64",
@@ -1737,7 +2282,10 @@
     "reason": "La publicación es un resumen de un evento que ya ocurrió el 19 de septiembre y no anuncia ninguno próximo.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "7eddd0e0c20f6df9"
+    "caption_hash": "7eddd0e0c20f6df9",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17993060226049468": {
     "account": "espacio.64",
@@ -1747,7 +2295,10 @@
     "reason": "Las fechas del taller (28 y 30 de septiembre) ya pasaron con respecto a la fecha actual.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "4a392e97001393d5"
+    "caption_hash": "4a392e97001393d5",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18086183840306500": {
     "account": "espacio.64",
@@ -1757,17 +2308,23 @@
     "reason": "Quitado a mano: taller de dibujo y pintura, no de baile.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "0ff57875969a2dce"
+    "caption_hash": "0ff57875969a2dce",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18565666195074057": {
     "account": "espacio.64",
     "permalink": "https://www.instagram.com/p/Dd7hqSWOl1K/",
-    "processed_at": "2026-10-02T21:05:42-05:00",
+    "processed_at": "2026-10-03T09:15:17-05:00",
     "is_event_post": false,
-    "reason": "El post anuncia un taller o espacio creativo recurrente ('Club de jueves') de collage sin contenido de baile.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
-    "caption_hash": "7bdfe6b4bc5a946f"
+    "reason": "El post anuncia un taller o club de collage y no un evento relacionado con el baile.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
+    "caption_hash": "7bdfe6b4bc5a946f",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null
   },
   "17950654596275371": {
     "account": "lacoartadacentrocultural",
@@ -1777,7 +2334,10 @@
     "reason": "La imagen muestra a personas ensayando o practicando en un estudio de danza sin texto ni información sobre un evento próximo.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "e3b0c44298fc1c14"
+    "caption_hash": "e3b0c44298fc1c14",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17976123450102405": {
     "account": "herencialatinad.c",
@@ -1787,7 +2347,10 @@
     "reason": "La imagen muestra una presentación pasada y la publicación no anuncia ningún evento futuro con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "46a03a21aadc5be6"
+    "caption_hash": "46a03a21aadc5be6",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18120266225484695": {
     "account": "herencialatinad.c",
@@ -1797,7 +2360,10 @@
     "reason": "La publicación no contiene texto ni información sobre un evento próximo.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "e3b0c44298fc1c14"
+    "caption_hash": "e3b0c44298fc1c14",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18094927937539830": {
     "account": "herencialatinad.c",
@@ -1807,7 +2373,10 @@
     "reason": "La publicación solo muestra una foto del grupo de danza sin anunciar ningún evento próximo con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "16b2f5ccbc387989"
+    "caption_hash": "16b2f5ccbc387989",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18446250358123312": {
     "account": "herencialatinad.c",
@@ -1817,7 +2386,10 @@
     "reason": "La imagen muestra a una bailarina pero la publicación no anuncia ningún evento específico ni incluye fechas.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "16b2f5ccbc387989"
+    "caption_hash": "16b2f5ccbc387989",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17895273984607583": {
     "account": "herencialatinad.c",
@@ -1827,7 +2399,10 @@
     "reason": "La publicacion es un mensaje motivacional y muestra un recuerdo o recapitulacion de una presentacion pasada, no anuncia un nuevo evento.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "186089d2f9c43b17"
+    "caption_hash": "186089d2f9c43b17",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18094222160548314": {
     "account": "herencialatinad.c",
@@ -1837,7 +2412,10 @@
     "reason": "La publicación solo muestra una foto de una presentación pasada sin anunciar ningún evento futuro.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "4f86878ce9859616"
+    "caption_hash": "4f86878ce9859616",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18133635982645378": {
     "account": "ebi_dancecompany",
@@ -1847,7 +2425,10 @@
     "reason": "La publicación muestra una clase regular de baile sin anunciar un evento único con fecha específica.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "e5a28ac257b9a25a"
+    "caption_hash": "e5a28ac257b9a25a",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18148786210526643": {
     "account": "ebi_dancecompany",
@@ -1857,7 +2438,10 @@
     "reason": "El post anuncia un taller intensivo de ritmos cubanos con fecha específica para recaudar fondos.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "a4025fcfca3d512a"
+    "caption_hash": "a4025fcfca3d512a",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18127548028789655": {
     "account": "germanbaila",
@@ -1867,7 +2451,10 @@
     "reason": "El post anuncia un evento recurrente bailable de Coca-Cola Bailable para el primer domingo de cada mes en el Goce Pagano.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "f0314019adc0481c"
+    "caption_hash": "f0314019adc0481c",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18214150060358890": {
     "account": "germanbaila",
@@ -1877,7 +2464,10 @@
     "reason": "El post es de carácter conversacional e informativo general sobre clases regulares y no anuncia ningún evento o taller único específico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "8663e480dcac9a63"
+    "caption_hash": "8663e480dcac9a63",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "17957876115079615": {
     "account": "germanbaila",
@@ -1887,7 +2477,10 @@
     "reason": "El post es una recomendación general de un lugar para bailar y no anuncia un evento específico con fecha.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "2ba0d186756dc42e"
+    "caption_hash": "2ba0d186756dc42e",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18128274380486284": {
     "account": "germanbaila",
@@ -1897,7 +2490,10 @@
     "reason": "El texto habla de un evento pasado y de reflexiones sobre los comentarios recibidos, no anuncia un evento futuro.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "e4e09e6921898e8f"
+    "caption_hash": "e4e09e6921898e8f",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18100759811377405": {
     "account": "germanbaila",
@@ -1907,7 +2503,10 @@
     "reason": "El post anuncia una clase y fiesta pre concierto para este viernes en bogotadanceclub.academy.",
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
-    "caption_hash": "bdab3e971bfb89c8"
+    "caption_hash": "bdab3e971bfb89c8",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   },
   "18025978352861193": {
     "account": "germanbaila",
@@ -1917,6 +2516,9 @@
     "reason": "La publicación es un video resumen de un evento pasado y no anuncia un evento futuro.",
     "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "18ea6fdf2080e290"
+    "caption_hash": "18ea6fdf2080e290",
+    "outcome": null,
+    "event_ids": [],
+    "detail": null
   }
 }

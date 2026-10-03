@@ -22,6 +22,7 @@
       "gemini-3.8-flash": 15,
       "gemini-3.5-flash": 17
     },
+    "models_unavailable": [],
     "warnings": []
   },
   {
@@ -77,6 +78,7 @@
     "rate_limited": true,
     "out_of_time": false,
     "gemini_requests": {},
+    "models_unavailable": [],
     "warnings": []
   },
   {
@@ -96,6 +98,50 @@
     "gemini_requests": {
       "gemini-3.5-flash-lite": 68
     },
+    "models_unavailable": [],
+    "warnings": []
+  },
+  {
+    "finished_at": "2026-10-03T09:15:27-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/37128097876",
+    "accounts": 33,
+    "failed_accounts": [
+      "herencialatinad.c"
+    ],
+    "skipped_accounts": [
+      "iledanza",
+      "ebi_dancecompany",
+      "festivalsalsaalparque",
+      "salsabravadancehallpicante",
+      "reyesdelasalsa.col",
+      "bachatamania_bogota",
+      "germanbaila",
+      "_olorumcongress",
+      "bailalo_improsocial",
+      "cordillerafestival",
+      "latrinidaddelasalsa",
+      "danzaenlaciudad",
+      "salsaculto",
+      "paramopresenta",
+      "latinproductioncolombia",
+      "bachatasocialcongresss",
+      "bailarito",
+      "elparche.se",
+      "bogotadanceclub"
+    ],
+    "posts_analyzed": 0,
+    "events_new": 0,
+    "events_merged": 0,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": true,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.8-flash": 18,
+      "gemini-3.5-flash": 18
+    },
+    "models_unavailable": [],
     "warnings": []
   }
 ]
