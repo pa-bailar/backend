@@ -99,13 +99,13 @@ def test_cache_round_trip(tmp_path):
 @pytest.mark.parametrize(
     ("time", "quiet"),
     [
-        ("04:22", False),  # more than an hour before the 5:23 sweep
-        ("04:24", True),  # the hour before it: Meta counts calls over a rolling hour
-        ("05:40", True),  # while it runs
-        ("06:09", False),  # 45 minutes after it started
-        ("12:46", True),
-        ("13:33", False),
-        ("23:00", False),
+        ("07:59", False),  # more than an hour before the 9:00 sweep
+        ("08:01", True),  # the hour before it: Meta counts calls over a rolling hour
+        ("09:20", True),  # while it runs
+        ("09:46", False),  # 45 minutes after it started
+        ("20:30", True),
+        ("21:46", False),
+        ("15:00", False),
     ],
 )
 def test_discovery_keeps_clear_of_the_daily_sweep(time, quiet):

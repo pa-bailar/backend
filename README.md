@@ -90,7 +90,7 @@ Everything runs on GitHub Actions:
 | Workflow | When | What |
 |---|---|---|
 | `ci` | Every pull request | Lint, format check and unit tests. The required check on `main`. |
-| `daily-sweep` | Every day at 5:23 AM and 12:47 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini, writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is saved to the `sweep-state` branch. |
+| `daily-sweep` | Every day at 9:00 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini, writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is saved to the `sweep-state` branch. |
 
 `main` is **not protected**: rulesets on private repositories need a paid GitHub plan (Pro or Team).
 Changes go through squash-merged pull requests and `ci` runs on every one of them by convention, but
@@ -107,7 +107,7 @@ Settings → Secrets and variables → Actions:
 never fired in this repository: it's a known, undocumented problem of new private repositories, with no
 fix from GitHub.
 
-- **The jobs:** `pa-bailar sweep 5:23` and `pa-bailar sweep 12:47`, in the America/Bogota time zone.
+- **The jobs:** `pa-bailar sweep 9:00` and `pa-bailar sweep 21:00`, in the America/Bogota time zone.
 - **What each job does:** it calls GitHub's API to run the workflow, the same as pressing *Run workflow*:
   - `POST https://api.github.com/repos/pa-bailar/backend/actions/workflows/daily-sweep.yml/dispatches`
   - body `{"ref":"main"}`
