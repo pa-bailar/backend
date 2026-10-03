@@ -311,7 +311,7 @@ sequenceDiagram
 | 6 | Install | Always | `pip install -r requirements.txt`, every package pinned and hash-checked | |
 | 6b | Make sure ffmpeg is installed | Always | For videos' preview clips (`clips.py`); usually already on the runner | |
 | 6c | Make sure the last data PR merged | Always | Fails if a `data` PR is still open in the site repository: the sweep reads the events from the site's `main`, so sweeping past an unmerged PR would lose its events for good (their posts are already marked analyzed). Merge or fix it first | `GITHUB_TOKEN` (reads the public site repository) |
-| 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x]`, one post by hand. Otherwise `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
+| 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x] [--again]`, one post by hand (`--again` from the `again` input, "Volver a leer"). Otherwise `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 8 | Write the status for the admin page | Unless cancelled; its failure doesn't fail the run | `python -m pa_bailar admin status --json` → `state/status.json`, saved with the state (one Graph API call, no Gemini). The admin page reads it | `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 9 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real | `GITHUB_TOKEN` (this step only) |
 | 9b | Save an account added by hand | `post_url`, and `accounts.txt` changed | Commits `accounts.txt` to `main` | `GITHUB_TOKEN` (this step only) |
@@ -328,7 +328,8 @@ Other workflow settings:
   waits, and if several are started meanwhile, only the newest waits (the others show as "cancelled").
 - **`workflow_dispatch` only:** there's no schedule (section 3.4), and no push trigger.
 - **Single-post mode** (`post_url`, started by the `admin` workflow): `sweep --post` adds one post by hand,
-  then the same state save and data PR. It isn't recorded in the run history, opens no health issue and
+  then the same state save and data PR. With `again` (a boolean input, "Volver a leer"), it reads the post
+  even if it was read before and hasn't changed. It isn't recorded in the run history, opens no health issue and
   doesn't ping healthchecks.io. GitHub keeps only one waiting run per concurrency group (a newer one cancels
   it), so the `admin` workflow waits until no sweep is running or waiting before starting one.
 
@@ -392,7 +393,7 @@ flowchart TD
     G -->|no| B
     H --> B
     R --> Z
-    B -->|no accounts left| Z["Retention: delete events dated 60+ days ago,<br/>forget post records 45+ days old,<br/>delete flyers no event uses"]
+    B -->|no accounts left| Z["Retention: delete events that ended 60+ days ago,<br/>forget post records 45+ days old,<br/>delete flyers no event uses"]
     Z --> M["Write meta.json, health report, run history"]
 ```
 
@@ -439,7 +440,10 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 
 1. **Normalize** (`normalize.py`):
    - styles mapped to the fixed list, so "mambo" and "on2" become "salsa en línea";
-   - times checked;
+   - dates and times checked. An `end_date` (the last day of an event over several consecutive days) must
+     come after `date` and make at most `MAX_EVENT_DAYS` (7) days in all; otherwise it's dropped and the
+     event keeps its first day, with a doubt when the range was reversed ("fecha final anterior a la
+     inicial") or too long ("dura más de una semana: revisar fechas"), so it's listed for review;
    - prices and text cleaned.
 
    The site relies on these formats.
@@ -469,7 +473,7 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 | Step | Model(s) | Input | Output (schema) | Thinking |
 |---|---|---|---|---|
 | Triage | `gemini-3.5-flash-lite` | Caption, account, publication date, today's date, first image as a 512 px JPEG | `Triage`: `is_event_post`, `reason` | Low |
-| Extraction | `gemini-3.8-flash`, then `gemini-3.5-flash` | Every image (numbered), caption, dates, and this account's **known events** (id, date, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `image_index` and `same_as`) | Model default |
+| Extraction | `gemini-3.8-flash`, then `gemini-3.5-flash` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `image_index` and `same_as`) | Model default |
 | Provisional extraction | `gemini-3.5-flash-lite` | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
 | Discovery | `gemini-3.5-flash-lite` | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, reason | Model default |
 
@@ -479,12 +483,18 @@ Notes on the prompts and parameters:
 - **Temperature** stays at the default, as Google advises for Gemini 3 models.
 - **The extraction prompt covers:**
   - what is and isn't an event, shared with triage (`_EVENT_DEFINITION`): one-time socials, workshops,
-    concerts, festivals (a multi-day intensive is one event, dated on its first day)… but not regular
+    concerts, festivals (an event over several consecutive days is one event, from its first to its last
+    day)… but not regular
     classes, programs spread over several weeks, recaps, showcases or tutorials, nor anything that isn't
     about dancing (like a drawing workshop at a dance venue). It quotes the words academies use
     ("social", "taller", "todos los jueves", "así se vivió"…), which helps the lighter model most;
   - how to pick the event type (social, workshop, concert, congress, festival, competition, show, other: a
     multi-day dance congress is a `congress`, its workshops included) and the styles (from a fixed list);
+  - dates: `date` is the event's day or its first day, `end_date` its last day over several consecutive days
+    ("NOV 13-15" → 13 and 15; null for one day, a night past midnight included); never one event per day of
+    a congress, but the same workshop on separate, non-consecutive dates is one event per date; a post
+    presenting a teacher or one night of a festival is that festival. Times over several days: the first
+    day's start and the last day's end;
   - how to resolve dates without a year;
   - how to rate confidence (high, medium or low);
   - when to set `same_as` (section 9).
@@ -573,21 +583,27 @@ all of them in `media`. `pa_bailar/merging.py`. None of this costs a Gemini requ
 flowchart TD
     C["Extracted event from post P"] --> L{"Gemini set same_as<br/>to a known event of this account?"}
     L -->|"yes, and that event<br/>doesn't already contain P"| MERGE["Merge into it"]
-    L -->|no| RULE{"Rule: same account and date, and<br/>same start time (or same title<br/>when a time is missing)?"}
+    L -->|no| RULE{"Rule: same account, a day in common, and<br/>same start time (or same title when a time<br/>is missing; over several days: the title)?"}
     RULE -->|yes| MERGE
-    RULE -->|no| SHARED{"Rule: another account's event,<br/>same date, no clash in time or venue,<br/>and strong signs it's the same?"}
+    RULE -->|no| SHARED{"Rule: another account's event,<br/>a day in common, no clash in time or venue,<br/>and strong signs it's the same?"}
     SHARED -->|yes| MERGE
-    SHARED -->|no| NEW["New event<br/>id: title-day-month"]
-    MERGE --> F["Fill in what the event was missing.<br/>If P is the newest post: date, weekday,<br/>start and end time, prices from P"]
+    SHARED -->|no| NEW["New event<br/>id: title-day-month (its first day)"]
+    MERGE --> F["Fill in what the event was missing.<br/>If P is the newest post: dates, weekday,<br/>start and end time, prices from P"]
     F --> O["media sorted: flyers first, then videos;<br/>newest first (the latest flyer is the cover)"]
 ```
 
-- **Gemini links first:** the extraction prompt lists the account's known upcoming events (id, date,
-  time, title), and Gemini sets `same_as` when the post announces one of them again. The rule-based match
-  is the fallback.
+- **Gemini links first:** the extraction prompt lists the account's known upcoming events (id, date or
+  first → last day, time, title), and Gemini sets `same_as` when the post announces one of them again. The
+  rule-based match is the fallback.
+- **Days in common:** an event covers `date` to `end_date` (or just `date`), and two events match only if
+  their days overlap. A post about one night or one teacher of a festival falls within the festival's days.
+- **The same account's event** (`looks_like_same_event`): between two one-day events, the same start time,
+  or the same title when a time is missing. When either lasts several days, the title decides (the same
+  title, or distinctive title words in common, as below), never the start time alone: a festival weekend
+  has several nights, and the same academy's social on one of them is another event.
 - **Another account's event** (`looks_like_shared_event`): Gemini only sees this account's events, so
-  across accounts it's rules only. Same date; never with different start times or different venues (when
-  both are known); and one of:
+  across accounts it's rules only. A day in common; never with different start times (compared between
+  one-day events only) or different venues (when both are known); and one of:
   - one event names the other's account (its organizer, venue or contact, or a title word: "Bachatamanía"
     for `@bachatamania_bogota`, "Distrito Social" for `@distritosocialbog`), plus the same start time or a
     title word in common;
@@ -607,11 +623,16 @@ flowchart TD
   the link previews and the detail show first. A corrected or updated flyer replaces the first
   announcement as the cover. Every save applies this order to all events.
 - **Logistics follow the newest post:** a later post may reschedule an event or change its prices, so
-  `date`, `weekday`, `start_time`, `end_time` and `prices` come from the newest post. Everything else
-  keeps its first value (the flyer's title beats a reminder's caption) and is only filled in when it was
+  `date`, `end_date`, `weekday`, `start_time`, `end_time` and `prices` come from the newest post. Everything
+  else keeps its first value (the flyer's title beats a reminder's caption) and is only filled in when it was
   missing (for example, a venue "to be confirmed" on the flyer and given later).
+  - An empty value never clears a known one, so a reminder without dates keeps an event's last day.
+  - A post about one day of an event over several days (one day of its own, within the event's) doesn't
+    change its days or times: a teacher's class isn't the festival's new date.
+  - A new date the old last day no longer fits (rescheduled to one day) drops `end_date`.
 - **Ids are URLs** (`ids.py`): `<title>-<day>-<month>`, for example `social-de-halloween-24-oct`, with
-  `-2`, `-3`… when taken.
+  `-2`, `-3`… when taken. An event over several days is named after its first day
+  (`level-up-bachata-fusion-congress-13-nov`).
   - An id is set once and never recomputed. A re-extraction that rewords the title keeps the old id,
     because the post "gives back" its ids before being stored again.
   - So a link shared on WhatsApp keeps working.
@@ -648,13 +669,13 @@ itself: `pa_bailar/sweep_state.py` fetches it and reads each file with `git show
 
 | File | Content |
 |---|---|
-| `data/events.json` | Every stored event, sorted by date and time. The format is the data contract (`docs/DATA.md` in the site repository); `pa_bailar/models.py` (`StoredEvent`) is its source of truth |
+| `data/events.json` | Every stored event, sorted by date (its first day) and time. The format is the data contract (`docs/DATA.md` in the site repository); `pa_bailar/models.py` (`StoredEvent`) is its source of truth |
 | `data/meta.json` | `schema_version`, `generated_at` (Bogotá time), `accounts` (every account swept, the site's list of sources) and the stats of the run that wrote it. Rewritten every run, but only committed together with a real change to events or flyers |
 | `data/flyers/*.webp` | The flyer copies. Unused ones are deleted at the end of every run |
 | `data/previews/*.mp4` | Videos' preview clips (6 s, silent). Deleted with their events, like flyers |
 
-**Retention:** events dated more than 60 days ago are deleted, together with their flyers, so `data/`
-doesn't grow forever. Git history keeps them.
+**Retention:** events whose last day (`end_date`, or `date`) was more than 60 days ago are deleted, together
+with their flyers, so `data/` doesn't grow forever. Git history keeps them.
 
 ---
 
@@ -695,7 +716,7 @@ They run after every sweep. No AI, no quota.
 | No events in a week | **Warning** | 14 runs with at least 10 posts analyzed and not a single event: are triage or extraction rejecting everything? |
 | Flash's quota ran out | Notice | Posts were extracted provisionally |
 | Account inactive | Notice | No post in 45 days (or none at all) |
-| Events to review | Listed | Upcoming events with medium or low confidence, or whose doubts mention the date (`fecha`, `día`) |
+| Events to review | Listed | Upcoming events (until their last day) with medium or low confidence, or whose doubts mention the date (`fecha`, `día`), and congresses or festivals with a single day ("un solo día: ¿faltan fechas?": their other days may be missing) |
 
 ### 11.2 Where it shows
 
@@ -801,14 +822,17 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
   limit), it reads the post's public page (section 3.7; its id is `public-<id>`) and doesn't add an account
   the API can't read. A post analyzed before is only read again (one Gemini request) when its caption changed
   or it was filtered out as "not an event" or rejected; otherwise the answer is what it already became
-  (`SETTLED_OUTCOMES`). `AddPostError` says in Spanish why it couldn't (neither source worked, no quota).
+  (`SETTLED_OUTCOMES`). `--again` ("Volver a leer") reads it anyway, one Gemini request, still as one post
+  (its events keep their ids): for an event stored with wrong data, e.g. after the prompts improved.
+  `AddPostError` says in Spanish why it couldn't (neither source worked, no quota).
 - **`admin inbox`** (`pa_bailar/inbox.py`): reads an issue or comment with fixed patterns (a link, `/agregar`,
-  `/cuenta @x`, `/estado`, or the issue form's fields) and writes the answer; the `admin` workflow
+  `/releer`, `/cuenta @x`, `/estado`, or the issue form's fields) and writes the answer; the `admin` workflow
   (`.github/workflows/admin.yml`) runs it on new issues and comments from `jzamora5`.
 - **`admin status`** (`pa_bailar/status.py`): the latest and next sweeps; Gemini usage per model against
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
   otherwise); whether the Instagram token works and the share of Instagram's quota used (one call, `--no-instagram`
-  skips it); accounts still in their first sweep; provisional posts; upcoming events; discovery progress.
+  skips it); accounts still in their first sweep; provisional posts; upcoming events (until their last day);
+  discovery progress.
   `--json` gives the same as data. On your computer it reads the sweeps' state from the `sweep-state`
   branch.
 
@@ -958,5 +982,5 @@ flowchart LR
 | `inbox.py` | The admin inbox: what an issue or comment asks for |
 | `links.py` | Instagram post links (code, account) and links to the site's events |
 | `discovery.py` | Parsing the Instagram export, dance hints, the classification prompt, the report, quiet windows around sweeps |
-| `text.py`, `logs.py` | Accent-insensitive comparison, logging setup |
+| `text.py`, `logs.py` | Accent-insensitive comparison, dates for the admin answers ("13–15 nov 2026"), logging setup |
 | `commands/*.py` | The commands (sweep, discover, refresh-token, admin): arguments, wiring, exit codes, GitHub outputs |
