@@ -16,7 +16,7 @@ import hashlib
 import logging
 import time
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any, Protocol
 
 from google.genai import errors as genai_errors
@@ -115,6 +115,8 @@ class RunStats:
     out_of_time: bool = False  # the run used its time budget: some posts wait for the next run
     gemini_requests: dict[str, int] = field(default_factory=dict)
     models_unavailable: list[str] = field(default_factory=list)  # Gemini models this key couldn't use
+    due_accounts: list[str] = field(default_factory=list)  # whose turn it was (the ones not read wait for the next run)
+    instagram_usage: int = 0  # share of Instagram's quota used when the run ended (0-100)
     by_account: dict[str, AccountStats] = field(default_factory=dict)
 
     def account(self, name: str) -> AccountStats:
@@ -216,6 +218,18 @@ class AddedPost:
     events: list[StoredEvent]  # the events it became or joined, as stored
 
 
+def hours_overdue(state: AccountState | None, now: datetime) -> float:
+    """How long past its turn an account is (negative: not its turn yet). Never read: always due."""
+    if state is None or state.last_swept_at is None:
+        return float("inf")
+    quiet = (
+        state.latest_post is not None
+        and (now.date() - date.fromisoformat(state.latest_post)).days >= config.QUIET_AFTER_DAYS
+    )
+    every = config.QUIET_SWEEP_EVERY_HOURS if quiet else config.SWEEP_EVERY_HOURS
+    return (now - datetime.fromisoformat(state.last_swept_at)).total_seconds() / 3600 - every
+
+
 def _details(event: ExtractedEvent) -> dict[str, Any]:
     return event.model_dump(include=set(EventDetails.model_fields))
 
@@ -226,8 +240,11 @@ class Sweep:
         lookback_days: int,
         instagram: PostSource | None = None,
         extractor: Extractor | None = None,
+        all_accounts: bool = False,
     ):
-        """Clients are built from the environment unless given (tests pass fakes)."""
+        """Clients are built from the environment unless given (tests pass fakes). `all_accounts` reads every
+        account now, whether it's its turn or not (a manual full sweep)."""
+        self.all_accounts = all_accounts
         self.lookback = timedelta(days=lookback_days)
         self.instagram = instagram or InstagramClient.from_env()
         self.extractor = extractor or EventExtractor(config.require_env("GEMINI_API_KEY"))
@@ -249,7 +266,12 @@ class Sweep:
             ) from error
         log.info("Instagram token OK (@%s)", username)
 
-        for account in self._accounts_in_order():
+        due = self._due_accounts()
+        self.stats.due_accounts = due
+        share = self._share_per_run()
+        if len(due) > share:
+            log.info("%s accounts' turn: %s this run, the rest first next run", len(due), share)
+        for account in due[:share]:
             usage = getattr(self.instagram, "app_usage_percent", 0)
             if usage >= config.INSTAGRAM_USAGE_STOP:
                 log.warning("Instagram quota %s%% used: the remaining accounts wait for the next run", usage)
@@ -269,25 +291,35 @@ class Sweep:
         self.stats.gemini_requests = self.extractor.requests_this_run()
         self.stats.models_unavailable = self.extractor.models_unavailable()
         self.stats.rate_limited = self.rate_limited
+        self.stats.instagram_usage = getattr(self.instagram, "app_usage_percent", 0)
         self.stats.out_of_time = self.time_up_logged
         storage.save_account_state(self.accounts)
         storage.save_meta(asdict(self.stats))
         return self.stats
 
-    def _accounts_in_order(self) -> list[str]:
-        """Accounts in their regular sweep first, so a backlog of new accounts (which can take several
-        days of quota) never uses up the quota for today's posts of the accounts already followed."""
+    def _share_per_run(self) -> int:
+        """How many accounts one sweep reads: its share of the day's sweeps, plus a margin for late ones."""
+        if self.all_accounts:
+            return len(storage.read_accounts())
+        runs_per_day = max(1, len(config.SWEEP_TIMES))
+        return -(-len(storage.read_accounts()) // runs_per_day) + config.EXTRA_ACCOUNTS_PER_RUN
+
+    def _hours_overdue(self, account: str, now: datetime) -> float:
+        return hours_overdue(self.accounts.get(account), now)
+
+    def _due_accounts(self) -> list[str]:
+        """The accounts whose turn it is, in reading order: accounts in their regular sweep before new ones (a
+        new account's first, deeper sweep can take days of quota), and within each, those that waited longest
+        first. So an account a sweep didn't reach (its share, Instagram's limit) is first next time."""
+        now = config.now_bogota()
+        followed = storage.read_accounts()
+        due = followed if self.all_accounts else [a for a in followed if self._hours_overdue(a, now) >= 0]
 
         def is_new(account: str) -> bool:
             state = self.accounts.get(account)
             return state is None or not state.backfill_done
 
-        # Accounts Instagram's limit kept the last run from reaching go first in their group, so the end of
-        # accounts.txt doesn't lose out every time.
-        history = storage.read_json(config.RUN_HISTORY_FILE, [])
-        skipped = set(history[-1].get("skipped_accounts", [])) if history else set()
-        # stable: keeps accounts.txt order within each group
-        return sorted(storage.read_accounts(), key=lambda account: (is_new(account), account not in skipped))
+        return sorted(due, key=lambda account: (is_new(account), -self._hours_overdue(account, now)))
 
     def _apply_retention(self) -> None:
         """Delete long-past events and forget old analyzed posts, so data and flyers don't grow forever."""
@@ -393,12 +425,15 @@ class Sweep:
         except InstagramError as error:
             log.error("   could not fetch posts: %s", error)
             self.rate_limited = is_rate_limited(error)
+            if not self.rate_limited:
+                state.last_swept_at = config.now_bogota().isoformat(timespec="seconds")  # tried: its turn is over
             self.stats.count(account, "errors")
             account_stats.fetch_failed = True
             return
 
         if posts:
             account_stats.latest_post = max(published_at(p) for p in posts).date().isoformat()
+            state.latest_post = account_stats.latest_post
         window = timedelta(days=config.BACKFILL_DAYS) if backfill else self.lookback
         cutoff = datetime.now(UTC) - window
         # Oldest first, so a flyer is usually stored before the video or reminder that follows it.
@@ -426,6 +461,9 @@ class Sweep:
                 self._upgrade_post(account, post, published)
 
         self._complete_media(posts)
+        # Read: its turn is over, unless posts wait (Gemini's quota, time): then it's due again next run.
+        if account_stats.pending == 0:
+            state.last_swept_at = config.now_bogota().isoformat(timespec="seconds")
         if backfill and account_stats.pending == 0:
             state.backfill_done = True
             log.info("   first sweep complete: from now on, regular sweep")

@@ -48,7 +48,7 @@ class RunRecord(BaseModel):
     run_url: str | None = None
     accounts: int
     failed_accounts: list[str]  # couldn't be read
-    skipped_accounts: list[str]  # not reached: Instagram's rate limit stopped the run first
+    skipped_accounts: list[str]  # its turn, but not reached (its share, or Instagram's limit): first next run
     posts_analyzed: int
     events_new: int
     events_merged: int
@@ -59,6 +59,7 @@ class RunRecord(BaseModel):
     out_of_time: bool
     gemini_requests: dict[str, int]
     models_unavailable: list[str] = []  # Gemini models this key couldn't use (e.g. taken out of the free tier)
+    instagram_usage: int | None = None  # share of Instagram's quota used when the run ended
     warnings: list[str] = []  # keys of the warnings found (Finding.key)
 
 
@@ -80,7 +81,7 @@ def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) 
         run_url=run_url,
         accounts=stats.accounts,
         failed_accounts=failed,
-        skipped_accounts=[account for account in followed if account not in stats.by_account],
+        skipped_accounts=[account for account in stats.due_accounts if account not in stats.by_account],
         posts_analyzed=stats.posts_analyzed,
         events_new=stats.events_new,
         events_merged=stats.events_merged,
@@ -91,6 +92,7 @@ def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) 
         out_of_time=stats.out_of_time,
         gemini_requests=stats.gemini_requests,
         models_unavailable=stats.models_unavailable,
+        instagram_usage=stats.instagram_usage,
     )
 
 

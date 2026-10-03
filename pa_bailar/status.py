@@ -17,6 +17,8 @@ from zoneinfo import ZoneInfo
 
 from . import config, discovery, storage, sweep_state
 from .gemini import daily_budget, quota_day
+from .models import AccountState
+from .pipeline import hours_overdue
 
 RECENT_RUNS = 5
 WEEKDAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
@@ -81,6 +83,7 @@ def collect(
     usage = read(config.GEMINI_USAGE_FILE.name, {})
     used = usage.get("requests", {}) if usage.get("day") == quota_day() else {}
     account_state = read(config.ACCOUNT_STATE_FILE.name, {})
+    states = {name: AccountState.model_validate(value) for name, value in account_state.items()}
     processed = read(config.PROCESSED_POSTS_FILE.name, {})
     followed = storage.read_accounts()
 
@@ -107,6 +110,12 @@ def collect(
             "followed": len(followed),
             "first_sweep_pending": [
                 account for account in followed if not account_state.get(account, {}).get("backfill_done")
+            ],
+            # Past their turn by more than a sweep's gap: a sweep didn't reach them (its share, Instagram's limit).
+            "waiting": [
+                account
+                for account in followed
+                if account in states and 12 < hours_overdue(states[account], now) < float("inf")
             ],
         },
         "posts": {
@@ -163,6 +172,7 @@ def _run_line(run: dict[str, Any], now: datetime) -> str:
         f"{run.get('events_new', 0)} nuevos",
         f"{run.get('events_merged', 0)} unidos",
         f"{run.get('pending', 0)} en espera" if run.get("pending") else "",
+        f"Instagram {run['instagram_usage']}%" if run.get("instagram_usage") else "",
         f"{run.get('provisional', 0)} provisionales" if run.get("provisional") else "",
         *problems,
     ]
@@ -205,6 +215,11 @@ def markdown(status: dict[str, Any]) -> str:
     lines += ["### Cuentas y eventos", "", f"- {accounts['followed']} cuentas en los barridos."]
     if pending:
         lines.append(f"- {len(pending)} en su primer barrido (más profundo): " + ", ".join(f"@{a}" for a in pending))
+    if waiting := accounts.get("waiting"):
+        lines.append(
+            f"- ⚠️ {len(waiting)} esperando más de un barrido después de su turno: "
+            + ", ".join(f"@{a}" for a in waiting)
+        )
     posts = status["posts"]
     lines.append(f"- {posts['recorded']} publicaciones analizadas en los últimos días.")
     if posts["provisional"]:

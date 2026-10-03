@@ -41,6 +41,15 @@ SITE_URL = "https://pa-bailar.github.io"  # the public site, for links to events
 # Instagram's quota for our app, as a share used (0-100, from its usage headers): the sweep stops reading
 # accounts at this level instead of running into the limit, and discover pauses earlier (its own setting).
 INSTAGRAM_USAGE_STOP = 90
+# Each account is read about once a day (pipeline.Sweep._due_accounts): a sweep reads the accounts whose turn
+# has come, those that waited longest first, and stops at its share (half the accounts plus a margin, for the
+# two daily sweeps) or Instagram's limit; whoever it didn't reach is first next time. Quiet accounts (no post
+# in QUIET_AFTER_DAYS) take their turn every other day. A bit under 24 h, so the same sweep the next day finds
+# the account due.
+SWEEP_EVERY_HOURS = 20
+QUIET_SWEEP_EVERY_HOURS = 44
+QUIET_AFTER_DAYS = 45
+EXTRA_ACCOUNTS_PER_RUN = 5  # over each sweep's share, so a few late accounts still get read
 MAX_IMAGES_PER_POST = 10  # monthly schedules often show an event on slide 5 or later; still one request
 # Videos' preview clips (clips.py): when an event's image comes from a video (a reel, or a carousel's video slide),
 # a short silent clip of it plays on the site. Made with ffmpeg (on GitHub's runners; locally FFMPEG or the PATH);

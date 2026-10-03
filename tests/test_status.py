@@ -1,6 +1,6 @@
 """admin status: what it reads and how it says it, from fake state (no git, no network)."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -68,7 +68,7 @@ def test_collect_reads_what_the_sweeps_record():
         "used": 18,
         "budget": daily_budget("gemini-3.8-flash"),
     }
-    assert result["accounts"] == {"followed": 2, "first_sweep_pending": ["nueva"]}
+    assert result["accounts"] == {"followed": 2, "first_sweep_pending": ["nueva"], "waiting": []}
     assert result["posts"] == {"recorded": 2, "provisional": 1}
     assert result["instagram"] is None
 
@@ -97,3 +97,17 @@ def test_the_text_says_it_in_spanish():
     assert "La cuota se reinicia mañana 2:00 a. m." in text
     assert "Cuota de Instagram usada: 12%" in text
     assert "1 en su primer barrido (más profundo): @nueva" in text
+
+
+def test_accounts_past_their_turn_by_more_than_a_sweep_are_waiting():
+    late = (NOW.replace(hour=8) - timedelta(days=2)).isoformat()
+    fresh = NOW.replace(hour=9).isoformat()
+    states = {
+        "academia": {"first_seen": "2026-09-01", "backfill_done": True, "last_swept_at": late},
+        "nueva": {"first_seen": "2026-09-01", "backfill_done": True, "last_swept_at": fresh},
+    }
+    result = status.collect(
+        now=NOW, instagram=None, read=lambda name, default: states if name == "accounts.json" else default
+    )
+    assert result["accounts"]["waiting"] == ["academia"]
+    assert "⚠️ 1 esperando más de un barrido después de su turno: @academia" in status.markdown(result)

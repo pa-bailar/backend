@@ -27,6 +27,10 @@ on:
         description: "Only analyze posts from the last N days (1 to 30)"
         type: number
         default: 7
+      all_accounts:
+        description: "Read every account now (normally each sweep reads the accounts whose turn it is, once a day)"
+        type: boolean
+        default: false
       post_url:
         description: "Admin tools: add this one post by hand instead of sweeping"
         required: false
@@ -109,11 +113,12 @@ jobs:
           POST_URL: ${{ inputs.post_url }}
           ACCOUNT: ${{ inputs.account }}
           ADMIN_REPORT_FILE: ${{ github.workspace }}/admin-report.md
+          ALL_ACCOUNTS: ${{ inputs.all_accounts && '--all' || '' }}
         run: |
           if [ -n "$POST_URL" ]; then
             python -m pa_bailar sweep --post "$POST_URL" ${ACCOUNT:+--account "$ACCOUNT"}
           else
-            python -m pa_bailar sweep --days "$LOOKBACK_DAYS"
+            python -m pa_bailar sweep --days "$LOOKBACK_DAYS" $ALL_ACCOUNTS
           fi
 
       # The admin page (admin-web/, docs/ADMIN.md) shows this: `admin status` as data, saved with the state.
