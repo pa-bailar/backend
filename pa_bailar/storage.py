@@ -149,11 +149,10 @@ def save_flyer(image_bytes: bytes, name: str) -> str:
 
 
 def remove_unused_flyers(events: list[StoredEvent]) -> int:
-    """Delete flyer files no event points to. Returns how many were deleted."""
-    used = {media.flyer for event in events for media in event.media if media.flyer}
-    unused = [
-        path for path in config.FLYERS_DIR.glob("*.webp") if path.relative_to(config.DATA_DIR).as_posix() not in used
-    ]
+    """Delete flyer and clip files no event points to. Returns how many were deleted."""
+    used = {path for event in events for media in event.media for path in (media.flyer, media.preview) if path}
+    files = [*config.FLYERS_DIR.glob("*.webp"), *config.PREVIEWS_DIR.glob("*.mp4")]
+    unused = [path for path in files if path.relative_to(config.DATA_DIR).as_posix() not in used]
     for path in unused:
         path.unlink()
     return len(unused)

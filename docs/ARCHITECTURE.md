@@ -99,7 +99,7 @@ In words:
 | Repository | Visibility | Owns | Does not own |
 |---|---|---|---|
 | `pa-bailar/backend` (this one) | Private | The collector: the `pa_bailar` Python package, `accounts.txt`, the prompts, the sweep workflow, the sweep state (`sweep-state` branch), the health checks, local tools (`discover`, `refresh-token`), the admin page (`admin-web/`, docs/ADMIN.md) | The data files and the site: it only writes them into a checkout of the site repository and proposes them through a PR |
-| `pa-bailar/pa-bailar.github.io` | Public | The site (`frontend/`, Astro), the published data (`data/events.json`, `data/meta.json`, `data/flyers/`), the data contract (`docs/DATA.md`), its CI and the GitHub Pages deploy | Collecting data. It never calls Instagram or Gemini |
+| `pa-bailar/pa-bailar.github.io` | Public | The site (`frontend/`, Astro), the published data (`data/events.json`, `data/meta.json`, `data/flyers/`, `data/previews/`), the data contract (`docs/DATA.md`), its CI and the GitHub Pages deploy | Collecting data. It never calls Instagram or Gemini |
 
 **Why two repositories:**
 - **The collector's code stays private:** the prompts, which accounts are followed, and the tooling.
@@ -293,13 +293,14 @@ sequenceDiagram
 | 4 | Check out the site repository | Always | Into `site/`. `DATA_DIR` points to `site/data` | None (public repository) |
 | 5 | Set up Python | Always | Python from `.python-version` (3.12), pip cache | |
 | 6 | Install | Always | `pip install -r requirements.txt`, every package pinned and hash-checked | |
+| 6b | Make sure ffmpeg is installed | Always | For videos' preview clips (`clips.py`); usually already on the runner | |
 | 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x]`, one post by hand. Otherwise `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 8 | Write the status for the admin page | Unless cancelled; its failure doesn't fail the run | `python -m pa_bailar admin status --json` → `state/status.json`, saved with the state (one Graph API call, no Gemini). The admin page reads it | `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 9 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real | `GITHUB_TOKEN` (this step only) |
 | 9b | Save an account added by hand | `post_url`, and `accounts.txt` changed | Commits `accounts.txt` to `main` | `GITHUB_TOKEN` (this step only) |
 | 10 | Update the sweep health issue | Unless cancelled, and the sweep produced its health output | Opens, updates, comments on or closes the `Sweep health` issue (section 11.3) | `GITHUB_TOKEN` (issues) |
 | 11 | Get a token for the site repository | Unless cancelled | Mints a pa-bailar-bot installation token for the site repository only | `APP_ID`, `APP_PRIVATE_KEY` |
-| 12 | Open a data PR | Unless cancelled | Only if `data/events.json` or `data/flyers` changed (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled | App token |
+| 12 | Open a data PR | Unless cancelled | Only if `data/events.json` or `data/flyers` changed (clips change `events.json` too) (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled | App token |
 | 13 | Wait for the data PR to merge | A PR was opened | Polls every 30 s, up to 20 minutes. Fails if the PR is closed or doesn't merge in time | App token |
 | 14 | Republish the site | Success, no PR, not `post_url` | `gh workflow run deploy.yml -f checked_at=<now in Bogotá>`, so "Actualizado el" stays current on days without new events | App token |
 | 15 | Report to the health check | Always, except `post_url` runs | Pings `HEALTHCHECK_URL` (success) or `HEALTHCHECK_URL/fail`, with the report as the body | `HEALTHCHECK_URL` |
@@ -408,6 +409,12 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
    count as "discarded".
 3. **Save flyers** (`storage.save_flyer`): the image Gemini says shows each event (`image_index`),
    shrunk to at most 1080×1350 and saved as WebP (quality 80) in `data/flyers/<post id>-<slide>.webp`.
+   When that slide is a video (a reel, or a carousel's video slide), `clips.make_clip` cuts its first 6
+   seconds with ffmpeg (no sound, 480 px wide, H.264, about 100–400 KB) into
+   `data/previews/<post id>-<slide>.mp4`, recorded as the media's `preview`: the site plays it, silent and
+   looping. Carousels record their slide count (`slides`). Some videos come without a file from Instagram
+   (likely licensed music): they get no clip. Posts stored before clips existed get theirs when a sweep
+   fetches them again (`Sweep._complete_media`), since Instagram's video links expire.
    Instagram's image links expire, so the site uses these copies. An image that shows several events
    (a monthly schedule) is saved once and shared.
 4. **Detach the post from earlier results:** if the post was analyzed before (edited caption, upgrade),
@@ -576,6 +583,7 @@ itself: `pa_bailar/sweep_state.py` fetches it and reads each file with `git show
 | `data/events.json` | Every stored event, sorted by date and time. The format is the data contract (`docs/DATA.md` in the site repository); `pa_bailar/models.py` (`StoredEvent`) is its source of truth |
 | `data/meta.json` | `schema_version`, `generated_at` (Bogotá time), `accounts` (every account swept, the site's list of sources) and the stats of the run that wrote it. Rewritten every run, but only committed together with a real change to events or flyers |
 | `data/flyers/*.webp` | The flyer copies. Unused ones are deleted at the end of every run |
+| `data/previews/*.mp4` | Videos' preview clips (6 s, silent). Deleted with their events, like flyers |
 
 **Retention:** events dated more than 60 days ago are deleted, together with their flyers, so `data/`
 doesn't grow forever. Git history keeps them.
@@ -861,6 +869,7 @@ flowchart LR
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |
 | `ids.py` | Readable, stable event ids (the event's URL) |
 | `pipeline.py` | `Sweep`: accounts, posts, storing, retention, run statistics |
+| `clips.py` | Videos' preview clips: download, cut 6 silent seconds with ffmpeg |
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, `accounts.txt` |
 | `health.py` | Run history, health rules, events to review, the report and its fingerprint |
 | `status.py` | What `admin status` shows: sweeps, Gemini usage, Instagram, accounts, events (data and Spanish text) |

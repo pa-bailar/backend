@@ -140,11 +140,34 @@ def published_at(post: Post) -> datetime:
     return datetime.fromisoformat(post["timestamp"].replace("+0000", "+00:00"))
 
 
+def _image_url(item: MediaItem) -> str | None:
+    return item.get("media_url") if item.get("media_type") == "IMAGE" else item.get("thumbnail_url")
+
+
+def analyzed_items(post: Post) -> list[MediaItem]:
+    """The slides whose images are analyzed (image_urls), in the same order: a flyer's index points here."""
+    items: list[MediaItem] = post.get("children", {}).get("data", []) or [cast(MediaItem, post)]
+    return [item for item in items if _image_url(item)][: config.MAX_IMAGES_PER_POST]
+
+
 def image_urls(post: Post) -> list[str]:
     """Images to analyze: the photo, every carousel slide, or a video's preview frame."""
-    items: list[MediaItem] = post.get("children", {}).get("data", []) or [cast(MediaItem, post)]
-    urls = [item.get("media_url") if item.get("media_type") == "IMAGE" else item.get("thumbnail_url") for item in items]
-    return [url for url in urls if url][: config.MAX_IMAGES_PER_POST]
+    return [cast(str, _image_url(item)) for item in analyzed_items(post)]
+
+
+def video_url(post: Post, image_index: int) -> str | None:
+    """The video behind the image at `image_index` (a reel, or a carousel's video slide); None for photos, and
+    for videos whose file Instagram doesn't give (e.g. with licensed music)."""
+    items = analyzed_items(post)
+    if not 0 <= image_index < len(items) or items[image_index].get("media_type") != "VIDEO":
+        return None
+    return items[image_index].get("media_url")
+
+
+def slide_count(post: Post) -> int | None:
+    """How many slides a carousel has; None for a single photo or video."""
+    children = post.get("children", {}).get("data", [])
+    return len(children) if post["media_type"] == "CAROUSEL_ALBUM" and children else None
 
 
 def download_image(url: str) -> bytes:
