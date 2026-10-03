@@ -120,7 +120,8 @@ def main(argv: list[str] | None = None) -> None:
         print(run_add_account(account) if account else f"“{args.account}” no es un nombre de cuenta válido.")
     elif args.tool == "inbox":
         # A comment, or a new issue's title and body (the admin workflow passes them as environment variables).
-        text = os.environ.get("COMMENT_BODY") or f"{os.environ.get('ISSUE_TITLE', '')}\n\n{os.environ.get('ISSUE_BODY', '')}"
+        issue = f"{os.environ.get('ISSUE_TITLE', '')}\n\n{os.environ.get('ISSUE_BODY', '')}"
+        text = os.environ.get("COMMENT_BODY") or issue
         request = inbox.parse(text)
         reply, done = answer(request)
         Path(os.environ.get("INBOX_REPLY", "reply.md")).write_text(reply, encoding="utf-8")
