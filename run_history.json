@@ -78,5 +78,24 @@
     "out_of_time": false,
     "gemini_requests": {},
     "warnings": []
+  },
+  {
+    "finished_at": "2026-10-02T21:11:20-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/37088209223",
+    "accounts": 50,
+    "failed_accounts": [],
+    "skipped_accounts": [],
+    "posts_analyzed": 44,
+    "events_new": 14,
+    "events_merged": 3,
+    "pending": 79,
+    "post_errors": 79,
+    "provisional": 22,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 68
+    },
+    "warnings": []
   }
 ]

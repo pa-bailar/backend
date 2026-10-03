@@ -1478,5 +1478,445 @@
     "model": "gemini-3.5-flash-lite",
     "provisional": true,
     "caption_hash": "5bec6e1994e3c125"
+  },
+  "17985897396080592": {
+    "account": "bogotadanceclub.academy",
+    "permalink": "https://www.instagram.com/reel/DeAw0aCsVDj/",
+    "processed_at": "2026-10-02T21:00:51-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia un programa regular para adolescentes llamado BDC Teens, no un evento único con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "c85f7c60f0ee4ebe"
+  },
+  "18407653663091838": {
+    "account": "academiaalmadetangoe",
+    "permalink": "https://www.instagram.com/p/Dczz0wyuGFo/",
+    "processed_at": "2026-10-02T21:01:32-05:00",
+    "is_event_post": false,
+    "reason": "El evento ocurrió el 11 de septiembre, por lo que la fecha ya pasó.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "b4a05fb69cbf2230"
+  },
+  "18114810215075112": {
+    "account": "academiaalmadetangoe",
+    "permalink": "https://www.instagram.com/p/DdMW4VhxwH5/",
+    "processed_at": "2026-10-02T21:01:42-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una clase abierta de jazz multinivel para el 14 de septiembre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "59702105ff80099f"
+  },
+  "18197969926388498": {
+    "account": "academiaalmadetangoe",
+    "permalink": "https://www.instagram.com/p/DdkgvI0kW37/",
+    "processed_at": "2026-10-02T21:01:49-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un resumen o recuerdo de una muestra artística pasada del primer semestre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "22a9038e8468d531"
+  },
+  "18407884213094306": {
+    "account": "academiaalmadetangoe",
+    "permalink": "https://www.instagram.com/p/Ddpp--NmvbK/",
+    "processed_at": "2026-10-02T21:02:01-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia tres eventos de tango con fecha y hora específicas organizados por Alma de Tango.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "671da75e3591d35f"
+  },
+  "18085699580306788": {
+    "account": "proyectourbandance",
+    "permalink": "https://www.instagram.com/reel/Dd4pUfWh905/",
+    "processed_at": "2026-10-02T21:02:06-05:00",
+    "is_event_post": false,
+    "reason": "El video muestra una clase regular o ensayo de baile y no anuncia un evento próximo con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "c744e92d904fecd7"
+  },
+  "18010811948986920": {
+    "account": "proyectourbandance",
+    "permalink": "https://www.instagram.com/reel/Dd6rjkiROlU/",
+    "processed_at": "2026-10-02T21:02:16-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una serie de talleres pro fondos para el 11 de octubre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "0cef27a4505a2cc0"
+  },
+  "18134142721660577": {
+    "account": "proyectourbandance",
+    "permalink": "https://www.instagram.com/p/Dd6sikREV5M/",
+    "processed_at": "2026-10-02T21:02:38-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia tres talleres de baile benéficos organizados por PUD para el domingo 11 de octubre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "4a777eedaf2c6886"
+  },
+  "18049519712803457": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/Dc1GgknEYrr/",
+    "processed_at": "2026-10-02T21:02:50-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia un taller de entrenamiento recurrente (varias semanas), lo cual no cuenta como un evento único.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "149df8fa07a9ce52"
+  },
+  "18184772941413158": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/reel/Dc4SNT0uO6c/",
+    "processed_at": "2026-10-02T21:02:59-05:00",
+    "is_event_post": false,
+    "reason": "El post es una guía informativa sobre los talleres escénicos del espacio y no anuncia un evento específico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "b2ecda6082e24a71"
+  },
+  "18004580819970205": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/reel/Dc7JMXQuHcj/",
+    "processed_at": "2026-10-02T21:03:04-05:00",
+    "is_event_post": false,
+    "reason": "La publicación anuncia clases regulares de pintura en lugar de un evento único o taller especial.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "1e225c207c13a3f2"
+  },
+  "18445192954127928": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/Dc_6anaGhEb/",
+    "processed_at": "2026-10-02T21:03:17-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia varios talleres y eventos presenciales especiales para el mes de septiembre en Espacio 64.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "7cf1f7b7a143c796"
+  },
+  "18110441605999285": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/DdCjOaxGi6w/",
+    "processed_at": "2026-10-02T21:03:29-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia un club de collage y manualidades, el cual no es un evento de baile.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "616340b308becc6c"
+  },
+  "17946754536321024": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/reel/DdDIByPu0yZ/",
+    "processed_at": "2026-10-02T21:03:37-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia un taller de pintura para parejas, el cual no es un evento de baile.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "f860ab2ab0a13290"
+  },
+  "18125548828812573": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/DdE8qlYmjGY/",
+    "processed_at": "2026-10-02T21:03:49-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia dos eventos culturales para el 19 de septiembre de 2026 en Espacio 64.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "9176d04f15a55bce"
+  },
+  "18625040047041227": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/reel/DdFlr0cuzx9/",
+    "processed_at": "2026-10-02T21:03:55-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia un laboratorio de creación escénica de larga duración y no un evento de baile de una sola ocasión.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "7ef363dec9428cf4"
+  },
+  "18093411647640302": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/reel/DdKODKouDeO/",
+    "processed_at": "2026-10-02T21:04:00-05:00",
+    "is_event_post": false,
+    "reason": "La publicacion es una entrevista o presentacion del equipo y no anuncia ningun evento futuro especifico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "dc00301dc9ad2fdd"
+  },
+  "18014743958744837": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/reel/DdPGhmqpjv2/",
+    "processed_at": "2026-10-02T21:04:09-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia un taller de entrenamiento escénico y teatro de varios módulos de larga duración que no corresponden a un evento de baile de una sola vez.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "cf6af738bfb2cfa8"
+  },
+  "18217550830345714": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/DdTx4qikSAW/",
+    "processed_at": "2026-10-02T21:04:15-05:00",
+    "is_event_post": false,
+    "reason": "El evento anunciado ocurrió el 19 de septiembre y la fecha actual es 2 de octubre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "e5d3340a48ae0dc7"
+  },
+  "17909187708536925": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/reel/DdXblvvODQp/",
+    "processed_at": "2026-10-02T21:04:25-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia la previa de amor y amistad para el 19 de septiembre en Espacio 64.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "3108293789fa2388"
+  },
+  "18110707181169422": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/DdZdM8YOxS6/",
+    "processed_at": "2026-10-02T21:04:33-05:00",
+    "is_event_post": false,
+    "reason": "La publicación presenta a una artista invitada para un pop up ya pasado y no anuncia un evento próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "09947449f1b2d873"
+  },
+  "18457669492184828": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/DdZqX75OoUL/",
+    "processed_at": "2026-10-02T21:04:42-05:00",
+    "is_event_post": false,
+    "reason": "La publicación presenta a un artista invitado en el marco de un pop up pasado, pero no anuncia un evento próximo con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "ab2de8c44956387a"
+  },
+  "17907447666552777": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/DdcARIsJVzH/",
+    "processed_at": "2026-10-02T21:04:52-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es una presentación de un artista invitado (pop up gráfico) sin especificar fecha ni hora exacta.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "3ad1c882c34bdb8e"
+  },
+  "17899298484656476": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/Ddj8Dc-Go8A/",
+    "processed_at": "2026-10-02T21:04:57-05:00",
+    "is_event_post": false,
+    "reason": "El evento ocurrió en septiembre y la fecha de hoy es posterior, por lo que ya pasó.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "3a2a894b853cc2e1"
+  },
+  "18094790768394874": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/DdpmC-3mvN3/",
+    "processed_at": "2026-10-02T21:05:03-05:00",
+    "is_event_post": false,
+    "reason": "El taller ocurrio el 28 y 30 de septiembre y la fecha actual es 2 de octubre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "5a3d295e46b1769b"
+  },
+  "18132106027673068": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/DdsEmXTGhOb/",
+    "processed_at": "2026-10-02T21:05:16-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un resumen de un evento que ya ocurrió el 19 de septiembre y no anuncia ninguno próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "7eddd0e0c20f6df9"
+  },
+  "17993060226049468": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/reel/DdwU-d-RZoR/",
+    "processed_at": "2026-10-02T21:05:21-05:00",
+    "is_event_post": false,
+    "reason": "Las fechas del taller (28 y 30 de septiembre) ya pasaron con respecto a la fecha actual.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "4a392e97001393d5"
+  },
+  "18086183840306500": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/Dd5JAAxjhg5/",
+    "processed_at": "2026-10-02T21:05:35-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un taller de creacion de personajes de tres sesiones en octubre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "0ff57875969a2dce"
+  },
+  "18565666195074057": {
+    "account": "espacio.64",
+    "permalink": "https://www.instagram.com/p/Dd7hqSWOl1K/",
+    "processed_at": "2026-10-02T21:05:42-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia un taller o espacio creativo recurrente ('Club de jueves') de collage sin contenido de baile.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "7bdfe6b4bc5a946f"
+  },
+  "17950654596275371": {
+    "account": "lacoartadacentrocultural",
+    "permalink": "https://www.instagram.com/reel/DdzXfDrKfNm/",
+    "processed_at": "2026-10-02T21:05:48-05:00",
+    "is_event_post": false,
+    "reason": "La imagen muestra a personas ensayando o practicando en un estudio de danza sin texto ni información sobre un evento próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "e3b0c44298fc1c14"
+  },
+  "17976123450102405": {
+    "account": "herencialatinad.c",
+    "permalink": "https://www.instagram.com/reel/Dc4DfavBcvp/",
+    "processed_at": "2026-10-02T21:05:52-05:00",
+    "is_event_post": false,
+    "reason": "La imagen muestra una presentación pasada y la publicación no anuncia ningún evento futuro con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "46a03a21aadc5be6"
+  },
+  "18120266225484695": {
+    "account": "herencialatinad.c",
+    "permalink": "https://www.instagram.com/reel/DdAbsIbsjFh/",
+    "processed_at": "2026-10-02T21:05:56-05:00",
+    "is_event_post": false,
+    "reason": "La publicación no contiene texto ni información sobre un evento próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "e3b0c44298fc1c14"
+  },
+  "18094927937539830": {
+    "account": "herencialatinad.c",
+    "permalink": "https://www.instagram.com/p/DdPo8cAI6DR/",
+    "processed_at": "2026-10-02T21:06:01-05:00",
+    "is_event_post": false,
+    "reason": "La publicación solo muestra una foto del grupo de danza sin anunciar ningún evento próximo con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "16b2f5ccbc387989"
+  },
+  "18446250358123312": {
+    "account": "herencialatinad.c",
+    "permalink": "https://www.instagram.com/p/DdRutXMMCUX/",
+    "processed_at": "2026-10-02T21:06:05-05:00",
+    "is_event_post": false,
+    "reason": "La imagen muestra a una bailarina pero la publicación no anuncia ningún evento específico ni incluye fechas.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "16b2f5ccbc387989"
+  },
+  "17895273984607583": {
+    "account": "herencialatinad.c",
+    "permalink": "https://www.instagram.com/reel/DdZln33MKoS/",
+    "processed_at": "2026-10-02T21:06:10-05:00",
+    "is_event_post": false,
+    "reason": "La publicacion es un mensaje motivacional y muestra un recuerdo o recapitulacion de una presentacion pasada, no anuncia un nuevo evento.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "186089d2f9c43b17"
+  },
+  "18094222160548314": {
+    "account": "herencialatinad.c",
+    "permalink": "https://www.instagram.com/p/DdkNGSWI4TD/",
+    "processed_at": "2026-10-02T21:06:15-05:00",
+    "is_event_post": false,
+    "reason": "La publicación solo muestra una foto de una presentación pasada sin anunciar ningún evento futuro.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "4f86878ce9859616"
+  },
+  "18133635982645378": {
+    "account": "ebi_dancecompany",
+    "permalink": "https://www.instagram.com/reel/DdIaM06MP5-/",
+    "processed_at": "2026-10-02T21:06:20-05:00",
+    "is_event_post": false,
+    "reason": "La publicación muestra una clase regular de baile sin anunciar un evento único con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "e5a28ac257b9a25a"
+  },
+  "18148786210526643": {
+    "account": "ebi_dancecompany",
+    "permalink": "https://www.instagram.com/p/DdP9VreNuUy/",
+    "processed_at": "2026-10-02T21:06:30-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un taller intensivo de ritmos cubanos con fecha específica para recaudar fondos.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "a4025fcfca3d512a"
+  },
+  "18127548028789655": {
+    "account": "germanbaila",
+    "permalink": "https://www.instagram.com/reel/Dc9l-bjz-EA/",
+    "processed_at": "2026-10-02T21:06:40-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento recurrente bailable de Coca-Cola Bailable para el primer domingo de cada mes en el Goce Pagano.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "f0314019adc0481c"
+  },
+  "18214150060358890": {
+    "account": "germanbaila",
+    "permalink": "https://www.instagram.com/reel/Dc_vS4iTj5R/",
+    "processed_at": "2026-10-02T21:06:48-05:00",
+    "is_event_post": false,
+    "reason": "El post es de carácter conversacional e informativo general sobre clases regulares y no anuncia ningún evento o taller único específico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "8663e480dcac9a63"
+  },
+  "17957876115079615": {
+    "account": "germanbaila",
+    "permalink": "https://www.instagram.com/reel/DdIGPD1TRn9/",
+    "processed_at": "2026-10-02T21:06:56-05:00",
+    "is_event_post": false,
+    "reason": "El post es una recomendación general de un lugar para bailar y no anuncia un evento específico con fecha.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "2ba0d186756dc42e"
+  },
+  "18128274380486284": {
+    "account": "germanbaila",
+    "permalink": "https://www.instagram.com/reel/DdpJY7WBnpC/",
+    "processed_at": "2026-10-02T21:06:58-05:00",
+    "is_event_post": false,
+    "reason": "El texto habla de un evento pasado y de reflexiones sobre los comentarios recibidos, no anuncia un evento futuro.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "e4e09e6921898e8f"
+  },
+  "18100759811377405": {
+    "account": "germanbaila",
+    "permalink": "https://www.instagram.com/reel/DdsIEA3ONkX/",
+    "processed_at": "2026-10-02T21:07:08-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una clase y fiesta pre concierto para este viernes en bogotadanceclub.academy.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "bdab3e971bfb89c8"
+  },
+  "18025978352861193": {
+    "account": "germanbaila",
+    "permalink": "https://www.instagram.com/reel/DdwjdQlTBd9/",
+    "processed_at": "2026-10-02T21:07:11-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un video resumen de un evento pasado y no anuncia un evento futuro.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "18ea6fdf2080e290"
   }
 }

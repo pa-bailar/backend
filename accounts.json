@@ -138,5 +138,77 @@
   "terrazasalsera": {
     "first_seen": "2026-10-02",
     "backfill_done": false
+  },
+  "studiolatindance": {
+    "first_seen": "2026-10-02",
+    "backfill_done": true
+  },
+  "academiaalmadetangoe": {
+    "first_seen": "2026-10-02",
+    "backfill_done": true
+  },
+  "proyectourbandance": {
+    "first_seen": "2026-10-02",
+    "backfill_done": true
+  },
+  "academia_cowork": {
+    "first_seen": "2026-10-02",
+    "backfill_done": true
+  },
+  "espacio.64": {
+    "first_seen": "2026-10-02",
+    "backfill_done": true
+  },
+  "lacoartadacentrocultural": {
+    "first_seen": "2026-10-02",
+    "backfill_done": true
+  },
+  "herencialatinad.c": {
+    "first_seen": "2026-10-02",
+    "backfill_done": true
+  },
+  "ebi_dancecompany": {
+    "first_seen": "2026-10-02",
+    "backfill_done": true
+  },
+  "bailalo_improsocial": {
+    "first_seen": "2026-10-02",
+    "backfill_done": true
+  },
+  "cordillerafestival": {
+    "first_seen": "2026-10-02",
+    "backfill_done": false
+  },
+  "latrinidaddelasalsa": {
+    "first_seen": "2026-10-02",
+    "backfill_done": false
+  },
+  "danzaenlaciudad": {
+    "first_seen": "2026-10-02",
+    "backfill_done": false
+  },
+  "salsaculto": {
+    "first_seen": "2026-10-02",
+    "backfill_done": false
+  },
+  "paramopresenta": {
+    "first_seen": "2026-10-02",
+    "backfill_done": false
+  },
+  "latinproductioncolombia": {
+    "first_seen": "2026-10-02",
+    "backfill_done": false
+  },
+  "bachatasocialcongresss": {
+    "first_seen": "2026-10-02",
+    "backfill_done": true
+  },
+  "bailarito": {
+    "first_seen": "2026-10-02",
+    "backfill_done": true
+  },
+  "elparche.se": {
+    "first_seen": "2026-10-02",
+    "backfill_done": false
   }
 }
