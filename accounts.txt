@@ -34,6 +34,7 @@ proyectourbandance
 academia_cowork
 espacio.64
 lacoartadacentrocultural
+iledanza
 
 # Dance companies
 herencialatinad.c
@@ -56,6 +57,7 @@ latinproductioncolombia
 bachatasocialcongresss
 bailarito
 elparche.se
+bogotadanceclub
 
 # ---------------------------------------------------------------------------------------------------
 # Salsa bars and restaurants: NOT swept for now (every line below is a comment).
