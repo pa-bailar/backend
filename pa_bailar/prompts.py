@@ -12,17 +12,33 @@ Today: {today}
 Caption:
 \"\"\"{caption}\"\"\""""
 
-_EVENT_DEFINITION = """What counts as an event (one-time, with a specific date):
-- socials, parties, anniversaries, concerts, festivals, competitions, shows;
-- one-time workshops, masterclasses and special classes with guest teachers.
+_EVENT_DEFINITION = """An event is a single DANCE occasion on a specific date that anyone can attend.
+
+What counts:
+- socials and parties: "social", "noche de salsa/bachata", "rumba", "fiesta", "previa", anniversaries
+  ("aniversario"), Halloween or holiday parties; concerts and live bands people dance to; festivals and
+  congresses; competitions and battles ("concurso", "batalla"); shows and galas;
+- one-time workshops: "taller", "masterclass", "clase especial", "clase única", "clase abierta" on a given
+  date, "bootcamp", "intensivo", a class with a guest teacher. An intensive or festival on consecutive days
+  (e.g. "10, 11 y 12 de octubre") counts as one event, dated on its first day.
+
 What does NOT count:
 - anything that isn't about dancing, even when a dance academy or venue hosts it or posts it: drawing,
-  painting, theater, music lessons, yoga, markets, talks, sports (e.g. "taller de dibujo" at an academy);
-- regular classes and courses, weekly or recurring nights;
-- recaps of past events, student showcases, wedding choreographies, tutorials, motivational posts,
-  general ads without a specific date;
+  painting, theater, music or singing lessons, yoga, pilates, fitness without dancing, markets, talks,
+  sports (e.g. "taller de dibujo", "semillero de creación de personajes"). It's a dance event only if
+  dancing is what people come to do or watch;
+- regular classes and courses: schedules ("horarios"), "todos los jueves", "cada viernes", "inscripciones
+  abiertas", "cursos", "niveles", monthly fees ("mensualidad"), and programs spread over several weeks
+  (e.g. "sábados 10, 17 y 24"), unless each date is a separate occasion (e.g. three socials, each with
+  its own theme);
+- things that already happened: recaps ("gracias a todos", "así se vivió"), photos or videos of past
+  events, results;
+- student showcases, wedding choreographies ("coreografía de boda"), tutorials, challenges, motivational
+  posts, merchandise, and ads without a specific date;
 - posts announcing that an event is cancelled or postponed without a new date (a postponed event with
-  its new date does count, with the new date)."""
+  its new date does count, with the new date).
+A post can mix both (e.g. the weekly schedule plus one special social): only the one-time dance events
+count."""
 
 TRIAGE_PROMPT = f"""You screen Instagram posts of dance academies in Bogotá, Colombia.
 
