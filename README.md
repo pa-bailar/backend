@@ -94,7 +94,7 @@ Everything runs on GitHub Actions:
 |---|---|---|
 | `ci` | Every pull request | Lint, format check and unit tests. The required check on `main`. |
 | `admin` | A new issue or comment from `jzamora5` (the admin page opens such issues) | The admin inbox: answers with a comment (check a post, add an account, the status); adding a post starts `daily-sweep` in single-post mode. See [docs/ADMIN.md](docs/ADMIN.md) |
-| `daily-sweep` | Every day at 9:00 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini, writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is saved to the `sweep-state` branch. With `post_url` (from `admin`), it adds that one post instead and answers on the admin issue. |
+| `daily-sweep` | Every day at 9:00 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (each about once a day, half per sweep), writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is saved to the `sweep-state` branch. With `post_url` (from `admin`), it adds that one post instead and answers on the admin issue. |
 
 `main` is **not protected**: rulesets on private repositories need a paid GitHub plan (Pro or Team).
 Changes go through squash-merged pull requests and `ci` runs on every one of them by convention, but
