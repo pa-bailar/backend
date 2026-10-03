@@ -1,0 +1,166 @@
+{
+  "generated_at": "2026-10-02T22:06:57-05:00",
+  "sweeps": {
+    "recent": [
+      {
+        "finished_at": "2026-10-02T21:11:20-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37088209223",
+        "accounts": 50,
+        "failed_accounts": [],
+        "skipped_accounts": [],
+        "posts_analyzed": 44,
+        "events_new": 14,
+        "events_merged": 3,
+        "pending": 79,
+        "post_errors": 79,
+        "provisional": 22,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 68
+        },
+        "warnings": []
+      },
+      {
+        "finished_at": "2026-10-02T13:31:23-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37046081524",
+        "accounts": 1,
+        "failed_accounts": [
+          "zafradance"
+        ],
+        "skipped_accounts": [
+          "bembeacademiadebaile",
+          "esferalatinaoficial",
+          "madyumdance",
+          "academiadebailepasolatino",
+          "bureodancestudio",
+          "ludancestudios",
+          "ritmosacademiadebaile",
+          "rpdancestudio",
+          "salsalatina.villaluz",
+          "salsalatina.alsacia",
+          "foururbandanc",
+          "bailabo_studio",
+          "studio110dance",
+          "bogotadanceclub.academy",
+          "academyfeel",
+          "soondanz_company",
+          "imperiolatino",
+          "ikubambayadanza",
+          "mambo_y_control",
+          "distritosocialbog",
+          "danceinmotionclub",
+          "tubailecom",
+          "mambolei_",
+          "mover__se",
+          "showstarscol",
+          "festivalsalsaalparque",
+          "salsabravadancehallpicante",
+          "reyesdelasalsa.col",
+          "bachatamania_bogota",
+          "germanbaila",
+          "_olorumcongress",
+          "tributo.salsayjazz",
+          "ritmomoderno",
+          "terrazasalsera",
+          "discojaguar.bta"
+        ],
+        "posts_analyzed": 0,
+        "events_new": 0,
+        "events_merged": 0,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 0,
+        "rate_limited": true,
+        "out_of_time": false,
+        "gemini_requests": {},
+        "warnings": []
+      },
+      {
+        "finished_at": "2026-10-02T13:29:43-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37044385776",
+        "accounts": 35,
+        "failed_accounts": [
+          "terrazasalsera"
+        ],
+        "skipped_accounts": [
+          "discojaguar.bta"
+        ],
+        "posts_analyzed": 121,
+        "events_new": 25,
+        "events_merged": 37,
+        "pending": 42,
+        "post_errors": 0,
+        "provisional": 39,
+        "rate_limited": true,
+        "out_of_time": true,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 161,
+          "gemini-3.8-flash": 15,
+          "gemini-3.5-flash": 17
+        },
+        "warnings": []
+      }
+    ],
+    "next": [
+      "2026-10-03T09:00-05:00",
+      "2026-10-03T21:00-05:00"
+    ]
+  },
+  "gemini": {
+    "lite_only": false,
+    "resets_at": "2026-10-03T02:00-05:00",
+    "models": [
+      {
+        "model": "gemini-3.8-flash",
+        "role": "extraction",
+        "used": 18,
+        "budget": 18
+      },
+      {
+        "model": "gemini-3.5-flash",
+        "role": "extraction",
+        "used": 18,
+        "budget": 18
+      },
+      {
+        "model": "gemini-3.5-flash-lite",
+        "role": "triage, provisional",
+        "used": 498,
+        "budget": 498
+      }
+    ]
+  },
+  "instagram": {
+    "ok": true,
+    "app_usage_percent": 0,
+    "error": null
+  },
+  "accounts": {
+    "followed": 52,
+    "first_sweep_pending": [
+      "iledanza",
+      "germanbaila",
+      "cordillerafestival",
+      "latrinidaddelasalsa",
+      "danzaenlaciudad",
+      "salsaculto",
+      "paramopresenta",
+      "latinproductioncolombia",
+      "elparche.se",
+      "bogotadanceclub"
+    ]
+  },
+  "posts": {
+    "recorded": 192,
+    "provisional": 65
+  },
+  "events": {
+    "upcoming": 25,
+    "low_confidence": 1
+  },
+  "discovery": {
+    "checked": 629,
+    "classified": 264
+  }
+}
