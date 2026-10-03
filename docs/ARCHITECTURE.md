@@ -424,8 +424,11 @@ Notes on the prompts and parameters:
   `pa_bailar/models.py`. The field descriptions are part of what Gemini reads.
 - **Temperature** stays at the default, as Google advises for Gemini 3 models.
 - **The extraction prompt covers:**
-  - what is and isn't an event (one-time socials, workshops, concerts… but not regular classes,
-    recaps or tutorials, nor anything that isn't about dancing, like a drawing workshop at a dance venue);
+  - what is and isn't an event, shared with triage (`_EVENT_DEFINITION`): one-time socials, workshops,
+    concerts, festivals (a multi-day intensive is one event, dated on its first day)… but not regular
+    classes, programs spread over several weeks, recaps, showcases or tutorials, nor anything that isn't
+    about dancing (like a drawing workshop at a dance venue). It quotes the words academies use
+    ("social", "taller", "todos los jueves", "así se vivió"…), which helps the lighter model most;
   - how to pick the event type and the styles (from a fixed list);
   - how to resolve dates without a year;
   - how to rate confidence (high, medium or low);
