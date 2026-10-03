@@ -188,7 +188,7 @@ Every service the system depends on. All of them are on free plans.
 | | |
 |---|---|
 | **What for** | Hosting the admin page (Worker `pa-bailar-admin`, at `https://pa-bailar-admin.jzamorac-9.workers.dev`) and its server side: the sign-in with GitHub (the `pa-bailar-admin` GitHub App) and reading the status. GitHub Pages can't: it's not free for a private repository and has no server side |
-| **How** | Cloudflare's build (Workers Builds) deploys `admin-web/` (`wrangler.jsonc`) from this repository on every push to `main`, no preview builds. Its GitHub connection is limited to this repository |
+| **How** | Cloudflare's build (Workers Builds) deploys `admin-web/` (`wrangler.jsonc`) from this repository on every push to `main`, no preview builds. Its GitHub connection is limited to this repository. Every answer carries security headers, with a strict Content Security Policy: `public/_headers` for the page's files, `src/index.js` for the Worker's own (ADMIN.md, "The admin page") |
 | **Status** | Sign-in with GitHub, the status dashboard and the admin tools. Installable on Android, where it receives posts shared from Instagram. Described in [`docs/ADMIN.md`](ADMIN.md) |
 | **Cost** | Free |
 
@@ -847,6 +847,8 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 | Bad data on the public site | The site's `ci` checks every data PR against the contract (`check-data.mjs`) before it can merge, and the site's `main` only takes squash-merged PRs that pass `ci` |
 | Private files committed | `.env` and `private/` are git-ignored. `private/` holds your Instagram export, the discovery results and the App's `.pem` |
 | Tagging strangers from the health issue | Handles in reports are neutralized (section 11.2) |
+| A script injected into the admin page (e.g. through a request's title or an answer) using your session | Everything shown is escaped (`app.js`), and the Content Security Policy (`admin-web/public/_headers`) runs only the page's own `app.js`: no inline scripts, no other hosts, no `style=""`. The session cookie is `HttpOnly`, so scripts can't read it |
+| Another site framing the admin page, or sending requests as you | `frame-ancestors 'none'` and `X-Frame-Options: DENY`. The cookie is `SameSite=Lax`, and the Worker only accepts POSTs whose `Origin` is the page's |
 | Unreviewed changes to the backend's `main` | **Not enforced** (section 3.3): rulesets need a paid plan on private repositories. Work goes through PRs with `ci` by convention |
 
 ---
