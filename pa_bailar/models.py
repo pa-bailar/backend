@@ -9,7 +9,7 @@ from typing import Literal, get_args
 
 from pydantic import BaseModel, Field
 
-EventType = Literal["social", "workshop", "concert", "festival", "competition", "show", "other"]
+EventType = Literal["social", "workshop", "concert", "festival", "congress", "competition", "show", "other"]
 Confidence = Literal["high", "medium", "low"]
 
 # Dance styles. Salsa and bachata have one level of specificity; the plain name is the fallback when
