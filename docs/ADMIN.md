@@ -5,7 +5,7 @@ on the site, add one by hand, fix a wrong detail. **Work in progress:** this pag
 
 | Step | What | State |
 |---|---|---|
-| Admin page hosting | A page with its own server functions, on Cloudflare Pages | Placeholder online |
+| Admin page hosting | A page with its own server side, a Cloudflare Worker | Placeholder |
 | 1. Status | `admin status`: sweeps, Gemini and Instagram usage, token expiry, accounts | Next |
 | 2. Events | `admin why`, `admin add-post`, `admin add-account`, and the issues inbox | Planned |
 | 3. Admin page | Sign in with GitHub, dashboard, check or add a post from a link | Planned |
@@ -16,24 +16,27 @@ to Gemini (one request).
 
 ## The admin page
 
-- **Where:** `https://pa-bailar-admin.pages.dev` (Cloudflare Pages, free), built from this repository's
+- **Where:** the Cloudflare Worker `pa-bailar-admin` (free), at its `workers.dev` address
+  (`https://pa-bailar-admin.<account>.workers.dev`). Cloudflare deploys it from this repository's
   `admin-web/` folder on every push to `main`.
-- **Files:** `admin-web/public/` is the page; `admin-web/functions/` are its server functions
-  (`/api/...`), which run on Cloudflare and will hold the login.
+- **Files:**
+  - `admin-web/wrangler.jsonc`: the Worker's settings. Its `name` must match the Worker's name in Cloudflare.
+  - `admin-web/public/`: the page, served as it is.
+  - `admin-web/src/index.js`: the server side, for what `public/` doesn't cover (`/api/...`). It will hold
+    the login.
 - **Sign-in (step 3):** "Iniciar sesión con GitHub" through the pa-bailar-bot GitHub App. Only `jzamora5` gets
   in; the session lasts weeks and renews itself. Nothing to paste or renew.
 
 ### Cloudflare setup (done once)
 
-1. Cloudflare dashboard → **Workers & Pages** → **Create** → the **Pages** tab → **Connect to Git**.
+1. Cloudflare dashboard → **Workers & Pages** → **Create** → import a repository from GitHub.
 2. Connect GitHub: allow Cloudflare's app on the `pa-bailar` organization, **only the `backend` repository**.
 3. Choose `pa-bailar/backend`, then:
-   - **Project name:** `pa-bailar-admin` (the address becomes `pa-bailar-admin.pages.dev`)
-   - **Production branch:** `main`
-   - **Framework preset:** None
+   - **Project name:** `pa-bailar-admin` (the same as `name` in `wrangler.jsonc`)
    - **Build command:** empty
-   - **Build output directory:** `public`
-   - **Root directory (advanced):** `admin-web`
-4. **Save and Deploy.** The page says "Servidor: listo ✓" when the server functions work.
-5. Project → **Settings** → **Builds** → **Branch deployments** (the wording varies): preview deployments
-   **None**, so only `main` is published.
+   - **Deploy command:** `npx wrangler deploy`
+   - **Enable preview builds:** off, so only `main` is published
+   - **Protect with Cloudflare Access:** off (the page will have its own sign-in with GitHub)
+   - **Advanced settings → path:** `/admin-web`
+   - **API token:** let Cloudflare create one (it's for Cloudflare's own build, kept inside Cloudflare)
+4. **Deploy.** The page says "Servidor: listo ✓" when the server side works.
