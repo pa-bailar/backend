@@ -295,7 +295,8 @@ sequenceDiagram
 
 `.github/workflows/daily-sweep.yml`, two jobs on `ubuntu-latest`:
 - **`request`** checks an add-post request before anything else runs (only with `post_url` or `issue`):
-  `issue` must be a number, and that issue an open `admin` issue by `jzamora5`. Otherwise the run fails
+  `issue` must be a number, and that issue an open `admin` issue by `jzamora5` (the inbox reopens an
+  answered issue before starting the add). Otherwise the run fails
   and the sweep job doesn't start: whoever can start the workflow (the cron-job.org token) can't publish a
   post with it. The inputs only reach shell commands through environment variables.
 - **`sweep`** (after `request`), the steps below. Job limit: 60 minutes.
