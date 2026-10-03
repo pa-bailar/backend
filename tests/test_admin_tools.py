@@ -145,12 +145,13 @@ def test_why_says_when_the_account_isnt_swept():
     assert "no está en los barridos" in result.checks[0][1] and result.suggestion == "add-post"
 
 
-def unseen(published: str, history=None, first_seen="2026-09-01", fetch=None):
+def unseen(published: str, history=None, first_seen="2026-09-01", fetch=None, swept_at=None):
     instagram_post = {**post("p1"), "timestamp": published}
+    account = {"first_seen": first_seen, "last_swept_at": swept_at}
     return why.diagnose(
         LINK,
         "academia",
-        read=state(history=history, account_state={"academia": {"first_seen": first_seen}} if first_seen else {}),
+        read=state(history=history, account_state={"academia": account} if first_seen else {}),
         fetch_posts=fetch or (lambda account: [instagram_post]),
         now=NOW,
     )
@@ -160,11 +161,29 @@ LAST_RUN = [{"finished_at": "2026-10-03T09:12:00-05:00", "pending": 0, "failed_a
 
 
 def test_why_explains_a_post_the_sweeps_havent_seen():
-    assert unseen("2026-10-03T15:00:00+0000", LAST_RUN).verdict.startswith("Se publicó después del último barrido")
+    assert unseen("2026-10-03T15:00:00+0000", LAST_RUN).verdict.startswith("Se publicó después de la última lectura")
     assert unseen("2026-09-20T15:00:00+0000", LAST_RUN).verdict.startswith("Es de hace más de 7 días")
     assert unseen("2026-10-02T15:00:00+0000", LAST_RUN, first_seen=None).verdict.startswith("La cuenta se agregó")
     failed = [{**LAST_RUN[0], "failed_accounts": ["academia"]}]
-    assert unseen("2026-10-02T15:00:00+0000", failed).verdict == "El último barrido no pudo leer esta cuenta."
+    assert unseen("2026-10-02T15:00:00+0000", failed).verdict.startswith("La última vez que le tocó")
+
+
+def test_why_compares_with_the_accounts_own_turn():
+    """Each account is read about once a day: the last run may not have read it."""
+    morning = {
+        "finished_at": "2026-10-03T09:12:00-05:00",
+        "pending": 0,
+        "failed_accounts": ["academia"],
+        "read_accounts": [],
+    }
+    evening = {"finished_at": "2026-10-03T21:10:00-05:00", "pending": 0, "failed_accounts": [],
+               "read_accounts": ["otra"]}  # fmt: skip
+    # Posted at noon, after the account's reading in the morning but before the evening run (which didn't read it).
+    after_its_turn = unseen("2026-10-03T17:00:00+0000", [morning, evening], swept_at="2026-10-03T09:05:00-05:00")
+    assert after_its_turn.verdict.startswith("Se publicó después de la última lectura")
+    # Posted before its reading, which failed: the evening run doesn't hide that.
+    before = unseen("2026-10-02T15:00:00+0000", [morning, evening], swept_at="2026-10-03T09:05:00-05:00")
+    assert before.verdict.startswith("La última vez que le tocó")
 
 
 def test_why_says_when_the_post_isnt_among_the_accounts_latest():
@@ -361,3 +380,29 @@ def test_the_answer_says_an_unchanged_post_wasnt_read_again():
     sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK, "academia")
     answer = added_post_markdown(sweep({"academia": [post("p1")]}, {}).add_post(LINK, "academia"))
     assert "no gasté cuota de Gemini" in answer and "Ya está en el sitio" in answer and "Publiqué" not in answer
+
+
+def test_the_inbox_takes_only_the_link_from_the_form_field():
+    body = f"### Acción\n\nRevisar\n\n### Enlace\n\n{LINK}\naction=add-account\n\n### Cuenta\n\n_No response_"
+    assert inbox.parse(body) == inbox.Request("why", LINK)
+
+
+def test_the_public_page_gives_the_posts_real_date_and_only_numeric_ids():
+    import json
+
+    def page(media_id):
+        media = {
+            "id": media_id,
+            "owner": {"username": "levelupbfc"},
+            "__typename": "GraphImage",
+            "display_url": "https://cdn.example/flyer.jpg",
+            "taken_at_timestamp": 1790000000,
+            "edge_media_to_caption": {"edges": [{"node": {"text": "Congreso"}}]},
+        }
+        context = json.dumps(json.dumps({"gql_data": {"shortcode_media": media}}))[1:-1]
+        return f'<script>{{"contextJSON":"{context}"}}</script>'
+
+    _, found = public_post.parse_embed("Dc_Jsv6R6Wu", page("3741"))
+    assert found["id"] == "public-3741" and found["timestamp"].startswith("2026-09-21")
+    with pytest.raises(public_post.PublicPostError):
+        public_post.parse_embed("Dc_Jsv6R6Wu", page("../../evil"))  # it names files: digits only

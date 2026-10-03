@@ -92,7 +92,7 @@ def _write_outputs(**values: str) -> None:
     if output := os.environ.get("GITHUB_OUTPUT"):
         with Path(output).open("a", encoding="utf-8") as file:
             for name, value in values.items():
-                file.write(f"{name}={value}\n")
+                file.write(f"{name}={(value.splitlines() or [''])[0]}\n")  # one line: no injected outputs
 
 
 def _utf8_stdout() -> None:

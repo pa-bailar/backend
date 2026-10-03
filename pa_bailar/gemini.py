@@ -4,7 +4,9 @@
 model when its daily budget is spent, and persists the day's usage so several runs on the same day share
 it. Errors: `ExtractionError` (no model could answer now: retry later), `QuotaExhaustedError` (its kind for
 when every model is out of today's quota or not offered to this key: nothing failed, the post just waits) and
-`RejectedRequestError` (Gemini refused the request itself: retrying won't help).
+`RejectedRequestError` (Gemini refused the request itself, or blocked its answer: retrying won't help).
+`GeminiKeyError` is apart: the API key itself doesn't work (invalid, expired, revoked), so nothing can be
+read until it's replaced. It isn't an `ExtractionError`, so no post is marked as rejected because of it.
 
 A model Gemini says isn't available to this key (404 or 403, e.g. if Google took it out of the free tier) is
 skipped for the rest of the day like a spent one, and listed in `unavailable` for the health checks.
@@ -13,7 +15,7 @@ skipped for the rest of the day like a spent one, and listed in `unavailable` fo
 import logging
 import time
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from google import genai
@@ -42,14 +44,50 @@ class RejectedRequestError(ExtractionError):
     """Gemini refused this request itself (e.g. an image it can't read): retrying won't help."""
 
 
+class GeminiKeyError(Exception):
+    """The API key doesn't work (invalid, expired or revoked): every request fails until it's replaced."""
+
+
+# Why an answer can come back empty on purpose: retrying the same post gives the same block.
+_BLOCKED = {"SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII", "IMAGE_SAFETY", "RECITATION"}
+
+
 def quota_day() -> str:
     """Gemini daily quotas reset at midnight Pacific time."""
     return datetime.now(ZoneInfo(config.QUOTA_TIMEZONE)).date().isoformat()
 
 
+def quota_reset(now: datetime) -> datetime:
+    """When Gemini's daily quotas reset next (midnight Pacific), in Bogotá time."""
+    pacific = now.astimezone(ZoneInfo(config.QUOTA_TIMEZONE))
+    midnight = datetime.combine(pacific.date() + timedelta(days=1), datetime.min.time(), pacific.tzinfo)
+    return midnight.astimezone(config.BOGOTA_TZ)
+
+
 def daily_budget(model: str) -> int:
     limit = config.MODEL_LIMITS[model]
     return max(0, limit.requests_per_day - config.DAILY_BUDGET_MARGIN)
+
+
+def _is_key_error(error: errors.ClientError) -> bool:
+    """Gemini answers an invalid, expired or revoked key with 400 (API_KEY_INVALID) or 401/403."""
+    text = str(error).lower()
+    return error.code == 401 or (
+        error.code in (400, 403)
+        and any(sign in text for sign in ("api_key_invalid", "api key not valid", "api key expired"))
+    )
+
+
+def _blocked(response: types.GenerateContentResponse) -> str | None:
+    """Why Gemini blocked this answer (a safety filter…), if it did."""
+    feedback = getattr(response, "prompt_feedback", None)
+    if feedback is not None and feedback.block_reason:
+        return str(getattr(feedback.block_reason, "name", feedback.block_reason))
+    for candidate in getattr(response, "candidates", None) or []:
+        reason = getattr(candidate.finish_reason, "name", None)
+        if reason in _BLOCKED:
+            return str(reason)
+    return None
 
 
 def _is_daily_quota_error(error: errors.ClientError) -> bool:
@@ -136,6 +174,8 @@ class ModelPool:
                     )
                     if isinstance(response.parsed, schema):
                         return response.parsed, model
+                    if reason := _blocked(response):
+                        raise RejectedRequestError(f"{model} blocked the answer ({reason})")
                     log.info("    %s returned no valid JSON, retrying", model)
                     failed = True
                 except errors.ServerError as error:
@@ -144,6 +184,8 @@ class ModelPool:
                     if attempt < ATTEMPTS_PER_MODEL:
                         time.sleep(SERVER_ERROR_BACKOFF_SECONDS * attempt)
                 except errors.ClientError as error:
+                    if _is_key_error(error):
+                        raise GeminiKeyError(str(error)) from error
                     if error.code in (403, 404):  # not available to this key (e.g. no longer in the free tier)
                         log.warning("    %s is not available to this API key (%s)", model, error.code)
                         self.unavailable.add(model)

@@ -1,6 +1,7 @@
 """Fetch public posts with the Instagram Graph API (Business Discovery)."""
 
 import json
+import re
 from datetime import datetime
 from typing import Any, NotRequired, TypedDict, cast
 
@@ -72,7 +73,8 @@ class InstagramClient:
             data: dict[str, Any] = response.json()
         except (requests.RequestException, ValueError) as error:
             # Network failure or a non-JSON answer (e.g. an HTML 5xx page): one account fails, not the run.
-            raise InstagramError(f"request failed: {error}") from error
+            # The token is in the URL, and connection errors quote the URL: never let it reach logs or answers.
+            raise InstagramError(f"request failed: {redact(str(error))}") from error
         self._read_usage(response.headers.get("x-app-usage"), response.headers.get("x-business-use-case-usage"))
         if "error" in data:
             payload = data["error"]
@@ -137,6 +139,11 @@ class InstagramClient:
             f"media.limit({recent_posts}){{caption,timestamp}}}}"
         )
         return cast(Profile, self._business_discovery(fields))
+
+
+def redact(text: str) -> str:
+    """Text without access tokens (error messages that quote a Graph API URL)."""
+    return re.sub(r"(access_token=)[^&\s'\"]+", r"\1***", text)
 
 
 def is_rate_limited(error: InstagramError) -> bool:

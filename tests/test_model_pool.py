@@ -121,3 +121,56 @@ def test_server_errors_are_retried(pool):
     fake = with_models(pool, {"gemini-3.8-flash": [busy, ANSWER]})
     assert pool.generate(("gemini-3.8-flash",), [], Triage) == (ANSWER, "gemini-3.8-flash")
     assert fake.calls == ["gemini-3.8-flash", "gemini-3.8-flash"]
+
+
+class Blocked:
+    """An answer Gemini blocked (e.g. its safety filter): no parsed JSON, and a finish reason saying why."""
+
+    parsed = None
+    prompt_feedback = None
+
+    def __init__(self, reason: str):
+        class Reason:
+            name = reason
+
+        class Candidate:
+            finish_reason = Reason()
+
+        self.candidates = [Candidate()]
+
+
+def test_a_blocked_answer_is_rejected_at_once_without_retries(pool, monkeypatch):
+    fake = with_models(pool, {"gemini-3.8-flash": [Blocked("SAFETY")], "gemini-3.5-flash": [ANSWER]})
+    monkeypatch.setattr(fake, "generate_content", blocked_or(fake.generate_content))
+    with pytest.raises(gemini.RejectedRequestError, match="SAFETY"):
+        pool.generate(["gemini-3.8-flash", "gemini-3.5-flash"], [], Triage)
+    assert fake.calls == ["gemini-3.8-flash"]  # not 3 tries on each model: it would be blocked every time
+
+
+def blocked_or(generate):
+    def answer(model, contents, config):
+        outcome = generate(model, contents, config)
+        return outcome.parsed if isinstance(outcome.parsed, Blocked) else outcome
+
+    return answer
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        client_error(400, "API key not valid. Please pass a valid API key. [reason: API_KEY_INVALID]"),
+        client_error(400, "API key expired. Please renew the API key."),
+        client_error(401, "Request had invalid authentication credentials."),
+    ],
+)
+def test_a_key_that_doesnt_work_stops_everything_instead_of_rejecting_posts(pool, error):
+    with_models(pool, {"gemini-3.8-flash": [error]})
+    with pytest.raises(gemini.GeminiKeyError):
+        pool.generate(["gemini-3.8-flash"], [], Triage)
+    assert not issubclass(gemini.GeminiKeyError, gemini.ExtractionError)  # never recorded as a rejected post
+
+
+def test_other_request_errors_are_still_a_rejection(pool):
+    with_models(pool, {"gemini-3.8-flash": [client_error(400, "Unable to process input image.")]})
+    with pytest.raises(gemini.RejectedRequestError):
+        pool.generate(["gemini-3.8-flash"], [], Triage)

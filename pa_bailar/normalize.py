@@ -134,7 +134,8 @@ def normalize_event(event: ExtractedEvent) -> ExtractedEvent:
             "start_time": start_time,
             "end_time": end_time,
             "styles": normalize_styles(event.styles),
-            "prices": [price for price in event.prices if price.amount_cop >= 0],
+            # The site's check-data.mjs requires a label: a price without one isn't shown.
+            "prices": [price for price in event.prices if price.amount_cop >= 0 and price.label.strip()],
             "contact": normalize_contact(event.contact),
             "doubts": doubts,
         }

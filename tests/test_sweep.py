@@ -493,3 +493,34 @@ def test_an_account_instagrams_limit_didnt_reach_stays_due():
     stats = run(FakeInstagram({"academia": limited, "otra": []}), FakeExtractor({}), all_accounts=False)
     assert stats.rate_limited
     assert turn(storage.read_json(config.ACCOUNT_STATE_FILE, {})) == ["academia", "otra"]
+
+
+# ---------- review fixes: a broken Gemini key, a cancelled event ----------
+
+
+def test_a_gemini_key_that_doesnt_work_stops_the_run_without_marking_posts(monkeypatch):
+    from pa_bailar.gemini import GeminiKeyError
+
+    extractor = FakeExtractor({"p1": event_post("p1")})
+
+    def broken_key(*args, **kwargs):
+        raise GeminiKeyError("API key expired")
+
+    monkeypatch.setattr(extractor, "triage", broken_key)
+    with pytest.raises(SystemExit, match="GEMINI_API_KEY"):
+        run(FakeInstagram({"academia": [post("p1")], "otra": []}), extractor)
+    assert "p1" not in storage.load_processed_posts()  # read again once the key is replaced
+
+
+def test_an_edited_caption_is_extracted_again_without_the_filter_and_a_cancelled_event_leaves_the_site():
+    first = post("p1")
+    run(FakeInstagram({"academia": [first], "otra": []}), FakeExtractor({"p1": event_post("p1")}))
+    assert len(read(config.EVENTS_FILE)) == 1
+
+    cancelled = {**first, "caption": "CANCELADO: nos vemos el próximo mes"}
+    no_event = PostAnalysis(is_event_post=False, reason="Cancelado", events=[])
+    # The filter would call it "not an event" too: skipping it means the extraction decides, and detaches.
+    extractor = FakeExtractor({"p1": no_event}, not_events={"p1"})
+    run(FakeInstagram({"academia": [cancelled], "otra": []}), extractor)
+    assert extractor.extracted_posts == ["p1"]
+    assert read(config.EVENTS_FILE) == []

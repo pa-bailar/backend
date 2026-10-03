@@ -23,7 +23,7 @@ from google.genai import errors as genai_errors
 
 from . import clips, config, links, public_post, storage
 from .extraction import EventExtractor
-from .gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError
+from .gemini import ExtractionError, GeminiKeyError, QuotaExhaustedError, RejectedRequestError, quota_reset
 from .ids import new_event_id
 from .instagram import (
     InstagramClient,
@@ -146,8 +146,14 @@ def _caption_hash(post: Post) -> str:
 
 
 def _is_publishable(event: ExtractedEvent) -> bool:
-    """Only one-time events with a valid date make it to the website (run normalize_event first)."""
-    return not event.is_recurring and bool(event.date)
+    """Only one-time events with a title and a valid date make it to the website (run normalize_event first)."""
+    return not event.is_recurring and bool(event.date) and bool(event.title)
+
+
+def _no_quota_message() -> str:
+    reset = quota_reset(config.now_bogota())
+    hour = f"{reset.hour % 12 or 12}:{reset.minute:02d} {'a. m.' if reset.hour < 12 else 'p. m.'}"
+    return f"No queda cuota de Gemini hoy: inténtalo después de las {hour}."
 
 
 def _image_index(event: ExtractedEvent, image_count: int) -> int:
@@ -292,6 +298,11 @@ class Sweep:
             self.stats.accounts += 1
             try:
                 self._process_account(account)
+            except GeminiKeyError as error:  # every post would fail: stop, and let the run fail loudly
+                raise SystemExit(
+                    f"Gemini API key doesn't work ({error}). Create a new key in Google AI Studio and update "
+                    "GEMINI_API_KEY (.env and the GitHub secret)."
+                ) from error
             except Exception:  # unexpected (e.g. a malformed answer): lose this account's run, not everyone's
                 log.exception("   unexpected error with @%s, continuing with the next account", account)
                 self.stats.count(account, "errors")
@@ -482,7 +493,7 @@ class Sweep:
     def _extract_post(self, account: str, post: Post, published: datetime) -> None:
         """Extract and store one post without triage, or raise AddPostError saying why it couldn't."""
         if not self.extractor.can_analyze():
-            raise AddPostError("No queda cuota de Gemini hoy: inténtalo después de las 2:00 a. m.")
+            raise AddPostError(_no_quota_message())
         try:
             images = _download_images(post)
             known = self._known_events(account, published)
@@ -490,7 +501,9 @@ class Sweep:
         except RejectedRequestError as error:
             raise AddPostError(f"Gemini no pudo leer la publicación ({error}).") from error
         except QuotaExhaustedError as error:
-            raise AddPostError("No queda cuota de Gemini hoy: inténtalo después de las 2:00 a. m.") from error
+            raise AddPostError(_no_quota_message()) from error
+        except GeminiKeyError as error:
+            raise AddPostError("La clave de Gemini no funciona (vencida o revocada): hay que cambiarla.") from error
         except RETRYABLE_ERRORS as error:
             raise AddPostError(f"Algo falló al leerla ({error}). Inténtalo de nuevo en un rato.") from error
         if not self._store_analysis(account, post, images, analysis, model, provisional):
@@ -540,7 +553,11 @@ class Sweep:
                 if self._out_of_time():
                     continue  # still edited next run: analyzed then
                 log.info("   %s caption edited, analyzing again %s", f"{published:%Y-%m-%d}", post["permalink"])
-                if self._analyze_new_post(account, post, published):
+                # A post that had events skips the filter: the extraction decides again, and takes its old
+                # events off the site if it no longer announces them ("CANCELADO"). Others go through the
+                # filter as usual (Flash-Lite), keeping Flash's small quota for events.
+                had_events = record.outcome in ("event", "merged")
+                if self._analyze_new_post(account, post, published, triage=not had_events):
                     self.stats.reanalyzed += 1
             elif record.provisional and self.extractor.can_extract_with_flash() and not self._out_of_time():
                 log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
@@ -596,8 +613,9 @@ class Sweep:
 
     # ---------- per post ----------
 
-    def _analyze_new_post(self, account: str, post: Post, published: datetime) -> bool:
-        """Triage, then extract if it's an event. False when the post must be retried next run."""
+    def _analyze_new_post(self, account: str, post: Post, published: datetime, triage: bool = True) -> bool:
+        """Triage, then extract if it's an event (`triage=False`: extract directly). False when the post must be
+        retried next run."""
         if not self.extractor.can_analyze():
             return False  # no quota left today: it waits (no download, not an error)
         try:
@@ -605,20 +623,21 @@ class Sweep:
         except OSError as error:
             return self._retry_later(account, f"could not download images: {error}")
 
-        try:
-            triage, triage_model = self.extractor.triage(account, post, published, images)
-        except RETRYABLE_ERRORS as error:
-            # Triage unavailable: let the extraction decide on its own.
-            log.info("     triage unavailable (%s), extracting directly", error)
-            triage, triage_model = None, None
+        verdict, triage_model = None, None
+        if triage:
+            try:
+                verdict, triage_model = self.extractor.triage(account, post, published, images)
+            except RETRYABLE_ERRORS as error:
+                # Triage unavailable: let the extraction decide on its own.
+                log.info("     triage unavailable (%s), extracting directly", error)
 
-        if triage is not None and not triage.is_event_post:
+        if verdict is not None and not verdict.is_event_post:
             self.stats.count(account, "posts_analyzed")
             self.stats.posts_triaged_out += 1
-            self._record_processed(account, post, False, triage.reason, triage_model or "-", provisional=False)
+            self._record_processed(account, post, False, verdict.reason, triage_model or "-", provisional=False)
             self._set_outcome(post, "not_event")
             self._save()
-            log.info("     not an event: %s", triage.reason)
+            log.info("     not an event: %s", verdict.reason)
             return True
 
         try:
