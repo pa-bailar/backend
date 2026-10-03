@@ -2520,5 +2520,20 @@
     "outcome": null,
     "event_ids": [],
     "detail": null
+  },
+  "public-Dc_Jsv6R6Wu": {
+    "account": "levelupbfc",
+    "permalink": "https://www.instagram.com/p/Dc_Jsv6R6Wu/",
+    "processed_at": "2026-10-03T14:47:11-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia el congreso de bachata 'Level Up' para noviembre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "9bd7f9239eace9a6",
+    "outcome": "event",
+    "event_ids": [
+      "level-up-bachata-fusion-congress-13-nov"
+    ],
+    "detail": null
   }
 }

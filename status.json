@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-03T09:15:28-05:00",
+  "generated_at": "2026-10-03T14:47:12-05:00",
   "sweeps": {
     "recent": [
       {
@@ -172,14 +172,14 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 0,
+        "used": 1,
         "budget": 498
       }
     ]
   },
   "instagram": {
     "ok": true,
-    "app_usage_percent": 0,
+    "app_usage_percent": 1,
     "error": null
   },
   "accounts": {
@@ -195,14 +195,15 @@
       "latinproductioncolombia",
       "elparche.se",
       "bogotadanceclub"
-    ]
+    ],
+    "waiting": []
   },
   "posts": {
-    "recorded": 192,
-    "provisional": 48
+    "recorded": 193,
+    "provisional": 49
   },
   "events": {
-    "upcoming": 25,
+    "upcoming": 26,
     "low_confidence": 1
   },
   "discovery": null
