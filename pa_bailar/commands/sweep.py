@@ -10,9 +10,9 @@ import logging
 import os
 from pathlib import Path
 
-from pa_bailar import config, health, storage
+from pa_bailar import config, health, links, storage
 from pa_bailar.logs import setup_logging
-from pa_bailar.pipeline import RunStats, Sweep
+from pa_bailar.pipeline import AddedPost, AddPostError, RunStats, Sweep
 
 log = logging.getLogger(__name__)
 
@@ -99,6 +99,41 @@ def lookback_days(value: str) -> int:
     return days
 
 
+def added_post_markdown(added: AddedPost) -> str:
+    """The admin tools' answer after adding a post by hand, in Spanish."""
+    lines: list[str] = []
+    if added.account_added:
+        lines.append(
+            f"➕ @{added.account} no estaba en los barridos: la agregué (sus publicaciones de los últimos "
+            f"{config.BACKFILL_DAYS} días se leen en el próximo barrido)."
+        )
+    light = " Flash-Lite (provisional: se relee con Flash)" if added.provisional else f" {added.model}"
+    if added.outcome in ("event", "merged") and added.events:
+        verb = "Se unió a" if added.outcome == "merged" else "Publiqué"
+        lines.append(f"✅ **{verb} {len(added.events)} evento(s)**, leído con{light}:")
+        lines += [f"- [{e.title}]({links.event_url(e.id)}) · {e.date}" for e in added.events]
+        lines.append("")
+        lines.append("Aparece en el sitio cuando termina de publicarse (unos minutos).")
+    elif added.outcome == "discarded":
+        lines.append(f"❌ Gemini la leyó como evento, pero no es publicable: {added.reason}")
+    else:
+        lines.append(f"❌ Gemini dice que no anuncia un evento: “{added.reason}”")
+    return "\n".join(lines) + "\n"
+
+
+def add_post(link: str, account: str | None) -> None:
+    """`sweep --post`: publish one post by hand. The answer goes to ADMIN_REPORT_FILE (the workflow comments it
+    on the admin issue) and the log; a failure to add it isn't a failed run (the answer says why)."""
+    try:
+        added = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS).add_post(link, account)
+        report = added_post_markdown(added)
+    except AddPostError as error:
+        report = f"❌ {error}\n"
+    logging.info("\n%s", report)
+    if report_file := os.environ.get("ADMIN_REPORT_FILE"):
+        Path(report_file).write_text(report, encoding="utf-8")
+
+
 def is_broken(stats: RunStats) -> bool:
     """A run that must show as failed (and alert): no account could be read, and not because Instagram's rate
     limit stopped it. Failed posts are retried next run, and a rate-limited run just waits for the next one;
@@ -115,8 +150,14 @@ def main(argv: list[str] | None = None) -> None:
         help=f"only analyze posts published in the last N days (default {config.DEFAULT_LOOKBACK_DAYS}, "
         f"at most {config.MAX_LOOKBACK_DAYS})",
     )
+    parser.add_argument("--post", help="add one post by hand instead (its Instagram link): `admin add-post`")
+    parser.add_argument("--account", help="with --post: the @account, if the link doesn't say it")
     args = parser.parse_args(argv)
     setup_logging()
+
+    if args.post:
+        add_post(args.post, links.account_name(args.account) if args.account else None)
+        return
 
     stats = Sweep(lookback_days=args.days).run()
 

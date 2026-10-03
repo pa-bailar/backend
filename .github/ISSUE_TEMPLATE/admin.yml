@@ -1,0 +1,31 @@
+# The admin inbox's form (docs/ADMIN.md): the admin workflow answers it with a comment (pa_bailar/inbox.py reads
+# the "### Acción", "### Enlace" and "### Cuenta" fields this form writes).
+name: Pedido a las herramientas de administración
+description: Revisar o agregar una publicación, agregar una cuenta, o ver el estado.
+title: "Pedido"
+labels: [admin]
+body:
+  - type: dropdown
+    id: accion
+    attributes:
+      label: Acción
+      options:
+        - Revisar
+        - Agregar
+        - Agregar cuenta
+        - Estado
+      default: 0
+    validations:
+      required: true
+  - type: input
+    id: enlace
+    attributes:
+      label: Enlace
+      description: El enlace de la publicación de Instagram (para Revisar o Agregar).
+      placeholder: https://www.instagram.com/p/…
+  - type: input
+    id: cuenta
+    attributes:
+      label: Cuenta
+      description: La @cuenta, si el enlace no la trae, o la cuenta a agregar.
+      placeholder: "@academia"

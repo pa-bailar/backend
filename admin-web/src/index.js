@@ -7,6 +7,9 @@
 //   /api/me          {login} of the session, 401 without one
 //   /api/status      the latest `admin status` (status.json on the sweep-state branch), read with the session's
 //                    GitHub token: the visitor's own access, limited to what the App may do (read the backend)
+//   /api/requests    POST: a request to the admin tools (check or add a post, add an account), opened as an
+//                    issue in the admin inbox, which the admin workflow answers; GET: the latest requests
+//   /api/requests/N  one request and its answers (the bot's comments)
 //
 // The session is a cookie holding the GitHub token, encrypted (AES-GCM, key from SESSION_SECRET) so the browser
 // can't read or change it. GitHub App user tokens expire after 8 hours; the refresh token renews them (it lasts
@@ -35,8 +38,17 @@ export default {
           return await withSession(request, env, (session) => Response.json({ login: session.login }));
         case "/api/status":
           return await withSession(request, env, (session) => readStatus(session, env));
-        default:
+        case "/api/requests":
+          if (request.method === "POST") {
+            if (request.headers.get("Origin") !== url.origin) return new Response("Forbidden", { status: 403 });
+            return await withSession(request, env, (session) => createRequest(request, session, env));
+          }
+          return await withSession(request, env, (session) => listRequests(session, env));
+        default: {
+          const match = url.pathname.match(/^\/api\/requests\/(\d+)$/);
+          if (match) return await withSession(request, env, (session) => readRequest(match[1], session, env));
           return new Response("Not found", { status: 404 });
+        }
       }
     } catch (error) {
       console.error(error);
@@ -131,13 +143,99 @@ async function readStatus(session, env) {
   });
 }
 
-function github(path, token, accept = "application/vnd.github+json") {
+// ---------- requests: issues in the admin inbox (.github/workflows/admin.yml answers them) ----------
+
+const POST_LINK = /^https?:\/\/(www\.|m\.)?instagram\.com\/([\w.]+\/)?(p|reel|reels|tv)\/[\w-]+/i;
+const ACCOUNT = /^@?[A-Za-z0-9._]{1,30}$/;
+const ACTIONS = { why: "Revisar", "add-post": "Agregar", "add-account": "Agregar cuenta", status: "Estado" };
+
+/** POST {action, link?, account?} → an issue written like the inbox's form (pa_bailar/inbox.py reads it). */
+async function createRequest(request, session, env) {
+  const { action, link = "", account = "" } = await request.json().catch(() => ({}));
+  const cleanLink = String(link).trim();
+  const cleanAccount = String(account).trim().replace(/^@/, "");
+  if (!ACTIONS[action]) return Response.json({ error: "Acción desconocida." }, { status: 400 });
+  if ((action === "why" || action === "add-post") && !POST_LINK.test(cleanLink)) {
+    return Response.json({ error: "Pega el enlace de una publicación de Instagram (instagram.com/p/…)." }, { status: 400 });
+  }
+  if (cleanAccount && !ACCOUNT.test(cleanAccount)) {
+    return Response.json({ error: "Esa @cuenta no es válida." }, { status: 400 });
+  }
+  if (action === "add-account" && !cleanAccount) {
+    return Response.json({ error: "Escribe la @cuenta a agregar." }, { status: 400 });
+  }
+  const subject = action === "add-account" ? `@${cleanAccount}` : cleanLink;
+  const body = [
+    `### Acción\n\n${ACTIONS[action]}`,
+    `### Enlace\n\n${action === "why" || action === "add-post" ? cleanLink : "_No response_"}`,
+    `### Cuenta\n\n${cleanAccount ? `@${cleanAccount}` : "_No response_"}`,
+    "_Desde la página de administración._",
+  ].join("\n\n");
+  const response = await github(`/repos/${env.REPO}/issues`, session.access_token, undefined, {
+    method: "POST",
+    body: JSON.stringify({ title: `${ACTIONS[action]}${subject ? `: ${subject}` : ""}`, body, labels: ["admin"] }),
+  });
+  if (!response.ok) {
+    return Response.json({ error: `GitHub respondió ${response.status} al crear el pedido.` }, { status: 502 });
+  }
+  const issue = await response.json();
+  return Response.json({ number: issue.number, url: issue.html_url });
+}
+
+/** The latest admin requests (open and answered). */
+async function listRequests(session, env) {
+  const path = `/repos/${env.REPO}/issues?labels=admin&state=all&per_page=8&sort=created&direction=desc`;
+  const response = await github(path, session.access_token);
+  if (!response.ok) return Response.json({ error: `GitHub respondió ${response.status}.` }, { status: 502 });
+  const issues = await response.json();
+  return Response.json(
+    issues.map((issue) => ({
+      number: issue.number,
+      title: issue.title,
+      state: issue.state,
+      created_at: issue.created_at,
+      url: issue.html_url,
+    })),
+  );
+}
+
+/** One request: its state and the answers (comments). */
+async function readRequest(number, session, env) {
+  const [issueResponse, commentsResponse] = await Promise.all([
+    github(`/repos/${env.REPO}/issues/${number}`, session.access_token),
+    github(`/repos/${env.REPO}/issues/${number}/comments?per_page=50`, session.access_token),
+  ]);
+  if (!issueResponse.ok || !commentsResponse.ok) {
+    return Response.json({ error: "No se pudo leer el pedido." }, { status: 502 });
+  }
+  const issue = await issueResponse.json();
+  if (!issue.labels?.some((label) => label.name === "admin")) {
+    return Response.json({ error: "Ese no es un pedido de administración." }, { status: 404 });
+  }
+  const comments = await commentsResponse.json();
+  return Response.json(
+    {
+      number: issue.number,
+      title: issue.title,
+      state: issue.state,
+      url: issue.html_url,
+      answers: comments
+        .filter((comment) => comment.user?.type === "Bot")
+        .map((comment) => ({ body: comment.body, created_at: comment.created_at })),
+    },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}
+
+function github(path, token, accept = "application/vnd.github+json", init = {}) {
   return fetch(`https://api.github.com${path}`, {
+    ...init,
     headers: {
       Accept: accept,
       Authorization: `Bearer ${token}`,
       "User-Agent": "pa-bailar-admin",
       "X-GitHub-Api-Version": "2022-11-28",
+      ...(init.body ? { "Content-Type": "application/json" } : {}),
     },
   });
 }

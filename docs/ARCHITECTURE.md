@@ -293,20 +293,27 @@ sequenceDiagram
 | 4 | Check out the site repository | Always | Into `site/`. `DATA_DIR` points to `site/data` | None (public repository) |
 | 5 | Set up Python | Always | Python from `.python-version` (3.12), pip cache | |
 | 6 | Install | Always | `pip install -r requirements.txt`, every package pinned and hash-checked | |
-| 7 | **Run the sweep** | Always | `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
+| 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x]`, one post by hand. Otherwise `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 8 | Write the status for the admin page | Unless cancelled; its failure doesn't fail the run | `python -m pa_bailar admin status --json` → `state/status.json`, saved with the state (one Graph API call, no Gemini). The admin page reads it | `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 9 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real | `GITHUB_TOKEN` (this step only) |
+| 9b | Save an account added by hand | `post_url`, and `accounts.txt` changed | Commits `accounts.txt` to `main` | `GITHUB_TOKEN` (this step only) |
 | 10 | Update the sweep health issue | Unless cancelled, and the sweep produced its health output | Opens, updates, comments on or closes the `Sweep health` issue (section 11.3) | `GITHUB_TOKEN` (issues) |
 | 11 | Get a token for the site repository | Unless cancelled | Mints a pa-bailar-bot installation token for the site repository only | `APP_ID`, `APP_PRIVATE_KEY` |
 | 12 | Open a data PR | Unless cancelled | Only if `data/events.json` or `data/flyers` changed (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled | App token |
 | 13 | Wait for the data PR to merge | A PR was opened | Polls every 30 s, up to 20 minutes. Fails if the PR is closed or doesn't merge in time | App token |
-| 14 | Republish the site | Success and no PR | `gh workflow run deploy.yml -f checked_at=<now in Bogotá>`, so "Actualizado el" stays current on days without new events | App token |
-| 15 | Report to the health check | Always | Pings `HEALTHCHECK_URL` (success) or `HEALTHCHECK_URL/fail`, with the report as the body | `HEALTHCHECK_URL` |
+| 14 | Republish the site | Success, no PR, not `post_url` | `gh workflow run deploy.yml -f checked_at=<now in Bogotá>`, so "Actualizado el" stays current on days without new events | App token |
+| 15 | Report to the health check | Always, except `post_url` runs | Pings `HEALTHCHECK_URL` (success) or `HEALTHCHECK_URL/fail`, with the report as the body | `HEALTHCHECK_URL` |
+
+| 16 | Answer on the admin issue | `issue` given (admin tools) | Comments the result of adding the post (`ADMIN_REPORT_FILE`) and the data PR, then closes the issue | `GITHUB_TOKEN` |
 
 Other workflow settings:
 - **`concurrency: data`** (`cancel-in-progress: false`): two sweeps never run at the same time. A new one
   waits, and if several are started meanwhile, only the newest waits (the others show as "cancelled").
 - **`workflow_dispatch` only:** there's no schedule (section 3.4), and no push trigger.
+- **Single-post mode** (`post_url`, started by the `admin` workflow): `sweep --post` adds one post by hand,
+  then the same state save and data PR. It isn't recorded in the run history, opens no health issue and
+  doesn't ping healthchecks.io. GitHub keeps only one waiting run per concurrency group (a newer one cancels
+  it), so the `admin` workflow waits until no sweep is running or waiting before starting one.
 
 ### 5.3 What a run decides is a failure
 
@@ -706,6 +713,17 @@ flowchart LR
 `python -m pa_bailar admin <tool>` (`pa_bailar/commands/admin.py`), the tools behind the admin page.
 They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](ADMIN.md) is the guide.
 
+- **`admin why <link>`** (`pa_bailar/why.py`): why a post's event is or isn't on the site. From the post's
+  record (its `outcome`, Gemini's reason, the events in `events.json`), or, for a post never analyzed, one
+  Instagram call (the account's latest 50 posts) and the run history: posted after the last sweep, account
+  not swept yet, too old, the account couldn't be read, waiting for quota.
+- **`admin add-account @x`**: checks that Instagram can read it (Business Discovery), then adds it to
+  `accounts.txt` (`storage.add_account`, in its own section).
+- **`sweep --post <link>`** (`Sweep.add_post`): one post by hand, without triage. Adds the account if it isn't
+  swept; `AddPostError` says in Spanish why it couldn't (not found, not visible, no quota).
+- **`admin inbox`** (`pa_bailar/inbox.py`): reads an issue or comment with fixed patterns (a link, `/agregar`,
+  `/cuenta @x`, `/estado`, or the issue form's fields) and writes the answer; the `admin` workflow
+  (`.github/workflows/admin.yml`) runs it on new issues and comments from `jzamora5`.
 - **`admin status`** (`pa_bailar/status.py`): the latest and next sweeps; Gemini usage per model against
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
   otherwise); whether the Instagram token works and the app's hourly usage (one call, `--no-instagram`
@@ -809,6 +827,9 @@ flowchart LR
     MAIN --> AD["commands/admin.py"]
     AD --> ST["status.py"]
     ST --> SS["sweep_state.py"]
+    AD --> WHY["why.py"]
+    AD --> INB["inbox.py"]
+    WHY --> SS
     DI --> SS
     SW --> PL["pipeline.py<br/>(Sweep)"]
     SW --> HE["health.py"]
@@ -844,6 +865,9 @@ flowchart LR
 | `health.py` | Run history, health rules, events to review, the report and its fingerprint |
 | `status.py` | What `admin status` shows: sweeps, Gemini usage, Instagram, accounts, events (data and Spanish text) |
 | `sweep_state.py` | The sweeps' latest state on your computer: reads the `sweep-state` branch with git |
+| `why.py` | `admin why`: why a post's event is or isn't on the site (fixed checks, Spanish answer) |
+| `inbox.py` | The admin inbox: what an issue or comment asks for |
+| `links.py` | Instagram post links (code, account) and links to the site's events |
 | `discovery.py` | Parsing the Instagram export, dance hints, the classification prompt, the report, quiet windows around sweeps |
 | `text.py`, `logs.py` | Accent-insensitive comparison, logging setup |
 | `commands/*.py` | The commands (sweep, discover, refresh-token, admin): arguments, wiring, exit codes, GitHub outputs |
