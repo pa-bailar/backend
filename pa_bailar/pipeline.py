@@ -9,7 +9,8 @@ Per account:
   - A post whose caption was edited since it was analyzed (e.g. the venue added) is analyzed again.
   - After MAX_RUN_MINUTES no new Gemini work starts; the rest waits for the next run.
 
-After all accounts: events older than EVENT_RETENTION_DAYS are deleted, then every flyer no event uses.
+After all accounts: events whose last day is older than EVENT_RETENTION_DAYS are deleted, then every flyer no
+event uses.
 """
 
 import hashlib
@@ -109,7 +110,7 @@ class RunStats:
     reanalyzed: int = 0  # posts analyzed again because their caption was edited
     pending: int = 0
     errors: int = 0
-    events_expired: int = 0  # dated more than EVENT_RETENTION_DAYS ago
+    events_expired: int = 0  # ended more than EVENT_RETENTION_DAYS ago
     processed_forgotten: int = 0  # analyzed-post records older than PROCESSED_RETENTION_DAYS
     flyers_removed: int = 0
     rate_limited: bool = False  # Instagram throttled the app: accounts after that one wait for the next run
@@ -225,7 +226,7 @@ class AddedPost:
     events: list[StoredEvent]  # the events it became or joined, as stored
     public: bool = False  # read from its public page (public_post.py): the API couldn't give it
     readable: bool = True  # the API can read the account (so it's swept); False: personal or private
-    unchanged: bool = False  # analyzed before and unchanged: not read again (no Gemini request)
+    unchanged: bool = False  # analyzed before and unchanged: not read again (no Gemini request; `again` forces it)
 
 
 # What a post analyzed before became, when reading it again by hand can't change it (caption unchanged):
@@ -244,6 +245,11 @@ def hours_overdue(state: AccountState | None, now: datetime) -> float:
     )
     every = config.QUIET_SWEEP_EVERY_HOURS if quiet else config.SWEEP_EVERY_HOURS
     return (now - datetime.fromisoformat(state.last_swept_at)).total_seconds() / 3600 - every
+
+
+def _days(event: EventDetails) -> str:
+    """An event's day for the log: its date, or first → last day."""
+    return f"{event.date} → {event.end_date}" if event.end_date else str(event.date)
 
 
 def _details(event: ExtractedEvent) -> dict[str, Any]:
@@ -346,7 +352,7 @@ class Sweep:
         """Delete long-past events and forget old analyzed posts, so data and flyers don't grow forever."""
         now = config.now_bogota()
         oldest_date = (now - timedelta(days=config.EVENT_RETENTION_DAYS)).date().isoformat()
-        kept = [event for event in self.events if not event.date or event.date >= oldest_date]
+        kept = [event for event in self.events if not event.last_day or event.last_day >= oldest_date]
         self.stats.events_expired = len(self.events) - len(kept)
         self.events = kept
 
@@ -366,7 +372,7 @@ class Sweep:
 
     # ---------- one post, from the admin tools ----------
 
-    def add_post(self, url: str, account: str | None = None) -> AddedPost:
+    def add_post(self, url: str, account: str | None = None, again: bool = False) -> AddedPost:
         """Publish the events of one post by hand (`sweep --post`, from `admin add-post`), without triage
         (whoever asks knows it's an event).
 
@@ -377,7 +383,8 @@ class Sweep:
 
         Gemini only reads it when that can change something: a post analyzed before is read again only if its
         caption changed, or if it was filtered out as "not an event" or rejected (whoever asks says it is one).
-        Otherwise the answer is what it already became."""
+        Otherwise the answer is what it already became, unless `again` ("Volver a leer"): then it's read again
+        anyway (one Gemini request), e.g. after the prompts improved."""
         code = links.post_code(url)
         if not code:
             raise AddPostError("Ese enlace no es de una publicación de Instagram (instagram.com/p/…).")
@@ -412,12 +419,13 @@ class Sweep:
             self.accounts.setdefault(account, AccountState(first_seen=config.now_bogota().date().isoformat()))
             log.info("@%s added to accounts.txt", account)
         record = self.processed.get(post["id"])
-        unchanged = record is not None and record.outcome in SETTLED_OUTCOMES and self._same_caption(post)
+        unchanged = not again and record is not None and record.outcome in SETTLED_OUTCOMES and self._same_caption(post)
         if unchanged:
             log.info("   analyzed before and unchanged: not read again %s", post["permalink"])
         else:
             published = published_at(post)
-            log.info("   %s %-14s %s (by hand)", f"{published:%Y-%m-%d}", post["media_type"], post["permalink"])
+            by_hand = "by hand, read again" if again and record else "by hand"
+            log.info("   %s %-14s %s (%s)", f"{published:%Y-%m-%d}", post["media_type"], post["permalink"], by_hand)
             self._extract_post(account, post, published)
             self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
             self.stats.gemini_requests = self.extractor.requests_this_run()
@@ -734,7 +742,7 @@ class Sweep:
     def _known_events(self, account: str, published: datetime) -> list[StoredEvent]:
         """Events of this account that a new post could be announcing again (not already over)."""
         since = (published - timedelta(days=1)).date().isoformat()
-        return [event for event in self.events if event.account == account and (event.date or "") >= since]
+        return [event for event in self.events if event.account == account and (event.last_day or "") >= since]
 
     def _add_event(
         self,
@@ -754,7 +762,7 @@ class Sweep:
             self.events[self.events.index(existing)] = merge_into(existing, candidate, media)
             if count:
                 self.stats.count(account, "events_merged")
-            log.info("     same event as an earlier post, merged: %s %s", existing.date, existing.title)
+            log.info("     same event as an earlier post, merged: %s %s", _days(existing), existing.title)
             return existing.id, True
         event = StoredEvent(
             **_details(candidate), id=self._event_id(candidate, reusable), account=account, media=[media]
@@ -762,7 +770,7 @@ class Sweep:
         self.events.append(event)
         if count:
             self.stats.count(account, "events_new")
-        log.info("     event: %s %s | %s [%s]", event.date, event.start_time or "", event.title, event.event_type)
+        log.info("     event: %s %s | %s [%s]", _days(event), event.start_time or "", event.title, event.event_type)
         return event.id, False
 
     def _event_id(self, candidate: ExtractedEvent, reusable: list[StoredEvent]) -> str:

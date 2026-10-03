@@ -1,12 +1,13 @@
 """The admin tools' logic: links, the inbox, `why`, adding posts and accounts. No network, no Gemini."""
 
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 import pytest
 
 from pa_bailar import config, inbox, links, public_post, storage, why
 from pa_bailar.instagram import InstagramError
 from pa_bailar.pipeline import AddPostError
+from pa_bailar.text import dates_label
 from tests.factories import extracted, stored
 from tests.test_sweep import FakeExtractor, FakeInstagram, event_post, post
 
@@ -406,3 +407,61 @@ def test_the_public_page_gives_the_posts_real_date_and_only_numeric_ids():
     assert found["id"] == "public-3741" and found["timestamp"].startswith("2026-09-21")
     with pytest.raises(public_post.PublicPostError):
         public_post.parse_embed("Dc_Jsv6R6Wu", page("../../evil"))  # it names files: digits only
+
+
+# ---------- Volver a leer ----------
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        f"/releer {LINK}",
+        f"Volver a leer {LINK}",
+        f"reléela por favor {LINK}",
+        f"### Acción\n\nVolver a leer\n\n### Enlace\n\n{LINK}\n\n### Cuenta\n\n_No response_",
+    ],
+)
+def test_the_inbox_understands_reading_a_post_again(text):
+    assert inbox.parse(text) == inbox.Request("add-post", LINK, again=True)
+
+
+def test_reading_a_post_again_spends_one_gemini_request_even_if_it_hasnt_changed():
+    from pa_bailar.commands.sweep import added_post_markdown
+
+    sweep({"academia": [post("p1")]}, {"p1": event_post("p1", event_type="congress")}).add_post(LINK, "academia")
+    [first] = storage.load_events()
+    last_day = (date.fromisoformat(first.date) + timedelta(days=2)).isoformat()
+    again = sweep({"academia": [post("p1")]}, {"p1": event_post("p1", event_type="congress", end_date=last_day)})
+    added = again.add_post(LINK, "academia", again=True)
+    assert not added.unchanged and again.extractor.extracted_posts == ["p1"]
+    [event] = storage.load_events()
+    assert (event.id, event.end_date) == (first.id, last_day)  # the same event, now with its last day
+    assert dates_label(first.date, last_day) in added_post_markdown(added)
+
+
+def test_the_answer_for_an_unchanged_post_offers_to_read_it_again():
+    from pa_bailar.commands.sweep import added_post_markdown
+
+    sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK, "academia")
+    assert "Volver a leer" in added_post_markdown(sweep({"academia": [post("p1")]}, {}).add_post(LINK, "academia"))
+
+
+@pytest.mark.parametrize(
+    ("start", "end", "label"),
+    [
+        ("2026-11-13", None, "2026-11-13"),
+        ("2026-11-13", "2026-11-15", "13–15 nov 2026"),
+        ("2026-10-31", "2026-11-02", "31 oct – 2 nov 2026"),
+        ("2026-12-30", "2027-01-01", "30 dic 2026 – 1 ene 2027"),
+    ],
+)
+def test_answers_show_the_days_of_an_event(start, end, label):
+    assert dates_label(start, end) == label
+
+
+def test_why_lists_an_event_under_way_with_its_days():
+    today = datetime(2026, 11, 14, 12, tzinfo=config.BOGOTA_TZ)
+    event = stored(date="2026-11-13", end_date="2026-11-15")
+    storage.write_json(config.EVENTS_FILE, [event.model_dump(mode="json")])
+    result = why.diagnose(LINK, read=state({"1": record(outcome="event", event_ids=[event.id])}), now=today)
+    assert result.events[0]["date"] == "13–15 nov 2026" and result.verdict == "Está en el sitio."

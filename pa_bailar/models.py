@@ -62,7 +62,13 @@ class EventDetails(BaseModel):
     venue: str | None = Field(description="Venue name if given")
     address: str | None
     area: str | None = Field(description="Bogotá neighborhood or zone if given")
-    date: str | None = Field(description="YYYY-MM-DD")
+    date: str | None = Field(description="YYYY-MM-DD; an event over several consecutive days: its first day")
+    # Optional in stored data (events stored before it existed have none); ExtractedEvent makes Gemini fill it.
+    end_date: str | None = Field(
+        None,
+        description="Last day (YYYY-MM-DD) of an event over several consecutive days, e.g. 'NOV 13-15' → "
+        "2026-11-15. Null for a one-day event.",
+    )
     weekday: str | None = Field(description="Spanish weekday name, lowercase")
     start_time: str | None = Field(description="HH:MM, 24-hour")
     end_time: str | None = Field(description="HH:MM, 24-hour")
@@ -77,11 +83,21 @@ class EventDetails(BaseModel):
     confidence: Confidence
     doubts: list[str] = Field(description="Important missing or assumed information, short phrases in Spanish")
 
+    @property
+    def last_day(self) -> str | None:
+        """The event's last day: its end_date over several days, else its date. Upcoming until it has passed."""
+        return self.end_date or self.date
+
 
 # ---------- Gemini response schema ----------
 
 
 class ExtractedEvent(EventDetails):
+    # Required (but nullable) like the other fields, so Gemini's response schema asks for it.
+    end_date: str | None = Field(
+        description="Last day (YYYY-MM-DD) of an event over several consecutive days, e.g. 'NOV 13-15' → "
+        "2026-11-15. Null for a one-day event."
+    )
     image_index: int | None = Field(
         description="Number of the attached image that shows THIS event (its own flyer, or the schedule slide "
         "where it is listed). Null if no image shows it."

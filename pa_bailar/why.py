@@ -17,6 +17,7 @@ from typing import Any, Literal
 
 from . import config, links, storage, sweep_state
 from .instagram import InstagramError, Post, is_not_visible, published_at
+from .text import dates_label
 
 Mark = Literal["ok", "no", "info"]
 Suggestion = Literal["add-post", "none"]
@@ -35,7 +36,8 @@ class Diagnosis:
     checks: list[tuple[Mark, str]] = field(default_factory=list)
     verdict: str = ""
     suggestion: Suggestion = "none"
-    events: list[dict[str, str]] = field(default_factory=list)  # {title, date, url} of the events on the site
+    # {title, date, url} of the events on the site; date: '2026-11-13', or '13–15 nov 2026' over several days
+    events: list[dict[str, str]] = field(default_factory=list)
 
     def check(self, mark: Mark, text: str) -> None:
         self.checks.append((mark, text))
@@ -123,12 +125,17 @@ def _explain_record(
 
     if outcome in ("event", "merged"):
         on_site = [e for e in events if e["id"] in ids]
-        upcoming = [e for e in on_site if (e.get("date") or "") >= today]
+        upcoming = [e for e in on_site if (e.get("end_date") or e.get("date") or "") >= today]  # until its last day
         if upcoming:
             joined = " (unida a un evento que otra publicación ya había anunciado)" if outcome == "merged" else ""
             result.check("ok", f"Se convirtió en {len(upcoming)} evento(s){joined}.")
             result.events = [
-                {"title": e["title"], "date": e["date"], "url": links.event_url(e["id"])} for e in upcoming
+                {
+                    "title": e["title"],
+                    "date": dates_label(e["date"], e.get("end_date")),
+                    "url": links.event_url(e["id"]),
+                }
+                for e in upcoming
             ]
             result.verdict = "Está en el sitio."
         elif on_site:

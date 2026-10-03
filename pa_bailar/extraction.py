@@ -82,7 +82,9 @@ class EventExtractor:
         announces one of them again. Provisional means a Flash-Lite answer, to be redone with Flash.
         """
         known = "\n".join(
-            f"- {event.id} | {event.date} | {event.start_time or '?'} | {event.title}" for event in known_events
+            f"- {event.id} | {event.date}{f' → {event.end_date}' if event.end_date else ''} | "
+            f"{event.start_time or '?'} | {event.title}"
+            for event in known_events
         )
         prompt = EXTRACTION_PROMPT.format(**_format_context(account, post, published), known_events=known or "(none)")
         contents: list[types.PartUnionDict] = []

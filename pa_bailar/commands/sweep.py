@@ -3,6 +3,7 @@
 Usage (from the repository root):
     .venv\\Scripts\\python -m pa_bailar sweep             # posts from the last 7 days
     .venv\\Scripts\\python -m pa_bailar sweep --days 14   # look further back
+Adding one post by hand (`admin add-post`, docs/ADMIN.md) is `sweep --post <link> [--account @x] [--again]`.
 """
 
 import argparse
@@ -12,7 +13,9 @@ from pathlib import Path
 
 from pa_bailar import config, health, links, storage
 from pa_bailar.logs import setup_logging
+from pa_bailar.models import StoredEvent
 from pa_bailar.pipeline import AddedPost, AddPostError, RunStats, Sweep
+from pa_bailar.text import dates_label
 
 log = logging.getLogger(__name__)
 
@@ -99,6 +102,10 @@ def lookback_days(value: str) -> int:
     return days
 
 
+def _event_line(event: StoredEvent) -> str:
+    return f"- [{event.title}]({links.event_url(event.id)}) · {dates_label(event.date, event.end_date)}"
+
+
 def added_post_markdown(added: AddedPost) -> str:
     """The admin tools' answer after adding a post by hand, in Spanish."""
     lines: list[str] = []
@@ -121,17 +128,20 @@ def added_post_markdown(added: AddedPost) -> str:
     upgrade = "provisional: se relee con Flash" if added.readable and not added.public else "Flash no tenía cuota"
     light = f" Flash-Lite ({upgrade})" if added.provisional else f" {added.model}"
     if added.unchanged:
-        lines.append("ℹ️ Ya la había leído y no ha cambiado: no la leí de nuevo (no gasté cuota de Gemini).")
+        lines.append(
+            "ℹ️ Ya la había leído y no ha cambiado: no la leí de nuevo (no gasté cuota de Gemini). Para leerla "
+            "otra vez (por ejemplo, si quedó con datos equivocados): **Volver a leer**."
+        )
     if added.unchanged and added.outcome in ("event", "merged"):
         if added.events:
             lines.append(f"✅ **Ya está en el sitio** ({len(added.events)} evento(s)):")
-            lines += [f"- [{e.title}]({links.event_url(e.id)}) · {e.date}" for e in added.events]
+            lines += [_event_line(e) for e in added.events]
         else:
             lines.append("✅ Su evento ya pasó: sale del sitio después de su fecha.")
     elif added.outcome in ("event", "merged") and added.events:
         verb = "Se unió a" if added.outcome == "merged" else "Publiqué"
         lines.append(f"✅ **{verb} {len(added.events)} evento(s)**, leído con{light}:")
-        lines += [f"- [{e.title}]({links.event_url(e.id)}) · {e.date}" for e in added.events]
+        lines += [_event_line(e) for e in added.events]
         lines.append("")
         lines.append("Aparece en el sitio cuando termina de publicarse (unos minutos).")
     elif added.outcome == "discarded":
@@ -141,11 +151,12 @@ def added_post_markdown(added: AddedPost) -> str:
     return "\n".join(lines) + "\n"
 
 
-def add_post(link: str, account: str | None) -> None:
-    """`sweep --post`: publish one post by hand. The answer goes to ADMIN_REPORT_FILE (the workflow comments it
-    on the admin issue) and the log; a failure to add it isn't a failed run (the answer says why)."""
+def add_post(link: str, account: str | None, again: bool = False) -> None:
+    """`sweep --post`: publish one post by hand (`--again`: read it again even if it hasn't changed). The answer
+    goes to ADMIN_REPORT_FILE (the workflow comments it on the admin issue) and the log; a failure to add it
+    isn't a failed run (the answer says why)."""
     try:
-        added = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS).add_post(link, account)
+        added = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS).add_post(link, account, again=again)
         report = added_post_markdown(added)
     except AddPostError as error:
         report = f"❌ {error}\n"
@@ -175,11 +186,16 @@ def main(argv: list[str] | None = None) -> None:
     )
     parser.add_argument("--post", help="add one post by hand instead (its Instagram link): `admin add-post`")
     parser.add_argument("--account", help="with --post: the @account, if the link doesn't say it")
+    parser.add_argument(
+        "--again",
+        action="store_true",
+        help="with --post: read it again even if it was read before and hasn't changed (one Gemini request)",
+    )
     args = parser.parse_args(argv)
     setup_logging()
 
     if args.post:
-        add_post(args.post, links.account_name(args.account) if args.account else None)
+        add_post(args.post, links.account_name(args.account) if args.account else None, again=args.again)
         return
 
     stats = Sweep(lookback_days=args.days, all_accounts=args.all).run()

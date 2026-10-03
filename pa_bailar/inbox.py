@@ -1,7 +1,8 @@
 """The admin inbox: what an issue or a comment in this repository asks for (docs/ADMIN.md). No AI: fixed patterns.
 
 Understood (in the issue form's fields, or as plain text in an issue or a comment):
-  - a post link: "Revisar" (why its event is or isn't on the site), or "Agregar" (publish it)
+  - a post link: "Revisar" (why its event is or isn't on the site), "Agregar" (publish it), or "Volver a leer"
+    (/releer: read it again with Gemini even if it was read before and hasn't changed)
   - "Agregar cuenta" with an @account: add it to the sweeps
   - "Estado" or /estado: how the sweeps, quotas and accounts are doing
 Anything else gets the list of what's understood.
@@ -22,15 +23,20 @@ _HANDLE = re.compile(r"(?<![\w/])@([A-Za-z0-9._]{1,30})")
 _ACTIONS: dict[str, Action] = {
     "revisar": "why",
     "agregar": "add-post",
+    "volver a leer": "add-post",  # with `again`
     "agregar cuenta": "add-account",
     "estado": "status",
 }
+# "Volver a leer" (the form, the admin page), "/releer", "reléela"…: add-post, reading it again anyway.
+_AGAIN = re.compile(r"(^|\s)/releer\b|volver a leer|\brel[eé]el[ao]\b", re.IGNORECASE)
 
 HELP = """Puedo hacer esto (escribe en un issue nuevo o en un comentario):
 
 - **Revisar** una publicación: pega su enlace de Instagram. Te digo si su evento está en el sitio, y si no, por qué.
 - **Agregar** una publicación: `/agregar` y el enlace (y la @cuenta si el enlace no la trae). La leo y publico
   su evento.
+- **Volver a leer** una publicación ya leída (por ejemplo, si su evento quedó con datos equivocados): `/releer`
+  y el enlace. La leo otra vez aunque no haya cambiado.
 - **Agregar una cuenta** a los barridos: `/cuenta @academia`.
 - **Estado** de los barridos, Gemini e Instagram: `/estado`.
 """
@@ -41,6 +47,7 @@ class Request:
     action: Action
     link: str | None = None
     account: str | None = None
+    again: bool = False  # add-post: read it again even if it was read before and hasn't changed ("Volver a leer")
 
 
 def _clean(value: str) -> str:
@@ -70,7 +77,8 @@ def parse(text: str) -> Request:
             return Request("help")
         if action == "add-account" and not account:
             return Request("help")
-        return Request(action, post if action in ("why", "add-post") else None, account)
+        again = action == "add-post" and bool(_AGAIN.search(fields.get("acción") or fields.get("accion") or ""))
+        return Request(action, post if action in ("why", "add-post") else None, account, again)
 
     lowered = text.lower()
     if re.search(r"(^|\s)/?estado\b", lowered) and not link:
@@ -80,6 +88,8 @@ def parse(text: str) -> Request:
             account = links.account_name(link)
         return Request("add-account", account=account) if account else Request("help")
     if link and links.post_code(link):
+        if _AGAIN.search(_LINK.sub(" ", text)):
+            return Request("add-post", link, account, again=True)
         # "agregar", "agrega", "agrégalo", "publica", "publícalo"…
         action = "add-post" if re.search(r"(^|\s)/?agr[eé]g|\bpubl[ií]c", lowered) else "why"
         return Request(action, link, account)

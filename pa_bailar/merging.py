@@ -5,6 +5,9 @@ organizer and its venue, or two collaborators, may each post it. Those posts mus
 lists all of them in `media`, under the account that posted it first.
 """
 
+from datetime import date
+
+from . import config
 from .models import EventDetails, EventMedia, ExtractedEvent, StoredEvent
 from .text import fold
 
@@ -12,7 +15,10 @@ _DETAIL_FIELDS = list(EventDetails.model_fields)
 # Logistics a later post may correct (rescheduled, new prices): the newest post's value wins. Everything
 # else keeps the first known value (the flyer's title beats a reminder's caption) and is only filled in
 # when missing (a venue "to be confirmed" on the flyer, given later in a reminder).
-_UPDATABLE_FIELDS = {"date", "weekday", "start_time", "end_time", "prices"}
+_UPDATABLE_FIELDS = {"date", "end_date", "weekday", "start_time", "end_time", "prices"}
+# What a single day can't change in an event over several days: a post about one of its days (a teacher's
+# class, one night) is part of the event, not a new date for it.
+_RANGE_FIELDS = {"date", "end_date", "weekday", "start_time", "end_time"}
 _EMPTY: tuple[object, ...] = (None, "", [])
 
 
@@ -24,11 +30,33 @@ def ordered_media(media: list[EventMedia]) -> list[EventMedia]:
     return sorted(newest_first, key=lambda item: item.media_type == "VIDEO")  # stable: keeps newest first
 
 
-def looks_like_same_event(stored: StoredEvent, account: str, candidate: EventDetails) -> bool:
-    """Rule-based fallback when Gemini didn't link the post: same account and date, plus the same
-    start time, or the same title when a start time is missing."""
-    if stored.account != account or stored.date != candidate.date:
+def _days(event: EventDetails) -> tuple[str, str] | None:
+    """The event's first and last day (the same for a one-day event); None without a date."""
+    return (event.date, event.end_date or event.date) if event.date else None
+
+
+def _overlap(a: EventDetails, b: EventDetails) -> bool:
+    """Whether two events share a day: the same date, or a day within an event over several days."""
+    days_a, days_b = _days(a), _days(b)
+    if days_a is None or days_b is None:
         return False
+    return days_a[0] <= days_b[1] and days_b[0] <= days_a[1]
+
+
+def _multi_day(event: EventDetails) -> bool:
+    return bool(event.end_date)
+
+
+def looks_like_same_event(stored: StoredEvent, account: str, candidate: EventDetails) -> bool:
+    """Rule-based fallback when Gemini didn't link the post: same account and a day in common, plus
+    - for two one-day events: the same start time, or the same title when a start time is missing;
+    - when either lasts several days: the same title, or distinctive title words in common (a festival
+      and a post about its teacher), never the start time alone (a festival weekend has several nights).
+    """
+    if stored.account != account or not _overlap(stored, candidate):
+        return False
+    if _multi_day(stored) or _multi_day(candidate):
+        return fold(stored.title) == fold(candidate.title) or _share_title(stored, candidate)
     if stored.start_time and candidate.start_time:
         return stored.start_time == candidate.start_time
     return fold(stored.title) == fold(candidate.title)
@@ -56,6 +84,13 @@ def _title_words(title: str) -> set[str]:
     return {word for word in words if len(word) >= 3 and word not in _COMMON_WORDS}
 
 
+def _share_title(a: EventDetails, b: EventDetails) -> bool:
+    """Two or more distinctive title words in common, most of the shorter title's ("Level Up … Fusion Congress")."""
+    words_a, words_b = _title_words(a.title), _title_words(b.title)
+    shared = words_a & words_b
+    return len(shared) >= 2 and len(shared) / (min(len(words_a), len(words_b)) or 1) >= 0.6
+
+
 def _names_account(event: EventDetails, account: str) -> bool:
     """Whether the event names this account: its organizer, venue or contact is the account (or the account's
     name starts with it, 'Bachatamanía' for @bachatamania_bogota), or the title names it."""
@@ -68,26 +103,26 @@ def _names_account(event: EventDetails, account: str) -> bool:
 
 def looks_like_shared_event(stored: StoredEvent, account: str, candidate: EventDetails) -> bool:
     """Rule-based match across accounts (an organizer and its venue, or two collaborators, each posting the
-    flyer): same date, no clash in start time or venue, and one of
+    flyer): a day in common, no clash in start time (compared between one-day events only) or venue, and one of
       - one event names the other's account, plus the same start time or a title in common;
       - the same venue and start time, plus a title in common;
       - two or more distinctive title words in common ("Level Up … Fusion Congress").
     """
-    if stored.account == account or not stored.date or stored.date != candidate.date:
+    if stored.account == account or not _overlap(stored, candidate):
         return False
-    if stored.start_time and candidate.start_time and stored.start_time != candidate.start_time:
+    one_day = not _multi_day(stored) and not _multi_day(candidate)
+    if one_day and stored.start_time and candidate.start_time and stored.start_time != candidate.start_time:
         return False
     venues = _key(stored.venue), _key(candidate.venue)
     if all(venues) and venues[0] not in venues[1] and venues[1] not in venues[0]:
         return False
-    same_time = bool(stored.start_time) and stored.start_time == candidate.start_time
+    same_time = one_day and bool(stored.start_time) and stored.start_time == candidate.start_time
     shared = _title_words(stored.title) & _title_words(candidate.title)
-    smaller = min(len(_title_words(stored.title)), len(_title_words(candidate.title))) or 1
     if _names_account(stored, account) or _names_account(candidate, stored.account):
         return same_time or bool(shared)
     if all(venues) and same_time:
         return bool(shared)
-    return len(shared) >= 2 and len(shared) / smaller >= 0.6
+    return _share_title(stored, candidate)
 
 
 def find_existing(
@@ -109,19 +144,35 @@ def find_existing(
 
 
 def merge_into(stored: StoredEvent, candidate: EventDetails, media: EventMedia) -> StoredEvent:
-    """Add a post to an existing event: fill in what it was missing, and take date, times and prices from
-    the post if it's the newest one announcing the event (an older post re-analyzed never overrides)."""
+    """Add a post to an existing event: fill in what it was missing, and take dates, times and prices from
+    the post if it's the newest one announcing the event (an older post re-analyzed never overrides). A post
+    about one day of an event over several days (no range of its own, a day within the event's) leaves its
+    days and times as they are."""
     others = [m for m in stored.media if m.post_id != media.post_id]
     is_newest = all(media.published >= other.published for other in others)
+    one_of_its_days = _multi_day(stored) and not _multi_day(candidate) and _overlap(stored, candidate)
     updates = {}
     for field in _DETAIL_FIELDS:
         current, new = getattr(stored, field), getattr(candidate, field)
-        if new in _EMPTY:
+        if new in _EMPTY or (one_of_its_days and field in _RANGE_FIELDS):
             continue
         if current in _EMPTY or (is_newest and field in _UPDATABLE_FIELDS and new != current):
             updates[field] = new
     updates["media"] = ordered_media([*others, media])
-    return stored.model_copy(update=updates)
+    merged = stored.model_copy(update=updates)
+    if not _valid_range(merged):  # a new date the old last day doesn't fit (rescheduled): one day, as posted
+        merged.end_date = None
+    return merged
+
+
+def _valid_range(event: EventDetails) -> bool:
+    """No end_date, or one after the first day and within MAX_EVENT_DAYS of it (normalize.parse_end_date)."""
+    if not event.end_date:
+        return True
+    if not event.date:
+        return False
+    days = (date.fromisoformat(event.end_date) - date.fromisoformat(event.date)).days + 1
+    return 1 < days <= config.MAX_EVENT_DAYS
 
 
 def detach_post(events: list[StoredEvent], post_id: str) -> list[StoredEvent]:

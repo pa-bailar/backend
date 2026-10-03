@@ -12,15 +12,16 @@ Today: {today}
 Caption:
 \"\"\"{caption}\"\"\""""
 
-_EVENT_DEFINITION = """An event is a single DANCE occasion on a specific date that anyone can attend.
+_EVENT_DEFINITION = """An event is a single DANCE occasion on a specific date that anyone can attend. An event over
+several consecutive days (a congress, a festival weekend, an intensive "del 7 al 11", "10, 11 y 12 de octubre")
+is ONE event, from its first to its last day.
 
 What counts:
 - socials and parties: "social", "noche de salsa/bachata", "rumba", "fiesta", "previa", anniversaries
   ("aniversario"), Halloween or holiday parties; concerts and live bands people dance to; dance congresses
   and festivals; competitions and battles ("concurso", "batalla"); shows and galas;
 - one-time workshops: "taller", "masterclass", "clase especial", "clase única", "clase abierta" on a given
-  date, "bootcamp", "intensivo", a class with a guest teacher. An intensive or festival on consecutive days
-  (e.g. "10, 11 y 12 de octubre") counts as one event, dated on its first day.
+  date, "bootcamp", "intensivo", a class with a guest teacher.
 
 What does NOT count:
 - anything that isn't about dancing, even when a dance academy or venue hosts it or posts it: drawing,
@@ -48,9 +49,10 @@ The first image of the post (flyer, slide or video frame) is attached.
 
 {_EVENT_DEFINITION}
 
-Does this post announce at least one upcoming event, one whose date is today or later? A post whose
-events all took place before today is false (posts can be weeks old). When unsure, answer true: a later
-step checks the details, but a post wrongly answered false is lost."""
+Does this post announce at least one upcoming event, one that hasn't ended: its date, or its last day for
+an event over several days, is today or later? A post whose events all ended before today is false (posts
+can be weeks old). When unsure, answer true: a later step checks the details, but a post wrongly answered
+false is lost."""
 
 EXTRACTION_PROMPT = f"""You catalog dance events in Bogotá, Colombia, from Instagram posts.
 
@@ -61,12 +63,15 @@ For each event, set image_index to the image that actually shows that event. Do 
 generic cover slide when another slide shows the event itself.
 Several events may share the same image when that image announces all of them (e.g. a monthly schedule).
 
-KNOWN EVENTS already announced by this account in earlier posts (id | date | start time | title):
+KNOWN EVENTS already announced by this account in earlier posts (id | date, or first → last day | start time |
+title):
 {{known_events}}
 Academies often announce the same event several times: a flyer, then a video, a reminder or a second
 flyer. If an event in this post is one of the known events (same occasion, even if the title or wording
 differs, e.g. "este sábado" vs the date), set same_as to that event's id and still fill in every detail
-you can see. Otherwise set same_as to null.
+you can see. A post presenting a teacher, an artist or one night of a congress or festival announces that
+same congress or festival: one event with its dates, linked by same_as when it's known. Otherwise set same_as
+to null.
 
 {_EVENT_DEFINITION}
 (Mark is_recurring=true for any regular or weekly event you include.)
@@ -77,9 +82,10 @@ Event type, by the main purpose of the event:
 - workshop: taller, masterclass, clase especial or única, bootcamp, intensivo, class with a guest teacher.
 - concert: live band or orchestra.
 - congress: a dance congress or encuentro ("congreso", "congress", "encuentro", "weekender"), usually over
-  several days with workshops, socials, shows and often competitions, with national and international
-  artists and passes ("full pass"). Several workshops as part of one congress are the congress, not
-  workshops. If the post announces a congress without exact dates (only "en noviembre"), it has no date.
+  several days (set date and end_date) with workshops, socials, shows and often competitions, with national
+  and international artists and passes ("full pass"). Several workshops as part of one congress are the
+  congress, not workshops. If the post announces a congress without exact dates (only "en noviembre"), it
+  has no date.
 - festival: a festival of music or dance more broadly (e.g. "Salsa al Parque"), not a congress.
 - competition: concurso, competencia, batalla. show: a performance or gala without social dancing.
 - other: anything else.
@@ -92,7 +98,15 @@ Dance styles: only from this list: {", ".join(STYLES)}.
 - Use the flyer, the caption and the hashtags. Don't guess styles that aren't mentioned or shown.
 
 Rules:
-- A post can contain several events (e.g. a monthly schedule): return each one separately.
+- A post can contain several events (e.g. a monthly schedule): return each one separately. A flyer listing
+  different events is one event per occasion.
+- date: the event's day, or its FIRST day for an event over several consecutive days. end_date: its LAST
+  day ("NOV 13-15 2026" → date 2026-11-13, end_date 2026-11-15; "31 Oct, 1 y 2 Nov" → 2026-10-31 and
+  2026-11-02). end_date is null for a one-day event, including a night that goes on past midnight.
+- Never return one event per day of an event over several days. But the same workshop or social on separate,
+  non-consecutive dates or at different venues is one event per date.
+- Times of an event over several days: start_time is the first day's start, end_time the last day's end;
+  null when the post only gives a schedule per day.
 - Dates without a year: pick the occurrence closest after the publication date.
 - If the weekday and the date disagree, trust the date written with numbers and set confidence to low.
 - Prices: '15K' or '15 mil' = 15000.

@@ -80,7 +80,8 @@ def collect(
     followed = storage.read_accounts()
 
     events = storage.read_json(config.EVENTS_FILE, None)
-    upcoming = [event for event in events or [] if (event.get("date") or "") >= today]
+    # Upcoming until its last day: an event over several days is on the site while it goes on.
+    upcoming = [event for event in events or [] if (event.get("end_date") or event.get("date") or "") >= today]
     discovered = discovery.load_cache(config.PRIVATE_DIR / "discovery.json")
 
     return {

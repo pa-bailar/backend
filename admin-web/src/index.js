@@ -7,7 +7,7 @@
 //   /api/me          {login} of the session, 401 without one
 //   /api/status      the latest `admin status` (status.json on the sweep-state branch), read with the session's
 //                    GitHub token: the visitor's own access, limited to what the App may do (read the backend)
-//   /api/requests    POST: a request to the admin tools (check or add a post, add an account), opened as an
+//   /api/requests    POST: a request to the admin tools (check, add or read again a post, add an account), opened as an
 //                    issue in the admin inbox, which the admin workflow answers; GET: the latest requests
 //   /api/requests/N  one request and its answers (the bot's comments)
 //
@@ -163,7 +163,14 @@ async function readStatus(session, env) {
 
 const POST_LINK = /^https?:\/\/(www\.|m\.)?instagram\.com\/([\w.]+\/)?(p|reel|reels|tv)\/[\w-]+/i;
 const ACCOUNT = /^@?[A-Za-z0-9._]{1,30}$/;
-const ACTIONS = { why: "Revisar", "add-post": "Agregar", "add-account": "Agregar cuenta", status: "Estado" };
+const ACTIONS = {
+  why: "Revisar",
+  "add-post": "Agregar",
+  "add-post-again": "Volver a leer",
+  "add-account": "Agregar cuenta",
+  status: "Estado",
+};
+const POST_ACTIONS = new Set(["why", "add-post", "add-post-again"]); // the ones that need a post link
 
 /** POST {action, link?, account?} → an issue written like the inbox's form (pa_bailar/inbox.py reads it). */
 async function createRequest(request, session, env) {
@@ -171,7 +178,7 @@ async function createRequest(request, session, env) {
   const cleanLink = String(link).trim();
   const cleanAccount = String(account).trim().replace(/^@/, "");
   if (!ACTIONS[action]) return Response.json({ error: "Acción desconocida." }, { status: 400 });
-  if ((action === "why" || action === "add-post") && !POST_LINK.test(cleanLink)) {
+  if (POST_ACTIONS.has(action) && !POST_LINK.test(cleanLink)) {
     return Response.json({ error: "Pega el enlace de una publicación de Instagram (instagram.com/p/…)." }, { status: 400 });
   }
   if (cleanAccount && !ACCOUNT.test(cleanAccount)) {
@@ -183,7 +190,7 @@ async function createRequest(request, session, env) {
   const subject = action === "add-account" ? `@${cleanAccount}` : cleanLink;
   const body = [
     `### Acción\n\n${ACTIONS[action]}`,
-    `### Enlace\n\n${action === "why" || action === "add-post" ? cleanLink : "_No response_"}`,
+    `### Enlace\n\n${POST_ACTIONS.has(action) ? cleanLink : "_No response_"}`,
     `### Cuenta\n\n${cleanAccount ? `@${cleanAccount}` : "_No response_"}`,
     "_Desde la página de administración._",
   ].join("\n\n");

@@ -187,3 +187,75 @@ def test_the_same_account_rule_comes_first():
         "p2-0", account="otra", start_time="20:00", title="Social", organizer="Academia", posts=[media("p2")]
     )
     assert find_existing([theirs, mine], "academia", extracted(start_time="20:00"), "new-post") is mine
+
+
+# ---------- events over several days ----------
+
+FESTIVAL = {"title": "Distrito Social Aniversario", "date": "2026-10-31", "end_date": "2026-11-02"}
+
+
+def test_a_post_about_a_teacher_of_a_festival_joins_the_festival():
+    """Sept 2026: @distritosocialbog presented each teacher of its festival; one became two false events."""
+    festival = stored(account="distritosocialbog", start_time="20:00", **FESTIVAL)
+    teacher = extracted(title="Distrito Social Aniversario - Juanita Quintero", date="2026-11-01", start_time="15:00")
+    assert find_existing([festival], "distritosocialbog", teacher, "teacher-post") is festival
+
+    merged = merge_into(festival, teacher, media("teacher-post", published="2026-10-20T12:00:00+0000"))
+    assert (merged.date, merged.end_date, merged.start_time) == ("2026-10-31", "2026-11-02", "20:00")
+    assert merged.title == "Distrito Social Aniversario"
+
+
+def test_other_events_during_a_festival_weekend_stay_apart():
+    festival = stored(start_time="20:00", **FESTIVAL)
+    # The same account's social on one of its nights, even at the same time: not the festival.
+    assert not looks_like_same_event(festival, "academia", extracted(title="Social de bachata", date="2026-11-01"))
+    assert not looks_like_same_event(
+        festival, "academia", extracted(title="Noche de salsa", date="2026-10-31", start_time="20:00")
+    )
+    # The festival announced again: the same title, on any of its days.
+    assert looks_like_same_event(
+        festival, "academia", extracted(title="distrito social aniversario", date="2026-11-01")
+    )
+    # After its last day: another event.
+    assert not looks_like_same_event(festival, "academia", extracted(title=FESTIVAL["title"], date="2026-11-03"))
+
+
+def test_a_congress_posted_by_two_accounts_merges_across_its_days():
+    congress = stored(
+        account="levelupbfc", title="Level Up Bachata Fusion Congress", date="2026-11-13", end_date="2026-11-15"
+    )
+    collaborator = extracted(title="Congreso Level Up Bachata Fusion", date="2026-11-14", start_time="10:00")
+    assert looks_like_shared_event(congress, "ludancestudios", collaborator)
+    ranged = extracted(title="Level Up Fusion Congress", date="2026-11-13", end_date="2026-11-15", start_time="18:00")
+    assert looks_like_shared_event(
+        stored(account="levelupbfc", title=congress.title, date="2026-11-13", start_time="20:00"), "otra", ranged
+    )
+
+
+def test_the_newest_post_updates_the_last_day_and_a_post_without_one_never_clears_it():
+    congress = stored(
+        date="2026-11-13", end_date="2026-11-15", posts=[media("flyer", published="2026-10-01T12:00:00+0000")]
+    )
+    extended = merge_into(
+        congress,
+        extracted(date="2026-11-13", end_date="2026-11-16"),
+        media("new", published="2026-10-05T12:00:00+0000"),
+    )
+    assert extended.end_date == "2026-11-16"
+    reminder = merge_into(congress, extracted(date="2026-11-13"), media("new", published="2026-10-05T12:00:00+0000"))
+    assert (reminder.date, reminder.end_date) == ("2026-11-13", "2026-11-15")
+
+
+def test_an_event_stored_on_its_first_day_gets_its_last_day_from_any_post():
+    congress = stored(date="2026-11-13", posts=[media("flyer", published="2026-10-05T12:00:00+0000")])
+    older = extracted(date="2026-11-13", end_date="2026-11-15")
+    assert merge_into(congress, older, media("old", published="2026-10-01T12:00:00+0000")).end_date == "2026-11-15"
+
+
+def test_a_rescheduled_date_drops_a_last_day_that_no_longer_fits():
+    congress = stored(
+        date="2026-11-13", end_date="2026-11-15", posts=[media("flyer", published="2026-10-01T12:00:00+0000")]
+    )
+    same_as = extracted(same_as=congress.id, date="2026-11-27")  # moved: one day, as posted
+    merged = merge_into(congress, same_as, media("new", published="2026-10-05T12:00:00+0000"))
+    assert (merged.date, merged.end_date) == ("2026-11-27", None)

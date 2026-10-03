@@ -111,3 +111,26 @@ def test_prices_without_a_label_are_dropped_and_untitled_events_arent_published(
     )
     assert [price.label for price in event.prices] == ["General"]  # the site's check-data requires a label
     assert not _is_publishable(normalize_event(extracted(title="  ")))
+
+
+# ---------- events over several days ----------
+
+
+@pytest.mark.parametrize(
+    ("start", "end", "expected", "doubt"),
+    [
+        ("2026-11-13", "2026-11-15", "2026-11-15", None),
+        ("2026-10-31", "2026-11-02", "2026-11-02", None),  # across months
+        ("2026-11-13", "2026-11-19", "2026-11-19", None),  # 7 days: the most
+        ("2026-11-13", "2026-11-13", None, None),  # the same day: a one-day event
+        ("2026-11-13", None, None, None),
+        ("2026-11-13", "15 de noviembre", None, None),
+        ("2026-11-15", "2026-11-13", None, "fecha final anterior a la inicial"),
+        ("2026-11-13", "2026-11-20", None, "dura más de una semana: revisar fechas"),  # 8 days
+        (None, "2026-11-15", None, None),  # no first day: nothing to end
+    ],
+)
+def test_the_last_day_of_an_event_over_several_days(start, end, expected, doubt):
+    event = normalize_event(extracted(date=start, end_date=end))
+    assert event.end_date == expected
+    assert event.doubts == ([doubt] if doubt else [])
