@@ -17,3 +17,4 @@ comment.md
 # Cloudflare Wrangler (admin-web)
 .wrangler/
 node_modules/
+.dev.vars
