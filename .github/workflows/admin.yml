@@ -130,6 +130,9 @@ jobs:
             echo "A sweep is running or waiting: checking again in 30 s"
             sleep 30
           done
+          # The sweep only adds posts for an open admin issue (its `request` job): a request made by commenting
+          # on an answered (closed) issue reopens it; the sweep's answer closes it again.
+          gh issue reopen "$ISSUE" 2>/dev/null || true
           gh workflow run daily-sweep.yml -f post_url="$LINK" -f account="$ACCOUNT" -f issue="$ISSUE"
 
       - name: Say that adding it couldn't start
