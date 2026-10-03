@@ -16,8 +16,8 @@ _EVENT_DEFINITION = """An event is a single DANCE occasion on a specific date th
 
 What counts:
 - socials and parties: "social", "noche de salsa/bachata", "rumba", "fiesta", "previa", anniversaries
-  ("aniversario"), Halloween or holiday parties; concerts and live bands people dance to; festivals and
-  congresses; competitions and battles ("concurso", "batalla"); shows and galas;
+  ("aniversario"), Halloween or holiday parties; concerts and live bands people dance to; dance congresses
+  and festivals; competitions and battles ("concurso", "batalla"); shows and galas;
 - one-time workshops: "taller", "masterclass", "clase especial", "clase única", "clase abierta" on a given
   date, "bootcamp", "intensivo", a class with a guest teacher. An intensive or festival on consecutive days
   (e.g. "10, 11 y 12 de octubre") counts as one event, dated on its first day.
@@ -75,7 +75,12 @@ Event type, by the main purpose of the event:
 - social: socials, parties, "noche de…", anniversaries, Halloween/fiestas. A social that starts with a
   short class is still a social.
 - workshop: taller, masterclass, clase especial or única, bootcamp, intensivo, class with a guest teacher.
-- concert: live band or orchestra. festival: multi-day festival or congress.
+- concert: live band or orchestra.
+- congress: a dance congress or encuentro ("congreso", "congress", "encuentro", "weekender"), usually over
+  several days with workshops, socials, shows and often competitions, with national and international
+  artists and passes ("full pass"). Several workshops as part of one congress are the congress, not
+  workshops. If the post announces a congress without exact dates (only "en noviembre"), it has no date.
+- festival: a festival of music or dance more broadly (e.g. "Salsa al Parque"), not a congress.
 - competition: concurso, competencia, batalla. show: a performance or gala without social dancing.
 - other: anything else.
 
