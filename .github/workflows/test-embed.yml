@@ -1,0 +1,26 @@
+# Temporary: can GitHub's runners read Instagram's public post embed page? (closed without merging)
+name: test-embed
+on: pull_request
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post embed page (logged out)
+        run: |
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36"
+          for i in 1 2 3; do
+            curl -s -A "$UA" "https://www.instagram.com/p/Dc_Jsv6R6Wu/embed/captioned/" -o embed.html -w "try $i: HTTP %{http_code}, %{size_download} bytes\n"
+            echo "  author: $(grep -oE 'class="UsernameText">[^<]+' embed.html | head -1)"
+            echo "  caption found: $(grep -c 'class="Caption"' embed.html)  image found: $(grep -c 'EmbeddedMediaImage' embed.html)"
+            sleep 5
+          done
+      - name: The same with a browser-like TLS fingerprint (curl_cffi)
+        run: |
+          pip install -q curl_cffi
+          python - <<'PY'
+          from curl_cffi import requests
+          r = requests.get("https://www.instagram.com/p/Dc_Jsv6R6Wu/embed/captioned/", impersonate="chrome")
+          print("curl_cffi:", r.status_code, len(r.text), "bytes | author:", "levelupbfc" in r.text, "| caption:", 'class="Caption"' in r.text)
+          PY
