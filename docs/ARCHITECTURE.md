@@ -192,7 +192,17 @@ Every service the system depends on. All of them are on free plans.
 | **Status** | Sign-in with GitHub and the status dashboard. The admin tools are described in [`docs/ADMIN.md`](ADMIN.md) |
 | **Cost** | Free |
 
-### 3.7 Services used by the site only
+### 3.7 Instagram's public post pages (fallback)
+
+| | |
+|---|---|
+| **What for** | Reading one post the Graph API can't give, for the admin tools only: a personal or private account's post, a collaboration listed under its author, or any post once Meta's quota is spent. Never in the sweeps |
+| **Endpoint** | `https://www.instagram.com/p/<code>/embed/captioned/` (`public_post.EMBED_URL`): the page websites embed to show a post. No login, no token |
+| **How** | `public_post.fetch_public_post` asks for it as a browser would (`curl_cffi`, `impersonate="chrome"`): plain scripts get an empty page. It reads the post's data from the page (`contextJSON`), or else from its HTML (author, caption, image) |
+| **Limits** | Unofficial: Instagram can change the page or block it at any time. One request per use, so it stays well under any limit. It can't list an account's posts (that needs a login), so it can't sweep personal accounts |
+| **Cost** | Free |
+
+### 3.8 Services used by the site only
 
 - **GoatCounter:** visit statistics without cookies.
 - **Google Fonts:** the site's typefaces.
@@ -200,7 +210,7 @@ Every service the system depends on. All of them are on free plans.
 
 They're described in the site repository's `docs/ARCHITECTURE.md`. The backend doesn't use them.
 
-### 3.8 Your computer
+### 3.9 Your computer
 
 - **The discovery tool runs locally.** `python -m pa_bailar discover` reads your Instagram data export
   from `private/`, which is never committed (section 12.1).
@@ -744,13 +754,16 @@ flowchart LR
 They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](ADMIN.md) is the guide.
 
 - **`admin why <link>`** (`pa_bailar/why.py`): why a post's event is or isn't on the site. From the post's
-  record (its `outcome`, Gemini's reason, the events in `events.json`), or, for a post never analyzed, one
-  Instagram call (the account's latest 50 posts) and the run history: posted after the last sweep, account
-  not swept yet, too old, the account couldn't be read, waiting for quota.
+  record (its `outcome`, Gemini's reason, the events in `events.json`), or, for a post never analyzed, its
+  author from the public page (section 3.7: a collaboration follows its author), one Instagram call (the
+  account's latest 50 posts) and the run history: posted after the last sweep, account not swept yet, too
+  old, the account couldn't be read or isn't visible to the API, waiting for quota.
 - **`admin add-account @x`**: checks that Instagram can read it (Business Discovery), then adds it to
   `accounts.txt` (`storage.add_account`, in its own section).
 - **`sweep --post <link>`** (`Sweep.add_post`): one post by hand, without triage. Adds the account if it isn't
-  swept; `AddPostError` says in Spanish why it couldn't (not found, not visible, no quota).
+  swept. When the API doesn't give the post (not visible, not among the latest 50, a collaboration, the rate
+  limit), it reads the post's public page (section 3.7; its id is `public-<id>`) and doesn't add an account
+  the API can't read. `AddPostError` says in Spanish why it couldn't (neither source worked, no quota).
 - **`admin inbox`** (`pa_bailar/inbox.py`): reads an issue or comment with fixed patterns (a link, `/agregar`,
   `/cuenta @x`, `/estado`, or the issue form's fields) and writes the answer; the `admin` workflow
   (`.github/workflows/admin.yml`) runs it on new issues and comments from `jzamora5`.
@@ -859,6 +872,8 @@ flowchart LR
     ST --> SS["sweep_state.py"]
     AD --> WHY["why.py"]
     AD --> INB["inbox.py"]
+    AD --> PUB["public_post.py"]
+    PL --> PUB
     WHY --> SS
     DI --> SS
     SW --> PL["pipeline.py<br/>(Sweep)"]
@@ -884,6 +899,7 @@ flowchart LR
 | `config.py` | Paths, secrets from the environment, quotas, windows, retention, sweep times, Bogotá's time zone |
 | `models.py` | Pydantic models: what Gemini returns (`Triage`, `PostAnalysis`, `ExtractedEvent`, `AccountClassification`) and what is stored (`StoredEvent`, `EventMedia`, `ProcessedPost`, `AccountState`). The source of truth for the data contract |
 | `instagram.py` | Graph API client: token check, posts, profiles, images, error classification, app usage |
+| `public_post.py` | One post from its public embed page, for the admin tools when the API can't give it (section 3.7) |
 | `gemini.py` | `ModelPool`: model order, pacing, daily budgets shared across runs, retries, error classes |
 | `prompts.py` | The triage and extraction prompts |
 | `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback |

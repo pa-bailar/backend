@@ -24,8 +24,9 @@ Open https://pa-bailar-admin.jzamorac-9.workers.dev and sign in with GitHub (onl
   - **Revisar:** whether its event is on the site and, if not, why. An answer in about a minute.
   - **Agregar:** reads the post and publishes its event. A few minutes: it waits for a running sweep to
     finish, then publishes through the usual data PR. If the account isn't swept yet, it's added too.
-  - **@cuenta:** only needed when the link doesn't say the account and the post was never analyzed (share
-    links usually look like `instagram.com/p/<code>/`, without the account).
+    Posts the API can't give (a personal account's, a collaboration, Instagram's limit reached) are read from
+    the post's public page instead (see below).
+  - **@cuenta:** rarely needed: when the link doesn't say the account, it's read from the post's public page.
 - **Agregar una cuenta a los barridos:** checks that Instagram can read it (business or creator accounts
   only), then adds it. The next sweep reads its last 30 days of posts.
 - **Pedidos recientes:** the latest requests; tap one to see its answer again.
@@ -81,19 +82,27 @@ The checks, in the order a post goes through the sweep:
    - **Se descartó a propósito:** an event that repeats (a weekly class) or without a clear date. The site only
      lists one-time dated events.
    - **Gemini no pudo leerla**, or **se quitó a mano** (removed on purpose).
-2. **If it was never analyzed:** is the account swept? If it is, one Instagram call finds the post among the
-   account's latest 50, and its date says why:
+2. **If it was never analyzed:** whose post is it? The link, or else the post's public page, says the
+   account. When the public page names another author, the post is a collaboration: it's its author's,
+   shown on both profiles, and the checks follow the author. Is that account swept? If it is, one Instagram
+   call finds the post among the account's latest 50, and its date says why:
    - **posted after the last sweep:** the next sweep takes it (Agregar publishes it now);
    - **the account was added recently** and hasn't been swept yet;
    - **older than 7 days:** the sweeps only check recent posts;
    - **the last sweep couldn't read the account**, or **is waiting** for Gemini quota or time;
-   - **not among the account's latest:** a collaboration posted from another account, or deleted.
+   - **not among the account's latest:** an older post, or a collaboration posted from another account;
+   - **the API can't read the account:** a personal or private account. The sweeps can't follow it, but
+     Agregar reads the post from its public page.
 
 ### Agregar (`sweep --post`)
 
 The sweep workflow runs in single-post mode (`sweep --post`), one at a time with the sweeps:
 
 1. Finds the post among the account's latest 50 (one Instagram call); adds the account if it isn't swept.
+   When the API can't give it, it reads the post's **public page** instead (`public_post.py`): the embed
+   page any website uses to show a post, read without logging in. It has the author, caption, image, video
+   and slides; the answer says "La leí desde su página pública". An account the API can't read (personal or
+   private) isn't added to the sweeps, and the answer says so.
 2. Extracts it with Gemini **without the first filter** (whoever asks knows it's an event): Flash, or
    Flash-Lite as provisional when Flash's quota is used up.
 3. Publishes through the usual data PR (it merges itself and the site deploys), and answers: the events it
