@@ -1753,10 +1753,10 @@
     "account": "espacio.64",
     "permalink": "https://www.instagram.com/p/Dd5JAAxjhg5/",
     "processed_at": "2026-10-02T21:05:35-05:00",
-    "is_event_post": true,
-    "reason": "El post anuncia un taller de creacion de personajes de tres sesiones en octubre de 2026.",
+    "is_event_post": false,
+    "reason": "Quitado a mano: taller de dibujo y pintura, no de baile.",
     "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "provisional": false,
     "caption_hash": "0ff57875969a2dce"
   },
   "18565666195074057": {
