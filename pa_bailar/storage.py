@@ -57,10 +57,12 @@ SCHEMA_VERSION = 1  # bump on breaking changes to events.json
 
 
 def save_meta(stats: dict[str, Any]) -> None:
-    """data/meta.json: when the data was last refreshed (shown on the site) and what the run did."""
+    """data/meta.json: when the data was last refreshed (shown on the site), every account swept (the site's
+    list of sources, including those without upcoming events) and what the run did."""
     meta = {
         "schema_version": SCHEMA_VERSION,
         "generated_at": config.now_bogota().isoformat(timespec="seconds"),
+        "accounts": sorted(read_accounts()),
         "stats": stats,
     }
     write_json(config.META_FILE, meta)

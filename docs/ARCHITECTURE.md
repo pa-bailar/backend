@@ -565,7 +565,7 @@ itself: `pa_bailar/sweep_state.py` fetches it and reads each file with `git show
 | File | Content |
 |---|---|
 | `data/events.json` | Every stored event, sorted by date and time. The format is the data contract (`docs/DATA.md` in the site repository); `pa_bailar/models.py` (`StoredEvent`) is its source of truth |
-| `data/meta.json` | `schema_version`, `generated_at` (Bogotá time) and the stats of the run that wrote it. Rewritten every run, but only committed together with a real change to events or flyers |
+| `data/meta.json` | `schema_version`, `generated_at` (Bogotá time), `accounts` (every account swept, the site's list of sources) and the stats of the run that wrote it. Rewritten every run, but only committed together with a real change to events or flyers |
 | `data/flyers/*.webp` | The flyer copies. Unused ones are deleted at the end of every run |
 
 **Retention:** events dated more than 60 days ago are deleted, together with their flyers, so `data/`
