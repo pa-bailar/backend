@@ -194,5 +194,62 @@
     "models_unavailable": [],
     "instagram_usage": 61,
     "warnings": []
+  },
+  {
+    "finished_at": "2026-10-04T09:03:25-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/37207634002",
+    "accounts": 31,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academia_cowork",
+      "academiaalmadetangoe",
+      "academiadebailepasolatino",
+      "academyfeel",
+      "bailabo_studio",
+      "bembeacademiadebaile",
+      "bogotadanceclub.academy",
+      "bureodancestudio",
+      "danceinmotionclub",
+      "distritosocialbog",
+      "esferalatinaoficial",
+      "espacio.64",
+      "foururbandanc",
+      "ikubambayadanza",
+      "imperiolatino",
+      "ludancestudios",
+      "madyumdance",
+      "mambo_y_control",
+      "mambolei_",
+      "mover__se",
+      "proyectourbandance",
+      "ritmosacademiadebaile",
+      "rpdancestudio",
+      "salsalatina.alsacia",
+      "salsalatina.villaluz",
+      "showstarscol",
+      "soondanz_company",
+      "studio110dance",
+      "studiolatindance",
+      "tubailecom",
+      "zafradance"
+    ],
+    "skipped_accounts": [
+      "lacoartadacentrocultural"
+    ],
+    "posts_analyzed": 4,
+    "events_new": 0,
+    "events_merged": 1,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 4,
+      "gemini-3.8-flash": 4
+    },
+    "models_unavailable": [],
+    "instagram_usage": 48,
+    "warnings": []
   }
 ]

@@ -1,7 +1,64 @@
 {
-  "generated_at": "2026-10-03T21:14:08-05:00",
+  "generated_at": "2026-10-04T09:03:26-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-10-04T09:03:25-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37207634002",
+        "accounts": 31,
+        "failed_accounts": [],
+        "read_accounts": [
+          "academia_cowork",
+          "academiaalmadetangoe",
+          "academiadebailepasolatino",
+          "academyfeel",
+          "bailabo_studio",
+          "bembeacademiadebaile",
+          "bogotadanceclub.academy",
+          "bureodancestudio",
+          "danceinmotionclub",
+          "distritosocialbog",
+          "esferalatinaoficial",
+          "espacio.64",
+          "foururbandanc",
+          "ikubambayadanza",
+          "imperiolatino",
+          "ludancestudios",
+          "madyumdance",
+          "mambo_y_control",
+          "mambolei_",
+          "mover__se",
+          "proyectourbandance",
+          "ritmosacademiadebaile",
+          "rpdancestudio",
+          "salsalatina.alsacia",
+          "salsalatina.villaluz",
+          "showstarscol",
+          "soondanz_company",
+          "studio110dance",
+          "studiolatindance",
+          "tubailecom",
+          "zafradance"
+        ],
+        "skipped_accounts": [
+          "lacoartadacentrocultural"
+        ],
+        "posts_analyzed": 4,
+        "events_new": 0,
+        "events_merged": 1,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 0,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 4,
+          "gemini-3.8-flash": 4
+        },
+        "models_unavailable": [],
+        "instagram_usage": 48,
+        "warnings": []
+      },
       {
         "finished_at": "2026-10-03T21:14:07-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/37169691300",
@@ -169,61 +226,33 @@
         "models_unavailable": [],
         "instagram_usage": null,
         "warnings": []
-      },
-      {
-        "finished_at": "2026-10-02T13:29:43-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37044385776",
-        "accounts": 35,
-        "failed_accounts": [
-          "terrazasalsera"
-        ],
-        "read_accounts": [],
-        "skipped_accounts": [
-          "discojaguar.bta"
-        ],
-        "posts_analyzed": 121,
-        "events_new": 25,
-        "events_merged": 37,
-        "pending": 42,
-        "post_errors": 0,
-        "provisional": 39,
-        "rate_limited": true,
-        "out_of_time": true,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 161,
-          "gemini-3.8-flash": 15,
-          "gemini-3.5-flash": 17
-        },
-        "models_unavailable": [],
-        "instagram_usage": null,
-        "warnings": []
       }
     ],
     "next": [
-      "2026-10-04T09:00-05:00",
-      "2026-10-04T21:00-05:00"
+      "2026-10-04T21:00-05:00",
+      "2026-10-05T09:00-05:00"
     ]
   },
   "gemini": {
     "lite_only": false,
-    "resets_at": "2026-10-04T02:00-05:00",
+    "resets_at": "2026-10-05T02:00-05:00",
     "models": [
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 18,
+        "used": 4,
         "budget": 18
       },
       {
         "model": "gemini-3.5-flash",
         "role": "extraction",
-        "used": 18,
+        "used": 0,
         "budget": 18
       },
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 146,
+        "used": 4,
         "budget": 498
       }
     ]
@@ -239,11 +268,11 @@
     "waiting": []
   },
   "posts": {
-    "recorded": 288,
+    "recorded": 291,
     "provisional": 99
   },
   "events": {
-    "upcoming": 40,
+    "upcoming": 37,
     "low_confidence": 1
   },
   "discovery": null

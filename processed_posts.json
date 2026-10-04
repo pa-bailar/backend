@@ -210,13 +210,13 @@
   "18179940502441318": {
     "account": "madyumdance",
     "permalink": "https://www.instagram.com/p/Dd5CbEzFPCO/",
-    "processed_at": "2026-10-01T22:02:04-05:00",
+    "processed_at": "2026-10-04T09:01:29-05:00",
     "is_event_post": false,
-    "reason": "El post promociona servicios de coreografías para bodas y no anuncia un evento abierto al público.",
-    "model": "gemini-flash-lite-latest",
+    "reason": "La publicación promociona servicios de coreografía para bodas y no anuncia un evento específico próximo.",
+    "model": "gemini-3.5-flash-lite",
     "provisional": false,
-    "caption_hash": "32745348c79dad3a",
-    "outcome": null,
+    "caption_hash": "484e88351c41525a",
+    "outcome": "not_event",
     "event_ids": [],
     "detail": null
   },
@@ -3840,6 +3840,47 @@
     "event_ids": [
       "fiesta-tematica-diablitos-3-oct"
     ],
+    "detail": null
+  },
+  "18174896527445791": {
+    "account": "distritosocialbog",
+    "permalink": "https://www.instagram.com/p/DeDPu_Dx6HU/",
+    "processed_at": "2026-10-04T09:02:27-05:00",
+    "is_event_post": true,
+    "reason": "Anuncia una de las noches del festival de aniversario de Distrito Social.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
+    "caption_hash": "c4920b144f743847",
+    "outcome": "merged",
+    "event_ids": [
+      "distrito-social-aniversario-31-oct"
+    ],
+    "detail": null
+  },
+  "18113689204986232": {
+    "account": "danceinmotionclub",
+    "permalink": "https://www.instagram.com/reel/DeCoJWphpDu/",
+    "processed_at": "2026-10-04T09:02:51-05:00",
+    "is_event_post": false,
+    "reason": "Es una grabación de una muestra de alumnos ya realizada, no anuncia un evento próximo.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
+    "caption_hash": "bffd058b274da5f1",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null
+  },
+  "18102698552564681": {
+    "account": "danceinmotionclub",
+    "permalink": "https://www.instagram.com/p/DeCo26nBsvn/",
+    "processed_at": "2026-10-04T09:03:02-05:00",
+    "is_event_post": false,
+    "reason": "Es una fotografía de un show ya realizado y no anuncia ningún evento próximo.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
+    "caption_hash": "1467d5197f85b3fa",
+    "outcome": "not_event",
+    "event_ids": [],
     "detail": null
   }
 }
