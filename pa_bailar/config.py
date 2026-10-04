@@ -5,7 +5,7 @@ Secrets come from environment variables: from .env (repository root) locally, fr
 
 import os
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -133,6 +133,11 @@ BOGOTA_TZ = ZoneInfo("America/Bogota")
 def now_bogota() -> datetime:
     """The current time in Bogotá: dates and "today" are always Bogotá's, wherever the code runs."""
     return datetime.now(BOGOTA_TZ)
+
+
+def bogota_date(moment: datetime) -> date:
+    """The day a moment falls on in Bogotá: Instagram's times are UTC, and a post at 9 p.m. is that day's."""
+    return moment.astimezone(BOGOTA_TZ).date()
 
 
 def require_env(name: str) -> str:

@@ -95,7 +95,7 @@ la33orquesta
 # Fernando España: salsa DJ; announces his sets at dance venues in Bogotá.
 fernandoespanadj
 
-# Added with the admin tools (admin add-account, add-post)
+# Added with the admin tools (admin add-account, sweep --post)
 jaleocompetencia_
 dlivingstudio
 

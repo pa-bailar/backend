@@ -299,6 +299,7 @@ class Sweep:
             if usage >= config.INSTAGRAM_USAGE_STOP:
                 log.warning("Instagram quota %s%% used: the remaining accounts wait for the next run", usage)
                 self.rate_limited = True
+                break
             if self.rate_limited:
                 log.warning("Instagram rate limit reached: the remaining accounts wait for the next run")
                 break
@@ -540,7 +541,7 @@ class Sweep:
             return
 
         if posts:
-            account_stats.latest_post = max(published_at(p) for p in posts).date().isoformat()
+            account_stats.latest_post = config.bogota_date(max(published_at(p) for p in posts)).isoformat()
             state.latest_post = account_stats.latest_post
         window = timedelta(days=config.BACKFILL_DAYS) if backfill else self.lookback
         cutoff = datetime.now(UTC) - window
@@ -747,7 +748,7 @@ class Sweep:
 
     def _known_events(self, account: str, published: datetime) -> list[StoredEvent]:
         """Events of this account that a new post could be announcing again (not already over)."""
-        since = (published - timedelta(days=1)).date().isoformat()
+        since = (config.bogota_date(published) - timedelta(days=1)).isoformat()
         return [event for event in self.events if event.account == account and (event.last_day or "") >= since]
 
     def _add_event(

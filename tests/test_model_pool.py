@@ -1,5 +1,7 @@
 """ModelPool: per-model daily budgets, quota errors and fallbacks, without calling Gemini."""
 
+from datetime import UTC, datetime
+
 import httpx
 import pytest
 from google.genai import errors
@@ -190,3 +192,28 @@ def test_other_request_errors_are_still_a_rejection(pool):
     with_models(pool, {"gemini-3.8-flash": [client_error(400, "Unable to process input image.")]})
     with pytest.raises(gemini.RejectedRequestError):
         pool.generate(["gemini-3.8-flash"], [], Triage)
+
+
+@pytest.mark.parametrize(
+    ("failure", "raised"),
+    [
+        (client_error(400, "Unable to process input image"), gemini.RejectedRequestError),
+        (errors.ServerError(503, {"error": {"code": 503, "message": "busy", "status": "UNAVAILABLE"}}), None),
+    ],
+)
+def test_lite_only_extraction_keeps_its_error_instead_of_waiting_for_quota(pool, monkeypatch, failure, raised):
+    """Lite-only mode has no provisional models: a rejection must stay a rejection (recorded, not retried every
+    run) and a busy model a failure (an error, not "no quota left")."""
+    from pa_bailar.extraction import EventExtractor
+
+    monkeypatch.setattr(config, "EXTRACTION_MODELS", ("gemini-3.5-flash-lite",))
+    monkeypatch.setattr(config, "PROVISIONAL_MODELS", ())
+    with_models(pool, {"gemini-3.5-flash-lite": [failure] * gemini.ATTEMPTS_PER_MODEL})
+    extractor = EventExtractor.__new__(EventExtractor)
+    extractor.pool = pool
+    post = {"id": "p1", "timestamp": "2026-10-01T12:00:00+0000", "permalink": "x", "media_type": "IMAGE"}
+    published = datetime(2026, 10, 1, 12, tzinfo=UTC)
+    with pytest.raises(gemini.ExtractionError) as caught:
+        extractor.extract("academia", post, published, [], [])
+    assert not isinstance(caught.value, gemini.QuotaExhaustedError)
+    assert raised is None or isinstance(caught.value, raised)

@@ -64,11 +64,13 @@ def test_account_names(text, account):
     [
         (LINK, inbox.Request("why", LINK)),
         (f"/agregar {LINK} @academia", inbox.Request("add-post", LINK, "academia")),
-        (f"agrega este por favor, publícalo {LINK}", inbox.Request("add-post", LINK)),
+        (f"Gracias.\n/Agregar {LINK}", inbox.Request("add-post", LINK)),  # phones capitalize
         ("/cuenta @iledanza", inbox.Request("add-account", account="iledanza")),
-        ("agregar cuenta https://www.instagram.com/iledanza/", inbox.Request("add-account", account="iledanza")),
+        ("/cuenta https://www.instagram.com/iledanza/", inbox.Request("add-account", account="iledanza")),
+        ("/agregar-cuenta @iledanza", inbox.Request("add-account", account="iledanza")),
         ("/estado", inbox.Request("status")),
         ("hola, ¿qué tal?", inbox.Request("help")),
+        ("/agregar", inbox.Request("help")),  # no link: the help (it's still a request: is_request)
         (
             f"### Acción\n\nAgregar\n\n### Enlace\n\n{LINK}\n\n### Cuenta\n\n_No response_",
             inbox.Request("add-post", LINK),
@@ -82,6 +84,42 @@ def test_account_names(text, account):
 )
 def test_the_inbox_understands_requests(text, expected):
     assert inbox.parse(text) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # Ordinary words are never commands: no status reply, no label, no Gemini, no account added.
+        ("Hay que revisar el estado de los barridos", inbox.Request("help")),
+        ("estado", inbox.Request("help")),
+        ("Pensar en agregar la cuenta @iledanza", inbox.Request("help")),
+        ("agregar cuenta https://www.instagram.com/iledanza/", inbox.Request("help")),
+        (f"agrega este por favor, publícalo {LINK}", inbox.Request("why", LINK)),
+        (f"Publica esta: {LINK}", inbox.Request("why", LINK)),
+        # A command is a "/word" at the start of a line: not in the middle of one, not quoted, not a longer word.
+        (f"mira {LINK} y luego /agregar", inbox.Request("why", LINK)),
+        (f"> /agregar {LINK}", inbox.Request("why", LINK)),
+        (f"/agregarlo {LINK}", inbox.Request("why", LINK)),
+        ("ver /estado", inbox.Request("help")),
+    ],
+)
+def test_ordinary_words_are_never_commands(text, expected):
+    assert inbox.parse(text) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "asks"),
+    [
+        ("Hay que revisar el estado de los barridos", False),
+        ("Idea: agregar la cuenta de una academia nueva", False),
+        (LINK, True),
+        ("/estado", True),
+        ("/agregar", True),  # a command missing its link: answered with the help
+        ("/releer sin enlace", True),
+    ],
+)
+def test_only_links_and_commands_are_requests(text, asks):
+    assert inbox.is_request(text) is asks
 
 
 # ---------- why ----------
@@ -213,6 +251,15 @@ def test_accounts_added_by_hand_go_in_their_own_section_before_the_notes():
         "# ----\n# Salsa bars: not swept\n# bar_salsero\n"
     )
     assert storage.read_accounts() == ["academia", "nueva", "otra_mas"]
+
+
+def test_the_admin_section_keeps_its_place_under_its_old_header():
+    config.ACCOUNTS_FILE.write_text(
+        "academia\n\n# Added with the admin tools (admin add-account, add-post)\nnueva\n\n# ----\n", encoding="utf-8"
+    )
+    assert storage.add_account("otra_mas") is True
+    text = config.ACCOUNTS_FILE.read_text(encoding="utf-8")
+    assert text == f"academia\n\n{storage.ADDED_BY_ADMIN}\nnueva\notra_mas\n\n# ----\n"
 
 
 def sweep(posts_by_account, analyses, **extractor):
@@ -471,6 +518,8 @@ def test_reading_again_in_free_text_needs_the_command_at_the_start_of_a_line(tex
         ("Idea: un filtro por barrio", True, True),  # in the admin inbox: the help
         (f"Revisa {LINK}", False, True),  # a request, wherever it's written
         ("/estado", False, True),
+        ("Revisar el estado de los barridos", False, False),  # words, not the /estado command
+        ("/agregar", False, True),  # a command without its link: the help
     ],
 )
 def test_the_inbox_answers_only_admin_issues_and_requests(text, labelled, answered, monkeypatch, tmp_path):
