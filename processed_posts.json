@@ -3196,16 +3196,13 @@
     "account": "paramopresenta",
     "permalink": "https://www.instagram.com/p/Dd9N_91le7g/",
     "processed_at": "2026-10-03T21:08:00-05:00",
-    "is_event_post": true,
-    "reason": "El post anuncia las fechas del festival EDC Colombia 2026 con Richie Hawtin.",
+    "is_event_post": false,
+    "reason": "Quitado a mano: concierto o festival de música, no un evento de baile (Páramo Presenta).",
     "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "provisional": false,
     "caption_hash": "33eaffb0dc00a483",
-    "outcome": "event",
-    "event_ids": [
-      "edc-colombia-2026-10-oct"
-    ],
-    "detail": null
+    "outcome": "not_event",
+    "event_ids": []
   },
   "18022167770866830": {
     "account": "paramopresenta",
@@ -3302,16 +3299,13 @@
     "account": "paramopresenta",
     "permalink": "https://www.instagram.com/reel/Dd-QUUFBtYp/",
     "processed_at": "2026-10-03T21:09:06-05:00",
-    "is_event_post": true,
-    "reason": "El post anuncia el festival EDC Colombia que incluye presentaciones musicales y de baile.",
+    "is_event_post": false,
+    "reason": "Quitado a mano: concierto o festival de música, no un evento de baile (Páramo Presenta).",
     "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "provisional": false,
     "caption_hash": "9b7425e5cfd0706f",
-    "outcome": "merged",
-    "event_ids": [
-      "edc-colombia-2026-10-oct"
-    ],
-    "detail": null
+    "outcome": "not_event",
+    "event_ids": []
   },
   "18114350282469606": {
     "account": "paramopresenta",
@@ -3343,16 +3337,13 @@
     "account": "paramopresenta",
     "permalink": "https://www.instagram.com/p/Dd_wf1dldZV/",
     "processed_at": "2026-10-03T21:09:34-05:00",
-    "is_event_post": true,
-    "reason": "El post anuncia dos fechas de conciertos de Silvana Estrada en Bogotá.",
+    "is_event_post": false,
+    "reason": "Quitado a mano: concierto o festival de música, no un evento de baile (Páramo Presenta).",
     "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "provisional": false,
     "caption_hash": "581187352e442dd6",
-    "outcome": "event",
-    "event_ids": [
-      "silvana-estrada-vendran-suaves-lluvias-22-nov"
-    ],
-    "detail": null
+    "outcome": "not_event",
+    "event_ids": []
   },
   "17864722032677996": {
     "account": "paramopresenta",
@@ -3371,16 +3362,13 @@
     "account": "paramopresenta",
     "permalink": "https://www.instagram.com/p/Dd_7pPnFZk3/",
     "processed_at": "2026-10-03T21:09:53-05:00",
-    "is_event_post": true,
-    "reason": "El post anuncia las presentaciones musicales del festival EDC Colombia 2026.",
+    "is_event_post": false,
+    "reason": "Quitado a mano: concierto o festival de música, no un evento de baile (Páramo Presenta).",
     "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "provisional": false,
     "caption_hash": "07253cdaa0bd0b21",
-    "outcome": "merged",
-    "event_ids": [
-      "edc-colombia-2026-10-oct"
-    ],
-    "detail": null
+    "outcome": "not_event",
+    "event_ids": []
   },
   "18105993442970933": {
     "account": "paramopresenta",
@@ -3399,16 +3387,13 @@
     "account": "paramopresenta",
     "permalink": "https://www.instagram.com/reel/DeAaT-EM-fh/",
     "processed_at": "2026-10-03T21:10:09-05:00",
-    "is_event_post": true,
-    "reason": "El post anuncia el festival EDC Colombia que se llevará a cabo los días 10 y 11 de octubre.",
+    "is_event_post": false,
+    "reason": "Quitado a mano: concierto o festival de música, no un evento de baile (Páramo Presenta).",
     "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "provisional": false,
     "caption_hash": "d7c204c790d7e979",
-    "outcome": "merged",
-    "event_ids": [
-      "edc-colombia-2026-10-oct"
-    ],
-    "detail": null
+    "outcome": "not_event",
+    "event_ids": []
   },
   "18164030419490153": {
     "account": "paramopresenta",
@@ -3466,31 +3451,25 @@
     "account": "paramopresenta",
     "permalink": "https://www.instagram.com/p/DeCOVsFjOuH/",
     "processed_at": "2026-10-03T21:10:43-05:00",
-    "is_event_post": true,
-    "reason": "El post anuncia la presentación de Axel Boman en el EDC Colombia 2026.",
+    "is_event_post": false,
+    "reason": "Quitado a mano: concierto o festival de música, no un evento de baile (Páramo Presenta).",
     "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "provisional": false,
     "caption_hash": "f2ba5ff64fefa38d",
-    "outcome": "merged",
-    "event_ids": [
-      "edc-colombia-2026-10-oct"
-    ],
-    "detail": null
+    "outcome": "not_event",
+    "event_ids": []
   },
   "18109846736175024": {
     "account": "paramopresenta",
     "permalink": "https://www.instagram.com/p/DeCffUvlep2/",
     "processed_at": "2026-10-03T21:10:52-05:00",
-    "is_event_post": true,
-    "reason": "El post anuncia un concierto de la banda Los Fabulosos Cadillacs.",
+    "is_event_post": false,
+    "reason": "Quitado a mano: concierto o festival de música, no un evento de baile (Páramo Presenta).",
     "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "provisional": false,
     "caption_hash": "9a9e64c61c042214",
-    "outcome": "event",
-    "event_ids": [
-      "los-fabulosos-cadillacs-en-concierto-17-oct"
-    ],
-    "detail": null
+    "outcome": "not_event",
+    "event_ids": []
   },
   "18026577215910884": {
     "account": "paramopresenta",
@@ -3522,16 +3501,13 @@
     "account": "paramopresenta",
     "permalink": "https://www.instagram.com/reel/DeC1t1vsEuE/",
     "processed_at": "2026-10-03T21:11:17-05:00",
-    "is_event_post": true,
-    "reason": "El post anuncia el festival EDC Colombia que se realizará en Medellín.",
+    "is_event_post": false,
+    "reason": "Quitado a mano: concierto o festival de música, no un evento de baile (Páramo Presenta).",
     "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "provisional": false,
     "caption_hash": "a63b4312d64849f7",
-    "outcome": "merged",
-    "event_ids": [
-      "edc-colombia-2026-10-oct"
-    ],
-    "detail": null
+    "outcome": "not_event",
+    "event_ids": []
   },
   "17890496040455335": {
     "account": "paramopresenta",
