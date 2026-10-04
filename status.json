@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-04T12:14:39-05:00",
+  "generated_at": "2026-10-04T18:37:58-05:00",
   "sweeps": {
     "recent": [
       {
@@ -240,7 +240,7 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 10,
+        "used": 11,
         "budget": 18
       },
       {
@@ -263,16 +263,40 @@
     "error": null
   },
   "accounts": {
-    "followed": 52,
-    "first_sweep_pending": [],
-    "waiting": []
+    "followed": 72,
+    "first_sweep_pending": [
+      "sondehabana",
+      "casineafest",
+      "soywiwioficial",
+      "arrollando.dc",
+      "dreamcupco",
+      "jackandjilloficial",
+      "frank.de.latorre",
+      "angie__cuesta",
+      "and1erita",
+      "andonybaron",
+      "danitello22",
+      "juancho__salsita",
+      "mariavasquezdancer",
+      "oswaldgil2",
+      "sarasandoval.oficial",
+      "teffa_mg",
+      "zaimora24",
+      "la33orquesta",
+      "fernandoespanadj",
+      "jaleocompetencia_",
+      "dlivingstudio"
+    ],
+    "waiting": [
+      "lacoartadacentrocultural"
+    ]
   },
   "posts": {
-    "recorded": 292,
-    "provisional": 98
+    "recorded": 293,
+    "provisional": 90
   },
   "events": {
-    "upcoming": 38,
+    "upcoming": 35,
     "low_confidence": 1
   },
   "discovery": null
