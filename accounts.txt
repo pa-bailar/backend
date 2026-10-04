@@ -97,6 +97,7 @@ fernandoespanadj
 
 # Added with the admin tools (admin add-account, add-post)
 jaleocompetencia_
+dlivingstudio
 
 # ---------------------------------------------------------------------------------------------------
 # Salsa bars and restaurants: NOT swept for now (every line below is a comment).
