@@ -1,5 +1,6 @@
 """ModelPool: per-model daily budgets, quota errors and fallbacks, without calling Gemini."""
 
+import httpx
 import pytest
 from google.genai import errors
 
@@ -121,6 +122,21 @@ def test_server_errors_are_retried(pool):
     fake = with_models(pool, {"gemini-3.8-flash": [busy, ANSWER]})
     assert pool.generate(("gemini-3.8-flash",), [], Triage) == (ANSWER, "gemini-3.8-flash")
     assert fake.calls == ["gemini-3.8-flash", "gemini-3.8-flash"]
+
+
+@pytest.mark.parametrize("network_error", [httpx.ReadTimeout("timed out"), httpx.ConnectError("connection reset")])
+def test_network_timeouts_and_dropped_connections_are_retried_like_busy_servers(pool, network_error):
+    fake = with_models(pool, {"gemini-3.8-flash": [network_error, ANSWER]})
+    assert pool.generate(("gemini-3.8-flash",), [], Triage) == (ANSWER, "gemini-3.8-flash")
+    assert fake.calls == ["gemini-3.8-flash", "gemini-3.8-flash"]
+
+
+def test_a_model_that_keeps_timing_out_is_a_failure_not_a_quota_wait(pool):
+    timeouts = [httpx.ReadTimeout("timed out") for _ in range(gemini.ATTEMPTS_PER_MODEL)]
+    with_models(pool, {"gemini-3.8-flash": timeouts})
+    with pytest.raises(gemini.ExtractionError) as raised:
+        pool.generate(("gemini-3.8-flash",), [], Triage)
+    assert not isinstance(raised.value, gemini.QuotaExhaustedError)
 
 
 class Blocked:

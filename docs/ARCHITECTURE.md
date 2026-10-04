@@ -146,7 +146,7 @@ Every service the system depends on. All of them are on free plans.
 | **Models and roles** | `gemini-3.5-flash-lite` does triage, provisional extraction and discovery. `gemini-3.8-flash`, then `gemini-3.5-flash`, do extraction (`config.TRIAGE_MODELS`, `EXTRACTION_MODELS`, `PROVISIONAL_MODELS`) |
 | **Free quotas** | Flash-Lite: 15 requests/minute and 500/day. Each Flash model: 5/minute and 20/day (`config.MODEL_LIMITS`, read from AI Studio on 2026-10-02). Each model has its own quota. Days reset at **midnight Pacific time** |
 | **Cost** | Free (the free tier may use prompts to improve Google's products; posts are public anyway) |
-| **If it fails** | The model is out of quota: the next model is used, and if all are out, the post stays pending. A server error: retried. The request itself is rejected: the post is recorded as rejected and never retried (section 7) |
+| **If it fails** | The model is out of quota: the next model is used, and if all are out, the post stays pending. A server error, a timeout or a dropped connection: retried (3 attempts per model, then the next model; if none answers, the post waits for the next run). The request itself is rejected: the post is recorded as rejected and never retried (section 7) |
 
 ### 3.3 GitHub
 
@@ -279,10 +279,13 @@ sequenceDiagram
         end
     end
     R->>R: retention, write meta.json, health checks, run history
-    R->>GH: push state to sweep-state (GITHUB_TOKEN, this step only)
-    R->>GH: update the Sweep health issue (if warnings)
-    alt events or flyers changed
+    opt events or flyers changed
         R->>S: push data/sweep-... branch, open PR (label data), enable auto-merge (pa-bailar-bot)
+    end
+    R->>GH: push state to sweep-state (GITHUB_TOKEN, this step only)
+    Note over R,GH: if the data PR couldn't be opened, the posts stay unread (read again next run)
+    R->>GH: update the Sweep health issue (if warnings)
+    alt a data PR was opened
         S->>S: ci passes, squash merge, deploy to Pages
         R->>S: wait for the merge (up to 20 min)
     else nothing changed
@@ -313,11 +316,12 @@ sequenceDiagram
 | 6c | Make sure the last data PR merged | Always | Fails if a `data` PR is still open in the site repository: the sweep reads the events from the site's `main`, so sweeping past an unmerged PR would lose its events for good (their posts are already marked analyzed). Merge or fix it first | `GITHUB_TOKEN` (reads the public site repository) |
 | 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x] [--again]`, one post by hand (`--again` from the `again` input, "Volver a leer"). Otherwise `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 8 | Write the status for the admin page | Unless cancelled; its failure doesn't fail the run | `python -m pa_bailar admin status --json` → `state/status.json`, saved with the state (one Graph API call, no Gemini). The admin page reads it | `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
-| 9 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real | `GITHUB_TOKEN` (this step only) |
-| 9b | Save an account added by hand | `post_url`, and `accounts.txt` changed | Commits `accounts.txt` to `main` | `GITHUB_TOKEN` (this step only) |
-| 10 | Update the sweep health issue | Unless cancelled, and the sweep produced its health output | Opens, updates, comments on or closes the `Sweep health` issue (section 11.3) | `GITHUB_TOKEN` (issues) |
-| 11 | Get a token for the site repository | Unless cancelled | Mints a pa-bailar-bot installation token for the site repository only | `APP_ID`, `APP_PRIVATE_KEY` |
-| 12 | Open a data PR | Unless cancelled | Only if `data/events.json` or `data/flyers` changed (clips change `events.json` too) (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled | App token |
+| 9 | Get a token for the site repository | Unless cancelled | Mints a pa-bailar-bot installation token for the site repository only | `APP_ID`, `APP_PRIVATE_KEY` |
+| 10 | Open a data PR | Unless cancelled | Only if `data/events.json` or `data/flyers` changed (clips change `events.json` too) (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled. It runs before the state is saved, so the state never marks posts as analyzed whose events didn't leave the runner | App token |
+| 10b | Keep the site data of a data PR that wasn't opened | The data PR step failed | Uploads `site/data` (events, flyers, clips) as the run's artifact `site-data-<run id>`, kept 14 days, to recover by hand (section 15) | |
+| 11 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real. **If the data PR step didn't succeed**, `processed_posts.json` and `accounts.json` keep their previous versions (a warning says so): this run's posts stay unread and its accounts due, so the next run reads them again and its PR carries their events. Gemini's usage, the run history and `status.json` are saved either way | `GITHUB_TOKEN` (this step only) |
+| 11b | Save an account added by hand | `post_url`, and `accounts.txt` changed | Commits `accounts.txt` to `main` | `GITHUB_TOKEN` (this step only) |
+| 12 | Update the sweep health issue | Unless cancelled, and the sweep produced its health output | Opens, updates, comments on or closes the `Sweep health` issue (section 11.3) | `GITHUB_TOKEN` (issues) |
 | 13 | Wait for the data PR to merge | A PR was opened | Polls every 30 s, up to 20 minutes. Fails if the PR is closed or doesn't merge in time | App token |
 | 14 | Republish the site | Success, no PR, not `post_url` | `gh workflow run deploy.yml -f checked_at=<now in Bogotá>`, so "Actualizado el" stays current on days without new events | App token |
 | 15 | Report to the health check | Always, except `post_url` runs | Pings `HEALTHCHECK_URL` (success) or `HEALTHCHECK_URL/fail`, with the report as the body | `HEALTHCHECK_URL` |
@@ -422,7 +426,8 @@ flowchart TD
     IMG -->|fails| PEND
     IMG --> TR["Triage: Flash-Lite<br/>caption + first image (512 px)"]
     TR -->|"not an event"| REC["Record as analyzed"]
-    TR -->|"event, or triage unavailable"| EX["Extraction: Flash<br/>every image + caption + this account's known events"]
+    TR -->|"Flash-Lite out of<br/>today's quota"| PEND
+    TR -->|"event, or triage failed<br/>(busy, timeout)"| EX["Extraction: Flash<br/>every image + caption + this account's known events"]
     EX -->|"Flash out of quota"| PROV["Extraction: Flash-Lite<br/>marked provisional"]
     EX -->|"rejected by Gemini (4xx),<br/>or its answer blocked"| REJ["Record as rejected<br/>never retried"]
     EX -->|"the API key doesn't work"| STOP["Stop the run (it fails):<br/>nothing recorded, read next run"]
@@ -431,6 +436,12 @@ flowchart TD
     PROV --> ST
     UP --> ST
 ```
+
+A re-analyzed post "had events" when its record's outcome is `event` or `merged`, or, for records kept before
+outcomes existed (no `outcome`), when Gemini called it an event post. When Flash-Lite is out of today's quota,
+new posts wait for the next run instead of going straight to Flash: skipping the filter would spend Flash's
+20 requests on posts that mostly aren't events. A triage that fails for another reason (busy, a timeout) lets
+the extraction decide.
 
 Triage exists to save the scarce Flash quota (20 a day per model). Most posts aren't events, and a
 512-pixel image plus the caption are enough to tell. When unsure, the triage prompt answers "yes": a
@@ -486,7 +497,10 @@ Notes on the prompts and parameters:
     concerts, festivals (an event over several consecutive days is one event, from its first to its last
     day)… but not regular
     classes, programs spread over several weeks, recaps, showcases or tutorials, nor anything that isn't
-    about dancing (like a drawing workshop at a dance venue), nor events the post places in another city or
+    about dancing (like a drawing workshop at a dance venue), nor concerts and music festivals that aren't for
+    social or partner dancing (electronic, rock, pop, indie, reggaeton or urbano mass concerts, general music
+    festivals: a concert or festival counts only for salsa, bachata, merengue, son, timba, kizomba, tango,
+    champeta… dancing), nor events the post places in another city or
     country (teachers and artists travel; no city stated means Bogotá). It quotes the words academies use
     ("social", "taller", "todos los jueves", "así se vivió"…), which helps the lighter model most;
   - how to pick the event type (social, workshop, concert, congress, festival, competition, show, other: a
@@ -514,7 +528,7 @@ flowchart TD
     B -->|yes| PACE["Wait for its pace<br/>(60 / RPM + 0.5 s)"] --> CALL["Call (counted as spent)"]
     CALL -->|"valid JSON"| OK["Return answer + model"]
     CALL -->|"invalid JSON"| RETRY{"Attempt < 3?"}
-    CALL -->|"5xx busy"| BACK["Back off 5 s × attempt"] --> RETRY
+    CALL -->|"5xx busy, a timeout or<br/>a dropped connection"| BACK["Back off 5 s × attempt"] --> RETRY
     CALL -->|"429 per-minute"| WAIT["Wait 60 s"] --> RETRY
     CALL -->|"429 daily, or<br/>429 again"| EXH["Mark model used up for today"] --> M
     CALL -->|"403 or 404: model not<br/>available to this key"| UNAV["Listed as unavailable<br/>(health warning)"] --> EXH
@@ -547,7 +561,10 @@ flowchart TD
 - **Lite-only mode:** the repository variable `GEMINI_LITE_ONLY=1` makes Flash-Lite the extraction model, with
   final (not provisional) results (`config.LITE_ONLY`). It's the switch for a Flash cutoff.
 - **Pace:** calls to the same model are spaced to its per-minute limit.
-- **Timeout:** each request gives up after 120 seconds, so a stuck call can't hang the run.
+- **Timeout:** each request gives up after 120 seconds, so a stuck call can't hang the run. The SDK raises
+  timeouts and dropped connections as httpx's own errors (`httpx.TransportError`, neither an `APIError` nor an
+  `OSError`): the pool retries them like a busy server, and if no model answers, the post waits like any
+  failure (`pipeline.RETRYABLE_ERRORS`; an add-post request answers "Inténtalo de nuevo en un rato").
 
 ---
 
@@ -586,10 +603,10 @@ flowchart TD
     L -->|"yes, and that event<br/>doesn't already contain P"| MERGE["Merge into it"]
     L -->|no| RULE{"Rule: same account, a day in common, and<br/>same start time (or same title when a time<br/>is missing; over several days: the title)?"}
     RULE -->|yes| MERGE
-    RULE -->|no| SHARED{"Rule: another account's event,<br/>a day in common, no clash in time or venue,<br/>and strong signs it's the same?"}
+    RULE -->|no| SHARED{"Rule: another account's event,<br/>a day in common, no clash in time or venue,<br/>and one names the other's account,<br/>or the same venue (never titles alone)?"}
     SHARED -->|yes| MERGE
     SHARED -->|no| NEW["New event<br/>id: title-day-month (its first day)"]
-    MERGE --> F["Fill in what the event was missing.<br/>If P is the newest post: dates, weekday,<br/>start and end time, prices from P"]
+    MERGE --> F["Fill in what the event was missing.<br/>If P is the newest post: its first and last day<br/>(together), weekday, start and end time, prices"]
     F --> O["media sorted: flyers first, then videos;<br/>newest first (the latest flyer is the cover)"]
 ```
 
@@ -606,12 +623,17 @@ flowchart TD
   across accounts it's rules only. A day in common; never with different start times (compared between
   one-day events only) or different venues (when both are known); and one of:
   - one event names the other's account (its organizer, venue or contact, or a title word: "Bachatamanía"
-    for `@bachatamania_bogota`, "Distrito Social" for `@distritosocialbog`), plus the same start time or a
-    title word in common;
-  - the same venue and start time, plus a title word in common;
-  - two or more distinctive title words in common ("Level Up … Fusion Congress").
+    for `@bachatamania_bogota`, "Distrito Social" for `@distritosocialbog`, "Level" for `@levelupbfc`),
+    plus the same start time or a title word in common;
+  - the same venue (both known), plus the same start time and a title word in common, or two or more
+    distinctive title words in common.
 
-  Words every dance title shares (social, clase, bachata, salsa…) and place names (Bogotá) don't count. The
+  **Titles alone never merge two accounts' events:** two academies' "Halloween Party 2026", or "Bachata
+  Congress 2026" and "Salsa Congress 2026" on the same weekend, are as likely two events as one. Words every
+  dance title shares (social, clase, bachata, salsa…), place names (Bogotá) and anything with a digit (years,
+  "100%") never count. Neither do kinds and occasions of events (congress, festival, party, Halloween,
+  aniversario, masterclass, competencia, gala…: `merging._EVENT_WORDS`) for the two-words rule and for a
+  title naming an account; with an account named, or the same venue and time, "Halloween" in both is enough. The
   event stays under the account that posted it first, and gains the other post's flyer. Over the site's
   history this merges the one real duplicate (Sept 19, 2026) and nothing else.
 - **Two events in the same post are never merged** with each other.
@@ -630,7 +652,11 @@ flowchart TD
   - An empty value never clears a known one, so a reminder without dates keeps an event's last day.
   - A post about one day of an event over several days (one day of its own, within the event's) doesn't
     change its days or times: a teacher's class isn't the festival's new date.
-  - A new date the old last day no longer fits (rescheduled to one day) drops `end_date`.
+  - The first and last day go together: the newest post's `date` and `end_date` replace both, so an event
+    moved to one day, as posted, loses its old last day (13–15 Nov moved to 10 Nov is 10 Nov, not 10–15).
+  - An older post only gives a last day to an event that has none and starts the same day (a flyer's
+    "13–15 Nov" for an event stored on 13 Nov). It never mixes its days with a newer post's: "13–15 Nov"
+    from an older post leaves a newer "14 Nov" as it is.
 - **Ids are URLs** (`ids.py`): `<title>-<day>-<month>`, for example `social-de-halloween-24-oct`, with
   `-2`, `-3`… when taken. An event over several days is named after its first day
   (`level-up-bachata-fusion-congress-13-nov`).
@@ -661,6 +687,10 @@ flowchart LR
     W -- "the sweep reads and updates it" --> W
     W -- "commit + push<br/>(save step, even after a failed sweep)" --> B
 ```
+
+The save runs after the data PR step (section 5.2). If that PR couldn't be opened, `processed_posts.json` and
+`accounts.json` keep their previous versions, so the posts whose events would otherwise be lost are read again
+by the next run; the other files are saved as usual.
 
 Locally, the same files live in `state/` (git-ignored), so local runs keep their own state. Tools that
 need the sweeps' state on your computer (`admin status`, `discover`'s Gemini allowance) read the branch
@@ -935,6 +965,7 @@ spent only on the few that announce events.
 | Warning: backlog stuck | Gemini's free quota is too small for the posts coming in | Lower `POSTS_PER_ACCOUNT`, remove inactive accounts, or check AI Studio's current limits and update `MODEL_LIMITS` |
 | Warning: no events in a week | A prompt or the triage rejecting everything (for example, a model change) | Read "not an event" reasons in the logs; tune `prompts.py` |
 | "Gemini API key doesn't work" (the run fails) | The key was revoked, expired or deleted | Create a key in Google AI Studio and update `GEMINI_API_KEY` (`.env` and the GitHub secret). No post was marked: they're read on the next run (`GeminiKeyError`) |
+| "The data PR wasn't opened" (a warning; the run fails at step 9 or 10) | The App token couldn't be minted (key revoked, App uninstalled), or GitHub's API or the push failed | Fix the cause (section 4: `APP_ID`, `APP_PRIVATE_KEY`, the App's installation). Nothing is lost: the run kept this run's posts unread, so the next run reads them again and opens the PR. The run's artifact `site-data-<run id>` (14 days) holds the events and flyers it had, if you'd rather open the PR by hand |
 | "A data PR hasn't merged" (the run fails at step 6c) | An earlier data PR's `ci` failed, or it took more than 20 minutes | Open it in the site repository: fix what `ci` says and merge it (or merge it if it just needed time). Sweeps resume on the next run |
 | Gemini model names stop working (404) | Google retired a model | The pool skips it automatically. Update `MODEL_LIMITS` and the role tuples in `config.py` to current models |
 | An event on the site is wrong | Gemini misread a flyer | Check it under "Events to review". Editing `data/events.json` by hand in a site PR works, but a later re-extraction of that post (edited caption) can overwrite it |

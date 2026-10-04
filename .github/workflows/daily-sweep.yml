@@ -178,14 +178,75 @@ jobs:
           DATA_DIR: ${{ github.workspace }}/site/data
         run: python -m pa_bailar admin status --json > "$STATE_FILES/status.json.tmp" && mv "$STATE_FILES/status.json.tmp" "$STATE_FILES/status.json"
 
-      # Kept even when the sweep failed partway: its progress (analyzed posts) is real.
+      - name: Get a token for the site repository (pa-bailar-bot)
+        id: app
+        if: ${{ !cancelled() }}
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ env.SITE_OWNER }}
+          repositories: ${{ env.SITE_REPO }}
+
+      - name: Open a data pull request in the site repository if events or flyers changed
+        id: pr
+        if: ${{ !cancelled() }} # keep progress from a sweep that failed partway (it still shows as failed)
+        working-directory: site
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          BOT: ${{ steps.app.outputs.app-slug }}[bot]
+          WHAT: ${{ inputs.post_url && 'post added by hand' || 'daily sweep' }}
+        run: |
+          # Only events and flyers count as a change: meta.json is rewritten every run (with the check time).
+          if [ -z "$(git status --porcelain -- data/events.json data/flyers)" ]; then
+            echo "No new or changed events: no pull request."
+            exit 0
+          fi
+          gh auth setup-git  # git pushes with the App token (GH_TOKEN), only from here on
+          bot_id="$(gh api "/users/${BOT}" --jq .id)"
+          git config user.name "$BOT"
+          git config user.email "${bot_id}+${BOT}@users.noreply.github.com"
+          day="$(date -u +%F)"
+          branch="data/sweep-${day}-${GITHUB_RUN_ID}"
+          git switch -c "$branch"
+          git add data/
+          git commit -m "chore(data): ${WHAT} ${day}"
+          git push origin "$branch"
+          url="$(gh pr create --repo "$SITE_OWNER/$SITE_REPO" --base main --head "$branch" --label data \
+            --title "chore(data): ${WHAT} ${day}" \
+            --body "Automatic data update (${WHAT}, run ${GITHUB_RUN_ID} of the backend). Merges itself when \`ci\` passes.")"
+          gh pr merge "$url" --auto --squash --delete-branch
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Opened $url"
+
+      # If the data PR couldn't be opened (the App token, GitHub's API, the push), the sweep's events and flyers
+      # would die with the runner: keep them for 14 days, to recover by hand (docs/ARCHITECTURE.md, section 15).
+      - name: Keep the site data of a data PR that wasn't opened
+        if: ${{ !cancelled() && steps.pr.outcome == 'failure' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: site-data-${{ github.run_id }}
+          path: site/data
+          retention-days: 14
+
+      # Kept even when the sweep failed partway: its progress (analyzed posts) is real, and its events went out
+      # in the data PR above. Unless that PR couldn't be opened: then those events exist only on this runner (and
+      # in the artifact above), so the posts stay unread and the accounts due, and the next run reads them again.
+      # Gemini's usage, the run history and the status are kept either way (the quota was spent).
       - name: Save the sweep state
         if: ${{ !cancelled() }}
         working-directory: sweep-state
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_OUTCOME: ${{ steps.pr.outcome }}
         run: |
           cp "$GITHUB_WORKSPACE/$STATE_FILES"/*.json .
+          if [ "$PR_OUTCOME" != "success" ]; then
+            for file in processed_posts.json accounts.json; do
+              git checkout -q -- "$file" 2>/dev/null || rm -f "$file"
+            done
+            echo "::warning::The data PR wasn't opened: this run's posts stay unread, to be read again next run."
+          fi
           if [ -z "$(git status --porcelain)" ]; then echo "State unchanged."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -237,47 +298,6 @@ jobs:
           if [ "$previous" != "health-fingerprint: $FINGERPRINT" ]; then
             gh issue comment "$issue" --body-file comment.md
           fi
-
-      - name: Get a token for the site repository (pa-bailar-bot)
-        id: app
-        if: ${{ !cancelled() }}
-        uses: actions/create-github-app-token@v3
-        with:
-          app-id: ${{ vars.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          owner: ${{ env.SITE_OWNER }}
-          repositories: ${{ env.SITE_REPO }}
-
-      - name: Open a data pull request in the site repository if events or flyers changed
-        id: pr
-        if: ${{ !cancelled() }} # keep progress from a sweep that failed partway (it still shows as failed)
-        working-directory: site
-        env:
-          GH_TOKEN: ${{ steps.app.outputs.token }}
-          BOT: ${{ steps.app.outputs.app-slug }}[bot]
-          WHAT: ${{ inputs.post_url && 'post added by hand' || 'daily sweep' }}
-        run: |
-          # Only events and flyers count as a change: meta.json is rewritten every run (with the check time).
-          if [ -z "$(git status --porcelain -- data/events.json data/flyers)" ]; then
-            echo "No new or changed events: no pull request."
-            exit 0
-          fi
-          gh auth setup-git  # git pushes with the App token (GH_TOKEN), only from here on
-          bot_id="$(gh api "/users/${BOT}" --jq .id)"
-          git config user.name "$BOT"
-          git config user.email "${bot_id}+${BOT}@users.noreply.github.com"
-          day="$(date -u +%F)"
-          branch="data/sweep-${day}-${GITHUB_RUN_ID}"
-          git switch -c "$branch"
-          git add data/
-          git commit -m "chore(data): ${WHAT} ${day}"
-          git push origin "$branch"
-          url="$(gh pr create --repo "$SITE_OWNER/$SITE_REPO" --base main --head "$branch" --label data \
-            --title "chore(data): ${WHAT} ${day}" \
-            --body "Automatic data update (${WHAT}, run ${GITHUB_RUN_ID} of the backend). Merges itself when \`ci\` passes.")"
-          gh pr merge "$url" --auto --squash --delete-branch
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "Opened $url"
 
       # Its merge triggers the site's deploy (with meta.json's time, which is this sweep's).
       - name: Wait for the data PR to merge
