@@ -18,7 +18,8 @@ is ONE event, from its first to its last day.
 
 What counts:
 - socials and parties: "social", "noche de salsa/bachata", "rumba", "fiesta", "previa", anniversaries
-  ("aniversario"), Halloween or holiday parties; concerts and live bands people dance to; dance congresses
+  ("aniversario"), Halloween or holiday parties; concerts and live bands for social or partner dancing (a
+  salsa orchestra, a bachata or merengue band, son, timba, kizomba, tango, champeta…); dance congresses
   and festivals; competitions and battles ("concurso", "batalla"); shows and galas;
 - one-time workshops: "taller", "masterclass", "clase especial", "clase única", "clase abierta" on a given
   date, "bootcamp", "intensivo", a class with a guest teacher.
@@ -28,6 +29,12 @@ What does NOT count:
   painting, theater, music or singing lessons, yoga, pilates, fitness without dancing, markets, talks,
   sports (e.g. "taller de dibujo", "semillero de creación de personajes"). It's a dance event only if
   dancing is what people come to do or watch;
+- concerts and music festivals that aren't for social or partner dancing: electronic (EDM, techno, house),
+  rock, pop, indie, reggaeton or urbano mass concerts, and general music festivals (e.g. "EDC", "Estéreo
+  Picnic", a pop or rock band's tour), even when a promoter or venue that also hosts dance events posts
+  them. A concert or festival counts only when it's for social or partner dancing (salsa, bachata, merengue,
+  son, timba, kizomba, tango, champeta…): a salsa orchestra's concert, or a dance festival with socials and
+  workshops;
 - regular classes and courses: schedules ("horarios"), "todos los jueves", "cada viernes", "inscripciones
   abiertas", "cursos", "niveles", monthly fees ("mensualidad"), and programs spread over several weeks
   (e.g. "sábados 10, 17 y 24"), unless each date is a separate occasion (e.g. three socials, each with

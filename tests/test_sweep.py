@@ -3,6 +3,7 @@
 import json
 from datetime import UTC, datetime, timedelta
 
+import httpx
 import pytest
 
 from pa_bailar import config, storage
@@ -524,6 +525,47 @@ def test_an_edited_caption_is_extracted_again_without_the_filter_and_a_cancelled
     run(FakeInstagram({"academia": [cancelled], "otra": []}), extractor)
     assert extractor.extracted_posts == ["p1"]
     assert read(config.EVENTS_FILE) == []
+
+
+def test_an_edited_caption_of_a_post_recorded_before_outcomes_existed_skips_the_filter():
+    """Older records have no outcome: one Gemini called an event post had events, and gets the extraction."""
+    first = post("p1")
+    run(FakeInstagram({"academia": [first], "otra": []}), FakeExtractor({"p1": event_post("p1")}))
+    records = read(config.PROCESSED_POSTS_FILE)
+    records["p1"]["outcome"] = None
+    config.PROCESSED_POSTS_FILE.write_text(json.dumps(records), encoding="utf-8")
+
+    cancelled = {**first, "caption": "CANCELADO"}
+    extractor = FakeExtractor({"p1": PostAnalysis(is_event_post=False, reason="Cancelado", events=[])}, {"p1"})
+    run(FakeInstagram({"academia": [cancelled], "otra": []}), extractor)
+    assert extractor.extracted_posts == ["p1"] and read(config.EVENTS_FILE) == []
+
+
+# ---------- Gemini's quota and network ----------
+
+
+def test_a_post_waits_when_the_filter_is_out_of_quota_instead_of_spending_flash(monkeypatch):
+    extractor = FakeExtractor({"p1": event_post("p1")})
+
+    def lite_out_of_quota(*args, **kwargs):
+        raise QuotaExhaustedError("no quota left today (gemini-3.5-flash-lite)")
+
+    monkeypatch.setattr(extractor, "triage", lite_out_of_quota)
+    stats = run(FakeInstagram({"academia": [post("p1")], "otra": []}), extractor)
+    assert extractor.extracted_posts == [] and stats.pending == 1 and stats.errors == 0
+    assert "p1" not in storage.load_processed_posts()
+
+
+def test_a_network_timeout_leaves_the_post_pending(monkeypatch):
+    extractor = FakeExtractor({"p1": event_post("p1")})
+
+    def timeout(*args, **kwargs):
+        raise httpx.ReadTimeout("The read operation timed out")
+
+    monkeypatch.setattr(extractor, "triage", timeout)  # the filter unavailable: the extraction decides
+    monkeypatch.setattr(extractor, "extract", timeout)
+    stats = run(FakeInstagram({"academia": [post("p1")], "otra": []}), extractor)
+    assert stats.pending == 1 and "p1" not in storage.load_processed_posts()
 
 
 # ---------- events over several days ----------

@@ -15,3 +15,12 @@ def test_events_in_another_city_dont_count_but_no_city_means_bogota():
     for prompt in (TRIAGE_PROMPT, EXTRACTION_PROMPT):
         assert "events in another city or country, when the post says so" in prompt
         assert "With no city stated, the event is in Bogotá." in prompt
+
+
+def test_only_concerts_and_festivals_for_partner_dancing_count():
+    # Oct 2026: a concert promoter's EDM festival and pop concerts came out as events.
+    for prompt in (TRIAGE_PROMPT, EXTRACTION_PROMPT):
+        assert "concerts and music festivals that aren't for social or partner dancing" in prompt
+        assert "electronic (EDM, techno, house)" in prompt
+        assert "A concert or festival counts only when it's for social or partner dancing" in prompt
+        assert "a salsa orchestra's concert, or a dance festival with socials and" in prompt  # these still count

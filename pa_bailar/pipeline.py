@@ -20,6 +20,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from typing import Any, Protocol, cast
 
+import httpx
 from google.genai import errors as genai_errors
 
 from . import clips, config, links, public_post, storage
@@ -55,8 +56,8 @@ from .normalize import normalize_event
 log = logging.getLogger(__name__)
 
 # Errors that leave a post pending (retried next run) instead of stopping the sweep.
-# OSError covers network and image errors.
-RETRYABLE_ERRORS = (ExtractionError, genai_errors.APIError, OSError)
+# OSError covers network and image errors; httpx.TransportError, Gemini's timeouts and dropped connections.
+RETRYABLE_ERRORS = (ExtractionError, genai_errors.APIError, OSError, httpx.TransportError)
 
 
 class PostSource(Protocol):
@@ -564,7 +565,8 @@ class Sweep:
                 # A post that had events skips the filter: the extraction decides again, and takes its old
                 # events off the site if it no longer announces them ("CANCELADO"). Others go through the
                 # filter as usual (Flash-Lite), keeping Flash's small quota for events.
-                had_events = record.outcome in ("event", "merged")
+                # Records from before outcomes were kept (outcome None) had events if Gemini said so.
+                had_events = record.outcome in ("event", "merged") or (record.outcome is None and record.is_event_post)
                 if self._analyze_new_post(account, post, published, triage=not had_events):
                     self.stats.reanalyzed += 1
             elif record.provisional and self.extractor.can_extract_with_flash() and not self._out_of_time():
@@ -635,6 +637,10 @@ class Sweep:
         if triage:
             try:
                 verdict, triage_model = self.extractor.triage(account, post, published, images)
+            except QuotaExhaustedError as error:
+                # Flash-Lite out of today's quota: wait for it rather than spend Flash's small one on every post.
+                log.info("     waits for the next run (triage): %s", error)
+                return False
             except RETRYABLE_ERRORS as error:
                 # Triage unavailable: let the extraction decide on its own.
                 log.info("     triage unavailable (%s), extracting directly", error)

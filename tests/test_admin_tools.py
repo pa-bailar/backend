@@ -2,6 +2,7 @@
 
 from datetime import date, datetime, timedelta
 
+import httpx
 import pytest
 
 from pa_bailar import config, inbox, links, public_post, storage, why
@@ -248,6 +249,17 @@ def test_add_post_adds_an_account_that_isnt_swept():
 def test_add_post_says_why_it_couldnt(posts, account, extractor, message):
     with pytest.raises(AddPostError, match=message):
         sweep(posts, {}, **extractor).add_post(LINK, account)
+
+
+def test_add_post_answers_a_gemini_timeout_with_try_again_later(monkeypatch):
+    added = sweep({"academia": [post("p1")]}, {"p1": event_post("p1")})
+
+    def timeout(*args, **kwargs):
+        raise httpx.ReadTimeout("The read operation timed out")
+
+    monkeypatch.setattr(added.extractor, "extract", timeout)
+    with pytest.raises(AddPostError, match="Algo falló al leerla .* Inténtalo de nuevo en un rato"):
+        added.add_post(LINK, "academia")
 
 
 # ---------- the public page fallback (public_post.py) ----------

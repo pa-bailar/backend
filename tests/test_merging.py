@@ -259,3 +259,69 @@ def test_a_rescheduled_date_drops_a_last_day_that_no_longer_fits():
     same_as = extracted(same_as=congress.id, date="2026-11-27")  # moved: one day, as posted
     merged = merge_into(congress, same_as, media("new", published="2026-10-05T12:00:00+0000"))
     assert (merged.date, merged.end_date) == ("2026-11-27", None)
+
+
+def test_an_older_post_with_a_range_never_moves_a_newer_one_day_event():
+    """A newer post says 14 Nov; an older one, analyzed after it, says 13–15 Nov: the event stays as posted
+    last, instead of a mix of both (14–15 Nov)."""
+    event = stored(date="2026-11-14", posts=[media("new", published="2026-10-05T12:00:00+0000")])
+    older = extracted(date="2026-11-13", end_date="2026-11-15")
+    merged = merge_into(event, older, media("old", published="2026-10-01T12:00:00+0000"))
+    assert (merged.date, merged.end_date) == ("2026-11-14", None)
+
+
+def test_an_event_moved_to_one_earlier_day_drops_its_old_last_day():
+    congress = stored(
+        date="2026-11-13", end_date="2026-11-15", posts=[media("flyer", published="2026-10-01T12:00:00+0000")]
+    )
+    moved = extracted(date="2026-11-10")  # one day, before the old range: not one of its days
+    merged = merge_into(congress, moved, media("new", published="2026-10-05T12:00:00+0000"))
+    assert (merged.date, merged.end_date) == ("2026-11-10", None)
+
+
+def test_the_newest_range_replaces_both_days():
+    congress = stored(
+        date="2026-11-13", end_date="2026-11-15", posts=[media("flyer", published="2026-10-01T12:00:00+0000")]
+    )
+    moved = extracted(date="2026-11-20", end_date="2026-11-22")
+    merged = merge_into(congress, moved, media("new", published="2026-10-05T12:00:00+0000"))
+    assert (merged.date, merged.end_date) == ("2026-11-20", "2026-11-22")
+
+
+# ---------- different events that only look alike across accounts ----------
+
+
+def test_two_accounts_halloween_parties_stay_apart():
+    party = stored(account="academia", title="Fiesta de Halloween 2026", start_time="21:00", venue="Casa Latina")
+    other = extracted(title="Halloween Party 2026", start_time="21:00")
+    assert not looks_like_shared_event(party, "otra", other)
+    assert find_existing([party], "otra", other, "new-post") is None
+
+
+def test_two_congresses_on_the_same_days_stay_apart():
+    bachata = stored(account="bachatacol", title="Bachata Congress 2026", date="2026-11-13", end_date="2026-11-15")
+    salsa = extracted(title="Salsa Congress 2026", date="2026-11-14", end_date="2026-11-16")
+    assert not looks_like_shared_event(bachata, "salsacol", salsa)
+
+
+def test_two_festivals_on_overlapping_days_stay_apart():
+    casinea = stored(account="casineafest", title="Festival Casinea 2026", date="2026-11-13", end_date="2026-11-16")
+    tango = extracted(title="Festival de Tango 2026", date="2026-11-15", start_time="19:00")
+    assert not looks_like_shared_event(casinea, "tangobogota", tango)
+    # The festival's collaborator naming it still joins it.
+    teacher = extracted(title="Casinea 2026: taller con Juan", date="2026-11-14", start_time="15:00")
+    assert looks_like_shared_event(casinea, "academia", teacher)
+
+
+def test_titles_alone_merge_two_accounts_only_at_the_same_venue():
+    gala = stored(account="academia", title="Gala Estrellas del Caribe", date="2026-11-14", venue="Teatro Colsubsidio")
+    same_venue = extracted(title="Estrellas del Caribe: la gala", date="2026-11-14", venue="Teatro Colsubsidio")
+    assert looks_like_shared_event(gala, "otra", same_venue)
+    no_venue = extracted(title="Estrellas del Caribe: la gala", date="2026-11-14")
+    assert not looks_like_shared_event(gala, "otra", no_venue)
+
+
+def test_the_same_party_at_the_same_venue_and_time_still_merges_across_accounts():
+    party = stored(account="academia", title="Fiesta de Halloween", start_time="21:00", venue="Casa Latina")
+    venue_post = extracted(title="Halloween Party", start_time="21:00", venue="Casa Latina")
+    assert looks_like_shared_event(party, "casalatina_bar", venue_post)

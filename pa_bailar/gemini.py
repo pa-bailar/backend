@@ -8,6 +8,9 @@ when every model is out of today's quota or not offered to this key: nothing fai
 `GeminiKeyError` is apart: the API key itself doesn't work (invalid, expired, revoked), so nothing can be
 read until it's replaced. It isn't an `ExtractionError`, so no post is marked as rejected because of it.
 
+A timeout or a dropped connection (httpx's `TransportError`, raised as is by the SDK) is retried like a busy
+server (5xx).
+
 A model Gemini says isn't available to this key (404 or 403, e.g. if Google took it out of the free tier) is
 skipped for the rest of the day like a spent one, and listed in `unavailable` for the health checks.
 """
@@ -18,6 +21,7 @@ from collections import Counter
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+import httpx
 from google import genai
 from google.genai import errors, types
 from pydantic import BaseModel
@@ -178,8 +182,11 @@ class ModelPool:
                         raise RejectedRequestError(f"{model} blocked the answer ({reason})")
                     log.info("    %s returned no valid JSON, retrying", model)
                     failed = True
-                except errors.ServerError as error:
-                    log.info("    %s busy (%s), retrying", model, error.code)
+                except (errors.ServerError, httpx.TransportError) as error:
+                    # Busy (5xx), or the network: a timeout or a dropped connection, which the SDK raises as
+                    # httpx's own errors (neither an APIError nor an OSError).
+                    code = error.code if isinstance(error, errors.ServerError) else type(error).__name__
+                    log.info("    %s busy (%s), retrying", model, code)
                     failed = True
                     if attempt < ATTEMPTS_PER_MODEL:
                         time.sleep(SERVER_ERROR_BACKOFF_SECONDS * attempt)
