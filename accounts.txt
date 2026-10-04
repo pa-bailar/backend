@@ -59,6 +59,9 @@ bailarito
 elparche.se
 bogotadanceclub
 
+# Added with the admin tools (admin add-account, add-post)
+casineafest
+
 # ---------------------------------------------------------------------------------------------------
 # Salsa bars and restaurants: NOT swept for now (every line below is a comment).
 # They contribute differently from academies (nightly rumba, live bands, weekly salsa nights more than
