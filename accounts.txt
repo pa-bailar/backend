@@ -54,7 +54,7 @@ cordillerafestival
 latrinidaddelasalsa
 danzaenlaciudad
 salsaculto
-paramopresenta
+# paramopresenta: a concert promoter (EDC, rock and pop concerts), not dance events: unfollowed 4 Oct 2026.
 latinproductioncolombia
 bachatasocialcongresss
 bailarito
