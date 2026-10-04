@@ -35,6 +35,8 @@ academia_cowork
 espacio.64
 lacoartadacentrocultural
 iledanza
+# Son de Habana: academy in Bogotá that announces workshops and socials (discovery, 4 Oct 2026).
+sondehabana
 
 # Dance companies
 herencialatinad.c
@@ -60,6 +62,11 @@ elparche.se
 bogotadanceclub
 # Festival Internacional Casinea: Cuban dances and salsa, 10th edition 13-16 Nov 2026, organized by iledanza.
 casineafest
+# Discovery, 4 Oct 2026:
+# Wiwi: organizes bailatones (dance marathons) in Bogotá.
+soywiwioficial
+# Arrollando: a dance competition that announces congresses and masterclasses (".dc": Bogotá).
+arrollando.dc
 
 # Teachers, dancers and artists (orchestras, DJs): their own one-time workshops, intensives, socials and
 # shows in Bogotá. Most of their posts are videos and regular classes, which the triage filters out.
@@ -69,6 +76,20 @@ frank.de.latorre
 # Angie Cuesta: salsa estilo femenino teacher and dancer, director of mover__se; announces her talleres
 # (e.g. a femenino intensive at iledanza, 2 Oct 2026).
 angie__cuesta
+# Discovery, 4 Oct 2026: teachers and dancers based in Bogotá whose posts announce workshops.
+and1erita
+andonybaron
+danitello22
+juancho__salsita
+mariavasquezdancer
+oswaldgil2
+sarasandoval.oficial
+teffa_mg
+zaimora24
+# La-33: Bogotá salsa and boogaloo orchestra; announces concerts.
+la33orquesta
+# Fernando España: salsa DJ; announces his sets at dance venues in Bogotá.
+fernandoespanadj
 
 # Added with the admin tools (admin add-account, add-post)
 jaleocompetencia_
@@ -109,3 +130,17 @@ jaleocompetencia_
 #   Cultural center, stage and bar (Cra 25 # 63f-21): concerts and salsa parties.
 # restaurantecasadecitas
 #   Peruvian restaurant with live music and rumba.
+# acaparchamos
+#   Bar and event venue in Chapinero: salsa nights and social dancing. (discovery, 4 Oct 2026)
+# aseismanos
+#   Bar and cultural center: events, concerts and dance classes. (discovery, 4 Oct 2026)
+# bilongocolombia
+#   Fuente de soda and bar with live salsa music and events. (discovery, 4 Oct 2026)
+# el_bochinche_cafe_
+#   Café-bar with regular salsa nights and parties. (discovery, 4 Oct 2026)
+# galeriacafelibro
+#   Emblematic salsa bar with live music and dance events. (discovery, 4 Oct 2026)
+# ilhehabana
+#   Cuban-themed restaurant, bar and gallery with live music. (discovery, 4 Oct 2026)
+# ladiezluxury_outlet
+#   Night venue focused on salsa music and dancing. (discovery, 4 Oct 2026)
