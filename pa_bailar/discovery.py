@@ -4,7 +4,7 @@ Input: your Instagram data export ("Followers and following"), HTML or JSON. It 
 (private/ is git-ignored). For each followed account:
   1. Instagram (Business Discovery): personal or private accounts are rejected → discarded, free.
   2. Local filter: only business accounts with a dance hint in their name, bio or recent captions go on.
-  3. Gemini Flash-Lite classifies them: academy / venue / organizer / …, in Bogotá or not.
+  3. Gemini Flash-Lite classifies them: academy / venue / organizer / teacher / musician / …, in Bogotá or not.
 Results are cached in private/discovery.json, so the tool can stop and resume.
 """
 
@@ -26,9 +26,13 @@ DANCE_KEYWORDS = [
     "bail", "danc", "danz", "salsa", "bachat", "kizomba", "zouk", "mambo", "casino", "timba", "merengue",
     "tango", "swing", "champeta", "rumba", "son cubano", "academ", "escuela", "studio", "estudio",
     "ritmo", "latin", "sabor", "social", "salsoteca", "congres", "festival", "fest", "taller", "clase",
-    "coreograf", "heels", "urban", "afro", "pista", "rueda",
+    "coreograf", "heels", "urban", "afro", "pista", "rueda", "profe", "instructor", "orquest", "dj",
 ]  # fmt: skip
+# Sources of events by nature: recommended unless they're outside Bogotá.
 RECOMMENDED_KINDS = {"academy", "venue", "organizer", "dance_company"}
+# Teachers, dancers, orchestras and DJs: recommended only when their posts announce one-time events (their own
+# workshops, intensives, socials, shows). Most of their posts are videos and regular classes.
+ARTIST_KINDS = {"teacher", "musician"}
 
 CLASSIFY_PROMPT = """You help build a directory of dance academies and dance events in Bogotá, Colombia.
 Classify this Instagram business account from its public profile and recent captions.
@@ -42,7 +46,8 @@ Recent captions:
 {captions}
 
 Be strict about Bogotá: "yes" only with evidence (Bogotá, BTA, a Bogotá neighborhood or address);
-"no" when another city or country is stated; "unknown" otherwise."""
+"no" when another city or country is stated; "unknown" otherwise. Teachers, dancers and musicians travel:
+for them, it's where they're based, not where they've been invited."""
 
 
 def dance_score(*texts: str) -> int:
@@ -153,8 +158,11 @@ def _row(account: DiscoveredAccount) -> ReportRow:
 
 
 def is_recommended(c: AccountClassification) -> bool:
-    """Worth adding to accounts.txt: an academy, venue, organizer or company in (or likely in) Bogotá."""
-    return c.kind in RECOMMENDED_KINDS and c.in_bogota != "no"
+    """Worth adding to accounts.txt, in (or likely in) Bogotá: an academy, venue, organizer or company, or a
+    teacher, dancer or musician whose posts announce one-time events."""
+    if c.in_bogota == "no":
+        return False
+    return c.kind in RECOMMENDED_KINDS or (c.kind in ARTIST_KINDS and c.announces_events)
 
 
 def report_sections(cache: dict[str, DiscoveredAccount], already_followed: set[str]) -> dict[str, list[ReportRow]]:
@@ -211,12 +219,13 @@ def report_markdown(cache: dict[str, DiscoveredAccount], already_followed: set[s
             f"{pending_classify} waiting for classification.",
             "",
             f"## Recommended ({len(sections['recommended'])})",
-            "Academies, venues, organizers and companies in Bogotá (or with no city stated).",
+            "Academies, venues, organizers and companies in Bogotá (or with no city stated), and teachers, "
+            "dancers and musicians whose posts announce one-time events.",
             "",
             *table(sections["recommended"]),
             "",
             f"## Maybe ({len(sections['maybe'])})",
-            "Dance-related but not an obvious source of events (teachers, shops, media…).",
+            "Dance-related but not an obvious source of events (teachers with only regular classes, shops, media…).",
             "",
             *table(sections["maybe"]),
             "",

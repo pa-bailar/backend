@@ -177,15 +177,18 @@ class ProcessedPost(BaseModel):
 
 # ---------- Account discovery (python -m pa_bailar discover) ----------
 
-AccountKind = Literal["academy", "venue", "organizer", "dance_company", "teacher", "dance_other", "not_dance"]
+AccountKind = Literal[
+    "academy", "venue", "organizer", "dance_company", "teacher", "musician", "dance_other", "not_dance"
+]
 
 
 class AccountClassification(BaseModel):
     kind: AccountKind = Field(
         description="academy = dance school/academy; venue = bar, club or salsoteca with dancing; "
         "organizer = events, socials, festivals or congresses; dance_company = performing group; "
-        "teacher = individual dancer or instructor; dance_other = other dance-related (shops, media, "
-        "photographers); not_dance = unrelated to dancing"
+        "teacher = individual teacher, dancer or dance couple; musician = orchestra, band, singer or DJ "
+        "that plays for dancing; dance_other = other dance-related (shops, media, photographers); "
+        "not_dance = unrelated to dancing"
     )
     in_bogota: Literal["yes", "no", "unknown"] = Field(
         description="Is it based in or regularly active in Bogotá, Colombia? Use the bio, website, "
@@ -194,7 +197,8 @@ class AccountClassification(BaseModel):
     city: str | None = Field(description="City it's based in, if stated")
     styles: list[Style] = Field(description="Dance styles it teaches or plays, from the list")
     announces_events: bool = Field(
-        description="Do its recent captions announce socials, parties, workshops or other dated events?"
+        description="Do its recent captions announce one-time dated events (socials, parties, workshops, "
+        "intensives, shows, concerts)? Regular weekly classes alone don't count."
     )
     reason: str = Field(description="One short sentence explaining the classification, in Spanish")
 
