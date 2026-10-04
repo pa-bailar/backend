@@ -236,6 +236,7 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 | `GEMINI_LITE_ONLY` | Variable | GitHub Actions variable (optional) | Sweep step | `1`: Flash-Lite also extracts, as final results (`config.LITE_ONLY`). For when Flash isn't available to the key; unset otherwise |
 | `HEALTHCHECK_URL` | Secret | GitHub Actions secret | "Report to the health check" step | The check's ping URL. Optional: without it the step does nothing |
 | `GITHUB_TOKEN` | Automatic | Created by GitHub per run | daily-sweep: the `request` job (reads the admin issue, answers it if adding can't start), the open-PR check (reads the public site), the state save, the account commit (`main`), the health issue, the answer on the admin issue. admin: labels and answers the issue, commits an added account, starts the sweep | daily-sweep: `contents: write` and `issues: write` (`request`: `issues: write` only). admin: `contents: write`, `issues: write`, `actions: write`. Only handed to the steps that need it |
+| GitHub's identity token (OIDC) | Automatic | Minted per job by GitHub, only in daily-sweep's `story-images` and `story-cleanup` jobs (`id-token: write`) | Downloading and deleting story screenshots on the admin page's Worker | Short-lived, audience `pa-bailar-admin`; the Worker checks GitHub's signature, the repository, `main` and the workflow. Nothing to store or rotate |
 | cron-job.org token | Secret | cron-job.org only | The two cron jobs | Fine-grained PAT, Actions read/write on this repository only |
 
 Settings that aren't secrets live in code, mostly in `pa_bailar/config.py`. That includes the models and
@@ -503,6 +504,7 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 | Triage | `gemini-3.5-flash-lite` | Caption, account, publication date, today's date, first image as a 512 px JPEG | `Triage`: `is_event_post`, `reason` | Low |
 | Extraction | `gemini-3.8-flash`, then `gemini-3.5-flash` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `image_index` and `same_as`) | Model default |
 | Provisional extraction | `gemini-3.5-flash-lite` | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
+| Story (admin tools) | Extraction's models, Flash-Lite when Flash is out (kept as it is) | Up to 4 screenshots of one story (numbered), when the screenshot was taken, the admin's notes and account, the account's known events | `StoryAnalysis`: the header's account, a reshared post's author, mentions, location sticker, the story's age, a `content_box` per screenshot, `events[]` (`StoryEvent`: dates as printed, worked out in code by `stories.resolve_date`) | Model default |
 | Discovery | `gemini-3.5-flash-lite` | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, whether it announces one-time events, reason | Model default |
 
 Notes on the prompts and parameters:
