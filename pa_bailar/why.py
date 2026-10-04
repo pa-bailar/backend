@@ -17,7 +17,7 @@ from typing import Any, Literal
 
 from . import config, links, storage, sweep_state
 from .instagram import InstagramError, Post, is_not_visible, published_at
-from .text import dates_label
+from .text import clock, dates_label
 
 Mark = Literal["ok", "no", "info"]
 Suggestion = Literal["add-post", "none"]
@@ -48,8 +48,7 @@ class Diagnosis:
 
 def _date(iso: str) -> str:
     moment = datetime.fromisoformat(iso).astimezone(config.BOGOTA_TZ)
-    hour = moment.strftime("%I:%M").lstrip("0") + (" a. m." if moment.hour < 12 else " p. m.")
-    return f"{moment.day}/{moment.month} {hour}"
+    return f"{moment.day}/{moment.month} {clock(moment)}"
 
 
 def diagnose(

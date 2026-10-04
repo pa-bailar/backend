@@ -1,9 +1,9 @@
 """Text helpers shared by matching, normalization, ids, discovery and the admin tools' answers."""
 
 import unicodedata
-from datetime import date
+from datetime import date, datetime
 
-_MONTHS = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
+MONTHS = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")  # short, Spanish
 
 
 def fold(text: str | None) -> str:
@@ -19,7 +19,12 @@ def dates_label(start: str | None, end: str | None = None) -> str:
         return start or "?"
     first, last = date.fromisoformat(start), date.fromisoformat(end)
     if first.year != last.year:
-        return f"{first.day} {_MONTHS[first.month - 1]} {first.year} – {last.day} {_MONTHS[last.month - 1]} {last.year}"
+        return f"{first.day} {MONTHS[first.month - 1]} {first.year} – {last.day} {MONTHS[last.month - 1]} {last.year}"
     if first.month != last.month:
-        return f"{first.day} {_MONTHS[first.month - 1]} – {last.day} {_MONTHS[last.month - 1]} {last.year}"
-    return f"{first.day}–{last.day} {_MONTHS[last.month - 1]} {last.year}"
+        return f"{first.day} {MONTHS[first.month - 1]} – {last.day} {MONTHS[last.month - 1]} {last.year}"
+    return f"{first.day}–{last.day} {MONTHS[last.month - 1]} {last.year}"
+
+
+def clock(moment: datetime) -> str:
+    """The time of day as the admin tools' answers say it: '9:00 p. m.', '12:30 a. m.'."""
+    return f"{moment.hour % 12 or 12}:{moment.minute:02d} {'a. m.' if moment.hour < 12 else 'p. m.'}"

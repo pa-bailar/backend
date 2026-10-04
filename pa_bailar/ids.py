@@ -7,10 +7,9 @@
 
 import re
 
-from .text import fold
+from .text import MONTHS, fold
 
 MAX_TITLE_LENGTH = 50  # characters of the title part, cut at a word boundary
-_MONTHS = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
 
 
 def slugify(text: str) -> str:
@@ -32,7 +31,7 @@ def new_event_id(title: str, date: str, taken: set[str]) -> str:
     the same name on the same day, or the same name a year later.
     """
     _, month, day = (int(part) for part in date.split("-"))
-    base = "-".join(part for part in (_shorten(slugify(title)), str(day), _MONTHS[month - 1]) if part)
+    base = "-".join(part for part in (_shorten(slugify(title)), str(day), MONTHS[month - 1]) if part)
     candidate, number = base, 2
     while candidate in taken:
         candidate, number = f"{base}-{number}", number + 1

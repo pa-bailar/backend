@@ -111,3 +111,13 @@ def test_accounts_past_their_turn_by_more_than_a_sweep_are_waiting():
     )
     assert result["accounts"]["waiting"] == ["academia"]
     assert "⚠️ 1 esperando más de un barrido después de su turno: @academia" in status.markdown(result)
+
+
+@pytest.mark.parametrize(
+    ("hour", "minute", "label"),
+    [(0, 5, "12:05 a. m."), (9, 0, "9:00 a. m."), (12, 30, "12:30 p. m."), (21, 0, "9:00 p. m.")],
+)
+def test_times_read_on_a_twelve_hour_clock(hour, minute, label):
+    from pa_bailar.text import clock
+
+    assert clock(datetime(2026, 10, 4, hour, minute, tzinfo=config.BOGOTA_TZ)) == label

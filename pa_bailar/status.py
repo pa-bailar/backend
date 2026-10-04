@@ -18,6 +18,7 @@ from . import config, discovery, storage, sweep_state
 from .gemini import daily_budget, quota_day, quota_reset
 from .models import AccountState
 from .pipeline import hours_overdue
+from .text import clock
 
 RECENT_RUNS = 5
 WEEKDAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
@@ -134,9 +135,9 @@ def collect(
 
 
 def _when(iso: str, now: datetime) -> str:
-    """'hoy 9:00 p. m.', 'mañana 9:00 a. m.', 'sábado 3 de oct., 9:00 a. m.'."""
+    """'hoy 9:00 p. m.', 'ayer 9:00 a. m.', 'mañana 9:00 a. m.', 'sábado 3/10, 9:00 a. m.'."""
     moment = datetime.fromisoformat(iso).astimezone(config.BOGOTA_TZ)
-    hour = moment.strftime("%I:%M").lstrip("0") + (" a. m." if moment.hour < 12 else " p. m.")
+    hour = clock(moment)
     days = (moment.date() - now.date()).days
     if days == 0:
         return f"hoy {hour}"
