@@ -13,7 +13,8 @@
 //
 // The session is a cookie holding the GitHub token, encrypted (AES-GCM, key from SESSION_SECRET) so the browser
 // can't read or change it. GitHub App user tokens expire after 8 hours; the refresh token renews them (it lasts
-// 6 months), so a sign-in lasts until the cookie does (SESSION_DAYS).
+// 6 months) and each renewal sends a new cookie, so a sign-in ends after SESSION_DAYS without use. Logging out
+// only deletes the cookie: revoking the App's access at GitHub, or a new SESSION_SECRET, ends it everywhere.
 // Secrets (Cloudflare → the Worker → Settings → Variables and Secrets): GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET,
 // SESSION_SECRET. Plain settings are in wrangler.jsonc ("vars").
 

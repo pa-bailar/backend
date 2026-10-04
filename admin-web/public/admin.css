@@ -40,6 +40,8 @@ h1 { margin: 8px 0 0; font-family: Shrikhand, serif; font-weight: 400; font-size
 h1 span { font-family: "Bodoni Moda", serif; font-style: italic; font-size: 1.25rem; color: var(--text); }
 h2 { margin: 0 0 8px; font-family: "Bodoni Moda", serif; font-style: italic; font-weight: 500; font-size: 1.3rem; }
 a { color: var(--accent); }
+/* Links on their own in a line (Salir, ver, #N): a finger-sized target, without moving the text around them. */
+.top__user a, .runs a, .answer__head a { padding: 13px 11px; margin: -13px -11px; }
 .muted { color: var(--muted); }
 .small { font-size: 13px; }
 
@@ -55,6 +57,7 @@ a { color: var(--accent); }
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px; /* a finger-sized target */
   padding: 10px 16px;
   border: 0;
   border-radius: var(--radius);
@@ -116,8 +119,9 @@ h3 { margin: 16px 0 6px; font-size: 15px; }
 .answer p { margin: 6px 0; }
 .answer ul { margin: 6px 0; padding-left: 20px; }
 .requests { list-style: none; margin: 0; padding: 0; }
-.requests li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-top: 1px solid var(--divider); }
+.requests li { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid var(--divider); }
 .link {
+  min-height: 44px;
   padding: 0;
   border: 0;
   background: none;

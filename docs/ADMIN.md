@@ -196,8 +196,12 @@ flowchart LR
 - **Sign-in:** "Iniciar sesión con GitHub", through the `pa-bailar-admin` GitHub App. Only `jzamora5`
   (`ALLOWED_USER` in `wrangler.jsonc`) gets in.
   - The session is a cookie holding the GitHub token, encrypted with `SESSION_SECRET`.
-  - It lasts 30 days and renews the 8-hour GitHub token by itself. Nothing to paste or renew. If GitHub turns
-    the token down (the App's access was revoked), the page asks to sign in again.
+  - It renews the 8-hour GitHub token by itself, and each renewal sends a new 30-day cookie: it ends after 30
+    days without opening the page. Nothing to paste or renew. If GitHub turns the token down (the App's access
+    was revoked), the page asks to sign in again.
+  - **Salir** deletes the cookie on that device only. To end a session on a lost phone: GitHub → Settings →
+    Applications → Authorized GitHub Apps → `pa-bailar-admin` → Revoke (its tokens stop working), or change
+    `SESSION_SECRET` (every device is signed out).
   - Everything is read and written with your own GitHub access, limited to what the App may do: read this
     repository, open issues and comment, see runs.
   - Requests are only accepted from the page itself (same origin).
