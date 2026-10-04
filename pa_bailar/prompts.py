@@ -37,11 +37,13 @@ What does NOT count:
 - student showcases, wedding choreographies ("coreografía de boda"), tutorials, challenges, motivational
   posts, merchandise, and ads without a specific date;
 - posts announcing that an event is cancelled or postponed without a new date (a postponed event with
-  its new date does count, with the new date).
+  its new date does count, with the new date);
+- events in another city or country, when the post says so (teachers and artists travel: "taller en
+  Medellín", "gira por México"). With no city stated, the event is in Bogotá.
 A post can mix both (e.g. the weekly schedule plus one special social): only the one-time dance events
 count."""
 
-TRIAGE_PROMPT = f"""You screen Instagram posts of dance academies in Bogotá, Colombia.
+TRIAGE_PROMPT = f"""You screen Instagram posts of dance academies, organizers and artists in Bogotá, Colombia.
 
 {_POST_CONTEXT}
 

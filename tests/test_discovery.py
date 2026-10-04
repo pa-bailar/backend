@@ -63,7 +63,19 @@ def test_recommended_needs_an_event_source_not_outside_bogota():
     assert discovery.is_recommended(classification("academy", "yes"))
     assert discovery.is_recommended(classification("venue", "unknown"))
     assert not discovery.is_recommended(classification("academy", "no"))
-    assert not discovery.is_recommended(classification("teacher", "yes"))
+
+
+def test_artists_are_recommended_when_they_announce_one_time_events():
+    # A teacher's own workshops and intensives, an orchestra's or DJ's dance nights: sources of events.
+    assert discovery.is_recommended(classification("teacher", "yes", events=True))
+    assert discovery.is_recommended(classification("musician", "unknown", events=True))
+    # Only videos and regular classes: not worth a daily Instagram call and a triage per post.
+    assert not discovery.is_recommended(classification("teacher", "yes", events=False))
+    assert not discovery.is_recommended(classification("musician", "yes", events=False))
+    # Based elsewhere, even if they come to Bogotá now and then.
+    assert not discovery.is_recommended(classification("teacher", "no", events=True))
+    # Shops and media stay out, whatever they post.
+    assert not discovery.is_recommended(classification("dance_other", "yes", events=True))
 
 
 def test_report_lists_recommended_and_maybe_and_skips_existing_sources():
@@ -77,14 +89,20 @@ def test_report_lists_recommended_and_maybe_and_skips_existing_sources():
         "profe_juan": discovery.DiscoveredAccount(
             username="profe_juan", status="business", dance_hint=2, classification=classification("teacher")
         ),
+        "profe_ana": discovery.DiscoveredAccount(
+            username="profe_ana",
+            status="business",
+            dance_hint=2,
+            classification=classification("teacher", events=False),
+        ),
         "medellin_salsa": discovery.DiscoveredAccount(
             username="medellin_salsa", status="business", dance_hint=2, classification=classification("academy", "no")
         ),
         "tia.maria": discovery.DiscoveredAccount(username="tia.maria", status="personal"),
     }
     sections = discovery.report_sections(cache, already_followed={"zafradance"})
-    assert [r.username for r in sections["recommended"]] == ["nueva_academia"]
-    assert [r.username for r in sections["maybe"]] == ["profe_juan"]
+    assert [r.username for r in sections["recommended"]] == ["nueva_academia", "profe_juan"]
+    assert [r.username for r in sections["maybe"]] == ["profe_ana"]
     report = discovery.report_markdown(cache, {"zafradance"}, total=10)
     assert "nueva_academia" in report and "medellin_salsa" not in report and "1 personal" in report
 

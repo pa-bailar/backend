@@ -475,7 +475,7 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 | Triage | `gemini-3.5-flash-lite` | Caption, account, publication date, today's date, first image as a 512 px JPEG | `Triage`: `is_event_post`, `reason` | Low |
 | Extraction | `gemini-3.8-flash`, then `gemini-3.5-flash` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `image_index` and `same_as`) | Model default |
 | Provisional extraction | `gemini-3.5-flash-lite` | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
-| Discovery | `gemini-3.5-flash-lite` | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, reason | Model default |
+| Discovery | `gemini-3.5-flash-lite` | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, whether it announces one-time events, reason | Model default |
 
 Notes on the prompts and parameters:
 - **The prompts** are in `pa_bailar/prompts.py`, and the JSON schemas are the Pydantic models in
@@ -486,7 +486,8 @@ Notes on the prompts and parameters:
     concerts, festivals (an event over several consecutive days is one event, from its first to its last
     day)… but not regular
     classes, programs spread over several weeks, recaps, showcases or tutorials, nor anything that isn't
-    about dancing (like a drawing workshop at a dance venue). It quotes the words academies use
+    about dancing (like a drawing workshop at a dance venue), nor events the post places in another city or
+    country (teachers and artists travel; no city stated means Bogotá). It quotes the words academies use
     ("social", "taller", "todos los jueves", "así se vivió"…), which helps the lighter model most;
   - how to pick the event type (social, workshop, concert, congress, festival, competition, show, other: a
     multi-day dance congress is a `congress`, its workshops included) and the styles (from a fixed list);
@@ -754,7 +755,7 @@ link, every decision, every Gemini model used, and every event stored or merged.
 `python -m pa_bailar <command>` (`pa_bailar/__main__.py`). Each command imports only what it needs and
 reads only its own secrets, so the sweep never needs the Meta app's secret.
 
-### 12.1 `discover`: finding academies among the accounts you follow
+### 12.1 `discover`: finding academies, organizers and artists among the accounts you follow
 
 Runs on your computer. The input is your Instagram data export ("Followers and following", HTML or
 JSON) in `private/`.
@@ -770,7 +771,7 @@ flowchart TD
     BD -->|"100/110: personal or private"| PERS["Cached as personal"]
     BD -->|rate limit| STOP["Stop: run again later"]
     BD --> HINT["Dance hint: keywords in<br/>name, bio, recent captions"]
-    HINT --> CL["Gemini Flash-Lite: kind<br/>(academy, venue, organizer, teacher…)<br/>+ in Bogotá?"]
+    HINT --> CL["Gemini Flash-Lite: kind<br/>(academy, venue, organizer, teacher, musician…)<br/>+ in Bogotá? + one-time events?"]
     CL --> REP["private/discovery_report.md:<br/>recommended / maybe"]
 ```
 
@@ -783,9 +784,21 @@ flowchart TD
 - **Keeps out of the sweep's way:** it pauses from an hour before each sweep time until 45 minutes after
   (`discovery.near_sweep`), because Meta counts calls over a rolling hour and the sweep must find the
   quota free.
-- **Recommended** means an academy, venue, organizer or dance company, in or probably in Bogotá. Adding
-  an account means adding a line to `accounts.txt` through a PR. The next sweep treats it as new and loads
-  its older posts.
+- **Recommended** means, in or probably in Bogotá (`discovery.is_recommended`):
+  - an academy, venue, organizer or dance company;
+  - a teacher (a teacher, dancer or dance couple) or musician (an orchestra, band, singer or DJ) whose recent
+    captions announce one-time events: their own workshops, intensives, socials, shows or concerts. Until
+    4 October 2026 teachers were never recommended (only listed under "maybe"), and orchestras and DJs had no
+    kind of their own, so artists who announce events in Bogotá were left out. Those whose posts are only
+    videos and regular classes stay under "maybe": each followed account costs an Instagram call a day and a
+    Flash-Lite triage per new post, for nothing. Cached classifications keep their kind: teachers already
+    classified move to "recommended" on the next run (no new request); orchestras and DJs classified earlier
+    as `dance_other` or `not_dance` aren't classified again.
+- **Personal accounts** (many teachers use one) can't be read by Business Discovery: they're skipped, and their
+  posts can only be added one by one with the admin tools (Agregar), from the post's public page.
+- **Adding an account** means adding a line to `accounts.txt` through a PR, in its section (academies, dance
+  companies, event organizers, teachers and artists). The next sweep treats it as new and loads its older
+  posts.
 - **Salsa bars and restaurants** are kept in `accounts.txt` as commented-out notes, with what discovery
   found about each. They're not swept for now.
 
@@ -896,7 +909,9 @@ With **50 followed accounts** and two runs a day (each account read about once a
 itself stops at 35, and the job at 60, leaving room for the state, the PR and the merge.
 
 **Adding accounts:** each new account costs about 1 Instagram call a day, plus a one-time load of up to
-30 older posts. Regular accounts always go first, so new ones never crowd out today's posts.
+30 older posts. Regular accounts always go first, so new ones never crowd out today's posts. Artists post
+more often than academies (a reel a day is common): each new post is one Flash-Lite triage, and Flash is
+spent only on the few that announce events.
 
 ---
 
