@@ -67,6 +67,10 @@ casineafest
 soywiwioficial
 # Arrollando: a dance competition that announces congresses and masterclasses (".dc": Bogotá).
 arrollando.dc
+# Competitions: one-time dated events with workshops and socials around them (events placed in another
+# city are left out by the prompts' city rule). Discovery, 4 Oct 2026.
+dreamcupco
+jackandjilloficial
 
 # Teachers, dancers and artists (orchestras, DJs): their own one-time workshops, intensives, socials and
 # shows in Bogotá. Most of their posts are videos and regular classes, which the triage filters out.
