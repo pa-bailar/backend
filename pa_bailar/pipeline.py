@@ -52,6 +52,7 @@ from .models import (
     Triage,
 )
 from .normalize import normalize_event
+from .text import clock
 
 log = logging.getLogger(__name__)
 
@@ -153,9 +154,7 @@ def _is_publishable(event: ExtractedEvent) -> bool:
 
 
 def _no_quota_message() -> str:
-    reset = quota_reset(config.now_bogota())
-    hour = f"{reset.hour % 12 or 12}:{reset.minute:02d} {'a. m.' if reset.hour < 12 else 'p. m.'}"
-    return f"No queda cuota de Gemini hoy: inténtalo después de las {hour}."
+    return f"No queda cuota de Gemini hoy: inténtalo después de las {clock(quota_reset(config.now_bogota()))}."
 
 
 def _image_index(event: ExtractedEvent, image_count: int) -> int:
