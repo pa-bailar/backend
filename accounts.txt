@@ -70,6 +70,9 @@ frank.de.latorre
 # (e.g. a femenino intensive at iledanza, 2 Oct 2026).
 angie__cuesta
 
+# Added with the admin tools (admin add-account, add-post)
+jaleocompetencia_
+
 # ---------------------------------------------------------------------------------------------------
 # Salsa bars and restaurants: NOT swept for now (every line below is a comment).
 # They contribute differently from academies (nightly rumba, live bands, weekly salsa nights more than
