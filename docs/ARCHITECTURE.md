@@ -342,7 +342,9 @@ Other workflow settings:
   it), so the `admin` workflow never queues a sweep: requests take turns, first come first served. Each waits
   until no sweep is running or waiting and no earlier `admin` run is still going, starts the sweep, and waits
   until GitHub lists it. Still busy after 50 minutes, it answers on the issue that it didn't start
-  ("Pídelo otra vez en un rato") instead of starting a sweep that could be cancelled.
+  ("Pídelo otra vez en un rato") instead of starting a sweep that could be cancelled. For the same reason the
+  `admin` workflow has no concurrency group of its own: a third comment on an issue would cancel the second
+  one's waiting run, and its request would never be answered.
 
 ### Whose turn it is: each account about once a day
 
@@ -352,7 +354,7 @@ about **once a day**, half of them in each sweep, instead of every account twice
 
 - **Each account's turn:** 20 hours after a sweep last read it (`SWEEP_EVERY_HOURS`: the same sweep the next
   day finds it due). Quiet accounts, with no post in 45 days (`QUIET_AFTER_DAYS`), every 44 hours: lower
-  priority, never dropped. `accounts.json` keeps `last_swept_at` and `latest_post`.
+  priority, never dropped. `accounts.json` keeps `last_swept_at` and `latest_post` (its day in Bogotá).
 - **Order:** due accounts in their regular sweep before new ones (a new account's first, deeper sweep can
   take days of quota); within each, those that waited longest first.
 - **A sweep's share:** half the accounts plus 5 (`EXTRA_ACCOUNTS_PER_RUN`), and it stops earlier at 90% of
@@ -568,7 +570,9 @@ flowchart TD
   day like a spent one and listed in the run's `models_unavailable`. Repeated over 3 runs, it's a health
   warning (section 11.1).
 - **Lite-only mode:** the repository variable `GEMINI_LITE_ONLY=1` makes Flash-Lite the extraction model, with
-  final (not provisional) results (`config.LITE_ONLY`). It's the switch for a Flash cutoff.
+  final (not provisional) results (`config.LITE_ONLY`). It's the switch for a Flash cutoff. With no provisional
+  fallback, an extraction's error stands as it is: a rejected post is recorded as rejected, and a failure is an
+  error retried next run (not "no quota left").
 - **Pace:** calls to the same model are spaced to its per-minute limit.
 - **Timeout:** each request gives up after 120 seconds, so a stuck call can't hang the run. The SDK raises
   timeouts and dropped connections as httpx's own errors (`httpx.TransportError`, neither an `APIError` nor an
@@ -817,7 +821,8 @@ flowchart TD
 ```
 
 - **Resumable:** results are cached in `private/discovery.json`, and every run continues where the last
-  stopped. Each run is capped (`--max-instagram`, `--max-gemini`).
+  stopped. Each run is capped (`--max-instagram`, `--max-gemini`). When Gemini can't classify (no quota, busy
+  or unreachable, or a key that doesn't work), it stops classifying with a message and writes the report.
 - **"Personal" goes stale:** an account Instagram couldn't see (100/110) is cached as personal with the date
   (`checked_on`), but it may switch to business later, or Meta may have answered that for another reason
   (d'Living Studio, 4 Oct 2026). `--recheck-personal N` asks again about N of them, dance-looking names first,
@@ -883,12 +888,14 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
   (`SETTLED_OUTCOMES`). `--again` ("Volver a leer") reads it anyway, one Gemini request, still as one post
   (its events keep their ids): for an event stored with wrong data, e.g. after the prompts improved.
   `AddPostError` says in Spanish why it couldn't (neither source worked, no quota).
-- **`admin inbox`** (`pa_bailar/inbox.py`): reads an issue or comment with fixed patterns (a link, `/agregar`,
-  `/releer` at the start of a line, `/cuenta @x`, `/estado`, or the issue form's fields) and writes the
+- **`admin inbox`** (`pa_bailar/inbox.py`): reads an issue or comment with fixed patterns (a post link alone,
+  the commands `/agregar`, `/releer`, `/cuenta @x` and `/estado`, or the issue form's fields) and writes the
   answer; the `admin` workflow (`.github/workflows/admin.yml`) runs it on new issues and comments from
   `jzamora5`. Only the inbox's: an issue labelled `admin` (the form, the admin page) or a text that asks for
-  something (`inbox.is_request`). Anything else gets no answer and no label (`action=skip`). Reading a post
-  again ("Volver a leer") is only the form's action or `/releer`: the words in a sentence don't spend Gemini.
+  something (`inbox.is_request`: a post link or a command). Anything else gets no answer and no label
+  (`action=skip`). In plain text a command is a word starting with `/` at the start of a line: ordinary words
+  ("revisar el estado de…", "agrega", "publica", "volver a leer", "agregar cuenta") never are, since some
+  commands spend Gemini or change `accounts.txt`. A command without its link gets the list of commands.
 - **`admin status`** (`pa_bailar/status.py`): the latest and next sweeps; Gemini usage per model against
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
   otherwise); whether the Instagram token works and the share of Instagram's quota used (one call, `--no-instagram`
@@ -930,7 +937,7 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 | A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. Adding a post by hand (`post_url`) needs an open `admin` issue by `jzamora5` (the `request` job, section 5.2), and inputs never reach shell code directly, so the token can't publish a post or run commands |
 | The Meta token in error text | It's sent in the URL; `instagram.redact` removes it (and the app secret and exchanged tokens of `refresh-token`) from every error before logs, `status.json` or admin answers (section 8) |
 | Odd text in a link or a public page reaching files, accounts or issues | Post codes match ASCII letters, digits, `_` and `-` only (`links._POST`, like the site's `check-data.mjs`); a public page's author must be a valid username; the admin page only accepts a value that is one post link and nothing else (`POST_LINK` in `admin-web/src/index.js`, anchored at both ends, no spaces or new lines) |
-| Answering, labelling or spending Gemini on what isn't a request | The inbox only answers issues labelled `admin` or texts with a link or command it understands; "Volver a leer" needs the form's action or `/releer` at the start of a line (section 12.3) |
+| Answering, labelling or spending Gemini on what isn't a request | The inbox only answers issues labelled `admin` or texts with a post link or a command; commands are the form's action or a `/command` at the start of a line, never ordinary words (section 12.3) |
 | Bad data on the public site | The site's `ci` checks every data PR against the contract (`check-data.mjs`) before it can merge, and the site's `main` only takes squash-merged PRs that pass `ci` |
 | Private files committed | `.env` and `private/` are git-ignored. `private/` holds your Instagram export, the discovery results and the App's `.pem` |
 | Tagging strangers from the health issue | Handles in reports are neutralized (section 11.2) |

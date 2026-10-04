@@ -57,15 +57,19 @@ comment of yours that the inbox understands (`pa_bailar/inbox.py`):
 |---|---|
 | A post's Instagram link | **Revisar**: why its event is or isn't on the site |
 | `/agregar` and the link (and `@cuenta` if needed) | **Agregar**: reads the post and publishes it |
-| `/releer` at the start of a line, and the link | **Volver a leer**: reads it again even if it hasn't changed. The words "volver a leer" in a sentence don't count: it spends Gemini |
+| `/releer` and the link | **Volver a leer**: reads it again even if it hasn't changed |
 | `/cuenta @academia` | Adds the account to the sweeps |
 | `/estado` | The status, as on the page |
-| Anything else, on a request issue (the form, the page) | The list above |
+| A command without its link, or anything else on a request issue (the form, the page) | The list above |
+
+A command is a word starting with `/` at the start of a line (any case: `/Agregar` works too). Ordinary
+words never are: "revisar el estado de…", "agrega", "publica", "volver a leer" or "agregar cuenta" in a note
+start nothing, because some commands spend Gemini or change `accounts.txt`.
 
 The answer arrives as a comment (from github-actions), and the issue closes once it's done. Writing again on
 a closed issue works too. Only your issues and comments count (`jzamora5`, in `.github/workflows/admin.yml`),
-and only requests: an issue from the form or the page (label `admin`), or a text with a link or a command
-from the table. Your other issues and comments (notes, ideas) get no answer and no label.
+and only requests: an issue from the form or the page (label `admin`), or a text with a post link or a
+command from the table. Your other issues and comments (notes, ideas) get no answer and no label.
 
 ### From your computer
 
@@ -158,7 +162,9 @@ flowchart LR
   An added account is committed to `main` (`accounts.txt`). Adding a post starts the sweep workflow with
   `post_url`, `account` and `issue`, and `again` (true for Volver a leer). Requests take turns, first come
   first served: each waits until no sweep is running or waiting and no earlier `admin` run is going (GitHub
-  would cancel a second queued sweep), up to 50 minutes; past that it answers that it didn't start.
+  would cancel a second queued sweep), up to 50 minutes; past that it answers that it didn't start. The
+  workflow has no concurrency group either, for the same reason: several comments on one issue are all
+  answered.
 - **`.github/workflows/daily-sweep.yml`**, with `post_url`: `sweep --post` (`--again` with `again`) instead of the sweep, then the same
   data PR and state save; it commits an added account and answers on the issue. If its `request` check fails
   (no link, or the issue isn't an open admin request), it answers on the issue when that issue is an open
