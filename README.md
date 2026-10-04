@@ -1,6 +1,7 @@
 # Pa' Bailar · backend (private)
 
-Collects one-time dance events (socials and workshops) from the Instagram accounts of Bogotá's
+Collects one-time dance events (socials, workshops, festivals, congresses, competitions, shows and
+concerts for dancing) from the Instagram accounts of Bogotá's
 dance academies, organizers and artists (teachers, dancers, orchestras, DJs) (Instagram → Gemini) and
 publishes them to the site,
 [pa-bailar/pa-bailar.github.io](https://github.com/pa-bailar/pa-bailar.github.io) (public), with a
@@ -50,8 +51,10 @@ python -m venv .venv
 Run the sweep:
 
 ```bash
-.venv\Scripts\python -m pa_bailar sweep            # analyze posts from the last 7 days
+.venv\Scripts\python -m pa_bailar sweep            # analyze posts from the last 7 days (accounts whose turn it is)
 .venv\Scripts\python -m pa_bailar sweep --days 14  # look further back (at most 30)
+.venv\Scripts\python -m pa_bailar sweep --all      # read every account now, not only those whose turn it is
+.venv\Scripts\python -m pa_bailar sweep --post <link> [--account @x] [--again]  # add one post by hand (docs/ADMIN.md)
 ```
 
 Lint, format, type check and tests:
@@ -98,7 +101,7 @@ Everything runs on GitHub Actions:
 | Workflow | When | What |
 |---|---|---|
 | `ci` | Every pull request and push to `main` | Lint, format check, types (mypy) and tests. |
-| `admin` | A new issue or comment from `jzamora5` (the admin page opens such issues) | The admin inbox: answers with a comment (check a post, add an account, the status); adding a post, or reading one again, starts `daily-sweep` in single-post mode. See [docs/ADMIN.md](docs/ADMIN.md) |
+| `admin` | A new issue or comment from `jzamora5` (the admin page opens such issues) | The admin inbox (only issues labelled `admin`, or texts with a request): answers with a comment (check a post, add an account, the status); adding a post, or reading one again, starts `daily-sweep` in single-post mode. See [docs/ADMIN.md](docs/ADMIN.md) |
 | `daily-sweep` | Every day at 9:00 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (each about once a day, half per sweep), writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is then saved to the `sweep-state` branch (if the data PR couldn't be opened, the run's posts stay unread for the next run, and `site/data` is kept as the run's artifact). With `post_url` (from `admin`), it adds that one post instead (with `again`, even if it was read before and hasn't changed) and answers on the admin issue. |
 
 `main` is **not protected**: rulesets on private repositories need a paid GitHub plan (Pro or Team).
@@ -148,7 +151,8 @@ compared with the previous runs, kept in `run_history.json` on the `sweep-state`
   - one-off failures;
   - Flash's quota running out;
   - accounts with no posts in 45 days.
-- **Events to review** are upcoming events Gemini wasn't confident about, or whose date it doubted.
+- **Events to review** are upcoming events Gemini wasn't confident about, or whose date it doubted, and
+  congresses or festivals dated on a single day (their other days may be missing).
 
 Where to see it:
 - **The run's page** on GitHub Actions has the health report at the top of its summary, warnings as

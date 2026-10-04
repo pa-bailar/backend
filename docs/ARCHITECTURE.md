@@ -5,7 +5,7 @@ How the whole system works, from an academy posting a flyer on Instagram to that
 `pa-bailar/backend`) in depth, and every service around it. The site's side is in the site
 repository's `docs/ARCHITECTURE.md` (`pa-bailar/pa-bailar.github.io`).
 
-Last reviewed: 2 October 2026.
+Last reviewed: 4 October 2026.
 
 Contents:
 
@@ -153,11 +153,11 @@ Every service the system depends on. All of them are on free plans.
 | Piece | What for |
 |---|---|
 | **Repositories** | Section 2 |
-| **GitHub Actions** | Runs the sweep (`daily-sweep.yml`) and the backend's checks (`ci.yml`) on `ubuntu-latest` runners. The private repository gets **2,000 free minutes a month**, and the public site repository unlimited |
+| **GitHub Actions** | Runs the sweep (`daily-sweep.yml`), the admin inbox (`admin.yml`, section 12.3) and the backend's checks (`ci.yml`) on `ubuntu-latest` runners. The private repository gets **2,000 free minutes a month**, and the public site repository unlimited |
 | **Actions secrets and variables** | Hold the keys (section 4) |
 | **`sweep-state` branch** | The sweep's memory between runs (section 10.1). An orphan branch that only holds JSON files |
 | **pa-bailar-bot (GitHub App)** | App id `5164772`, installed on the `pa-bailar` organization for the site repository. The sweep uses it to push the data branch, open the data PR, enable auto-merge and start the site's deploy. A short-lived token is minted per run with `actions/create-github-app-token`. Using an App, rather than the workflow's own token, means its PR runs the site's `ci` like anyone's |
-| **Issues** | The `Sweep health` issue (label `sweep-health`), opened and updated by the sweep (section 11) |
+| **Issues** | The `Sweep health` issue (label `sweep-health`), opened and updated by the sweep (section 11). The admin inbox: requests to the admin tools (label `admin`), answered by `admin.yml` and, for adding a post, by the sweep ([`docs/ADMIN.md`](ADMIN.md)) |
 | **Dependabot** | Weekly update PRs for the Python dependencies and the GitHub Actions used (`.github/dependabot.yml`) |
 | **GitHub Pages** | Hosts the site, deployed by the site repository's `deploy` workflow |
 | **Rulesets** | The site repository's `main` is protected (`protect-main`): changes only through squash-merged PRs that pass `ci`; force pushes and deletion blocked; no bypass. **The backend's `main` is not protected:** rulesets on private repositories need a paid plan (GitHub Pro or Team). Changes still go through PRs by convention, and `ci` runs on every PR and on `main`, but nothing enforces it |
@@ -198,7 +198,7 @@ Every service the system depends on. All of them are on free plans.
 |---|---|
 | **What for** | Reading one post the Graph API can't give, for the admin tools only: a personal or private account's post, a collaboration listed under its author, or any post once Meta's quota is spent. Never in the sweeps |
 | **Endpoint** | `https://www.instagram.com/p/<code>/embed/captioned/` (`public_post.EMBED_URL`): the page websites embed to show a post. No login, no token |
-| **How** | `public_post.fetch_public_post` asks for it as a browser would (`curl_cffi`, `impersonate="chrome"`): plain scripts get an empty page. It reads the post's data from the page (`contextJSON`), or else from its HTML (author, caption, image) |
+| **How** | `public_post.fetch_public_post` asks for it as a browser would (`curl_cffi`, `impersonate="chrome"`): plain scripts get an empty page. It reads the post's data from the page (`contextJSON`), or else from its HTML (author, caption, image). The author must be a valid username (`links.account_name`), since it becomes an account; otherwise the page counts as unreadable |
 | **Limits** | Unofficial: Instagram can change the page or block it at any time. One request per use, so it stays well under any limit. It can't list an account's posts (that needs a login), so it can't sweep personal accounts |
 | **Cost** | Free |
 
@@ -228,14 +228,14 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 | Name | Kind | Where | Used by | Notes |
 |---|---|---|---|---|
 | `GEMINI_API_KEY` | Secret | GitHub Actions secret, local `.env` | Sweep step, `discover` | Google AI Studio API key |
-| `META_ACCESS_TOKEN` | Secret | GitHub Actions secret, local `.env` | Sweep step, `discover`, `refresh-token` | Non-expiring Page token (section 3.1) |
-| `IG_USER_ID` | Secret | GitHub Actions secret, local `.env` | Sweep step, `discover`, `refresh-token` | Id of our Instagram professional account |
+| `META_ACCESS_TOKEN` | Secret | GitHub Actions secret, local `.env` | Sweep step, the status step, the admin workflow's Answer step (`admin why`, `admin add-account`), `discover`, `refresh-token` | Non-expiring Page token (section 3.1) |
+| `IG_USER_ID` | Secret | GitHub Actions secret, local `.env` | The same as `META_ACCESS_TOKEN` | Id of our Instagram professional account |
 | `META_APP_ID`, `META_APP_SECRET` | Secret | Local `.env` only | `refresh-token` | Never on GitHub: only the token command needs them |
 | `APP_PRIVATE_KEY` | Secret | GitHub Actions secret (the `.pem` file stays in `private/`) | "Get a token" step | pa-bailar-bot's private key, used to mint a short-lived installation token |
 | `APP_ID` | Variable | GitHub Actions variable | "Get a token" step | `5164772` |
 | `GEMINI_LITE_ONLY` | Variable | GitHub Actions variable (optional) | Sweep step | `1`: Flash-Lite also extracts, as final results (`config.LITE_ONLY`). For when Flash isn't available to the key; unset otherwise |
 | `HEALTHCHECK_URL` | Secret | GitHub Actions secret | "Report to the health check" step | The check's ping URL. Optional: without it the step does nothing |
-| `GITHUB_TOKEN` | Automatic | Created by GitHub per run | Save the state, health issue | Permissions `contents: write` and `issues: write` (workflow level). Only handed to the steps that need it |
+| `GITHUB_TOKEN` | Automatic | Created by GitHub per run | daily-sweep: the `request` job (reads the admin issue, answers it if adding can't start), the open-PR check (reads the public site), the state save, the account commit (`main`), the health issue, the answer on the admin issue. admin: labels and answers the issue, commits an added account, starts the sweep | daily-sweep: `contents: write` and `issues: write` (`request`: `issues: write` only). admin: `contents: write`, `issues: write`, `actions: write`. Only handed to the steps that need it |
 | cron-job.org token | Secret | cron-job.org only | The two cron jobs | Fine-grained PAT, Actions read/write on this repository only |
 
 Settings that aren't secrets live in code, mostly in `pa_bailar/config.py`. That includes the models and
@@ -264,7 +264,7 @@ sequenceDiagram
     GH->>R: start the daily-sweep job (queued if another sweep runs)
     R->>R: check out backend, sweep-state and site (no stored credentials)
     R->>R: pip install (hash-pinned requirements.txt)
-    loop each account in accounts.txt (regular ones first)
+    loop each account whose turn it is (half of accounts.txt plus 5, regular ones first, until 90% of Instagram's quota)
         R->>IG: business_discovery.username(account){media}
         IG-->>R: recent posts (+ usage header)
         loop each new or changed post
@@ -297,12 +297,16 @@ sequenceDiagram
 ### 5.2 The workflow's steps
 
 `.github/workflows/daily-sweep.yml`, two jobs on `ubuntu-latest`:
-- **`request`** checks an add-post request before anything else runs (only with `post_url` or `issue`):
+- **`request`** checks an add-post request before anything else runs. Only with `post_url` or `issue`: for a
+  regular sweep the job is skipped (its `if` is at job level, so no runner starts and no minute is billed).
   `issue` must be a number, and that issue an open `admin` issue by `jzamora5` (the inbox reopens an
   answered issue before starting the add). Otherwise the run fails
   and the sweep job doesn't start: whoever can start the workflow (the cron-job.org token) can't publish a
-  post with it. The inputs only reach shell commands through environment variables.
-- **`sweep`** (after `request`), the steps below. Job limit: 60 minutes.
+  post with it. When it fails, it answers on the issue that adding couldn't start, but only if that issue is
+  an open `admin` issue by `jzamora5` (never on another issue). The inputs only reach shell commands through
+  environment variables.
+- **`sweep`** (after `request`, or without it: `if: !cancelled() && needs.request.result != 'failure'`), the
+  steps below. Job limit: 60 minutes.
 
 | # | Step | Runs when | What it does | Credentials |
 |---|---|---|---|---|
@@ -335,7 +339,10 @@ Other workflow settings:
   then the same state save and data PR. With `again` (a boolean input, "Volver a leer"), it reads the post
   even if it was read before and hasn't changed. It isn't recorded in the run history, opens no health issue and
   doesn't ping healthchecks.io. GitHub keeps only one waiting run per concurrency group (a newer one cancels
-  it), so the `admin` workflow waits until no sweep is running or waiting before starting one.
+  it), so the `admin` workflow never queues a sweep: requests take turns, first come first served. Each waits
+  until no sweep is running or waiting and no earlier `admin` run is still going, starts the sweep, and waits
+  until GitHub lists it. Still busy after 50 minutes, it answers on the issue that it didn't start
+  ("Pídelo otra vez en un rato") instead of starting a sweep that could be cancelled.
 
 ### Whose turn it is: each account about once a day
 
@@ -384,8 +391,8 @@ Section 11 covers how those are reported.
 ```mermaid
 flowchart TD
     A["Check the Instagram token<br/>(cheap call: our username)"] -->|invalid| X["Stop: run fails"]
-    A --> B["Accounts from accounts.txt<br/>regular ones first, new ones last"]
-    B --> C{"Instagram rate limit<br/>hit earlier this run?"}
+    A --> B["Accounts whose turn it is<br/>(20 h since last read, 44 h if quiet),<br/>regular ones first, new ones last;<br/>this run's share: half plus 5"]
+    B --> C{"Instagram rate limit hit,<br/>or 90% of its quota used?"}
     C -->|yes| R["Stop calling Instagram:<br/>the rest wait for the next run"]
     C -->|no| D{"Account's first sweep<br/>done? (state/accounts.json)"}
     D -->|no: new account| E["Fetch its last 30 posts<br/>keep those from the last 30 days"]
@@ -533,7 +540,7 @@ flowchart TD
     CALL -->|"429 daily, or<br/>429 again"| EXH["Mark model used up for today"] --> M
     CALL -->|"403 or 404: model not<br/>available to this key"| UNAV["Listed as unavailable<br/>(health warning)"] --> EXH
     CALL -->|"blocked answer<br/>(safety filter…)"| REJ["RejectedRequestError:<br/>post recorded as rejected"]
-    CALL -->|"key invalid, expired<br/>or revoked (400/401)"| KEY["GeminiKeyError:<br/>the run stops, no post recorded"]
+    CALL -->|"key invalid, expired or revoked<br/>(401, or 400/403 naming the API key)"| KEY["GeminiKeyError:<br/>the run stops, no post recorded"]
     CALL -->|"other 4xx"| REJ
     RETRY -->|yes| B
     RETRY -->|no| M
@@ -550,12 +557,14 @@ flowchart TD
   key), the pool raises `QuotaExhaustedError` and the post simply waits for a later run. Only real failures
   (busy servers, bad answers) count as errors. Before downloading a new post's images, the sweep checks that
   some model still has quota (`EventExtractor.can_analyze`).
-- **A key that doesn't work** (400 `API_KEY_INVALID`, "API key expired", 401) raises `GeminiKeyError`,
+- **A key that doesn't work** (any 401, or a 400 or 403 whose message names the key: `API_KEY_INVALID`,
+  "API key not valid", "API key expired"; `gemini._is_key_error`) raises `GeminiKeyError`,
   which isn't an `ExtractionError`: the sweep stops and fails (the failed run emails), and no post is
   recorded as rejected, so all of them are read once the key is replaced (section 15).
 - **A blocked answer** (a safety filter: `SAFETY`, `PROHIBITED_CONTENT`…) is rejected at once instead of
   being retried 3 times per model: it would be blocked every time.
-- **A model the key can't use** (403 or 404, e.g. if Google took it out of the free tier) is skipped for the
+- **A model the key can't use** (404, or a 403 that doesn't name the key, e.g. if Google took it out of the
+  free tier) is skipped for the
   day like a spent one and listed in the run's `models_unavailable`. Repeated over 3 runs, it's a health
   warning (section 11.1).
 - **Lite-only mode:** the repository variable `GEMINI_LITE_ONLY=1` makes Flash-Lite the extraction model, with
@@ -587,7 +596,9 @@ flowchart TD
   60%. The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`), or on the first rate-limit error,
   and the remaining accounts go first next run.
 - **The token never shows in errors:** it travels in the URL, and connection errors quote the URL, so
-  `instagram.redact` removes it before an error's text reaches logs, `status.json` or an admin answer.
+  `instagram.redact` removes it before an error's text reaches logs, `status.json` or an admin answer. It
+  also hides `client_secret`, `fb_exchange_token` and `input_token`, which `refresh-token` sends, and that
+  command redacts its own errors too.
 
 ---
 
@@ -873,8 +884,11 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
   (its events keep their ids): for an event stored with wrong data, e.g. after the prompts improved.
   `AddPostError` says in Spanish why it couldn't (neither source worked, no quota).
 - **`admin inbox`** (`pa_bailar/inbox.py`): reads an issue or comment with fixed patterns (a link, `/agregar`,
-  `/releer`, `/cuenta @x`, `/estado`, or the issue form's fields) and writes the answer; the `admin` workflow
-  (`.github/workflows/admin.yml`) runs it on new issues and comments from `jzamora5`.
+  `/releer` at the start of a line, `/cuenta @x`, `/estado`, or the issue form's fields) and writes the
+  answer; the `admin` workflow (`.github/workflows/admin.yml`) runs it on new issues and comments from
+  `jzamora5`. Only the inbox's: an issue labelled `admin` (the form, the admin page) or a text that asks for
+  something (`inbox.is_request`). Anything else gets no answer and no label (`action=skip`). Reading a post
+  again ("Volver a leer") is only the form's action or `/releer`: the words in a sentence don't spend Gemini.
 - **`admin status`** (`pa_bailar/status.py`): the latest and next sweeps; Gemini usage per model against
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
   otherwise); whether the Instagram token works and the share of Instagram's quota used (one call, `--no-instagram`
@@ -911,10 +925,12 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 
 | Risk | Mitigation |
 |---|---|
-| A compromised dependency reading the repository token during the sweep | No checkout keeps credentials (`persist-credentials: false`). The write token is only in the "save the state" step, and the App token is minted after the sweep |
+| A compromised dependency reading the repository token during the sweep | No checkout keeps credentials (`persist-credentials: false`). The write token is only handed to the steps that write (the state save, the account commit, issues), and the App token is minted after the sweep |
 | Secrets exposed to steps that don't need them | The Gemini and Meta secrets are only in the sweep step's environment. The Meta app secret isn't on GitHub at all |
 | A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. Adding a post by hand (`post_url`) needs an open `admin` issue by `jzamora5` (the `request` job, section 5.2), and inputs never reach shell code directly, so the token can't publish a post or run commands |
-| The Meta token in error text | It's sent in the URL; `instagram.redact` removes it from every error before logs, `status.json` or admin answers (section 8) |
+| The Meta token in error text | It's sent in the URL; `instagram.redact` removes it (and the app secret and exchanged tokens of `refresh-token`) from every error before logs, `status.json` or admin answers (section 8) |
+| Odd text in a link or a public page reaching files, accounts or issues | Post codes match ASCII letters, digits, `_` and `-` only (`links._POST`, like the site's `check-data.mjs`); a public page's author must be a valid username; the admin page only accepts a value that is one post link and nothing else (`POST_LINK` in `admin-web/src/index.js`, anchored at both ends, no spaces or new lines) |
+| Answering, labelling or spending Gemini on what isn't a request | The inbox only answers issues labelled `admin` or texts with a link or command it understands; "Volver a leer" needs the form's action or `/releer` at the start of a line (section 12.3) |
 | Bad data on the public site | The site's `ci` checks every data PR against the contract (`check-data.mjs`) before it can merge, and the site's `main` only takes squash-merged PRs that pass `ci` |
 | Private files committed | `.env` and `private/` are git-ignored. `private/` holds your Instagram export, the discovery results and the App's `.pem` |
 | Tagging strangers from the health issue | Handles in reports are neutralized (section 11.2) |
@@ -926,15 +942,15 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 
 ## 14. Quotas and capacity
 
-With **50 followed accounts** and two runs a day (each account read about once a day: section 5,
-"Whose turn it is"):
+With **72 followed accounts** (4 October 2026) and two runs a day (each account read about once a day:
+section 5, "Whose turn it is"):
 
 | Resource | Limit | Use per run | Use per day | Headroom |
 |---|---|---|---|---|
-| Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | About 30 (half the accounts, plus up to 5 late ones) | About 55 | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
-| Gemini Flash-Lite | 500 / day (498 usable) | 1 triage per new post, plus provisional extractions | Usually 20–80 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days |
-| Gemini Flash (two models) | 20 / day each (36 usable) | 1 per post that announces events | Usually under 20 | Tight while new accounts load (provisional fallback); fine afterwards |
-| GitHub Actions minutes (private repository) | 2,000 / month | 3–5 min normally; up to ~35 while new accounts load | ~10 normally | ~300 a month normally; heavy loading weeks stay under the limit. Set an Actions spending limit of $0 so runs stop instead of being charged |
+| Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | About 40 (half the accounts, plus up to 5 late ones) | About 75 | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
+| Gemini Flash-Lite | 500 / day (498 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
+| Gemini Flash (two models) | 20 / day each (36 usable) | 1 per post that announces events, plus upgrades of provisional posts | Usually all of it while there's a backlog of provisional posts (98 on 4 October 2026), under 20 once it's gone | Tight while new accounts load (provisional fallback, upgraded on later runs); fine afterwards |
+| GitHub Actions minutes (private repository) | 2,000 / month | 3–5 min normally; about 15 on nights new accounts load (up to ~35) | ~10 normally | ~300 a month normally; heavy loading weeks stay under the limit. Admin requests add 1–2 min each, plus the wait for a running sweep. Set an Actions spending limit of $0 so runs stop instead of being charged |
 | GitHub Actions minutes (public site repository) | Unlimited | ci + deploy, ~2 min | | |
 | cron-job.org | Unlimited jobs | 1 call | 2 | |
 | healthchecks.io | Free plan | 1 ping | 2 | |
