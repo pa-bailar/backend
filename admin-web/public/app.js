@@ -68,8 +68,8 @@ function geminiCard(gemini) {
       const roles = model.role.split(", ").map((role) => ROLES[role] ?? role).join(", ");
       return `<div class="model">
         <div class="model__row"><span><code>${escapeHtml(model.model)}</code> <span class="muted">${escapeHtml(roles)}</span></span>
-          <span>${model.used} / ${model.budget}${full ? ` <span class="warn">agotado</span>` : ""}</span></div>
-        <div class="meter${full ? " full" : ""}"><i data-share="${share}"></i></div></div>`;
+          <span>${escapeHtml(model.used)} / ${escapeHtml(model.budget)}${full ? ` <span class="warn">agotado</span>` : ""}</span></div>
+        <div class="meter${full ? " full" : ""}"><i data-share="${escapeHtml(share)}"></i></div></div>`;
     })
     .join("");
   const liteOnly = gemini.lite_only ? `<p class="small">Modo solo Flash-Lite activo (GEMINI_LITE_ONLY).</p>` : "";
@@ -80,7 +80,7 @@ function geminiCard(gemini) {
 function instagramCard(instagram) {
   if (!instagram) return "";
   const text = instagram.ok
-    ? `<span class="ok">✓</span> El token funciona. Cuota de Instagram usada: ${instagram.app_usage_percent}%.`
+    ? `<span class="ok">✓</span> El token funciona. Cuota de Instagram usada: ${escapeHtml(instagram.app_usage_percent)}%.`
     : `<span class="warn">⚠️</span> El token no funciona: ${escapeHtml(instagram.error)}`;
   return `<section class="card"><h2>Instagram</h2><p>${text}</p></section>`;
 }
@@ -105,7 +105,7 @@ function accountsCard(status) {
        <div class="chips">${pending.map((account) => `<span>@${escapeHtml(account)}</span>`).join("")}</div>`
     : "";
   return `<section class="card"><h2>Cuentas y eventos</h2>
-    <div class="facts">${facts.map(([number, label]) => `<div class="fact"><b>${number}</b>${escapeHtml(label)}</div>`).join("")}</div>
+    <div class="facts">${facts.map(([number, label]) => `<div class="fact"><b>${escapeHtml(number)}</b>${escapeHtml(label)}</div>`).join("")}</div>
     ${firstSweep}${late}</section>`;
 }
 
@@ -165,42 +165,76 @@ function toolsCard() {
   </section>`;
 }
 
+/** Fetch JSON from the Worker; null when offline or the answer isn't JSON. */
+async function getJson(url, init) {
+  try {
+    const response = await fetch(url, init);
+    return { ok: response.ok, status: response.status, data: await response.json() };
+  } catch {
+    return null;
+  }
+}
+
+let sending = false; // a double tap would open the same request twice
+
 async function send(action, link, account) {
-  const answer = document.getElementById("answer");
-  answer.innerHTML = `<p class="muted">Enviando…</p>`;
-  const response = await fetch("/api/requests", {
+  if (sending) return;
+  sending = true;
+  setAnswer(`<p class="muted">Enviando…</p>`);
+  const result = await getJson("/api/requests", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action, link, account }),
   });
-  const result = await response.json().catch(() => ({ error: "Respuesta inválida." }));
-  if (!response.ok) {
-    answer.innerHTML = `<p class="warn">${escapeHtml(result.error ?? "No se pudo enviar.")}</p>`;
+  sending = false;
+  if (!result?.ok) {
+    const error = result ? result.data?.error ?? "No se pudo enviar." : "No se pudo enviar: revisa la conexión.";
+    setAnswer(`<p class="warn">${escapeHtml(error)}</p>`);
     return;
   }
-  follow(result.number);
+  follow(result.data.number);
   loadRequests();
 }
 
+/** The answer area, rewritten only when it changes: it's a live region, and each rewrite is read out again. */
+let shownAnswer = null;
+function setAnswer(html) {
+  if (html === shownAnswer) return;
+  shownAnswer = html;
+  document.getElementById("answer").innerHTML = html;
+}
+
 /** Show a request's answers, checking every few seconds until it's closed (answered). */
+let following = 0; // which follow() is current: a check still on its way for an earlier one is dropped
 function follow(number) {
   clearTimeout(polling);
-  const answer = document.getElementById("answer");
+  const current = ++following;
   const started = Date.now();
   const check = async () => {
-    const response = await fetch(`/api/requests/${number}`);
-    const request = await response.json().catch(() => null);
-    if (!response.ok || !request) {
-      answer.innerHTML = `<p class="warn">No se pudo leer el pedido #${number}.</p>`;
+    const result = await getJson(`/api/requests/${number}`);
+    if (current !== following) return;
+    const inTime = Date.now() - started < POLL_LIMIT_MS;
+    if (!result) {
+      // Offline for a moment (a phone between networks): try again, keeping what's shown.
+      if (inTime) polling = setTimeout(check, POLL_MS);
+      else setAnswer(`<p class="warn">No se pudo leer el pedido #${escapeHtml(number)}: revisa la conexión.</p>`);
+      return;
+    }
+    const request = result.data;
+    if (!result.ok || !request?.answers) {
+      setAnswer(`<p class="warn">No se pudo leer el pedido #${escapeHtml(number)}.</p>`);
       return;
     }
     const answers = request.answers.map((item) => `<div class="answer">${markdown(item.body)}</div>`).join("");
-    const waiting = request.state === "open" && Date.now() - started < POLL_LIMIT_MS;
-    answer.innerHTML = `<div class="answer__head"><b>${escapeHtml(request.title)}</b>
-        <a class="small" href="${escapeHtml(request.url)}" target="_blank" rel="noopener">#${request.number}</a></div>
-      ${answers || ""}
-      ${waiting ? `<p class="small muted">${answers ? "Sigue en curso…" : "Esperando la respuesta (un minuto o dos)…"}</p>` : ""}`;
-    if (waiting) polling = setTimeout(check, POLL_MS);
+    const open = request.state === "open";
+    let note = "";
+    if (open && !inTime) note = "Sigue en curso: tócalo en Pedidos recientes más tarde para ver la respuesta.";
+    else if (open) note = answers ? "Sigue en curso…" : "Esperando la respuesta (un minuto o dos)…";
+    setAnswer(`<div class="answer__head"><b>${escapeHtml(request.title)}</b>
+        <a class="small" href="${escapeHtml(request.url)}" target="_blank" rel="noopener">#${escapeHtml(request.number)}</a></div>
+      ${answers}
+      ${note ? `<p class="small muted">${note}</p>` : ""}`);
+    if (open && inTime) polling = setTimeout(check, POLL_MS);
     else loadRequests();
   };
   check();
@@ -208,8 +242,8 @@ function follow(number) {
 
 async function loadRequests() {
   const list = document.getElementById("requests");
-  const response = await fetch("/api/requests");
-  const requests = response.ok ? await response.json() : null;
+  const result = await getJson("/api/requests");
+  const requests = result?.ok && Array.isArray(result.data) ? result.data : null;
   if (!requests) {
     list.innerHTML = `<li class="warn">No se pudieron leer los pedidos.</li>`;
     return;
@@ -217,7 +251,7 @@ async function loadRequests() {
   list.innerHTML = requests.length
     ? requests
         .map(
-          (request) => `<li><button class="link" type="button" data-request="${request.number}">
+          (request) => `<li><button class="link" type="button" data-request="${escapeHtml(request.number)}">
             ${request.state === "open" ? "⏳" : "✓"} ${escapeHtml(request.title)}</button>
             <span class="small muted">${when(request.created_at)}</span></li>`,
         )
@@ -226,6 +260,7 @@ async function loadRequests() {
 }
 
 function initTools() {
+  shownAnswer = null; // a new, empty answer area
   let action = "why";
   const postForm = document.getElementById("post-form");
   postForm.addEventListener("click", (event) => {
@@ -254,16 +289,20 @@ const SHARED_MAX_AGE_MS = 30 * 60 * 1000;
 const INSTAGRAM_POST = /https?:\/\/(?:www\.|m\.)?instagram\.com\/(?:[\w.]+\/)?(?:p|reel|reels|tv)\/[\w-]+\/?/i;
 let sharedFallback = null; // when the browser's storage is blocked
 
-/** Keep a shared post's link (Android sends it as ?text= or ?url=), so it survives the GitHub sign-in. */
+/**
+ * Keep a shared post's link (Android sends it as ?text= or ?url=), so it survives the GitHub sign-in.
+ * "post", "other" when what was shared isn't a post's link (a profile, a story), or null when nothing was.
+ */
 function keepSharedLink(params) {
   const text = ["url", "text", "link"].map((name) => params.get(name) ?? "").join(" ");
+  if (!text.trim()) return null;
   const link = text.match(INSTAGRAM_POST)?.[0]; // without Instagram's tracking (?igsh=…)
-  if (!link) return false;
+  if (!link) return "other";
   sharedFallback = link;
   try {
     localStorage.setItem(SHARED_KEY, JSON.stringify({ link, at: Date.now() }));
   } catch {}
-  return true;
+  return "post";
 }
 
 /** The shared link waiting to be used, once. */
@@ -278,32 +317,49 @@ function takeSharedLink() {
   return link;
 }
 
-function useSharedLink() {
+function useSharedLink(shared) {
   const link = takeSharedLink();
-  if (!link) return;
-  document.getElementById("post-link").value = link;
-  document
-    .getElementById("post-form")
-    .insertAdjacentHTML("afterbegin", `<p class="shared">📎 Enlace recibido: elige <b>Revisar</b>, <b>Agregar</b> o <b>Volver a leer</b>.</p>`);
+  const form = document.getElementById("post-form");
+  if (link) {
+    document.getElementById("post-link").value = link;
+    form.insertAdjacentHTML("afterbegin", `<p class="shared">📎 Enlace recibido: elige <b>Revisar</b>, <b>Agregar</b> o <b>Volver a leer</b>.</p>`);
+  } else if (shared === "other") {
+    form.insertAdjacentHTML("afterbegin", `<p class="shared">📎 Lo que compartiste no es el enlace de una publicación (instagram.com/p/… o /reel/…).</p>`);
+  }
 }
 
-function showDashboard(status) {
-  main.innerHTML = [
-    toolsCard(),
-    sweepsCard(status.sweeps),
-    geminiCard(status.gemini),
-    instagramCard(status.instagram),
-    accountsCard(status),
-    `<p class="small muted">Datos del barrido de ${when(status.generated_at)}</p>`,
-  ].join("");
+/** The status cards from status.json, or a note when there's none: the tools above work without it. */
+function statusCards(result) {
+  const status = result?.data;
+  if (!result) return card(`<p>No se pudo leer el estado: revisa la conexión.</p>`);
+  if (status?.missing) return card(`<p>Todavía no hay estado guardado: aparece después del próximo barrido.</p>`);
+  if (!result.ok || status?.error) return card(`<p>${escapeHtml(status?.error ?? "No se pudo leer el estado.")}</p>`);
+  try {
+    return [
+      sweepsCard(status.sweeps),
+      geminiCard(status.gemini),
+      instagramCard(status.instagram),
+      accountsCard(status),
+      `<p class="small muted">Datos del barrido de ${when(status.generated_at)}</p>`,
+    ].join("");
+  } catch (error) {
+    console.error(error); // status.json changed shape (pa_bailar/status.py)
+    return card(`<p>No se pudo mostrar el estado.</p>`);
+  }
+}
+
+function showDashboard(cards, shared) {
+  main.innerHTML = toolsCard() + cards;
   // The meters' fill, set here: the Content Security Policy (public/_headers) blocks style="" in the HTML.
   main.querySelectorAll(".meter i[data-share]").forEach((bar) => (bar.style.width = `${bar.dataset.share}%`));
   initTools();
-  useSharedLink();
+  useSharedLink(shared);
 }
 
+const card = (html) => `<section class="card">${html}</section>`;
+
 function showMessage(html) {
-  main.innerHTML = `<section class="card">${html}</section>`;
+  main.innerHTML = card(html);
 }
 
 function showSignIn(note) {
@@ -318,21 +374,23 @@ async function start() {
   const shared = keepSharedLink(params);
   if (error || shared) history.replaceState(null, "", "/");
 
-  const health = await fetch("/api/health").then((response) => response.json()).catch(() => null);
-  if (!health) return showMessage(`<p>No se pudo contactar el servidor.</p>`);
-  if (!health.configured) return showMessage(`<p>${MESSAGES.config}</p>`);
+  const health = await getJson("/api/health");
+  if (!health?.ok) return showMessage(`<p>No se pudo contactar el servidor.</p>`);
+  if (!health.data.configured) return showMessage(`<p>${MESSAGES.config}</p>`);
 
-  const me = await fetch("/api/me");
-  if (me.status === 401) return showSignIn(MESSAGES[error] ?? (shared ? "Inicia sesión para usar el enlace que compartiste." : ""));
-  const { login } = await me.json();
+  const me = await getJson("/api/me");
+  if (me?.status === 401) {
+    const note = Object.hasOwn(MESSAGES, error) ? MESSAGES[error] : "";
+    return showSignIn(note || (shared === "post" ? "Inicia sesión para usar el enlace que compartiste." : ""));
+  }
+  if (!me?.ok) return showMessage(`<p>No se pudo contactar el servidor.</p>`);
   userLine.hidden = false;
-  userLine.innerHTML = `@${escapeHtml(login)} · <a href="/auth/logout">Salir</a>`;
+  userLine.innerHTML = `@${escapeHtml(me.data.login)} · <a href="/auth/logout">Salir</a>`;
 
-  const response = await fetch("/api/status");
-  const status = await response.json().catch(() => ({ error: "Respuesta inválida." }));
-  if (status.missing) return showMessage(`<p>Todavía no hay estado guardado: aparece después del próximo barrido.</p>`);
-  if (!response.ok || status.error) return showMessage(`<p>${escapeHtml(status.error ?? "No se pudo leer el estado.")}</p>`);
-  showDashboard(status);
+  const status = await getJson("/api/status");
+  // GitHub turned the session's token down (the App's access was revoked): sign in again.
+  if (status?.status === 401) return showSignIn(status.data?.error);
+  showDashboard(statusCards(status), shared);
 }
 
 start();

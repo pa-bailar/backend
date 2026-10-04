@@ -151,9 +151,7 @@ async function readStatus(session, env) {
   const path = `/repos/${env.REPO}/contents/status.json?ref=${encodeURIComponent(env.STATE_BRANCH)}`;
   const response = await github(path, session.access_token, "application/vnd.github.raw+json");
   if (response.status === 404) return Response.json({ missing: true });
-  if (!response.ok) {
-    return Response.json({ error: `GitHub respondió ${response.status} al leer el estado.` }, { status: 502 });
-  }
+  if (!response.ok) return githubError(response, " al leer el estado");
   return new Response(await response.text(), {
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });
@@ -164,7 +162,7 @@ async function readStatus(session, env) {
 // The whole value is one post link (a slash, a query like ?igsh=… and a #fragment allowed, no spaces or new
 // lines): it goes into the issue's body, which the inbox reads line by line.
 const POST_LINK = /^https?:\/\/(www\.|m\.)?instagram\.com\/([\w.]+\/)?(p|reel|reels|tv)\/[\w-]+\/?(\?[^\s#]*)?(#\S*)?$/i;
-const ACCOUNT = /^@?[A-Za-z0-9._]{1,30}$/;
+const ACCOUNT = /^[A-Za-z0-9._]{1,30}$/; // tested without its "@"
 const ACTIONS = {
   why: "Revisar",
   "add-post": "Agregar",
@@ -176,10 +174,10 @@ const POST_ACTIONS = new Set(["why", "add-post", "add-post-again"]); // the ones
 
 /** POST {action, link?, account?} → an issue written like the inbox's form (pa_bailar/inbox.py reads it). */
 async function createRequest(request, session, env) {
-  const { action, link = "", account = "" } = await request.json().catch(() => ({}));
+  const { action, link = "", account = "" } = (await request.json().catch(() => null)) ?? {};
   const cleanLink = String(link).trim();
   const cleanAccount = String(account).trim().replace(/^@/, "");
-  if (!ACTIONS[action]) return Response.json({ error: "Acción desconocida." }, { status: 400 });
+  if (!Object.hasOwn(ACTIONS, action)) return Response.json({ error: "Acción desconocida." }, { status: 400 });
   if (POST_ACTIONS.has(action) && !POST_LINK.test(cleanLink)) {
     return Response.json({ error: "Pega el enlace de una publicación de Instagram (instagram.com/p/…)." }, { status: 400 });
   }
@@ -200,9 +198,7 @@ async function createRequest(request, session, env) {
     method: "POST",
     body: JSON.stringify({ title: `${ACTIONS[action]}${subject ? `: ${subject}` : ""}`, body, labels: ["admin"] }),
   });
-  if (!response.ok) {
-    return Response.json({ error: `GitHub respondió ${response.status} al crear el pedido.` }, { status: 502 });
-  }
+  if (!response.ok) return githubError(response, " al crear el pedido");
   const issue = await response.json();
   return Response.json({ number: issue.number, url: issue.html_url });
 }
@@ -211,7 +207,7 @@ async function createRequest(request, session, env) {
 async function listRequests(session, env) {
   const path = `/repos/${env.REPO}/issues?labels=admin&state=all&per_page=8&sort=created&direction=desc`;
   const response = await github(path, session.access_token);
-  if (!response.ok) return Response.json({ error: `GitHub respondió ${response.status}.` }, { status: 502 });
+  if (!response.ok) return githubError(response, " al leer los pedidos");
   const issues = await response.json();
   return Response.json(
     issues.map((issue) => ({
@@ -231,7 +227,7 @@ async function readRequest(number, session, env) {
     github(`/repos/${env.REPO}/issues/${number}/comments?per_page=50`, session.access_token),
   ]);
   if (!issueResponse.ok || !commentsResponse.ok) {
-    return Response.json({ error: "No se pudo leer el pedido." }, { status: 502 });
+    return githubError(issueResponse.ok ? commentsResponse : issueResponse, " al leer el pedido");
   }
   const issue = await issueResponse.json();
   if (!issue.labels?.some((label) => label.name === "admin")) {
@@ -250,6 +246,14 @@ async function readRequest(number, session, env) {
     },
     { headers: { "Cache-Control": "no-store" } },
   );
+}
+
+/** GitHub said no: 401 when it turned the session's token down (access revoked), so the page asks to sign in. */
+function githubError(response, doing) {
+  if (response.status === 401) {
+    return Response.json({ error: "GitHub no aceptó la sesión: inicia sesión de nuevo." }, { status: 401 });
+  }
+  return Response.json({ error: `GitHub respondió ${response.status}${doing}.` }, { status: 502 });
 }
 
 function github(path, token, accept = "application/vnd.github+json", init = {}) {

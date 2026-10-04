@@ -34,9 +34,12 @@ Open https://pa-bailar-admin.jzamorac-9.workers.dev and sign in with GitHub (onl
   - **@cuenta:** rarely needed: when the link doesn't say the account, it's read from the post's public page.
 - **Agregar una cuenta a los barridos:** checks that Instagram can read it (business or creator accounts
   only), then adds it. The next sweep reads its last 30 days of posts.
-- **Pedidos recientes:** the latest requests; tap one to see its answer again.
+- **Pedidos recientes:** the latest requests; tap one to see its answer again. The page follows a request it
+  sent (or one you tapped) for 15 minutes; if it's still running then, it says so: tap it again later.
+  Each button sends one request per tap.
 - **Below:** the sweeps (✅ or ⚠️, with links to the runs), Gemini usage per model and when it resets,
-  Instagram, accounts and events. It's the latest `status.json`, as of the last sweep.
+  Instagram, accounts and events. It's the latest `status.json`, as of the last sweep. When it can't be read
+  (none saved yet, GitHub failing, offline), a note takes its place and the tools above still work.
 
 Each request is an issue in this repository (label `admin`), answered by the `admin` workflow: the page
 opens it and shows the answer when it arrives.
@@ -45,7 +48,8 @@ opens it and shows the answer when it arrives.
 pantalla principal"). It then shows up as **PB Admin** (the record on marigold, with a wrench) in the share
 menu: on a post, the paper plane → "Compartir en…" → PB Admin. The page opens with the post's link filled in
 (without Instagram's `?igsh=` tracking): tap Revisar, Agregar or Volver a leer. If the session ended, it asks you to sign in
-and keeps the link for 30 minutes. iPhones don't support sharing to web pages: there, copy the link and paste
+and keeps the link for 30 minutes. Sharing anything else (a profile, a story) opens the page with a note that
+it isn't a post's link. iPhones don't support sharing to web pages: there, copy the link and paste
 it.
 
 ### From GitHub (the inbox)
@@ -192,7 +196,8 @@ flowchart LR
 - **Sign-in:** "Iniciar sesión con GitHub", through the `pa-bailar-admin` GitHub App. Only `jzamora5`
   (`ALLOWED_USER` in `wrangler.jsonc`) gets in.
   - The session is a cookie holding the GitHub token, encrypted with `SESSION_SECRET`.
-  - It lasts 30 days and renews the 8-hour GitHub token by itself. Nothing to paste or renew.
+  - It lasts 30 days and renews the 8-hour GitHub token by itself. Nothing to paste or renew. If GitHub turns
+    the token down (the App's access was revoked), the page asks to sign in again.
   - Everything is read and written with your own GitHub access, limited to what the App may do: read this
     repository, open issues and comment, see runs.
   - Requests are only accepted from the page itself (same origin).
