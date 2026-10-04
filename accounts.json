@@ -158,38 +158,38 @@
   "festivalsalsaalparque": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": null,
-    "latest_post": null
+    "last_swept_at": "2026-10-03T21:01:40-05:00",
+    "latest_post": "2025-10-06"
   },
   "salsabravadancehallpicante": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": null,
-    "latest_post": null
+    "last_swept_at": "2026-10-03T21:01:45-05:00",
+    "latest_post": "2026-02-21"
   },
   "reyesdelasalsa.col": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": null,
-    "latest_post": null
+    "last_swept_at": "2026-10-03T21:01:52-05:00",
+    "latest_post": "2026-09-22"
   },
   "bachatamania_bogota": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": null,
-    "latest_post": null
+    "last_swept_at": "2026-10-03T21:02:02-05:00",
+    "latest_post": "2026-09-27"
   },
   "germanbaila": {
     "first_seen": "2026-10-02",
-    "backfill_done": false,
-    "last_swept_at": null,
-    "latest_post": null
+    "backfill_done": true,
+    "last_swept_at": "2026-10-03T21:03:08-05:00",
+    "latest_post": "2026-10-01"
   },
   "_olorumcongress": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": null,
-    "latest_post": null
+    "last_swept_at": "2026-10-03T21:02:06-05:00",
+    "latest_post": "2026-04-22"
   },
   "tributo.salsayjazz": {
     "first_seen": "2026-10-02",
@@ -248,73 +248,85 @@
   "herencialatinad.c": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": null,
-    "latest_post": null
+    "last_swept_at": "2026-10-03T21:01:30-05:00",
+    "latest_post": "2026-09-21"
   },
   "ebi_dancecompany": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": null,
-    "latest_post": null
+    "last_swept_at": "2026-10-03T21:01:35-05:00",
+    "latest_post": "2026-09-14"
   },
   "bailalo_improsocial": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": null,
-    "latest_post": null
+    "last_swept_at": "2026-10-03T21:02:15-05:00",
+    "latest_post": "2026-03-31"
   },
   "cordillerafestival": {
     "first_seen": "2026-10-02",
-    "backfill_done": false,
-    "last_swept_at": null,
-    "latest_post": null
+    "backfill_done": true,
+    "last_swept_at": "2026-10-03T21:05:31-05:00",
+    "latest_post": "2026-09-24"
   },
   "latrinidaddelasalsa": {
     "first_seen": "2026-10-02",
-    "backfill_done": false,
-    "last_swept_at": null,
-    "latest_post": null
+    "backfill_done": true,
+    "last_swept_at": "2026-10-03T21:05:46-05:00",
+    "latest_post": "2026-09-15"
   },
   "danzaenlaciudad": {
     "first_seen": "2026-10-02",
-    "backfill_done": false,
-    "last_swept_at": null,
-    "latest_post": null
+    "backfill_done": true,
+    "last_swept_at": "2026-10-03T21:07:07-05:00",
+    "latest_post": "2026-10-01"
   },
   "salsaculto": {
     "first_seen": "2026-10-02",
-    "backfill_done": false,
-    "last_swept_at": null,
-    "latest_post": null
+    "backfill_done": true,
+    "last_swept_at": "2026-10-03T21:07:39-05:00",
+    "latest_post": "2026-10-01"
   },
   "paramopresenta": {
     "first_seen": "2026-10-02",
-    "backfill_done": false,
-    "last_swept_at": null,
-    "latest_post": null
+    "backfill_done": true,
+    "last_swept_at": "2026-10-03T21:11:44-05:00",
+    "latest_post": "2026-10-03"
   },
   "latinproductioncolombia": {
     "first_seen": "2026-10-02",
-    "backfill_done": false,
-    "last_swept_at": null,
-    "latest_post": null
+    "backfill_done": true,
+    "last_swept_at": "2026-10-03T21:11:59-05:00",
+    "latest_post": "2026-09-26"
   },
   "bachatasocialcongresss": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": null,
-    "latest_post": null
+    "last_swept_at": "2026-10-03T21:02:29-05:00",
+    "latest_post": "2026-10-04"
   },
   "bailarito": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": null,
-    "latest_post": null
+    "last_swept_at": "2026-10-03T21:02:31-05:00",
+    "latest_post": "2026-07-31"
   },
   "elparche.se": {
     "first_seen": "2026-10-02",
-    "backfill_done": false,
-    "last_swept_at": null,
-    "latest_post": null
+    "backfill_done": true,
+    "last_swept_at": "2026-10-03T21:12:11-05:00",
+    "latest_post": "2026-09-30"
+  },
+  "iledanza": {
+    "first_seen": "2026-10-03",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-03T21:02:35-05:00",
+    "latest_post": "2026-09-07"
+  },
+  "bogotadanceclub": {
+    "first_seen": "2026-10-03",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-03T21:14:07-05:00",
+    "latest_post": "2026-10-03"
   }
 }

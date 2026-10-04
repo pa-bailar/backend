@@ -1,7 +1,50 @@
 {
-  "generated_at": "2026-10-03T14:47:12-05:00",
+  "generated_at": "2026-10-03T21:14:08-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-10-03T21:14:07-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37169691300",
+        "accounts": 20,
+        "failed_accounts": [],
+        "read_accounts": [
+          "_olorumcongress",
+          "bachatamania_bogota",
+          "bachatasocialcongresss",
+          "bailalo_improsocial",
+          "bailarito",
+          "bogotadanceclub",
+          "cordillerafestival",
+          "danzaenlaciudad",
+          "ebi_dancecompany",
+          "elparche.se",
+          "festivalsalsaalparque",
+          "germanbaila",
+          "herencialatinad.c",
+          "iledanza",
+          "latinproductioncolombia",
+          "latrinidaddelasalsa",
+          "paramopresenta",
+          "reyesdelasalsa.col",
+          "salsabravadancehallpicante",
+          "salsaculto"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 95,
+        "events_new": 24,
+        "events_merged": 16,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 50,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 145
+        },
+        "models_unavailable": [],
+        "instagram_usage": 61,
+        "warnings": []
+      },
       {
         "finished_at": "2026-10-03T09:15:27-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/37128097876",
@@ -9,6 +52,7 @@
         "failed_accounts": [
           "herencialatinad.c"
         ],
+        "read_accounts": [],
         "skipped_accounts": [
           "iledanza",
           "ebi_dancecompany",
@@ -43,6 +87,7 @@
           "gemini-3.5-flash": 18
         },
         "models_unavailable": [],
+        "instagram_usage": null,
         "warnings": []
       },
       {
@@ -50,6 +95,7 @@
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/37088209223",
         "accounts": 50,
         "failed_accounts": [],
+        "read_accounts": [],
         "skipped_accounts": [],
         "posts_analyzed": 44,
         "events_new": 14,
@@ -63,6 +109,7 @@
           "gemini-3.5-flash-lite": 68
         },
         "models_unavailable": [],
+        "instagram_usage": null,
         "warnings": []
       },
       {
@@ -72,6 +119,7 @@
         "failed_accounts": [
           "zafradance"
         ],
+        "read_accounts": [],
         "skipped_accounts": [
           "bembeacademiadebaile",
           "esferalatinaoficial",
@@ -119,6 +167,7 @@
         "out_of_time": false,
         "gemini_requests": {},
         "models_unavailable": [],
+        "instagram_usage": null,
         "warnings": []
       },
       {
@@ -128,6 +177,7 @@
         "failed_accounts": [
           "terrazasalsera"
         ],
+        "read_accounts": [],
         "skipped_accounts": [
           "discojaguar.bta"
         ],
@@ -145,12 +195,13 @@
           "gemini-3.5-flash": 17
         },
         "models_unavailable": [],
+        "instagram_usage": null,
         "warnings": []
       }
     ],
     "next": [
-      "2026-10-03T21:00-05:00",
-      "2026-10-04T09:00-05:00"
+      "2026-10-04T09:00-05:00",
+      "2026-10-04T21:00-05:00"
     ]
   },
   "gemini": {
@@ -172,7 +223,7 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 1,
+        "used": 146,
         "budget": 498
       }
     ]
@@ -184,26 +235,15 @@
   },
   "accounts": {
     "followed": 52,
-    "first_sweep_pending": [
-      "iledanza",
-      "germanbaila",
-      "cordillerafestival",
-      "latrinidaddelasalsa",
-      "danzaenlaciudad",
-      "salsaculto",
-      "paramopresenta",
-      "latinproductioncolombia",
-      "elparche.se",
-      "bogotadanceclub"
-    ],
+    "first_sweep_pending": [],
     "waiting": []
   },
   "posts": {
-    "recorded": 193,
-    "provisional": 49
+    "recorded": 288,
+    "provisional": 99
   },
   "events": {
-    "upcoming": 26,
+    "upcoming": 40,
     "low_confidence": 1
   },
   "discovery": null

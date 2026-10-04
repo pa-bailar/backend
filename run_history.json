@@ -6,6 +6,7 @@
     "failed_accounts": [
       "terrazasalsera"
     ],
+    "read_accounts": [],
     "skipped_accounts": [
       "discojaguar.bta"
     ],
@@ -23,6 +24,7 @@
       "gemini-3.5-flash": 17
     },
     "models_unavailable": [],
+    "instagram_usage": null,
     "warnings": []
   },
   {
@@ -32,6 +34,7 @@
     "failed_accounts": [
       "zafradance"
     ],
+    "read_accounts": [],
     "skipped_accounts": [
       "bembeacademiadebaile",
       "esferalatinaoficial",
@@ -79,6 +82,7 @@
     "out_of_time": false,
     "gemini_requests": {},
     "models_unavailable": [],
+    "instagram_usage": null,
     "warnings": []
   },
   {
@@ -86,6 +90,7 @@
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37088209223",
     "accounts": 50,
     "failed_accounts": [],
+    "read_accounts": [],
     "skipped_accounts": [],
     "posts_analyzed": 44,
     "events_new": 14,
@@ -99,6 +104,7 @@
       "gemini-3.5-flash-lite": 68
     },
     "models_unavailable": [],
+    "instagram_usage": null,
     "warnings": []
   },
   {
@@ -108,6 +114,7 @@
     "failed_accounts": [
       "herencialatinad.c"
     ],
+    "read_accounts": [],
     "skipped_accounts": [
       "iledanza",
       "ebi_dancecompany",
@@ -142,6 +149,50 @@
       "gemini-3.5-flash": 18
     },
     "models_unavailable": [],
+    "instagram_usage": null,
+    "warnings": []
+  },
+  {
+    "finished_at": "2026-10-03T21:14:07-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/37169691300",
+    "accounts": 20,
+    "failed_accounts": [],
+    "read_accounts": [
+      "_olorumcongress",
+      "bachatamania_bogota",
+      "bachatasocialcongresss",
+      "bailalo_improsocial",
+      "bailarito",
+      "bogotadanceclub",
+      "cordillerafestival",
+      "danzaenlaciudad",
+      "ebi_dancecompany",
+      "elparche.se",
+      "festivalsalsaalparque",
+      "germanbaila",
+      "herencialatinad.c",
+      "iledanza",
+      "latinproductioncolombia",
+      "latrinidaddelasalsa",
+      "paramopresenta",
+      "reyesdelasalsa.col",
+      "salsabravadancehallpicante",
+      "salsaculto"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 95,
+    "events_new": 24,
+    "events_merged": 16,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 50,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 145
+    },
+    "models_unavailable": [],
+    "instagram_usage": 61,
     "warnings": []
   }
 ]
