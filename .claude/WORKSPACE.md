@@ -5,7 +5,8 @@ Two repositories under this folder:
   health checks, admin tools. Python 3.12.
 - `pa-bailar-web/`: the public site (`pa-bailar/pa-bailar.github.io`): Astro in `frontend/`, the data in `data/`.
 
-Each has `README.md` and `docs/ARCHITECTURE.md`; the site also has `docs/DESIGN.md` and `docs/DATA.md`.
+Each has `README.md` and `docs/ARCHITECTURE.md`. The backend also has `docs/ADMIN.md` (the admin tools) and
+`docs/PLAN.md` (the original plan, kept as a record); the site also has `docs/DESIGN.md` and `docs/DATA.md`.
 
 ## Changing code
 

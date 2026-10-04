@@ -27,7 +27,7 @@ renamed.
 |---|---|---|
 | backend (`pa-bailar`) | `README.md` | Commands, workflows, schedule, monitoring, setup, dependencies |
 | backend | `docs/ARCHITECTURE.md` | Modules, pipeline, Gemini models and quotas, Instagram, state files, health checks, diagrams |
-| backend | `docs/ADMIN.md` (when it exists) | The admin tools: the issues inbox, commands, examples |
+| backend | `docs/ADMIN.md` | The admin tools: the issues inbox, the admin page, commands, examples |
 | site (`pa-bailar-web`) | `README.md` | Develop, workflows, versions, statistics, contributing |
 | site | `docs/ARCHITECTURE.md` | Pages and endpoints, build, workflows, browser modules, third-party services, code map, diagrams |
 | site | `docs/DESIGN.md` | Tokens, themes, components, copy, interaction decisions |
