@@ -130,3 +130,18 @@ def test_discovery_keeps_clear_of_the_daily_sweep(time, quiet):
     hour, minute = map(int, time.split(":"))
     now = datetime(2026, 10, 2, hour, minute, tzinfo=config.BOGOTA_TZ)
     assert discovery.near_sweep(now) is quiet
+
+
+def test_personal_accounts_are_rechecked_when_their_verdict_is_stale():
+    def personal(name, checked_on=None):
+        return discovery.DiscoveredAccount(username=name, status="personal", checked_on=checked_on)
+
+    cache = {
+        "tia.maria": personal("tia.maria"),  # never rechecked
+        "dlivingstudio": personal("dlivingstudio", "2026-09-01"),  # stale
+        "escuela_de_salsa": personal("escuela_de_salsa", "2026-10-01"),  # checked 3 days ago: not yet
+        "zafradance": discovery.DiscoveredAccount(username="zafradance", status="business"),
+    }
+    due = discovery.recheck_candidates(cache, "2026-10-04")
+    assert set(due) == {"tia.maria", "dlivingstudio"}
+    assert due[0] == "dlivingstudio"  # dance-looking names first ("studio")
