@@ -14,10 +14,11 @@ import logging
 import time
 from pathlib import Path
 
+import httpx
 from google.genai import errors as genai_errors
 
 from pa_bailar import config, discovery, storage, sweep_state
-from pa_bailar.gemini import ExtractionError, ModelPool, daily_budget, quota_day
+from pa_bailar.gemini import ExtractionError, GeminiKeyError, ModelPool, daily_budget, quota_day
 from pa_bailar.instagram import InstagramClient, InstagramError, is_not_visible, is_rate_limited
 from pa_bailar.logs import setup_logging
 from pa_bailar.models import AccountClassification
@@ -126,8 +127,14 @@ def main(argv: list[str] | None = None) -> None:
             classification, model = pool.generate(
                 config.TRIAGE_MODELS, discovery.classify_prompt(account.profile), AccountClassification
             )
-        except (ExtractionError, genai_errors.APIError) as error:
-            log.warning("  classification stopped: %s (run again tomorrow to continue)", error)
+        except GeminiKeyError as error:
+            log.warning(
+                "  classification stopped: Gemini's API key doesn't work (%s): replace it in .env and run again", error
+            )
+            break
+        except (ExtractionError, genai_errors.APIError, httpx.TransportError) as error:
+            # Out of quota, or Gemini busy or unreachable: what's classified so far is saved.
+            log.warning("  classification stopped: %s (run again later to continue)", error)
             break
         account.classification, account.classified_by = classification, model
         log.info("  @%s → %s, Bogotá: %s", account.username, classification.kind, classification.in_bogota)

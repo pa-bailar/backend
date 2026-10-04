@@ -139,8 +139,9 @@ def main(argv: list[str] | None = None) -> None:
         text = os.environ.get("COMMENT_BODY") or issue
         request = inbox.parse(text)
         # Only the admin's inbox: an issue already labelled `admin` (the form, the admin page), or a text that
-        # asks for something. The owner's other issues and comments aren't requests: no answer, no label.
-        if request.action == "help" and os.environ.get("ADMIN_ISSUE") != "true":
+        # asks for something (a command missing its link gets the help). The owner's other issues and comments
+        # aren't requests: no answer, no label.
+        if not inbox.is_request(text) and os.environ.get("ADMIN_ISSUE") != "true":
             _write_outputs(action="skip")
             print("Not an admin request: no answer.")
             return

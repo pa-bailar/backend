@@ -608,3 +608,12 @@ def test_a_congress_under_way_is_still_a_known_event_for_new_posts():
     extractor = FakeExtractor({"p1": event_post("p1", same_as="congreso")})
     run(FakeInstagram({"academia": [post("p1", days_ago=0)], "otra": []}), extractor)
     assert extractor.known_seen["p1"] == ["congreso"]
+
+
+def test_an_accounts_latest_post_is_dated_in_bogota():
+    """Instagram's times are UTC: a post at 9 p.m. in Bogotá is that day's, not the next."""
+    evening = (config.now_bogota() - timedelta(days=2)).replace(hour=21, minute=0, second=0, microsecond=0)
+    late = {**post("p1"), "timestamp": evening.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S+0000")}
+    stats = run(FakeInstagram({"academia": [late], "otra": []}), FakeExtractor({"p1": event_post("p1")}))
+    assert stats.by_account["academia"].latest_post == evening.date().isoformat()
+    assert storage.load_account_state()["academia"].latest_post == evening.date().isoformat()

@@ -111,7 +111,8 @@ def read_accounts() -> list[str]:
     return [line.strip().lstrip("@") for line in lines if line.strip() and not line.strip().startswith("#")]
 
 
-ADDED_BY_ADMIN = "# Added with the admin tools (admin add-account, add-post)"
+ADDED_BY_ADMIN = "# Added with the admin tools (admin add-account, sweep --post)"
+_ADDED_BY_ADMIN_BEFORE = "# Added with the admin tools (admin add-account, add-post)"  # renamed when found
 
 
 def add_account(account: str) -> bool:
@@ -120,6 +121,7 @@ def add_account(account: str) -> bool:
     if account in read_accounts():
         return False
     lines = config.ACCOUNTS_FILE.read_text(encoding="utf-8").splitlines()
+    lines = [ADDED_BY_ADMIN if line == _ADDED_BY_ADMIN_BEFORE else line for line in lines]
     if ADDED_BY_ADMIN in lines:
         at = lines.index(ADDED_BY_ADMIN) + 1
         while at < len(lines) and lines[at].strip() and not lines[at].startswith("#"):

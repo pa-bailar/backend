@@ -3,9 +3,11 @@
 import json
 from datetime import datetime
 
+import httpx
 import pytest
 
 from pa_bailar import config, discovery
+from pa_bailar.gemini import ExtractionError, GeminiKeyError
 from pa_bailar.models import AccountClassification
 
 HTML_EXPORT = """<main>
@@ -145,3 +147,48 @@ def test_personal_accounts_are_rechecked_when_their_verdict_is_stale():
     due = discovery.recheck_candidates(cache, "2026-10-04")
     assert set(due) == {"tia.maria", "dlivingstudio"}
     assert due[0] == "dlivingstudio"  # dance-looking names first ("studio")
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        GeminiKeyError("API key not valid"),
+        httpx.ConnectError("no route to host"),
+        ExtractionError("no model could answer"),
+    ],
+)
+def test_discover_stops_classifying_cleanly_when_gemini_fails(error, tmp_path, monkeypatch, caplog):
+    """No traceback: what was checked is saved, the report is written, and the log says how to continue."""
+    from pa_bailar.commands import discover
+
+    class FakeInstagram:
+        app_usage_percent = 0
+
+        def fetch_profile(self, username):
+            return {"username": username, "name": "Academia de salsa", "biography": "Clases de bachata y salsa"}
+
+    class FailingPool:
+        calls = 0
+
+        def generate(self, *args, **kwargs):
+            FailingPool.calls += 1
+            raise error
+
+    export = tmp_path / "following.html"
+    export.write_text(HTML_EXPORT, encoding="utf-8")
+    config.ACCOUNTS_FILE.write_text("academia\n", encoding="utf-8")
+    monkeypatch.setenv("GEMINI_API_KEY", "test")
+    monkeypatch.setattr(discover, "CACHE_FILE", tmp_path / "discovery.json")
+    monkeypatch.setattr(discover, "REPORT_FILE", tmp_path / "discovery_report.md")
+    monkeypatch.setattr(discover.InstagramClient, "from_env", classmethod(lambda cls: FakeInstagram()))
+    monkeypatch.setattr(discover, "ModelPool", lambda api_key: FailingPool())
+    monkeypatch.setattr(discover, "gemini_allowance", lambda pool: 10)
+    monkeypatch.setattr(discover.time, "sleep", lambda seconds: None)
+    monkeypatch.setattr(discover.discovery, "near_sweep", lambda now: False)
+
+    discover.main([str(export)])
+
+    assert FailingPool.calls == 1  # stopped at the first failure
+    assert len(discovery.load_cache(tmp_path / "discovery.json")) == 3  # the Instagram checks are kept
+    assert (tmp_path / "discovery_report.md").exists()
+    assert "run again" in caplog.text

@@ -96,7 +96,9 @@ class EventExtractor:
             analysis, model = self.pool.generate(config.EXTRACTION_MODELS, contents, PostAnalysis)
             return analysis, model, False
         except ExtractionError:
-            if not allow_provisional:
+            # No provisional models (lite-only mode, where Flash-Lite already extracts): the error stands as it
+            # is, so a rejected post is recorded as rejected and a busy model is retried next run.
+            if not allow_provisional or not config.PROVISIONAL_MODELS:
                 raise
         analysis, model = self.pool.generate(config.PROVISIONAL_MODELS, contents, PostAnalysis)
         return analysis, model, True

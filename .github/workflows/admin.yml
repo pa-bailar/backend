@@ -20,9 +20,9 @@ permissions:
   issues: write # the answer
   actions: write # start the sweep workflow to add a post
 
-concurrency:
-  group: admin-${{ github.event.issue.number }}
-  cancel-in-progress: false
+# No concurrency group: GitHub keeps only one waiting run per group, so a third comment on an issue (even one
+# that isn't a request) would cancel the second one's run, and its request would never be answered. Adding a
+# post, the one request that must wait its turn, waits for earlier runs itself (below).
 
 env:
   STATE_FILES: state
