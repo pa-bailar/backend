@@ -6,9 +6,9 @@
 # - The site repository is reached with the pa-bailar-bot GitHub App (vars.APP_ID, secrets.APP_PRIVATE_KEY).
 #   Its pull requests trigger the site's ci like anyone's, and its merges trigger the deploy.
 # - Days without new events open no PR; the site is still republished with the time of the check.
-# - The sweep's state (analyzed posts, accounts' first-sweep progress, today's Gemini usage) lives in
-#   this repository's sweep-state branch: read before the run, written back after it, so posts aren't
-#   sent to Gemini twice and the two daily runs share the quotas.
+# - The sweep's state (analyzed posts, accounts' turns and first-sweep progress, today's Gemini usage, the
+#   run history, the admin page's status) lives in this repository's sweep-state branch: read before the
+#   run, written back after it, so posts aren't sent to Gemini twice and the two daily runs share the quotas.
 # - Started with `post_url` (by the admin workflow, docs/ADMIN.md), it adds that one post by hand instead of
 #   sweeping (`sweep --post`), then answers on the admin issue. Such runs don't count for the health checks.
 #   With `again` ("Volver a leer"), the post is read again even if it was read before and hasn't changed.
@@ -19,7 +19,7 @@ on:
   # Started twice a day (9:00 AM and 9:00 PM Bogotá) by cron-job.org, which calls GitHub's "run workflow"
   # API with a token limited to Actions on this repository: GitHub's own `schedule` never fired in this
   # repository (a known, undocumented problem of new private repositories), so it isn't used. See the
-  # README, "Deployment". Two runs a day: the midday one catches the morning's posts, and a missed run
+  # README, "Deployment". Two runs a day: the evening one catches the day's posts, and a missed run
   # doesn't leave the site stale. They share Gemini's daily quotas (the usage is in the state) and never
   # overlap (concurrency below).
   workflow_dispatch:

@@ -1,5 +1,7 @@
-# The `ci` check required on main: lint (ruff), format check, type check (mypy, strict) and unit tests
-# (pytest). Also runs on main after each merge, so the pip cache is saved where every branch can use it.
+# The `ci` check on every pull request: lint (ruff), format check, type check (mypy, strict) and unit tests
+# (pytest). Not enforced: main isn't protected (rulesets on private repositories need a paid plan), so PRs merge
+# when it's green by convention. Also runs on main after each merge, so the pip cache is saved where every
+# branch can use it.
 name: ci
 
 on:

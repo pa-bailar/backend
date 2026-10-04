@@ -374,7 +374,7 @@ class Sweep:
     # ---------- one post, from the admin tools ----------
 
     def add_post(self, url: str, account: str | None = None, again: bool = False) -> AddedPost:
-        """Publish the events of one post by hand (`sweep --post`, from `admin add-post`), without triage
+        """Publish the events of one post by hand (`sweep --post`, the admin tools' Agregar), without triage
         (whoever asks knows it's an event).
 
         The post comes from Instagram's API, among the account's latest; when the API can't give it (a personal or

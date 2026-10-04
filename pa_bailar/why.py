@@ -7,7 +7,7 @@ Fixed checks over what the sweeps record (sweep_state.py), in the order a post g
   2. If not: is the account swept? (accounts.txt) If it is, one Instagram call finds the post among the
      account's latest, and its date says why: posted after the last sweep, before the account was added,
      outside the sweep's window, or the last sweeps couldn't read the account.
-The verdict ends with what to do: usually `admin add-post`, which extracts the post by hand.
+The verdict ends with what to do: usually Agregar (`sweep --post`), which extracts the post by hand.
 """
 
 from collections.abc import Callable

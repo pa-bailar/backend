@@ -228,7 +228,7 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 | Name | Kind | Where | Used by | Notes |
 |---|---|---|---|---|
 | `GEMINI_API_KEY` | Secret | GitHub Actions secret, local `.env` | Sweep step, `discover` | Google AI Studio API key |
-| `META_ACCESS_TOKEN` | Secret | GitHub Actions secret, local `.env` | Sweep step, the status step, the admin workflow's Answer step (`admin why`, `admin add-account`), `discover`, `refresh-token` | Non-expiring Page token (section 3.1) |
+| `META_ACCESS_TOKEN` | Secret | GitHub Actions secret, local `.env` | Sweep step, the status step, the admin workflow's Answer step (`admin why`, `admin add-account`, the status), `discover`, `refresh-token` | Non-expiring Page token (section 3.1) |
 | `IG_USER_ID` | Secret | GitHub Actions secret, local `.env` | The same as `META_ACCESS_TOKEN` | Id of our Instagram professional account |
 | `META_APP_ID`, `META_APP_SECRET` | Secret | Local `.env` only | `refresh-token` | Never on GitHub: only the token command needs them |
 | `APP_PRIVATE_KEY` | Secret | GitHub Actions secret (the `.pem` file stays in `private/`) | "Get a token" step | pa-bailar-bot's private key, used to mint a short-lived installation token |
