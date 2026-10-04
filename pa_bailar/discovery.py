@@ -88,10 +88,30 @@ Status = Literal["personal", "business"]
 class DiscoveredAccount(BaseModel):
     username: str
     status: Status  # personal = Business Discovery can't see it (personal, private or missing)
+    # When Instagram was last asked about a "personal" account (YYYY-MM-DD). A personal verdict goes stale: the
+    # account may switch to business, and Meta sometimes answers "can't see it" for other reasons. None: never
+    # rechecked since the first check.
+    checked_on: str | None = None
     profile: dict[str, Any] | None = None
     dance_hint: int = 0  # dance keywords in name, bio and captions
     classification: AccountClassification | None = None
     classified_by: str | None = None
+
+
+# A "personal" account is asked about again after this many days (`discover --recheck-personal N`).
+RECHECK_PERSONAL_AFTER_DAYS = 14
+
+
+def recheck_candidates(cache: Mapping[str, "DiscoveredAccount"], today: str) -> list[str]:
+    """The "personal" accounts due for another check: never rechecked, or not in the last
+    RECHECK_PERSONAL_AFTER_DAYS days; dance-looking usernames first, so the likely academies come back first."""
+    cutoff = (datetime.fromisoformat(today) - timedelta(days=RECHECK_PERSONAL_AFTER_DAYS)).date().isoformat()
+    due = [
+        account.username
+        for account in cache.values()
+        if account.status == "personal" and (account.checked_on is None or account.checked_on <= cutoff)
+    ]
+    return by_likelihood(due)
 
 
 def load_cache(path: Path) -> dict[str, DiscoveredAccount]:

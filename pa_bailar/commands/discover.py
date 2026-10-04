@@ -3,6 +3,7 @@
 Usage (from the repository root):
     .venv\\Scripts\\python -m pa_bailar discover private\\following.html
     .venv\\Scripts\\python -m pa_bailar discover private\\following.html --max-instagram 100
+    .venv\\Scripts\\python -m pa_bailar discover private\\following.html --max-instagram 0 --recheck-personal 100
 
 Resumable: results are cached in private/discovery.json; run it again to continue.
 Writes private/discovery_report.md. Everything stays in private/ (git-ignored).
@@ -51,6 +52,12 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--max-gemini", type=int, default=250, help="Gemini classifications this run (shares the daily quota)"
     )
+    parser.add_argument(
+        "--recheck-personal",
+        type=int,
+        default=0,
+        help="ask Instagram again about this many accounts marked personal (one call each; a verdict goes stale)",
+    )
     args = parser.parse_args(argv)
     setup_logging()
 
@@ -67,9 +74,14 @@ def main(argv: list[str] | None = None) -> None:
     instagram = InstagramClient.from_env()
     pool = ModelPool(config.require_env("GEMINI_API_KEY"))
 
-    # 1. Instagram: business or personal? (dance-looking usernames first)
-    todo = [u for u in discovery.by_likelihood(following) if u not in cache and u not in already]
-    for count, username in enumerate(todo[: args.max_instagram], start=1):
+    # 1. Instagram: business or personal? (dance-looking usernames first), then the "personal" ones due again.
+    today = config.now_bogota().date().isoformat()
+    new = [u for u in discovery.by_likelihood(following) if u not in cache and u not in already]
+    again = [u for u in discovery.recheck_candidates(cache, today) if u not in already]
+    todo = new[: args.max_instagram] + again[: args.recheck_personal]
+    if again and args.recheck_personal:
+        log.info("Rechecking %s of %s accounts marked personal", min(len(again), args.recheck_personal), len(again))
+    for count, username in enumerate(todo, start=1):
         time.sleep(SECONDS_BETWEEN_INSTAGRAM_CALLS if count > 1 else 0)
         while discovery.near_sweep(config.now_bogota()):
             log.info("  The daily sweep is about to run or running: pausing Instagram checks 5 min")
@@ -87,13 +99,13 @@ def main(argv: list[str] | None = None) -> None:
             if not is_not_visible(error):
                 log.warning("  @%s: %s (will retry next run)", username, error)
                 continue
-            cache[username] = discovery.DiscoveredAccount(username=username, status="personal")
+            cache[username] = discovery.DiscoveredAccount(username=username, status="personal", checked_on=today)
         else:
             hint = discovery.profile_hint(profile)
             cache[username] = discovery.DiscoveredAccount(
                 username=username, status="business", profile=profile, dance_hint=hint
             )
-            log.info("  [%s/%s] @%s business%s", count, min(len(todo), args.max_instagram), username,
+            log.info("  [%s/%s] @%s business%s", count, len(todo), username,
                      f", dance hint {hint}" if hint else "")  # fmt: skip
         discovery.save_cache(CACHE_FILE, cache)
 

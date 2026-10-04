@@ -777,6 +777,10 @@ flowchart TD
 
 - **Resumable:** results are cached in `private/discovery.json`, and every run continues where the last
   stopped. Each run is capped (`--max-instagram`, `--max-gemini`).
+- **"Personal" goes stale:** an account Instagram couldn't see (100/110) is cached as personal with the date
+  (`checked_on`), but it may switch to business later, or Meta may have answered that for another reason
+  (d'Living Studio, 4 Oct 2026). `--recheck-personal N` asks again about N of them, dance-looking names first,
+  each at most every 14 days (`RECHECK_PERSONAL_AFTER_DAYS`); readable ones are classified like the rest.
 - **Leaves Gemini quota for the sweeps:** the key's quota is shared, but the sweeps' usage is on the
   `sweep-state` branch, not in your `state/`. Before classifying, it reads what the sweeps used today and
   classifies at most the daily budget minus that, minus its own use, minus `DISCOVERY_LEAVES_FOR_SWEEPS`

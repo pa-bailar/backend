@@ -89,6 +89,7 @@ How it works:
 - **Gemini Flash-Lite** classifies the business accounts with a dance hint: academy, venue, organizer, dance company, teacher (a teacher, dancer or couple), musician (an orchestra, band or DJ)… and whether they're in Bogotá.
 - **The report** is written to `private/discovery_report.md`. It recommends academies, venues, organizers and companies, and teachers and musicians only when their posts announce one-time events (their own workshops, intensives, socials, shows), not just videos and regular classes.
 - **Runs resume:** run it again to continue where it stopped. Each run is capped (`--max-instagram`, `--max-gemini`) so it doesn't eat the daily sweep's quota.
+- **Recheck "personal" accounts** now and then with `--recheck-personal 100`: some turn out to be business accounts (they switched, or Instagram's first answer was wrong).
 
 ## Deployment
 
