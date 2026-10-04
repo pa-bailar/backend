@@ -331,6 +331,9 @@ jobs:
             echo "No new or changed events: no pull request."
             exit 0
           fi
+          # A PR can hold only flyer clean-up (files no event uses any more): the admin answer says "Publicado"
+          # only when the events themselves changed.
+          if [ -n "$(git status --porcelain -- data/events.json)" ]; then echo "events=true" >> "$GITHUB_OUTPUT"; fi
           gh auth setup-git  # git pushes with the App token (GH_TOKEN), only from here on
           bot_id="$(gh api "/users/${BOT}" --jq .id)"
           git config user.name "$BOT"
@@ -479,13 +482,14 @@ jobs:
           GH_REPO: ${{ github.repository }}
           ISSUE: ${{ inputs.issue }}
           PR_URL: ${{ steps.pr.outputs.url }}
+          EVENTS_CHANGED: ${{ steps.pr.outputs.events }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           report="$GITHUB_WORKSPACE/admin-report.md"
           if [ ! -s "$report" ]; then echo "❌ Algo falló." > "$report"; fi
           if [ "${{ job.status }}" != "success" ]; then
             echo "" >> "$report"; echo "⚠️ La ejecución tuvo un problema: [detalles]($RUN_URL)." >> "$report"
-          elif [ -n "$PR_URL" ]; then
+          elif [ -n "$PR_URL" ] && [ "$EVENTS_CHANGED" = "true" ]; then
             echo "" >> "$report"; echo "Publicado en el sitio ([cambio de datos]($PR_URL))." >> "$report"
           fi
           gh issue comment "$ISSUE" --body-file "$report"
