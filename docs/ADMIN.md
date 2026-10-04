@@ -78,9 +78,10 @@ From the repository root (`.env` has the keys):
 .venv\Scripts\python -m pa_bailar sweep --post https://www.instagram.com/p/<code>/ [--account @x] [--again]
 ```
 
-They read the sweeps' latest state from the `sweep-state` branch, fetched each time. `sweep --post` and
-`add-account` change `accounts.txt` and the data in `..\pa-bailar-web\data` on your computer: commit and open
-the PRs yourself, or use the page or the inbox, which do it.
+`status` and `why` read the sweeps' latest state from the `sweep-state` branch, fetched each time.
+`sweep --post` runs like a local sweep, with your own `state/`, and with `add-account` it changes
+`accounts.txt` and the data in `..\pa-bailar-web\data` on your computer: commit and open the PRs yourself, or
+use the page or the inbox, which do it.
 
 ## What the answers mean
 

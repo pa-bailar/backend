@@ -115,7 +115,9 @@ def main(argv: list[str] | None = None) -> None:
     why_parser.add_argument("--json", action="store_true", help="as data")
     account_parser = tools.add_parser("add-account", help="add an account to the sweeps")
     account_parser.add_argument("account", help="@account or its profile link")
-    tools.add_parser("inbox", help="answer the admin issue in INBOX_TEXT (the admin workflow)")
+    tools.add_parser(
+        "inbox", help="answer the issue or comment in ISSUE_TITLE, ISSUE_BODY or COMMENT_BODY (the admin workflow)"
+    )
     args = parser.parse_args(argv)
     _utf8_stdout()
     if not sweep_state.refresh():

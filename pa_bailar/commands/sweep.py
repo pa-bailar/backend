@@ -2,8 +2,9 @@
 
 Usage (from the repository root):
     .venv\\Scripts\\python -m pa_bailar sweep             # posts from the last 7 days
-    .venv\\Scripts\\python -m pa_bailar sweep --days 14   # look further back
-Adding one post by hand (`admin add-post`, docs/ADMIN.md) is `sweep --post <link> [--account @x] [--again]`.
+    .venv\\Scripts\\python -m pa_bailar sweep --days 14   # look further back (at most 30)
+    .venv\\Scripts\\python -m pa_bailar sweep --all       # every account now, not only those whose turn it is
+Adding one post by hand (the admin tools' Agregar, docs/ADMIN.md) is `sweep --post <link> [--account @x] [--again]`.
 """
 
 import argparse
@@ -184,7 +185,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--all", action="store_true", help="read every account now, not only those whose turn it is (once a day)"
     )
-    parser.add_argument("--post", help="add one post by hand instead (its Instagram link): `admin add-post`")
+    parser.add_argument("--post", help="add one post by hand instead (its Instagram link): the admin tools' Agregar")
     parser.add_argument("--account", help="with --post: the @account, if the link doesn't say it")
     parser.add_argument(
         "--again",
