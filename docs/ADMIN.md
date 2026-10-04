@@ -22,8 +22,9 @@ Open https://pa-bailar-admin.jzamorac-9.workers.dev and sign in with GitHub (onl
 
 - **Revisar o agregar un evento:** paste a post's Instagram link.
   - **Revisar:** whether its event is on the site and, if not, why. An answer in about a minute.
-  - **Agregar:** reads the post and publishes its event. A few minutes: it waits for a running sweep to
-    finish, then publishes through the usual data PR. If the account isn't swept yet, it's added too.
+  - **Agregar:** reads the post and publishes its event. A few minutes: it waits for a running sweep (and
+    any earlier request) to finish, then publishes through the usual data PR. If the sweeps are still busy
+    after 50 minutes, it answers so and doesn't start: ask again later. If the account isn't swept yet, it's added too.
     Posts the API can't give (a personal account's, a collaboration, Instagram's limit reached) are read from
     the post's public page instead (see below).
   - **Volver a leer:** like Agregar, but it reads the post again even if it was read before and hasn't
@@ -56,13 +57,15 @@ comment of yours that the inbox understands (`pa_bailar/inbox.py`):
 |---|---|
 | A post's Instagram link | **Revisar**: why its event is or isn't on the site |
 | `/agregar` and the link (and `@cuenta` if needed) | **Agregar**: reads the post and publishes it |
-| `/releer` and the link (or "volver a leer") | **Volver a leer**: reads it again even if it hasn't changed |
+| `/releer` at the start of a line, and the link | **Volver a leer**: reads it again even if it hasn't changed. The words "volver a leer" in a sentence don't count: it spends Gemini |
 | `/cuenta @academia` | Adds the account to the sweeps |
 | `/estado` | The status, as on the page |
-| Anything else | The list above |
+| Anything else, on a request issue (the form, the page) | The list above |
 
 The answer arrives as a comment (from github-actions), and the issue closes once it's done. Writing again on
-a closed issue works too. Only your issues and comments count (`jzamora5`, in `.github/workflows/admin.yml`).
+a closed issue works too. Only your issues and comments count (`jzamora5`, in `.github/workflows/admin.yml`),
+and only requests: an issue from the form or the page (label `admin`), or a text with a link or a command
+from the table. Your other issues and comments (notes, ideas) get no answer and no label.
 
 ### From your computer
 
@@ -149,11 +152,16 @@ flowchart LR
 ```
 
 - **`.github/workflows/admin.yml`:** runs on new issues and comments, only from `jzamora5`. It reads the
-  sweep state and the site's `events.json`, runs `python -m pa_bailar admin inbox`, comments the answer and
-  closes the issue. An added account is committed to `main` (`accounts.txt`). Adding a post starts the sweep
-  workflow with `post_url`, `account` and `issue`, and `again` (true for Volver a leer).
+  sweep state and the site's `events.json`, runs `python -m pa_bailar admin inbox` (which skips anything that
+  isn't a request: no label, no answer), labels the issue `admin`, comments the answer and closes the issue.
+  An added account is committed to `main` (`accounts.txt`). Adding a post starts the sweep workflow with
+  `post_url`, `account` and `issue`, and `again` (true for Volver a leer). Requests take turns, first come
+  first served: each waits until no sweep is running or waiting and no earlier `admin` run is going (GitHub
+  would cancel a second queued sweep), up to 50 minutes; past that it answers that it didn't start.
 - **`.github/workflows/daily-sweep.yml`**, with `post_url`: `sweep --post` (`--again` with `again`) instead of the sweep, then the same
-  state save and data PR; it commits an added account and answers on the issue.
+  data PR and state save; it commits an added account and answers on the issue. If its `request` check fails
+  (no link, or the issue isn't an open admin request), it answers on the issue when that issue is an open
+  `admin` issue of yours.
 - **`.github/ISSUE_TEMPLATE/admin.yml`:** the form (Acción: Revisar, Agregar, Volver a leer, Agregar cuenta or
   Estado; Enlace; Cuenta). The page writes its issues the same way.
 

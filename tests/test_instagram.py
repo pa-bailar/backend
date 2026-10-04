@@ -37,3 +37,26 @@ def test_access_tokens_never_reach_error_text():
 
     text = "HTTPSConnectionPool: Max retries with url: /v26.0/1?fields=x&access_token=EAAB123secret (Caused by…)"
     assert "EAAB123secret" not in redact(text) and "access_token=***" in redact(text)
+
+
+def test_the_app_secret_and_exchanged_tokens_never_reach_error_text():
+    from pa_bailar.instagram import redact
+
+    text = "/oauth/access_token?grant_type=fb_exchange_token&client_secret=s3cr3t&fb_exchange_token=EAAshort"
+    assert "s3cr3t" not in redact(text) and "EAAshort" not in redact(text)
+    assert "client_secret=***" in redact(text) and "grant_type=fb_exchange_token" in redact(text)
+
+
+def test_refresh_token_errors_never_show_the_secrets(monkeypatch):
+    import pytest
+    import requests
+
+    from pa_bailar.commands import refresh_token
+
+    def unreachable(url, params, timeout):
+        raise requests.ConnectionError(f"Max retries with url: {url}?client_secret={params['client_secret']}")
+
+    monkeypatch.setattr(refresh_token.requests, "get", unreachable)
+    with pytest.raises(SystemExit) as raised:
+        refresh_token.graph_get("oauth/access_token", client_secret="s3cr3t")
+    assert "s3cr3t" not in str(raised.value) and "client_secret=***" in str(raised.value)

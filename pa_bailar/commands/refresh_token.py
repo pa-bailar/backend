@@ -15,7 +15,7 @@ from typing import Any
 import requests
 
 from pa_bailar import config, storage
-from pa_bailar.instagram import InstagramClient, InstagramError
+from pa_bailar.instagram import InstagramClient, InstagramError, redact
 
 
 def graph_get(path: str, **params: Any) -> dict[str, Any]:
@@ -23,9 +23,10 @@ def graph_get(path: str, **params: Any) -> dict[str, Any]:
         response = requests.get(f"{config.GRAPH_API_URL}/{path}", params=params, timeout=config.HTTP_TIMEOUT_SECONDS)
         data: dict[str, Any] = response.json()
     except (requests.RequestException, ValueError) as error:
-        raise SystemExit(f"Could not reach Meta: {error}") from error
+        # Connection errors quote the URL, with the tokens and the app secret in it.
+        raise SystemExit(f"Could not reach Meta: {redact(str(error))}") from error
     if "error" in data:
-        raise SystemExit(f"Meta error: {data['error'].get('message')}")
+        raise SystemExit(f"Meta error: {redact(str(data['error'].get('message')))}")
     return data
 
 
