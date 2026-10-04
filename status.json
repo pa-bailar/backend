@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-04T12:11:16-05:00",
+  "generated_at": "2026-10-04T12:14:39-05:00",
   "sweeps": {
     "recent": [
       {
@@ -240,13 +240,13 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 7,
+        "used": 10,
         "budget": 18
       },
       {
         "model": "gemini-3.5-flash",
         "role": "extraction",
-        "used": 0,
+        "used": 1,
         "budget": 18
       },
       {
@@ -263,15 +263,13 @@
     "error": null
   },
   "accounts": {
-    "followed": 53,
-    "first_sweep_pending": [
-      "casineafest"
-    ],
+    "followed": 52,
+    "first_sweep_pending": [],
     "waiting": []
   },
   "posts": {
     "recorded": 292,
-    "provisional": 99
+    "provisional": 98
   },
   "events": {
     "upcoming": 38,

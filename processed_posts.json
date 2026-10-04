@@ -1645,14 +1645,16 @@
   "18095873720432478": {
     "account": "mover__se",
     "permalink": "https://www.instagram.com/p/DdsFdkxNFCQ/",
-    "processed_at": "2026-10-02T13:26:35-05:00",
+    "processed_at": "2026-10-04T12:14:38-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia el evento de clausura Mover-sé 2026 de la academia de baile.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "reason": "Anuncia la clausura de fin de año de Mover-sé para el 13 de diciembre de 2026.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
     "caption_hash": "5d7c172d42e40eb0",
-    "outcome": null,
-    "event_ids": [],
+    "outcome": "event",
+    "event_ids": [
+      "ecos-en-movimiento-clausura-mover-se-2026-13-dic"
+    ],
     "detail": null
   },
   "18013505918746903": {
