@@ -5,18 +5,24 @@ Usage (from the repository root):
     .venv\\Scripts\\python -m pa_bailar sweep --days 14   # look further back (at most 30)
     .venv\\Scripts\\python -m pa_bailar sweep --all       # every account now, not only those whose turn it is
 Adding one post by hand (the admin tools' Agregar, docs/ADMIN.md) is `sweep --post <link> [--account @x] [--again]`.
+A story from its screenshots ("Agregar historia") is `sweep --story <id> [<id>…] [--story-dir stories]
+[--account @x] [--notes "…"]`: the sweep workflow downloads them from the admin page first, as <id>.jpg and
+<id>.json in --story-dir. `sweep --hide-story story-<hash>` takes one off the site again ("Ocultar historia").
 """
 
 import argparse
+import json
 import logging
 import os
+from datetime import date
 from pathlib import Path
 
-from pa_bailar import config, health, links, storage
+from pa_bailar import config, health, links, storage, stories
 from pa_bailar.logs import setup_logging
 from pa_bailar.models import StoredEvent
-from pa_bailar.pipeline import AddedPost, AddPostError, RunStats, Sweep
-from pa_bailar.text import dates_label
+from pa_bailar.pipeline import AddedPost, AddedStory, AddPostError, HiddenStory, RunStats, Sweep
+from pa_bailar.status import moment_label
+from pa_bailar.text import MONTHS, clock, dates_label
 
 log = logging.getLogger(__name__)
 
@@ -166,6 +172,166 @@ def add_post(link: str, account: str | None, again: bool = False) -> None:
         Path(report_file).write_text(report, encoding="utf-8")
 
 
+# ---------- a story (stories.py): the receipt, and hiding it ----------
+
+
+def _day(event: StoredEvent) -> str:
+    """ "sábado 10 oct 2026", or the range of an event over several days."""
+    if event.end_date or not event.date:
+        return dates_label(event.date, event.end_date)
+    day = date.fromisoformat(event.date)
+    return f"{stories.WEEKDAYS[day.weekday()]} {day.day} {MONTHS[day.month - 1]} {day.year}"
+
+
+def _story_event_line(event: StoredEvent) -> str:
+    parts = [_day(event)]
+    if event.start_time:
+        hour, minute = (int(part) for part in event.start_time.split(":"))
+        parts.append(clock(config.now_bogota().replace(hour=hour, minute=minute)))
+    if event.venue:
+        parts.append(event.venue)
+    return f"- [{event.title}]({links.event_url(event.id)}) · {' · '.join(parts)}"
+
+
+def added_story_markdown(added: AddedStory) -> str:
+    """The answer to "Agregar historia": what was published and a receipt of what was read and where each part
+    came from (inferred parts flagged), the flyer's crop, and how to undo it (/ocultar)."""
+    lines: list[str] = []
+    again = added.unchanged or added.duplicate_of
+    if added.unchanged:
+        lines.append("ℹ️ Ya había publicado estas mismas capturas: no las leí de nuevo (no gasté cuota de Gemini).")
+    if added.duplicate_of:
+        lines.append(
+            f"ℹ️ Es otra captura de una historia que ya publiqué (`{added.duplicate_of}`): no la leí de nuevo. Si es "
+            "una historia distinta, compártela otra vez con una nota (Notas) y la leo."
+        )
+    published = added.outcome in ("event", "merged") and added.events
+    if published and again:
+        lines.append(f"✅ **Ya está en el sitio** ({len(added.events)} evento(s)):")
+        lines += [_story_event_line(event) for event in added.events]
+    elif published:
+        verb = "Se unió a" if added.outcome == "merged" else "Publiqué"
+        light = " Flash-Lite (Flash no tenía cuota)" if added.provisional else f" {added.model}"
+        lines.append(f"✅ **{verb} {len(added.events)} evento(s)** desde la historia, leída con{light}:")
+        lines += [_story_event_line(event) for event in added.events]
+        lines += ["", "**Lo que leí:**"]
+        checked = "" if added.account_checked else " ⚠️"
+        lines.append(f"- Cuenta: @{added.account} ({added.account_source}){checked}")
+        for event in added.events:
+            notes = added.date_notes.get(event.title)
+            if notes:
+                lines.append(f"- Fecha de “{event.title}”: {_day(event)} ({'; '.join(notes)})")
+        if added.location:
+            lines.append(f"- Lugar: {added.location} (del sticker de ubicación)")
+        if added.mentions:
+            mentions = ", ".join(f"@{name}" for name in added.mentions)
+            lines.append(f"- Menciones: {mentions} (no son la cuenta del evento)")
+        lines.append(f"- Captura: {moment_label(added.taken.isoformat(), config.now_bogota())} ({added.taken_source})")
+        if not added.gemini_crop:
+            lines.append("- Recorte: fijo (Gemini no marcó bien el flyer): revisa que se vea completo")
+        if added.past:
+            lines.append(f"- No publiqué, porque ya pasaron: {', '.join(added.past)}")
+    elif added.past:
+        lines.append(f"❌ Su fecha ya pasó: {', '.join(added.past)}. No publiqué nada.")
+    elif added.outcome == "discarded":
+        lines.append(f"❌ Gemini la leyó como evento, pero no es publicable (recurrente o sin fecha): {added.reason}")
+    else:
+        lines.append(f"❌ Gemini dice que no anuncia un evento: “{added.reason}”")
+    if added.account_added:
+        lines.append(
+            f"➕ @{added.account} no estaba en los barridos: la agregué (sus publicaciones de los últimos "
+            f"{config.BACKFILL_DAYS} días se leen en el próximo barrido)."
+        )
+    if published:
+        flyers = [
+            media.flyer
+            for event in added.events
+            for media in event.media
+            if media.post_id == added.story_id and media.flyer
+        ]
+        if flyers:
+            lines += ["", f"![Recorte publicado]({config.SITE_URL}/{flyers[0]})"]
+        if not again:
+            lines += ["", "Aparece en el sitio cuando termina de publicarse (unos minutos)."]
+        lines.append(
+            f"¿Algo está mal? Ocultar: `/ocultar {added.story_id}` (o el botón en la página). Después puedes "
+            "compartirla otra vez con la @cuenta o una nota."
+        )
+    else:
+        lines.append(
+            "Para intentarlo de nuevo, comparte las capturas otra vez (con la @cuenta o una nota si ayuda): las que "
+            "subiste siguen guardadas hasta 7 días."
+        )
+    return "\n".join(lines) + "\n"
+
+
+def hidden_story_markdown(hidden: HiddenStory) -> str:
+    if hidden.already:
+        return f"ℹ️ La historia `{hidden.story_id}` ya estaba oculta.\n"
+    lines = [f"🙈 Oculté la historia `{hidden.story_id}` (@{hidden.account})."]
+    lines += [f"- Quité del sitio: {event.title} · {_day(event)}" for event in hidden.removed]
+    lines += [
+        f"- Sigue en el sitio, porque otras publicaciones lo anuncian: [{event.title}]({links.event_url(event.id)})"
+        for event in hidden.kept
+    ]
+    if not hidden.removed and not hidden.kept:
+        lines.append("No tenía eventos en el sitio.")
+    else:
+        lines.append("")
+        lines.append("Sale del sitio cuando termina de publicarse (unos minutos).")
+    lines.append("Para publicarla de nuevo, comparte las capturas otra vez.")
+    return "\n".join(lines) + "\n"
+
+
+def _write_report(report: str) -> None:
+    logging.info("\n%s", report)
+    if report_file := os.environ.get("ADMIN_REPORT_FILE"):
+        Path(report_file).write_text(report, encoding="utf-8")
+
+
+def load_screenshots(ids: list[str], folder: Path) -> list[stories.Screenshot]:
+    """The screenshots the workflow downloaded: <id>.jpg, and <id>.json with the file's name and dates."""
+    shots = []
+    for upload in ids:
+        meta_file = folder / f"{upload}.json"
+        meta = json.loads(meta_file.read_text(encoding="utf-8")) if meta_file.exists() else {}
+        name, modified, uploaded = meta.get("name"), meta.get("modified"), meta.get("uploaded")
+        shots.append(
+            stories.Screenshot(
+                (folder / f"{upload}.jpg").read_bytes(),
+                name if isinstance(name, str) else "",
+                modified if isinstance(modified, int) else None,
+                uploaded if isinstance(uploaded, int) else None,
+            )
+        )
+    return shots
+
+
+def add_story(ids: list[str], folder: Path, account: str | None, notes: str | None) -> None:
+    """`sweep --story`: publish a story's events from its screenshots. The answer goes to ADMIN_REPORT_FILE, and
+    `story_done=true` to the workflow when the screenshots aren't needed any more (it then deletes them)."""
+    done = False
+    try:
+        sweep = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS)
+        added = sweep.add_story(load_screenshots(ids, folder), account, notes)
+        report, done = added_story_markdown(added), added.done
+    except AddPostError as error:
+        report = f"❌ {error}\n"
+    _write_report(report)
+    if output := os.environ.get("GITHUB_OUTPUT"):
+        with Path(output).open("a", encoding="utf-8") as file:
+            file.write(f"story_done={str(done).lower()}\n")
+
+
+def hide_story(story_id: str) -> None:
+    """`sweep --hide-story`: take a story added by hand off the site."""
+    try:
+        report = hidden_story_markdown(Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS).hide_story(story_id))
+    except AddPostError as error:
+        report = f"❌ {error}\n"
+    _write_report(report)
+
+
 def is_broken(stats: RunStats) -> bool:
     """A run that must show as failed (and alert): no account could be read, and not because Instagram's rate
     limit stopped it. Failed posts are retried next run, and a rate-limited run just waits for the next one;
@@ -192,9 +358,27 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help="with --post: read it again even if it was read before and hasn't changed (one Gemini request)",
     )
+    parser.add_argument(
+        "--story",
+        nargs="+",
+        metavar="ID",
+        help="add a story by hand instead, from its screenshots (the admin page's upload ids, at most 4)",
+    )
+    parser.add_argument(
+        "--story-dir", type=Path, default=Path("stories"), help="with --story: where <id>.jpg and <id>.json are"
+    )
+    parser.add_argument("--notes", help="with --story: the admin's notes (hints for Gemini, never published)")
+    parser.add_argument("--hide-story", metavar="STORY", help="take a story added by hand off the site (story-…)")
     args = parser.parse_args(argv)
     setup_logging()
 
+    if args.story:
+        account = links.account_name(args.account) if args.account else None
+        add_story(args.story[: stories.MAX_SCREENSHOTS], args.story_dir, account, args.notes)
+        return
+    if args.hide_story:
+        hide_story(args.hide_story)
+        return
     if args.post:
         add_post(args.post, links.account_name(args.account) if args.account else None, again=args.again)
         return

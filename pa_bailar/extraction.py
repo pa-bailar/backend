@@ -5,6 +5,8 @@ Two steps, each on the model that fits it:
   2. extract  (Flash, small quota, best quality): every detail of the events. If every Flash model is
               out of quota, Flash-Lite extracts instead and the result is marked provisional, to be
               re-extracted with Flash on a later run.
+A story (screenshots shared to the admin page, stories.py) skips the triage: one extraction request for all
+its screenshots (`extract_story`), with the same fallback.
 The prompts are in prompts.py; quotas and retries in gemini.py.
 """
 
@@ -13,12 +15,13 @@ from datetime import datetime
 
 from google.genai import types
 from PIL import Image
+from pydantic import BaseModel
 
 from . import config
 from .gemini import ExtractionError, ModelPool
 from .instagram import Post
-from .models import PostAnalysis, StoredEvent, Triage
-from .prompts import EXTRACTION_PROMPT, TRIAGE_PROMPT
+from .models import PostAnalysis, StoredEvent, StoryAnalysis, Triage
+from .prompts import EXTRACTION_PROMPT, STORY_PROMPT, TRIAGE_PROMPT
 
 TRIAGE_IMAGE_SIZE = (512, 512)  # triage only needs a glance at the flyer
 TRIAGE_JPEG_QUALITY = 80
@@ -31,6 +34,14 @@ def _format_context(account: str, post: Post, published: datetime) -> dict[str, 
         "today": config.now_bogota().strftime("%Y-%m-%d %A"),
         "caption": post.get("caption") or "(sin texto)",
     }
+
+
+def _known_list(known_events: list[StoredEvent]) -> str:
+    return "\n".join(
+        f"- {event.id} | {event.date}{f' → {event.end_date}' if event.end_date else ''} | "
+        f"{event.start_time or '?'} | {event.title}"
+        for event in known_events
+    )
 
 
 def _small_jpeg(image: bytes) -> bytes:
@@ -81,24 +92,47 @@ class EventExtractor:
         `known_events` are this account's stored events, so Gemini can tell when a post (e.g. a video)
         announces one of them again. Provisional means a Flash-Lite answer, to be redone with Flash.
         """
-        known = "\n".join(
-            f"- {event.id} | {event.date}{f' → {event.end_date}' if event.end_date else ''} | "
-            f"{event.start_time or '?'} | {event.title}"
-            for event in known_events
-        )
+        known = _known_list(known_events)
         prompt = EXTRACTION_PROMPT.format(**_format_context(account, post, published), known_events=known or "(none)")
         contents: list[types.PartUnionDict] = []
         for index, image in enumerate(images):
             contents += [f"Image {index}:", types.Part.from_bytes(data=image, mime_type="image/jpeg")]
         contents.append(prompt)
+        return self._extract(contents, PostAnalysis, allow_provisional)
 
+    def extract_story(
+        self,
+        images: list[bytes],
+        taken: datetime,
+        account: str | None,
+        notes: str | None,
+        known_events: list[StoredEvent],
+    ) -> tuple[StoryAnalysis, str, bool]:
+        """A story's events from its screenshots, in one request: (analysis, model, provisional)."""
+        prompt = STORY_PROMPT.format(
+            taken=taken.astimezone(config.BOGOTA_TZ).strftime("%Y-%m-%d %A %H:%M"),
+            today=config.now_bogota().strftime("%Y-%m-%d %A"),
+            account=f"@{account}" if account else "(none: read it from the story)",
+            notes=notes or "(sin notas)",
+            known_events=_known_list(known_events) or "(none)",
+        )
+        contents: list[types.PartUnionDict] = []
+        for index, image in enumerate(images):
+            contents += [f"Screenshot {index}:", types.Part.from_bytes(data=image, mime_type="image/jpeg")]
+        contents.append(prompt)
+        return self._extract(contents, StoryAnalysis, allow_provisional=True)
+
+    def _extract[T: BaseModel](
+        self, contents: list[types.PartUnionDict], schema: type[T], allow_provisional: bool
+    ) -> tuple[T, str, bool]:
+        """Flash, else (when allowed) Flash-Lite as a provisional read: (answer, model, provisional)."""
         try:
-            analysis, model = self.pool.generate(config.EXTRACTION_MODELS, contents, PostAnalysis)
+            analysis, model = self.pool.generate(config.EXTRACTION_MODELS, contents, schema)
             return analysis, model, False
         except ExtractionError:
             # No provisional models (lite-only mode, where Flash-Lite already extracts): the error stands as it
             # is, so a rejected post is recorded as rejected and a busy model is retried next run.
             if not allow_provisional or not config.PROVISIONAL_MODELS:
                 raise
-        analysis, model = self.pool.generate(config.PROVISIONAL_MODELS, contents, PostAnalysis)
+        analysis, model = self.pool.generate(config.PROVISIONAL_MODELS, contents, schema)
         return analysis, model, True

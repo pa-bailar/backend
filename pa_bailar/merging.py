@@ -24,12 +24,17 @@ _DAY_FIELDS = {"date", "end_date"}
 _EMPTY: tuple[object, ...] = (None, "", [])
 
 
+# Main post first: flyers (images and carousels), then videos, then stories (a crop of a screenshot, linked to a
+# profile rather than a post): a post's flyer is the cover whenever the event has one.
+_MEDIA_ORDER = {"VIDEO": 1, "STORY": 2}
+
+
 def ordered_media(media: list[EventMedia]) -> list[EventMedia]:
-    """An event's posts, main post first: flyers (images and carousels) before videos, and the newest
-    first within each, so the latest flyer is the event's cover (a corrected or updated flyer replaces
+    """An event's posts, main post first: flyers (images and carousels) before videos, stories last, and the
+    newest first within each, so the latest flyer is the event's cover (a corrected or updated flyer replaces
     the first announcement)."""
     newest_first = sorted(media, key=lambda item: item.published, reverse=True)
-    return sorted(newest_first, key=lambda item: item.media_type == "VIDEO")  # stable: keeps newest first
+    return sorted(newest_first, key=lambda item: _MEDIA_ORDER.get(item.media_type, 0))  # stable: newest first
 
 
 def _days(event: EventDetails) -> tuple[str, str] | None:

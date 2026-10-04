@@ -15,6 +15,7 @@ pa_bailar/            the collector (one Python package; every module in docs/AR
   pipeline.py         the sweep: Instagram -> Gemini -> events, merged and stored
   instagram.py        Instagram Graph API (Business Discovery)
   public_post.py      one post from its public page, when the API can't give it (admin tools)
+  stories.py          a story's event from screenshots shared to the admin page: dates, crop, account
   extraction.py       triage then extraction; prompts.py has the prompts, gemini.py the models and quotas
   merging.py, ids.py, normalize.py, clips.py, storage.py, models.py, config.py
   health.py, status.py, why.py, inbox.py, links.py, sweep_state.py, discovery.py, text.py, logs.py
