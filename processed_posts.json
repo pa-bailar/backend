@@ -3882,5 +3882,20 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null
+  },
+  "18102247549996700": {
+    "account": "casineafest",
+    "permalink": "https://www.instagram.com/p/DdTMWLvRmdd/",
+    "processed_at": "2026-10-04T12:11:15-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia la 10.ª edición del Festival Internacional Casinea del 13 al 16 de noviembre de 2026.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
+    "caption_hash": "5cbcbdabd469f29e",
+    "outcome": "event",
+    "event_ids": [
+      "festival-internacional-casinea-10-a-edicion-13-nov"
+    ],
+    "detail": null
   }
 }

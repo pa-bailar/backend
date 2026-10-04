@@ -2,6 +2,6 @@
   "day": "2026-10-04",
   "requests": {
     "gemini-3.5-flash-lite": 4,
-    "gemini-3.8-flash": 4
+    "gemini-3.8-flash": 7
   }
 }

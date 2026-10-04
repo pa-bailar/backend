@@ -328,5 +328,11 @@
     "backfill_done": true,
     "last_swept_at": "2026-10-03T21:14:07-05:00",
     "latest_post": "2026-10-03"
+  },
+  "casineafest": {
+    "first_seen": "2026-10-04",
+    "backfill_done": false,
+    "last_swept_at": null,
+    "latest_post": null
   }
 }
