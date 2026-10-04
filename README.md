@@ -1,7 +1,8 @@
 # Pa' Bailar · backend (private)
 
 Collects one-time dance events (socials and workshops) from the Instagram accounts of Bogotá's
-dance academies (Instagram → Gemini) and publishes them to the site,
+dance academies, organizers and artists (teachers, dancers, orchestras, DJs) (Instagram → Gemini) and
+publishes them to the site,
 [pa-bailar/pa-bailar.github.io](https://github.com/pa-bailar/pa-bailar.github.io) (public), with a
 pull request twice a day. The site, its design system and the data contract (`docs/DATA.md`) live there.
 
@@ -21,7 +22,7 @@ docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, mon
 docs/ADMIN.md         the admin tools: the admin page, the inbox, the commands
 docs/PLAN.md          the original go-live plan, kept for its decisions
 admin-web/            the admin page, a Cloudflare Worker (docs/ADMIN.md)
-accounts.txt          the academies to follow
+accounts.txt          the accounts to follow: academies, companies, organizers, artists
 state/                local sweep state (git-ignored; on GitHub: the sweep-state branch)
 .claude/              Claude Code: workspace instructions, skills, hooks (Working with Claude Code, below)
 private/              your own files: Instagram export, App key, discovery results (git-ignored)
@@ -62,7 +63,8 @@ Lint, format, type check and tests:
 .venv\Scripts\python -m pytest -q              # tests
 ```
 
-- Accounts to follow: `accounts.txt` (one username per line). Add as many as you like at once:
+- Accounts to follow: `accounts.txt` (one username per line, by section: academies, dance companies,
+  event organizers, teachers and artists). Add as many as you like at once:
   a new account's first sweep reads its last 30 posts (30 days), and when the free Gemini quota runs
   out the rest waits for the next day. Accounts already in their regular sweep always go first, so a
   backlog never delays today's events.
@@ -84,8 +86,8 @@ Lint, format, type check and tests:
 
 How it works:
 - **Instagram** checks each followed account, dance-looking usernames first, 36 s apart (about 100 an hour, half the app's quota, so the daily sweeps always have room). It pauses when Meta reports the app past 60% of its quota and stops at a rate limit; personal and private accounts are skipped.
-- **Gemini Flash-Lite** classifies the business accounts with a dance hint: academy, venue, organizer… and whether they're in Bogotá.
-- **The report** is written to `private/discovery_report.md`.
+- **Gemini Flash-Lite** classifies the business accounts with a dance hint: academy, venue, organizer, dance company, teacher (a teacher, dancer or couple), musician (an orchestra, band or DJ)… and whether they're in Bogotá.
+- **The report** is written to `private/discovery_report.md`. It recommends academies, venues, organizers and companies, and teachers and musicians only when their posts announce one-time events (their own workshops, intensives, socials, shows), not just videos and regular classes.
 - **Runs resume:** run it again to continue where it stopped. Each run is capped (`--max-instagram`, `--max-gemini`) so it doesn't eat the daily sweep's quota.
 
 ## Deployment
