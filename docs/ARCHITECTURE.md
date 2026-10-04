@@ -1057,5 +1057,5 @@ flowchart LR
 | `inbox.py` | The admin inbox: what an issue or comment asks for |
 | `links.py` | Instagram post links (code, account) and links to the site's events |
 | `discovery.py` | Parsing the Instagram export, dance hints, the classification prompt, the report, quiet windows around sweeps |
-| `text.py`, `logs.py` | Accent-insensitive comparison, dates for the admin answers ("13–15 nov 2026"), logging setup |
+| `text.py`, `logs.py` | Accent-insensitive comparison, dates and times for the admin answers ("13–15 nov 2026", "9:00 p. m."), logging setup |
 | `commands/*.py` | The commands (sweep, discover, refresh-token, admin): arguments, wiring, exit codes, GitHub outputs |
