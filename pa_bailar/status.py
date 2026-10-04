@@ -134,7 +134,7 @@ def collect(
 # ---------- for people ----------
 
 
-def _when(iso: str, now: datetime) -> str:
+def moment_label(iso: str, now: datetime) -> str:
     """'hoy 9:00 p. m.', 'ayer 9:00 a. m.', 'mañana 9:00 a. m.', 'sábado 3/10, 9:00 a. m.'."""
     moment = datetime.fromisoformat(iso).astimezone(config.BOGOTA_TZ)
     hour = clock(moment)
@@ -170,7 +170,7 @@ def _run_line(run: dict[str, Any], now: datetime) -> str:
         f"{run.get('provisional', 0)} provisionales" if run.get("provisional") else "",
         *problems,
     ]
-    when = _when(run["finished_at"], now)
+    when = moment_label(run["finished_at"], now)
     link = f" · [ver]({run['run_url']})" if run.get("run_url") else ""
     return f"- {mark} {when}: " + ", ".join(part for part in parts if part) + link
 
@@ -183,14 +183,14 @@ def markdown(status: dict[str, Any]) -> str:
     sweeps = status["sweeps"]
     lines += ["### Barridos", ""]
     lines += [_run_line(run, now) for run in sweeps["recent"]] or ["- Todavía no hay barridos registrados."]
-    lines += ["", "Próximos: " + " y ".join(_when(iso, now) for iso in sweeps["next"]), ""]
+    lines += ["", "Próximos: " + " y ".join(moment_label(iso, now) for iso in sweeps["next"]), ""]
 
     gemini = status["gemini"]
     lines += ["### Gemini hoy", "", "| Modelo | Para | Usado | Presupuesto |", "|---|---|---|---|"]
     for model in gemini["models"]:
         full = " (agotado)" if model["used"] >= model["budget"] else ""
         lines.append(f"| `{model['model']}` | {model['role']} | {model['used']}{full} | {model['budget']} |")
-    lines += ["", f"La cuota se reinicia {_when(gemini['resets_at'], now)}"]
+    lines += ["", f"La cuota se reinicia {moment_label(gemini['resets_at'], now)}"]
     if gemini["lite_only"]:
         lines.append("Modo solo Flash-Lite activo (GEMINI_LITE_ONLY).")
     lines.append("")

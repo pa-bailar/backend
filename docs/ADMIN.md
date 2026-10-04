@@ -7,12 +7,12 @@ on the site, add a post or an account by hand.
 |---|---|---|
 | **The admin page**: status dashboard, check, add or read again a post, add an account, add an event from a story's screenshots | https://pa-bailar-admin.jzamorac-9.workers.dev | Done |
 | **The admin inbox**: the same requests as issues in this repository, from the GitHub app | Issues → New issue | Done |
-| **Commands** on your computer: `admin status`, `admin why`, `admin add-account`, `sweep --post` | Terminal | Done |
+| **Commands** on your computer: `admin status`, `admin why`, `admin add-account`, `sweep --post`, `sweep --story`, `sweep --hide-story` | Terminal | Done |
 | Corrections: `corrections.json` and `admin fix`, fed by the site's report form | | Planned |
 
 **None of these tools is AI.** They're fixed checks over what the sweeps record (`state/` on the
-`sweep-state` branch). Only adding a post sends it to Gemini: one request, from the same daily budget as the
-sweeps.
+`sweep-state` branch). Only adding a post or a story sends it to Gemini: one request, from the same daily budget
+as the sweeps.
 
 ## Using it
 
@@ -81,8 +81,17 @@ sharing again works.
      story and are never published.
 4. Tap **Agregar desde historia**. Each screenshot is made smaller (1080 px wide, JPEG, the phone's status bar
    cut off) on the phone, uploaded, and a request is opened like the others. The answer appears below.
-   Reading the screenshots and publishing their event is the sweep's story mode (`sweep --story`), which
-   comes separately: until it's merged, the inbox answers such a request with its list of commands.
+5. A few minutes later (it takes its turn after a running sweep, like Agregar): the answer, a **receipt**
+   of what was read:
+   - the events published (title, weekday and date, time, venue), with links;
+   - **Lo que leí:** the account and where it came from (typed, the post the story reshares, the name at the
+     top of the story, or completed from a known account when that name was cut off; ⚠️ when Instagram
+     couldn't confirm it), how each date was worked out ("año deducido", "fecha deducida del día de la
+     semana", "semanal: publiqué la próxima fecha", a weekday that doesn't match the date), the location
+     sticker, the mentions (never the event's account), and when the screenshot was taken;
+   - the published flyer: a crop of the screenshot, never the whole screenshot;
+   - **Ocultar del sitio (deshacer)**: takes what this story published off the site (it asks first). Then
+     share it again with the @cuenta or a note to fix it.
 
 Screenshots shared or picked wait on the phone (for a day) until they're sent, so signing in again doesn't
 lose them; ✕ removes one. Once uploaded, they're kept on Cloudflare (KV) for at most 7 days: deleted as soon as
@@ -100,6 +109,8 @@ comment of yours that the inbox understands (`pa_bailar/inbox.py`):
 | `/releer` and the link | **Volver a leer**: reads it again even if it hasn't changed |
 | `/cuenta @academia` | Adds the account to the sweeps |
 | `/estado` | The status, as on the page |
+| `/historia` and screenshot ids (then `@cuenta` and notes, on the same line) | **Agregar historia**: the screenshots must have been uploaded by the page (it writes this request itself) |
+| `/ocultar story-…` | **Ocultar historia**: takes what that story published off the site (the id is in its answer) |
 | A command without its link, or anything else on a request issue (the form, the page) | The list above |
 
 A command is a word starting with `/` at the start of a line (any case: `/Agregar` works too). Ordinary
@@ -120,7 +131,12 @@ From the repository root (`.env` has the keys):
 .venv\Scripts\python -m pa_bailar admin why https://www.instagram.com/p/<code>/ [--account @x] [--json]
 .venv\Scripts\python -m pa_bailar admin add-account @academia
 .venv\Scripts\python -m pa_bailar sweep --post https://www.instagram.com/p/<code>/ [--account @x] [--again]
+.venv\Scripts\python -m pa_bailar sweep --story <id> [<id>…] --story-dir <folder> [--account @x] [--notes "…"]
+.venv\Scripts\python -m pa_bailar sweep --hide-story story-<hash>
 ```
+
+`sweep --story` reads `<id>.jpg` (and `<id>.json`, the file's name and dates, if there) from the folder: on
+GitHub the workflow downloads them from the page first.
 
 `status` and `why` read the sweeps' latest state from the `sweep-state` branch, fetched each time.
 `sweep --post` runs like a local sweep, with your own `state/`, and with `add-account` it changes
@@ -182,6 +198,49 @@ The sweep workflow runs in single-post mode (`sweep --post`), one at a time with
 
 Such runs don't count for the health checks, and don't report to healthchecks.io.
 
+### Agregar historia (`sweep --story`, `pa_bailar/stories.py`)
+
+The sweep workflow runs in story mode, one at a time with the sweeps:
+
+1. **Downloads the screenshots** from the page's Worker (job `story-images`), signed in with GitHub's identity
+   token (OIDC): no secret. KV can take up to a minute to show a new screenshot elsewhere, so each download
+   retries for about 2 minutes. Not found (expired after 7 days, or already published and deleted): it answers
+   "compártelas otra vez".
+2. **Already published?** The same screenshots (the story's id, `story-<hash>` of their bytes) aren't read
+   again: the answer links the event ("Ya está en el sitio"). Neither is another screenshot of a story published
+   in the last 36 hours (a perceptual hash of each screenshot, 10 bits or fewer apart), unless it comes with
+   notes: then it's read, in case it's another story made from the same template.
+3. **Reads them with Gemini, one request for all of them** (Flash, or Flash-Lite when Flash is out of quota,
+   kept as it is: no later sweep sees a story). The prompt (`STORY_PROMPT`) says it's a story screenshot and to
+   ignore Instagram's interface; the notes go in as trusted hints and are never published. Gemini returns the
+   events with their dates **as printed** (day, month, year only if printed, weekday, "hoy"/"mañana"), the
+   name at the top, a reshared post's author, mentions, the location sticker, the story's age ("5 h") and,
+   for each screenshot, a box around the flyer.
+4. **The account:** the one typed; else the author of a post or story the story reshares (the event is
+   theirs); else the name at the top. One Instagram call checks it. A cut-off name ("salsa_cl…") is matched to
+   the only known account it starts; a name Instagram can't read, to a known account spelled almost the same.
+   Mentions are never the account. An account the API can read and isn't swept yet is added, as with posts.
+   If no account can be told, it answers "escribe la @cuenta" (the screenshots stay for a retry).
+5. **The dates, worked out in code** (`stories.resolve_date`), from the day the screenshot was taken (its file
+   name, `Screenshot_20261004-183012…`, else the file's date, else when it was uploaded): the next such date
+   on or after it, the printed weekday settling the year (or the month, for "sábado 12"); "este sábado" is the
+   next Saturday; a weekly night ("todos los viernes") publishes only its next date. A weekday that doesn't
+   match the date makes the event low-confidence, with a doubt; a date more than 60 days ahead gets a doubt. An
+   event whose date has passed isn't published.
+6. **The flyer:** each screenshot is cropped to Gemini's box, if it's plausible (at least 12% of the
+   screenshot, shaped like a flyer), with 3% padding; otherwise 12% comes off the top and the bottom. Each event
+   uses the crop of the screenshot that shows it best. Only the crop is published.
+7. **Publishes** like any post: the event's `media` gets a `STORY` item (its permalink is the account's profile,
+   `https://www.instagram.com/<account>/`, since stories last 24 hours; its caption is null), merged with the
+   same event from the account's posts (the story goes last: a post's flyer stays the cover). The answer is
+   the receipt described above.
+8. **Deletes the screenshots** from the page's KV (job `story-cleanup`) once the run succeeded, data PR merged
+   included. Otherwise they stay (a retry needs them) until they expire.
+
+**Ocultar historia** (`sweep --hide-story story-…`): takes the story off every event; an event only the story
+announced disappears with its flyer, one other posts announce stays (without the story). The story is
+recorded as `hidden`; sharing the same screenshots again reads them again.
+
 ## How it works
 
 ```mermaid
@@ -190,7 +249,8 @@ flowchart LR
     G["GitHub app<br/>(issue or comment)"] --> I
     I -- "issues / issue_comment" --> A["admin workflow<br/>admin inbox"]
     A -- "status, why, add-account" --> C["Comment with<br/>the answer"]
-    A -- "add-post: gh workflow run" --> S["daily-sweep workflow<br/>sweep --post [--again]"]
+    A -- "add-post, add-story, hide-story:<br/>gh workflow run" --> S["daily-sweep workflow<br/>sweep --post / --story / --hide-story"]
+    S -- "story screenshots (OIDC)" --> P
     S -- "data PR" --> SITE["Site"]
     S --> C
     P -- "reads the comments" --> C
@@ -200,17 +260,22 @@ flowchart LR
   sweep state and the site's `events.json`, runs `python -m pa_bailar admin inbox` (which skips anything that
   isn't a request: no label, no answer), labels the issue `admin`, comments the answer and closes the issue.
   An added account is committed to `main` (`accounts.txt`). Adding a post starts the sweep workflow with
-  `post_url`, `account` and `issue`, and `again` (true for Volver a leer). Requests take turns, first come
+  `post_url`, `account` and `issue`, and `again` (true for Volver a leer); adding a story with `story` (the
+  screenshots' ids), `account`, `notes` and `issue`; hiding one with `hide` and `issue`. Requests take turns, first come
   first served: each waits until no sweep is running or waiting and no earlier `admin` run is going (GitHub
   would cancel a second queued sweep), up to 50 minutes; past that it answers that it didn't start. The
   workflow has no concurrency group either, for the same reason: several comments on one issue are all
   answered.
 - **`.github/workflows/daily-sweep.yml`**, with `post_url`: `sweep --post` (`--again` with `again`) instead of the sweep, then the same
-  data PR and state save; it commits an added account and answers on the issue. If its `request` check fails
-  (no link, or the issue isn't an open admin request), it answers on the issue when that issue is an open
-  `admin` issue of yours.
-- **`.github/ISSUE_TEMPLATE/admin.yml`:** the form (Acción: Revisar, Agregar, Volver a leer, Agregar cuenta or
-  Estado; Enlace; Cuenta). The page writes its issues the same way.
+  data PR and state save; it commits an added account and answers on the issue. With `story`: the
+  `story-images` job downloads the screenshots (the only job besides `story-cleanup` that may ask GitHub for an
+  identity token), then `sweep --story`, and `story-cleanup` deletes them from KV after a successful run. With
+  `hide`: `sweep --hide-story`. If its `request` check fails (not exactly one of `post_url`, `story` or `hide`,
+  values of the wrong shape, or the issue isn't an open admin request), it answers on the issue when that issue
+  is an open `admin` issue of yours.
+- **`.github/ISSUE_TEMPLATE/admin.yml`:** the form (Acción: Revisar, Agregar, Volver a leer, Agregar cuenta,
+  Estado or Ocultar historia; Enlace; Cuenta; Historia). The page writes its issues the same way, and also
+  "Agregar historia" (Capturas, Cuenta, Notas), which isn't in the form: its screenshots come from the page.
 
 ## The admin page
 

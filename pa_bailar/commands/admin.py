@@ -6,7 +6,8 @@ Usage (from the repository root):
     .venv\\Scripts\\python -m pa_bailar admin why <link>        why a post's event is, or isn't, on the site
     .venv\\Scripts\\python -m pa_bailar admin add-account @x    add an account to the sweeps
     .venv\\Scripts\\python -m pa_bailar admin inbox             answer an admin issue (the admin workflow)
-Adding a post is `python -m pa_bailar sweep --post <link>`: it needs Gemini and writes the site's data.
+Adding a post is `python -m pa_bailar sweep --post <link>`, and a story `sweep --story <ids>` (`--hide-story` takes
+one off the site): they need Gemini or write the site's data, so the sweep workflow does them.
 
 None of these tools uses AI: they read what the sweeps record. On your computer they read the sweeps' latest
 state from the sweep-state branch (pa_bailar/sweep_state.py).
@@ -71,7 +72,8 @@ def run_add_account(account: str) -> str:
 
 
 def answer(request: inbox.Request) -> tuple[str, bool]:
-    """(reply in Markdown, done?) for an inbox request. Not done: add-post continues in the sweep workflow."""
+    """(reply in Markdown, done?) for an inbox request. Not done: add-post, add-story and hide-story continue in
+    the sweep workflow."""
     if request.action == "status":
         return status.markdown(status.collect()), True
     if request.action == "why" and request.link:
@@ -84,6 +86,21 @@ def answer(request: inbox.Request) -> tuple[str, bool]:
         return (
             f"⏳ Voy a {verb} la publicación{target} para publicarla: te respondo aquí en unos minutos (si hay un "
             "barrido en curso, espera a que termine).",
+            False,
+        )
+    if request.action == "add-story" and request.images:
+        count = len(request.images)
+        what = "la captura" if count == 1 else f"las {count} capturas"
+        target = f" de @{request.account}" if request.account else ""
+        return (
+            f"⏳ Voy a leer {what} de la historia{target} para publicar su evento: te respondo aquí en unos minutos "
+            "(si hay un barrido en curso, espera a que termine).",
+            False,
+        )
+    if request.action == "hide-story" and request.story:
+        return (
+            f"⏳ Voy a quitar del sitio lo que se publicó desde la historia `{request.story}`: te respondo aquí en "
+            "unos minutos.",
             False,
         )
     return inbox.HELP, True
@@ -150,6 +167,9 @@ def main(argv: list[str] | None = None) -> None:
             link=request.link or "",
             account=request.account or "",
             again=str(request.again).lower(),
+            images=" ".join(request.images),
+            notes=request.notes or "",
+            story=request.story or "",
         )
         reply, done = answer(request)
         Path(os.environ.get("INBOX_REPLY", "reply.md")).write_text(reply, encoding="utf-8")

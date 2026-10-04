@@ -296,17 +296,24 @@ sequenceDiagram
 
 ### 5.2 The workflow's steps
 
-`.github/workflows/daily-sweep.yml`, two jobs on `ubuntu-latest`:
-- **`request`** checks an add-post request before anything else runs. Only with `post_url` or `issue`: for a
-  regular sweep the job is skipped (its `if` is at job level, so no runner starts and no minute is billed).
-  `issue` must be a number, and that issue an open `admin` issue by `jzamora5` (the inbox reopens an
-  answered issue before starting the add). Otherwise the run fails
+`.github/workflows/daily-sweep.yml`, two jobs on `ubuntu-latest`, plus two for stories:
+- **`request`** checks an admin request (add a post or a story, hide a story) before anything else runs. Only
+  with `post_url`, `story`, `hide` or `issue`: for a regular sweep the job is skipped (its `if` is at job level,
+  so no runner starts and no minute is billed). Exactly one of `post_url`, `story` (1 to 4 upload ids) or
+  `hide` (`story-<16 hex>`) must be given, `issue` must be a number, and that issue an open `admin` issue by
+  `jzamora5` (the inbox reopens an answered issue before starting the add). Otherwise the run fails
   and the sweep job doesn't start: whoever can start the workflow (the cron-job.org token) can't publish a
   post with it. When it fails, it answers on the issue that adding couldn't start, but only if that issue is
   an open `admin` issue by `jzamora5` (never on another issue). The inputs only reach shell commands through
   environment variables.
-- **`sweep`** (after `request`, or without it: `if: !cancelled() && needs.request.result != 'failure'`), the
-  steps below. Job limit: 60 minutes.
+- **`story-images`** (only with `story`): downloads the story's screenshots from the admin page's Worker
+  (`/api/uploads/<id>`, retrying about 2 minutes while KV spreads them) with GitHub's identity token (OIDC,
+  `id-token: write` on this job only, which runs no third-party package), and hands them to `sweep` as an
+  artifact kept a day. If it can't, it answers on the issue.
+- **`sweep`** (after `request` and `story-images`, or without them: neither failed), the steps below. Job
+  limit: 60 minutes. Its output `delete_story` lists the screenshots to delete when the story is published.
+- **`story-cleanup`** (after a successful `sweep` with `delete_story`): deletes those screenshots from the
+  Worker's KV, with its own identity token.
 
 | # | Step | Runs when | What it does | Credentials |
 |---|---|---|---|---|
@@ -316,20 +323,21 @@ sequenceDiagram
 | 4 | Check out the site repository | Always | Into `site/`. `DATA_DIR` points to `site/data` | None (public repository) |
 | 5 | Set up Python | Always | Python from `.python-version` (3.12), pip cache | |
 | 6 | Install | Always | `pip install -r requirements.txt`, every package pinned and hash-checked | |
+| 6a | Get the story's screenshots | `story` | Downloads the `story-images` job's artifact into `stories/` | |
 | 6b | Make sure ffmpeg is installed | Always | For videos' preview clips (`clips.py`); usually already on the runner | |
 | 6c | Make sure the last data PR merged | Always | Fails if a `data` PR is still open in the site repository: the sweep reads the events from the site's `main`, so sweeping past an unmerged PR would lose its events for good (their posts are already marked analyzed). Merge or fix it first | `GITHUB_TOKEN` (reads the public site repository) |
-| 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x] [--again]`, one post by hand (`--again` from the `again` input, "Volver a leer"). Otherwise `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
+| 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x] [--again]`, one post by hand (`--again` from the `again` input, "Volver a leer"). With `story`: `sweep --story <ids> --story-dir stories [--account=x] --notes=…` (the screenshots from `story-images`, step 6a). With `hide`: `sweep --hide-story <story id>`. Otherwise `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 8 | Write the status for the admin page | Unless cancelled; its failure doesn't fail the run | `python -m pa_bailar admin status --json` → `state/status.json`, saved with the state (one Graph API call, no Gemini). The admin page reads it | `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 9 | Get a token for the site repository | Unless cancelled | Mints a pa-bailar-bot installation token for the site repository only | `APP_ID`, `APP_PRIVATE_KEY` |
 | 10 | Open a data PR | Unless cancelled | Only if `data/events.json` or `data/flyers` changed (clips change `events.json` too) (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled. It runs before the state is saved, so the state never marks posts as analyzed whose events didn't leave the runner | App token |
 | 10b | Keep the site data of a data PR that wasn't opened | The data PR step failed | Uploads `site/data` (events, flyers, clips) as the run's artifact `site-data-<run id>`, kept 14 days, to recover by hand (section 15) | |
 | 11 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real. **If the data PR step didn't succeed**, `processed_posts.json` and `accounts.json` keep their previous versions (a warning says so): this run's posts stay unread and its accounts due, so the next run reads them again and its PR carries their events. Gemini's usage, the run history and `status.json` are saved either way | `GITHUB_TOKEN` (this step only) |
-| 11b | Save an account added by hand | `post_url`, and `accounts.txt` changed | Commits `accounts.txt` to `main` | `GITHUB_TOKEN` (this step only) |
+| 11b | Save an account added by hand | `post_url` or `story`, and `accounts.txt` changed | Commits `accounts.txt` to `main` | `GITHUB_TOKEN` (this step only) |
 | 12 | Update the sweep health issue | Unless cancelled, and the sweep produced its health output | Opens, updates, comments on or closes the `Sweep health` issue (section 11.3) | `GITHUB_TOKEN` (issues) |
 | 13 | Wait for the data PR to merge | A PR was opened | Polls every 30 s, up to 20 minutes. Fails if the PR is closed or doesn't merge in time | App token |
-| 14 | Republish the site | Success, no PR, not `post_url` | `gh workflow run deploy.yml -f checked_at=<now in Bogotá>`, so "Actualizado el" stays current on days without new events | App token |
-| 15 | Report to the health check | Always, except `post_url` runs | Pings `HEALTHCHECK_URL` (success) or `HEALTHCHECK_URL/fail`, with the report as the body | `HEALTHCHECK_URL` |
-| 16 | Answer on the admin issue | `issue` given (admin tools) | Comments the result of adding the post (`ADMIN_REPORT_FILE`) and the data PR, then closes the issue | `GITHUB_TOKEN` |
+| 14 | Republish the site | Success, no PR, not an admin request (`issue`) | `gh workflow run deploy.yml -f checked_at=<now in Bogotá>`, so "Actualizado el" stays current on days without new events | App token |
+| 15 | Report to the health check | Always, except admin requests (`issue`) | Pings `HEALTHCHECK_URL` (success) or `HEALTHCHECK_URL/fail`, with the report as the body | `HEALTHCHECK_URL` |
+| 16 | Answer on the admin issue | `issue` given (admin tools) | Comments the result of adding the post or story, or hiding the story (`ADMIN_REPORT_FILE`), and the data PR, then closes the issue | `GITHUB_TOKEN` |
 
 Other workflow settings:
 - **`concurrency: data`** (`cancel-in-progress: false`): two sweeps never run at the same time. A new one
@@ -657,7 +665,8 @@ flowchart TD
   analyzed twice: a post added by hand from its public page is renamed to the API's id when a sweep first
   sees it (`Sweep._adopt_public_record`), and a post read again by hand keeps the id it has.
 - **The cover is the latest flyer:** an event's posts are sorted flyers (photos and carousels)
-  first, then videos, newest first within each (`ordered_media`). The first post is what the card,
+  first, then videos, then stories (a crop of a screenshot, linked to the account's profile), newest first
+  within each (`ordered_media`). The first post is what the card,
   the link previews and the detail show first. A corrected or updated flyer replaces the first
   announcement as the cover. Every save applies this order to all events.
 - **Logistics follow the newest post:** a later post may reschedule an event or change its prices, so
@@ -690,7 +699,7 @@ memory between runs; the site never sees it.
 
 | File | Content | Why it matters |
 |---|---|---|
-| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente` or `sin fecha`, `not_event`, `rejected`) with the `event_ids` it became or joined | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
+| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha` or `ya pasó`, `not_event`, `rejected`, `hidden` for a story taken off the site by hand) with the `event_ids` it became or joined. Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
 | `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post` | Whether the account still gets the deeper first sweep, and when its next turn is |
 | `gemini_usage.json` | Today's quota day (Pacific) and requests per model | The day's runs share the daily budgets |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
@@ -888,8 +897,17 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
   (`SETTLED_OUTCOMES`). `--again` ("Volver a leer") reads it anyway, one Gemini request, still as one post
   (its events keep their ids): for an event stored with wrong data, e.g. after the prompts improved.
   `AddPostError` says in Spanish why it couldn't (neither source worked, no quota).
+- **`sweep --story <ids>`** (`Sweep.add_story`, `pa_bailar/stories.py`): an event from screenshots of an
+  Instagram story, uploaded from the admin page (ADMIN.md, "Agregar historia"). One Gemini request for all of
+  them (`STORY_PROMPT`, `StoryAnalysis`), no triage. Dates are worked out in code from what's printed
+  (`stories.resolve_date`), relative to when the screenshot was taken; the account is the typed one, a
+  reshared post's author or the name at the top (checked with one Instagram call, or matched to a known
+  account); the flyer is a checked, padded crop. Stored as a `STORY` item (`post_id` `story-<hash>`, the
+  profile as permalink, no caption). The same screenshots, or another screenshot of a story published in the
+  last 36 hours (perceptual hash), aren't read twice. `--hide-story` takes one off the site again.
 - **`admin inbox`** (`pa_bailar/inbox.py`): reads an issue or comment with fixed patterns (a post link alone,
-  the commands `/agregar`, `/releer`, `/cuenta @x` and `/estado`, or the issue form's fields) and writes the
+  the commands `/agregar`, `/releer`, `/cuenta @x`, `/estado`, `/historia <ids>` and `/ocultar story-…`, or the
+  issue form's fields) and writes the
   answer; the `admin` workflow (`.github/workflows/admin.yml`) runs it on new issues and comments from
   `jzamora5`. Only the inbox's: an issue labelled `admin` (the form, the admin page) or a text that asks for
   something (`inbox.is_request`: a post link or a command). Anything else gets no answer and no label
@@ -935,7 +953,7 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 |---|---|
 | A compromised dependency reading the repository token during the sweep | No checkout keeps credentials (`persist-credentials: false`). The write token is only handed to the steps that write (the state save, the account commit, issues), and the App token is minted after the sweep |
 | Secrets exposed to steps that don't need them | The Gemini and Meta secrets are only in the sweep step's environment. The Meta app secret isn't on GitHub at all |
-| A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. Adding a post by hand (`post_url`) needs an open `admin` issue by `jzamora5` (the `request` job, section 5.2), and inputs never reach shell code directly, so the token can't publish a post or run commands |
+| A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. Adding a post or a story by hand (`post_url`, `story`) or hiding a story (`hide`) needs an open `admin` issue by `jzamora5` (the `request` job, section 5.2), `story` and `hide` must have their exact shapes, and inputs never reach shell code directly, so the token can't publish or hide anything or run commands |
 | The Meta token in error text | It's sent in the URL; `instagram.redact` removes it (and the app secret and exchanged tokens of `refresh-token`) from every error before logs, `status.json` or admin answers (section 8) |
 | Odd text in a link or a public page reaching files, accounts or issues | Post codes match ASCII letters, digits, `_` and `-` only (`links._POST`, like the site's `check-data.mjs`); a public page's author must be a valid username; the admin page only accepts a value that is one post link and nothing else (`POST_LINK` in `admin-web/src/index.js`, anchored at both ends, no spaces or new lines) |
 | Answering, labelling or spending Gemini on what isn't a request | The inbox only answers issues labelled `admin` or texts with a post link or a command; commands are the form's action or a `/command` at the start of a line, never ordinary words (section 12.3) |
@@ -1035,16 +1053,18 @@ flowchart LR
     RT --> IGC
     STO --> MOD["models.py<br/>(Pydantic: the data contract)"]
     PL --> CFG["config.py"]
+    PL --> STY["stories.py"]
 ```
 
 | Module | Responsibility |
 |---|---|
 | `config.py` | Paths, secrets from the environment, quotas, windows, retention, sweep times, Bogotá's time zone |
-| `models.py` | Pydantic models: what Gemini returns (`Triage`, `PostAnalysis`, `ExtractedEvent`, `AccountClassification`) and what is stored (`StoredEvent`, `EventMedia`, `ProcessedPost`, `AccountState`). The source of truth for the data contract |
+| `models.py` | Pydantic models: what Gemini returns (`Triage`, `PostAnalysis`, `ExtractedEvent`, `StoryAnalysis`, `AccountClassification`) and what is stored (`StoredEvent`, `EventMedia`, `ProcessedPost`, `AccountState`). The source of truth for the data contract |
 | `instagram.py` | Graph API client: token check, posts, profiles, images, error classification, app usage |
 | `public_post.py` | One post from its public embed page, for the admin tools when the API can't give it (section 3.7) |
 | `gemini.py` | `ModelPool`: model order, pacing, daily budgets shared across runs, retries, error classes |
-| `prompts.py` | The triage and extraction prompts |
+| `prompts.py` | The triage and extraction prompts, and the story prompt |
+| `stories.py` | Stories from screenshots: their id and perceptual hash, when a screenshot was taken, dates worked out from what's printed, the flyer's crop, the account's name |
 | `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback |
 | `normalize.py` | Cleans Gemini's output into the formats the site relies on |
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |

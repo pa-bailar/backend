@@ -12,8 +12,16 @@
 # - Started with `post_url` (by the admin workflow, docs/ADMIN.md), it adds that one post by hand instead of
 #   sweeping (`sweep --post`), then answers on the admin issue. Such runs don't count for the health checks.
 #   With `again` ("Volver a leer"), the post is read again even if it was read before and hasn't changed.
+# - Started with `story` (the ids of story screenshots uploaded from the admin page), it adds that story instead
+#   (`sweep --story`): the `story-images` job downloads the screenshots from the admin page's Worker with GitHub's
+#   identity token (OIDC, no secret), and `story-cleanup` deletes them there once the story's event is published.
+#   With `hide` (a story's id), it takes that story off the site (`sweep --hide-story`). Like `post_url`, both
+#   need an open admin issue by the owner, and don't count for the health checks.
 name: daily-sweep
-run-name: ${{ inputs.post_url && format('Add a post by hand (#{0})', inputs.issue) || 'Sweep' }}
+run-name: >-
+  ${{ inputs.post_url && format('Add a post by hand (#{0})', inputs.issue) ||
+  inputs.story && format('Add a story by hand (#{0})', inputs.issue) ||
+  inputs.hide && format('Hide a story (#{0})', inputs.issue) || 'Sweep' }}
 
 on:
   # Started twice a day (9:00 AM and 9:00 PM Bogotá) by cron-job.org, which calls GitHub's "run workflow"
@@ -36,7 +44,7 @@ on:
         description: "Admin tools: add this one post by hand instead of sweeping"
         required: false
       account:
-        description: "Admin tools: the post's @account, if its link doesn't say it"
+        description: "Admin tools: the post's or story's @account, if its link or screenshots don't say it"
         required: false
       issue:
         description: "Admin tools: the issue to answer"
@@ -45,6 +53,15 @@ on:
         description: "Admin tools: read the post again even if it was read before and hasn't changed"
         type: boolean
         default: false
+      story:
+        description: "Admin tools: add a story from these screenshots (the admin page's upload ids, space-separated)"
+        required: false
+      notes:
+        description: "Admin tools: the admin's notes on the story (hints for Gemini, never published)"
+        required: false
+      hide:
+        description: "Admin tools: take this story (story-…) off the site"
+        required: false
 
 permissions:
   contents: write # push the sweep-state branch of this repository
@@ -61,14 +78,16 @@ env:
   MERGE_TIMEOUT_MINUTES: 20
   HEALTH_REPORT_FILE: ${{ github.workspace }}/health.md # written by the sweep (pa_bailar/health.py)
   NOTIFY: jzamora5 # mentioned in the health issue, so GitHub emails them
+  ADMIN_URL: https://pa-bailar-admin.jzamorac-9.workers.dev # the admin page's Worker: story screenshots
+  OIDC_AUDIENCE: pa-bailar-admin # what the Worker accepts (OIDC_AUDIENCE in admin-web/wrangler.jsonc)
 
 jobs:
-  # Adding a post by hand publishes it without the filter, and may add its account to main: only for a
-  # request the admin workflow passed on (an open `admin` issue by the owner). Whoever can start this workflow
-  # otherwise (the cron-job.org token) can't use it to publish anything, nor put text into a shell command.
-  # Skipped (no runner, no minute billed) for a regular sweep.
+  # Adding a post or a story by hand publishes it without the filter, and may add its account to main; hiding a
+  # story takes events off the site: only for a request the admin workflow passed on (an open `admin` issue by
+  # the owner). Whoever can start this workflow otherwise (the cron-job.org token) can't use it to publish or
+  # hide anything, nor put text into a shell command. Skipped (no runner, no minute billed) for a regular sweep.
   request:
-    if: ${{ inputs.post_url != '' || inputs.issue != '' }}
+    if: ${{ inputs.post_url != '' || inputs.story != '' || inputs.hide != '' || inputs.issue != '' }}
     runs-on: ubuntu-latest
     permissions:
       issues: write # the answer when the request can't start
@@ -78,9 +97,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ inputs.issue }}
           POST_URL: ${{ inputs.post_url }}
+          STORY: ${{ inputs.story }}
+          HIDE: ${{ inputs.hide }}
         run: |
-          if [ -z "$POST_URL" ] || ! [[ "$ISSUE" =~ ^[0-9]+$ ]]; then
-            echo "::error::Adding a post needs post_url and the number of the admin issue that asked for it."
+          given=0
+          for value in "$POST_URL" "$STORY" "$HIDE"; do if [ -n "$value" ]; then given=$((given + 1)); fi; done
+          if [ "$given" != 1 ] || ! [[ "$ISSUE" =~ ^[0-9]+$ ]]; then
+            echo "::error::A request by hand needs one of post_url, story or hide, and the number of the admin issue that asked for it."
+            exit 1
+          fi
+          # Their values reach a command line (`sweep --story $STORY`): only these shapes.
+          if [ -n "$STORY" ] && ! [[ "$STORY" =~ ^[0-9a-f]{32}( [0-9a-f]{32}){0,3}$ ]]; then
+            echo "::error::story must be 1 to 4 upload ids."
+            exit 1
+          fi
+          if [ -n "$HIDE" ] && ! [[ "$HIDE" =~ ^story-[0-9a-f]{16}$ ]]; then
+            echo "::error::hide must be a story's id (story-…)."
             exit 1
           fi
           ok="$(gh issue view "$ISSUE" --repo "$GITHUB_REPOSITORY" --json state,author,labels \
@@ -104,13 +136,75 @@ jobs:
             --jq '.state == "OPEN" and .author.login == env.NOTIFY and any(.labels[]; .name == "admin")')" || exit 0
           if [ "$ok" != "true" ]; then exit 0; fi
           gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" \
-            --body "❌ No pude empezar a agregarla (el pedido llegó incompleto, o GitHub no respondió). Detalles en [la ejecución]($RUN_URL)."
+            --body "❌ No pude empezar (el pedido llegó incompleto, o GitHub no respondió). Detalles en [la ejecución]($RUN_URL)."
+
+  # A story's screenshots, from the admin page's Worker (admin-web/, docs/ADMIN.md), which keeps them in KV until
+  # the story is published. Its own job, so only these few steps (no third-party packages) can ask GitHub for an
+  # identity token: the Worker accepts this repository's daily-sweep workflow on main and nothing else. KV can
+  # take up to 60 s to show a new screenshot outside the place it was uploaded to, so each download retries for
+  # about 2 minutes. They reach the sweep job as an artifact kept for a day.
+  story-images:
+    needs: request
+    if: ${{ !cancelled() && needs.request.result == 'success' && inputs.story != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # GitHub's identity token, for the Worker
+      issues: write # the answer when the screenshots can't be downloaded
+    steps:
+      - name: Download the screenshots
+        env:
+          STORY: ${{ inputs.story }}
+        run: |
+          token() {
+            curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+              "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$OIDC_AUDIENCE" | jq -r .value
+          }
+          mkdir -p stories
+          for id in $STORY; do
+            status=""
+            for attempt in $(seq 1 12); do
+              jwt="$(token)"
+              echo "::add-mask::$jwt"
+              status="$(curl -sS -o "stories/$id.jpg" -D headers.txt -w '%{http_code}' \
+                -H "Authorization: Bearer $jwt" "$ADMIN_URL/api/uploads/$id" || true)"
+              if [ "$status" = 200 ] || [ "$status" = 401 ]; then break; fi
+              echo "Screenshot $id: HTTP $status (attempt $attempt): KV may not show it here yet, trying again in 10 s"
+              sleep 10
+            done
+            if [ "$status" != 200 ]; then
+              echo "::error::Screenshot $id: HTTP $status"
+              exit 1
+            fi
+            meta="$(grep -i '^x-upload-meta:' headers.txt | cut -d' ' -f2- | tr -d '\r')"
+            python3 -c 'import sys, urllib.parse; print(urllib.parse.unquote(sys.argv[1]))' "$meta" > "stories/$id.json"
+          done
+          ls -l stories
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: story-${{ github.run_id }}
+          path: stories/
+          retention-days: 1
+
+      - name: Answer on the admin issue that the screenshots couldn't be read
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ inputs.issue }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" \
+            --body "❌ No pude descargar las capturas de la página de administración (¿pasaron más de 7 días, o ya se publicaron?). Compártelas otra vez. Detalles en [la ejecución]($RUN_URL)."
 
   sweep:
-    needs: request
-    # After the request check, or without it (a regular sweep: `request` skipped).
-    if: ${{ !cancelled() && needs.request.result != 'failure' }}
+    needs: [request, story-images]
+    # After the request check, or without it (a regular sweep: `request` and `story-images` skipped).
+    if: ${{ !cancelled() && needs.request.result != 'failure' && needs.story-images.result != 'failure' }}
     runs-on: ubuntu-latest
+    outputs:
+      # The screenshots to delete from the admin page (story-cleanup): only once the story's event is published
+      # (or already was) and this job succeeded, data PR merged included. Otherwise they stay for a retry.
+      delete_story: ${{ steps.sweep.outputs.story_done == 'true' && inputs.story || '' }}
     # The sweep step stops at 35 minutes (its own budget is 30); the rest (state, PR, merge wait) fits in
     # the remaining time. A step timeout counts as a failure, so the steps that keep progress still run;
     # a job timeout would cancel them.
@@ -147,6 +241,13 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      - name: Get the story's screenshots
+        if: ${{ inputs.story != '' }}
+        uses: actions/download-artifact@v8
+        with:
+          name: story-${{ github.run_id }}
+          path: stories
+
       # Videos' preview clips (pa_bailar/clips.py) need ffmpeg; usually already on the runner.
       - name: Make sure ffmpeg is installed
         run: command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
@@ -176,12 +277,19 @@ jobs:
           LOOKBACK_DAYS: ${{ inputs.days || '7' }}
           POST_URL: ${{ inputs.post_url }}
           ACCOUNT: ${{ inputs.account }}
+          STORY: ${{ inputs.story }} # checked by the request job: upload ids only
+          NOTES: ${{ inputs.notes }}
+          HIDE: ${{ inputs.hide }}
           ADMIN_REPORT_FILE: ${{ github.workspace }}/admin-report.md
           ALL_ACCOUNTS: ${{ inputs.all_accounts && '--all' || '' }}
           AGAIN: ${{ inputs.again && '--again' || '' }}
         run: |
           if [ -n "$POST_URL" ]; then
             python -m pa_bailar sweep --post "$POST_URL" ${ACCOUNT:+--account "$ACCOUNT"} $AGAIN
+          elif [ -n "$STORY" ]; then
+            python -m pa_bailar sweep --story $STORY --story-dir stories ${ACCOUNT:+--account="$ACCOUNT"} --notes="$NOTES"
+          elif [ -n "$HIDE" ]; then
+            python -m pa_bailar sweep --hide-story "$HIDE"
           else
             python -m pa_bailar sweep --days "$LOOKBACK_DAYS" $ALL_ACCOUNTS
           fi
@@ -214,7 +322,9 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           BOT: ${{ steps.app.outputs.app-slug }}[bot]
-          WHAT: ${{ inputs.post_url && 'post added by hand' || 'daily sweep' }}
+          WHAT: >-
+            ${{ inputs.post_url && 'post added by hand' || inputs.story && 'story added by hand' ||
+            inputs.hide && 'story hidden by hand' || 'daily sweep' }}
         run: |
           # Only events and flyers count as a change: meta.json is rewritten every run (with the check time).
           if [ -z "$(git status --porcelain -- data/events.json data/flyers)" ]; then
@@ -274,9 +384,9 @@ jobs:
           gh auth setup-git  # git pushes with GH_TOKEN, which only this step has
           git push -q origin HEAD:sweep-state
 
-      # add-post adds the account when it isn't swept yet (storage.add_account).
+      # add-post and add-story add the account when it isn't swept yet (storage.add_account).
       - name: Save an account added by hand
-        if: ${{ !cancelled() && inputs.post_url != '' }}
+        if: ${{ !cancelled() && (inputs.post_url != '' || inputs.story != '') }}
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ inputs.issue }}
@@ -285,7 +395,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           gh auth setup-git
-          git commit -qm "chore(accounts): add the account of a post added by hand (#${ISSUE})" -- accounts.txt
+          git commit -qm "chore(accounts): add the account of a post or story added by hand (#${ISSUE})" -- accounts.txt
           git pull -q --rebase origin main
           git push -q origin HEAD:main
 
@@ -338,7 +448,7 @@ jobs:
           done
 
       - name: Republish the site with the time of this check (days without new events)
-        if: ${{ success() && steps.pr.outputs.url == '' && inputs.post_url == '' }}
+        if: ${{ success() && steps.pr.outputs.url == '' && inputs.issue == '' }}
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
         run: |
@@ -349,7 +459,7 @@ jobs:
       # check): every run reports success or failure, and the service emails when runs fail or stop
       # arriving at all, the case GitHub itself never reports.
       - name: Report to the health check
-        if: ${{ always() && inputs.post_url == '' }}
+        if: ${{ always() && inputs.issue == '' }}
         env:
           HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
           OUTCOME: ${{ job.status }}
@@ -360,7 +470,8 @@ jobs:
           if [ -f "$HEALTH_REPORT_FILE" ]; then body="$HEALTH_REPORT_FILE"; else body=/dev/null; fi
           curl -fsS -m 10 --retry 3 --data-binary "@$body" "$url" > /dev/null
 
-      # Admin tools: the answer to "add this post", on the issue that asked (and the issue closes).
+      # Admin tools: the answer to "add this post" (or story, or hide it), on the issue that asked (and the issue
+      # closes).
       - name: Answer on the admin issue
         if: ${{ always() && inputs.issue != '' }}
         env:
@@ -371,7 +482,7 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           report="$GITHUB_WORKSPACE/admin-report.md"
-          if [ ! -s "$report" ]; then echo "❌ Algo falló al agregarla." > "$report"; fi
+          if [ ! -s "$report" ]; then echo "❌ Algo falló." > "$report"; fi
           if [ "${{ job.status }}" != "success" ]; then
             echo "" >> "$report"; echo "⚠️ La ejecución tuvo un problema: [detalles]($RUN_URL)." >> "$report"
           elif [ -n "$PR_URL" ]; then
@@ -379,3 +490,25 @@ jobs:
           fi
           gh issue comment "$ISSUE" --body-file "$report"
           gh issue close "$ISSUE" --reason completed
+
+  # The story's screenshots aren't needed any more: delete them from the admin page's KV (they'd expire after 7
+  # days anyway). Its own job for the identity token, like story-images.
+  story-cleanup:
+    needs: sweep
+    if: ${{ needs.sweep.result == 'success' && needs.sweep.outputs.delete_story != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # GitHub's identity token, for the Worker
+    steps:
+      - name: Delete the screenshots from the admin page
+        env:
+          STORY: ${{ needs.sweep.outputs.delete_story }}
+        run: |
+          jwt="$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$OIDC_AUDIENCE" | jq -r .value)"
+          echo "::add-mask::$jwt"
+          for id in $STORY; do
+            if ! [[ "$id" =~ ^[0-9a-f]{32}$ ]]; then continue; fi
+            curl -fsS -X DELETE -H "Authorization: Bearer $jwt" "$ADMIN_URL/api/uploads/$id" \
+              || echo "::warning::Screenshot $id wasn't deleted (it expires after 7 days anyway)"
+          done

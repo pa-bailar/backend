@@ -126,11 +126,13 @@ class PostAnalysis(BaseModel):
 # ---------- Stored data ----------
 
 
-MediaType = Literal["IMAGE", "CAROUSEL_ALBUM", "VIDEO"]
+# STORY: an Instagram story, from screenshots shared to the admin page (stories.py). Its permalink is the account's
+# profile (stories last 24 hours), its post_id "story-<hash>", its caption null.
+MediaType = Literal["IMAGE", "CAROUSEL_ALBUM", "VIDEO", "STORY"]
 
 
 class EventMedia(BaseModel):
-    """One Instagram post that announces the event (a flyer, a carousel, a video...)."""
+    """One Instagram post (or story) that announces the event (a flyer, a carousel, a video...)."""
 
     post_id: str
     permalink: str
@@ -151,7 +153,7 @@ class StoredEvent(EventDetails):
     media: list[EventMedia]  # main post first: flyers before videos, newest first (merging.ordered_media)
 
 
-PostOutcome = Literal["event", "merged", "discarded", "not_event", "rejected"]
+PostOutcome = Literal["event", "merged", "discarded", "not_event", "rejected", "hidden"]
 
 
 class ProcessedPost(BaseModel):
@@ -169,10 +171,96 @@ class ProcessedPost(BaseModel):
     caption_hash: str | None = None
     # What became of it, so `admin why` can explain a missing event (None: analyzed before this was recorded):
     #   event: published as new events · merged: added to events another post announced · discarded: an event
-    #   post whose events weren't publishable (`detail`: "recurrente", "sin fecha") · not_event · rejected
+    #   post whose events weren't publishable (`detail`: "recurrente", "sin fecha") · not_event · rejected ·
+    #   hidden: a story taken off the site by hand ("Ocultar historia")
     outcome: PostOutcome | None = None
     event_ids: list[str] = []  # the events it became or was merged into
     detail: str | None = None
+    # Stories: a perceptual hash (stories.image_hash) of each screenshot, so the same story shared again (another
+    # screenshot of it) is recognized.
+    image_hashes: list[str] = []
+
+
+# ---------- Stories: screenshots shared to the admin page (stories.py) ----------
+
+
+class StoryImage(BaseModel):
+    index: int = Field(description="The screenshot's number, from 0")
+    content_box: list[int] | None = Field(
+        description="Where the story's own content (the flyer, photo or video frame) is in this screenshot, "
+        "without Instagram's interface (the progress bars and account name at the top, the reply bar and buttons "
+        "at the bottom): [ymin, xmin, ymax, xmax], each from 0 to 1000. Null if it shows no event content."
+    )
+
+
+class StoryEvent(BaseModel):
+    """An event read from a story. Its date is worked out in code (stories.resolve_date) from what's printed."""
+
+    title: str
+    event_type: EventType = Field(
+        description="social = socials, parties, dance nights, anniversaries; "
+        "workshop = one-time workshops, masterclasses and special classes with guest teachers"
+    )
+    is_recurring: bool = Field(
+        description="True for regular classes or courses (schedules, levels, monthly fees). A weekly social "
+        "night is not this: see weekly"
+    )
+    weekly: bool = Field(description="True for a social or party night that repeats every week ('todos los viernes')")
+    styles: list[Style] = Field(
+        description="Dance styles from the list. Use a salsa/bachata variant only when the story says it; "
+        "otherwise plain 'salsa' or 'bachata'."
+    )
+    organizer: str | None
+    venue: str | None = Field(description="Venue name if given (a location sticker counts)")
+    address: str | None
+    area: str | None = Field(description="Bogotá neighborhood or zone if given")
+    date_text: str | None = Field(description="The date exactly as printed, e.g. 'SÁB 12 OCT', 'este viernes'")
+    day: int | None = Field(description="Day of the month as printed (1-31); null if none is printed")
+    month: int | None = Field(description="Month as printed (1-12); null if none is printed")
+    year: int | None = Field(description="The year only if it's printed; null otherwise. Never guess it")
+    end_day: int | None = Field(description="Last day of an event over several consecutive days, as printed")
+    end_month: int | None = Field(description="Month of that last day, if printed")
+    weekday: str | None = Field(
+        description="The weekday printed or meant ('sábado' for 'SÁB' or 'este sábado'), Spanish, lowercase"
+    )
+    relative_day: Literal["hoy", "mañana"] | None = Field(
+        description="'hoy' for 'hoy' or 'esta noche', 'mañana' for 'mañana'; null otherwise"
+    )
+    start_time: str | None = Field(description="HH:MM, 24-hour")
+    end_time: str | None = Field(description="HH:MM, 24-hour")
+    prices: list[Price]
+    artists: list[str] = Field(description="Guest teachers, DJs, orchestras, performers")
+    activities: list[str] = Field(description="Short Spanish phrases, e.g. 'clase de bachata', 'show'")
+    contact: str | None = Field(
+        description="How to reach the organizer: an @username, a website, or a phone number ('WhatsApp ' "
+        "before a number marked as WhatsApp)"
+    )
+    confidence: Confidence
+    doubts: list[str] = Field(description="Important missing or assumed information, short phrases in Spanish")
+    image_index: int | None = Field(description="The screenshot that shows this event best")
+    same_as: str | None = Field(
+        description="If this is one of the KNOWN EVENTS listed in the prompt, that event's id; null otherwise"
+    )
+
+
+class StoryAnalysis(BaseModel):
+    is_event_post: bool = Field(description="True if the story announces at least one upcoming one-time event")
+    reason: str = Field(description="One short sentence explaining the decision, in Spanish")
+    account_in_image: str | None = Field(
+        description="The username shown at the top of the story, next to its avatar, exactly as shown (it may "
+        "end in '…' when cut off). Null if not visible"
+    )
+    reshared_from: str | None = Field(
+        description="When the story reshares another account's post or story (a card with that account's "
+        "@username on it), that username. Null otherwise"
+    )
+    mentions_in_image: list[str] = Field(description="@usernames in mention stickers or text, without the '@'")
+    location_sticker: str | None = Field(description="The text of a location sticker, if any")
+    story_age: str | None = Field(
+        description="How long ago the story was posted, as shown next to the username ('5 h', '32 min')"
+    )
+    images: list[StoryImage]
+    events: list[StoryEvent]
 
 
 # ---------- Account discovery (python -m pa_bailar discover) ----------

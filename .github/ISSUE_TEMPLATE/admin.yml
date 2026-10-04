@@ -1,7 +1,8 @@
 # The admin inbox's form (docs/ADMIN.md): the admin workflow answers it with a comment (pa_bailar/inbox.py reads
-# the "### Acción", "### Enlace" and "### Cuenta" fields this form writes).
+# the "### Acción", "### Enlace", "### Cuenta" and "### Historia" fields this form writes). "Agregar historia" isn't
+# here: its screenshots are uploaded from the admin page, which opens that request itself.
 name: Pedido a las herramientas de administración
-description: Revisar, agregar o volver a leer una publicación, agregar una cuenta, o ver el estado.
+description: Revisar, agregar o volver a leer una publicación, agregar una cuenta, ver el estado u ocultar una historia.
 title: "Pedido"
 labels: [admin]
 body:
@@ -15,6 +16,7 @@ body:
         - Volver a leer
         - Agregar cuenta
         - Estado
+        - Ocultar historia
       default: 0
     validations:
       required: true
@@ -30,3 +32,9 @@ body:
       label: Cuenta
       description: La @cuenta, si el enlace no la trae, o la cuenta a agregar.
       placeholder: "@academia"
+  - type: input
+    id: historia
+    attributes:
+      label: Historia
+      description: Para Ocultar historia, su código (story-…), que está en la respuesta que la publicó.
+      placeholder: story-…

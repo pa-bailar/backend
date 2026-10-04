@@ -5,8 +5,9 @@
 # an answer: the admin's other issues and comments are left alone.
 #
 # No AI here: `python -m pa_bailar admin inbox` (pa_bailar/inbox.py) reads the request with fixed patterns.
-# Adding a post needs Gemini and writes the site's data, so it continues in the sweep workflow (one at a time
-# with the sweeps: concurrency "data"), which comments the result on the same issue.
+# Adding a post or a story (from its screenshots), and hiding a story, need Gemini or write the site's data, so
+# they continue in the sweep workflow (one at a time with the sweeps: concurrency "data"), which comments the
+# result on the same issue.
 name: admin
 
 on:
@@ -18,7 +19,7 @@ on:
 permissions:
   contents: write # accounts.txt, when an account is added
   issues: write # the answer
-  actions: write # start the sweep workflow to add a post
+  actions: write # start the sweep workflow to add a post or a story, or hide a story
 
 # No concurrency group: GitHub keeps only one waiting run per group, so a third comment on an issue (even one
 # that isn't a request) would cancel the second one's run, and its request would never be answered. Adding a
@@ -126,15 +127,21 @@ jobs:
       # instead, first come first served: this waits until no sweep is running or waiting AND no earlier admin
       # run is still going (it may be about to start one), then starts the sweep and waits until GitHub lists it,
       # so the next request sees it. Still busy after 50 minutes: it answers so and starts nothing.
-      - name: Start adding the post (sweep workflow)
+      - name: Start adding the post or story, or hiding the story (sweep workflow)
         id: dispatch
-        if: steps.answer.outputs.action == 'add-post'
+        if: >-
+          steps.answer.outputs.action == 'add-post' || steps.answer.outputs.action == 'add-story' ||
+          steps.answer.outputs.action == 'hide-story'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          ACTION: ${{ steps.answer.outputs.action }}
           LINK: ${{ steps.answer.outputs.link }}
           ACCOUNT: ${{ steps.answer.outputs.account }}
           AGAIN: ${{ steps.answer.outputs.again == 'true' }} # "Volver a leer": read it even if unchanged
+          IMAGES: ${{ steps.answer.outputs.images }} # add-story: the uploaded screenshots' ids
+          NOTES: ${{ steps.answer.outputs.notes }}
+          STORY: ${{ steps.answer.outputs.story }} # hide-story
           WAIT_MINUTES: 50
         run: |
           sweeps_busy() {
@@ -148,7 +155,7 @@ jobs:
           deadline=$(( $(date +%s) + WAIT_MINUTES * 60 ))
           while [ "$(sweeps_busy)" != "0" ] || [ "$(earlier_requests)" != "0" ]; do
             if [ "$(date +%s)" -gt "$deadline" ]; then
-              echo "⏳ Los barridos siguen ocupados después de ${WAIT_MINUTES} minutos: no empecé a agregarla. Pídelo otra vez en un rato." > not-started.md
+              echo "⏳ Los barridos siguen ocupados después de ${WAIT_MINUTES} minutos: no empecé. Pídelo otra vez en un rato." > not-started.md
               exit 1
             fi
             echo "A sweep or an earlier request is running or waiting: checking again in 30 s"
@@ -157,19 +164,26 @@ jobs:
           # The sweep only adds posts for an open admin issue (its `request` job): a request made by commenting
           # on an answered (closed) issue reopens it; the sweep's answer closes it again.
           gh issue reopen "$ISSUE" 2>/dev/null || true
-          gh workflow run daily-sweep.yml -f post_url="$LINK" -f account="$ACCOUNT" -f issue="$ISSUE" -f again="$AGAIN"
+          case "$ACTION" in
+            add-post)
+              gh workflow run daily-sweep.yml -f post_url="$LINK" -f account="$ACCOUNT" -f issue="$ISSUE" -f again="$AGAIN" ;;
+            add-story)
+              gh workflow run daily-sweep.yml -f story="$IMAGES" -f account="$ACCOUNT" -f notes="$NOTES" -f issue="$ISSUE" ;;
+            hide-story)
+              gh workflow run daily-sweep.yml -f hide="$STORY" -f issue="$ISSUE" ;;
+          esac
           for _ in $(seq 1 12); do
             if [ "$(sweeps_busy)" != "0" ]; then exit 0; fi
             sleep 5
           done
           echo "::warning::The sweep run hasn't appeared yet; the next request may not wait for it."
 
-      - name: Say that adding it couldn't start
-        if: failure() && steps.answer.outputs.action == 'add-post'
+      - name: Say that it couldn't start
+        if: failure() && steps.dispatch.conclusion == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ -s not-started.md ]; then gh issue comment "$ISSUE" --body-file not-started.md; exit 0; fi
-          gh issue comment "$ISSUE" --body "❌ No pude empezar a agregarla. Detalles en [la ejecución]($RUN_URL)."
+          gh issue comment "$ISSUE" --body "❌ No pude empezar. Detalles en [la ejecución]($RUN_URL)."
