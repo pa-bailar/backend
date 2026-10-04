@@ -12,6 +12,11 @@
   "vars": {
     "ALLOWED_USER": "jzamora5", // the only GitHub account that can sign in
     "REPO": "pa-bailar/backend",
-    "STATE_BRANCH": "sweep-state" // where the sweep saves status.json
-  }
+    "STATE_BRANCH": "sweep-state", // where the sweep saves status.json
+    // The audience the sweep workflow asks GitHub's identity token for (OIDC), to download story screenshots
+    "OIDC_AUDIENCE": "pa-bailar-admin"
+  },
+  // Story screenshots waiting to be read (/api/uploads, 7-day expiry). Created in the Cloudflare dashboard
+  // (Storage & Databases → KV); an id isn't a secret.
+  "kv_namespaces": [{ "binding": "UPLOADS", "id": "e276f117718d4ff184e7a55567c49212" }]
 }

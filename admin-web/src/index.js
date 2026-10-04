@@ -10,6 +10,12 @@
 //   /api/requests    POST: a request to the admin tools (check, add or read again a post, add an account), opened as an
 //                    issue in the admin inbox, which the admin workflow answers; GET: the latest requests
 //   /api/requests/N  one request and its answers (the bot's comments)
+//   /api/uploads     POST: a story screenshot (JPEG, shrunk in the browser) kept in KV for 7 days, for an
+//                    "Agregar historia" request; GET: how many wait ("Capturas en espera")
+//   /api/uploads/ID  GET, DELETE: one screenshot, for the sweep workflow only: GitHub Actions' identity token
+//                    (OIDC) of this repository's daily-sweep workflow on main, no secret (verifyOidc)
+//   /share           POST: Android's share menu (manifest.webmanifest) when public/sw.js isn't running yet: a
+//                    link still works, images ask to share again
 //
 // The session is a cookie holding the GitHub token, encrypted (AES-GCM, key from SESSION_SECRET) so the browser
 // can't read or change it. GitHub App user tokens expire after 8 hours; the refresh token renews them (it lasts
@@ -21,6 +27,15 @@
 const SESSION_COOKIE = "session";
 const STATE_COOKIE = "oauth_state";
 const SESSION_DAYS = 30;
+
+// Story screenshots (docs/ADMIN.md, "Agregar historia"): in the UPLOADS KV namespace (wrangler.jsonc), stored as
+// the browser sent them (no image work here: the Worker's CPU limit is 10 ms), deleted by the sweep once the
+// story's event is published, and by KV after UPLOAD_TTL_SECONDS anyway.
+const UPLOAD_PREFIX = "upload:";
+const UPLOAD_TTL_SECONDS = 7 * 24 * 3600;
+const UPLOAD_MAX_BYTES = 8 * 1024 * 1024; // a 1080 px JPEG is well under 1 MB
+const UPLOAD_ID = /^[a-f0-9]{32}$/;
+const MAX_STORY_IMAGES = 4;
 
 // Security headers on every answer from here (JSON, redirects): none of them is a page, so the policy allows
 // nothing. The static files get theirs, with the page's policy, from public/_headers.
@@ -52,6 +67,8 @@ async function route(request, env) {
         return await callback(request, url, env);
       case "/auth/logout":
         return redirect("/", clearCookie(SESSION_COOKIE));
+      case "/share":
+        return await shareWithoutServiceWorker(request);
       case "/api/me":
         return await withSession(request, env, (session) => Response.json({ login: session.login }));
       case "/api/status":
@@ -62,9 +79,17 @@ async function route(request, env) {
           return await withSession(request, env, (session) => createRequest(request, session, env));
         }
         return await withSession(request, env, (session) => listRequests(session, env));
+      case "/api/uploads":
+        if (request.method === "POST") {
+          if (request.headers.get("Origin") !== url.origin) return new Response("Forbidden", { status: 403 });
+          return await withSession(request, env, () => storeUpload(request, env));
+        }
+        return await withSession(request, env, () => countUploads(env));
       default: {
         const match = url.pathname.match(/^\/api\/requests\/(\d+)$/);
         if (match) return await withSession(request, env, (session) => readRequest(match[1], session, env));
+        const upload = url.pathname.match(/^\/api\/uploads\/([a-f0-9]{32})$/);
+        if (upload) return await sweepUpload(request, upload[1], env);
         return new Response("Not found", { status: 404 });
       }
     }
@@ -164,26 +189,38 @@ async function readStatus(session, env) {
 // lines): it goes into the issue's body, which the inbox reads line by line.
 const POST_LINK = /^https?:\/\/(www\.|m\.)?instagram\.com\/([\w.]+\/)?(p|reel|reels|tv)\/[\w-]+\/?(\?[^\s#]*)?(#\S*)?$/i;
 const ACCOUNT = /^[A-Za-z0-9._]{1,30}$/; // tested without its "@"
+const STORY_ID = /^story-[a-f0-9]{16}$/; // a story published from screenshots (pa_bailar/stories.py)
+const NOTES_MAX = 500;
 const ACTIONS = {
   why: "Revisar",
   "add-post": "Agregar",
   "add-post-again": "Volver a leer",
   "add-account": "Agregar cuenta",
   status: "Estado",
+  "add-story": "Agregar historia",
+  "hide-story": "Ocultar historia",
 };
 const POST_ACTIONS = new Set(["why", "add-post", "add-post-again"]); // the ones that need a post link
 
-/** POST {action, link?, account?} → an issue written like the inbox's form (pa_bailar/inbox.py reads it). */
+/**
+ * POST {action, link?, account?, images?, notes?, story?} → an issue written like the inbox's form
+ * (pa_bailar/inbox.py reads it). "add-story" takes the ids of screenshots uploaded first (/api/uploads) and
+ * optional notes; "hide-story" a published story's id (story-…), from the answer to an "add-story".
+ */
 async function createRequest(request, session, env) {
-  const { action, link = "", account = "" } = (await request.json().catch(() => null)) ?? {};
+  const fields = (await request.json().catch(() => null)) ?? {};
+  const { action, link = "", account = "" } = fields;
   const cleanLink = String(link).trim();
   const cleanAccount = String(account).trim().replace(/^@/, "");
   if (!Object.hasOwn(ACTIONS, action)) return Response.json({ error: "Acción desconocida." }, { status: 400 });
-  if (POST_ACTIONS.has(action) && !POST_LINK.test(cleanLink)) {
-    return Response.json({ error: "Pega el enlace de una publicación de Instagram (instagram.com/p/…)." }, { status: 400 });
-  }
   if (cleanAccount && !ACCOUNT.test(cleanAccount)) {
     return Response.json({ error: "Esa @cuenta no es válida." }, { status: 400 });
+  }
+  if (action === "add-story" || action === "hide-story") {
+    return createStoryRequest(action, fields, cleanAccount, session, env);
+  }
+  if (POST_ACTIONS.has(action) && !POST_LINK.test(cleanLink)) {
+    return Response.json({ error: "Pega el enlace de una publicación de Instagram (instagram.com/p/…)." }, { status: 400 });
   }
   if (action === "add-account" && !cleanAccount) {
     return Response.json({ error: "Escribe la @cuenta a agregar." }, { status: 400 });
@@ -202,6 +239,203 @@ async function createRequest(request, session, env) {
   if (!response.ok) return githubError(response, " al crear el pedido");
   const issue = await response.json();
   return Response.json({ number: issue.number, url: issue.html_url });
+}
+
+/** "Agregar historia" (the uploaded screenshots' ids, @cuenta and notes) or "Ocultar historia" (its id). */
+async function createStoryRequest(action, fields, account, session, env) {
+  let title;
+  let body;
+  if (action === "add-story") {
+    const images = Array.isArray(fields.images) ? [...new Set(fields.images.map(String))] : [];
+    if (!images.length || images.length > MAX_STORY_IMAGES || !images.every((id) => UPLOAD_ID.test(id))) {
+      return Response.json({ error: `Elige de 1 a ${MAX_STORY_IMAGES} capturas.` }, { status: 400 });
+    }
+    // One line: the inbox reads the issue's fields by their "### " headings.
+    const notes = String(fields.notes ?? "").replace(/\s+/g, " ").trim().slice(0, NOTES_MAX);
+    const count = images.length === 1 ? "1 captura" : `${images.length} capturas`;
+    title = `${ACTIONS[action]}: ${account ? `@${account}` : count}`;
+    body = [
+      `### Acción\n\n${ACTIONS[action]}`,
+      `### Capturas\n\n${images.join(" ")}`,
+      `### Cuenta\n\n${account ? `@${account}` : "_No response_"}`,
+      `### Notas\n\n${notes || "_No response_"}`,
+    ];
+  } else {
+    const story = String(fields.story ?? "").trim();
+    if (!STORY_ID.test(story)) return Response.json({ error: "Esa historia no es válida." }, { status: 400 });
+    title = `${ACTIONS[action]}: ${story}`;
+    body = [`### Acción\n\n${ACTIONS[action]}`, `### Historia\n\n${story}`];
+  }
+  const text = [...body, "_Desde la página de administración._"].join("\n\n");
+  const response = await github(`/repos/${env.REPO}/issues`, session.access_token, undefined, {
+    method: "POST",
+    body: JSON.stringify({ title, body: text, labels: ["admin"] }),
+  });
+  if (!response.ok) return githubError(response, " al crear el pedido");
+  const issue = await response.json();
+  return Response.json({ number: issue.number, url: issue.html_url });
+}
+
+// ---------- story screenshots: uploads (KV) ----------
+
+const noUploads = () => Response.json({ error: "Falta configurar el almacenamiento de capturas (KV)." }, { status: 503 });
+const tooBig = () => Response.json({ error: "La captura es demasiado grande." }, { status: 413 });
+
+/** POST a JPEG (the page shrinks it first) → {id}. Its file name and date go along as headers, for the sweep. */
+async function storeUpload(request, env) {
+  if (!env.UPLOADS) return noUploads();
+  if (request.headers.get("Content-Type") !== "image/jpeg") {
+    return Response.json({ error: "La captura debe llegar como JPEG." }, { status: 415 });
+  }
+  if (Number(request.headers.get("Content-Length") ?? 0) > UPLOAD_MAX_BYTES) return tooBig();
+  const bytes = await request.arrayBuffer();
+  if (bytes.byteLength > UPLOAD_MAX_BYTES) return tooBig();
+  const start = new Uint8Array(bytes, 0, Math.min(3, bytes.byteLength));
+  if (start.length < 3 || start[0] !== 0xff || start[1] !== 0xd8 || start[2] !== 0xff) {
+    return Response.json({ error: "Eso no es una imagen JPEG." }, { status: 415 });
+  }
+  let name = "";
+  try {
+    name = decodeURIComponent(request.headers.get("X-File-Name") ?? "").slice(0, 120);
+  } catch {}
+  const modified = Number(request.headers.get("X-File-Modified"));
+  const metadata = { name, modified: Number.isFinite(modified) && modified > 0 ? modified : null, uploaded: Date.now() };
+  const id = [...crypto.getRandomValues(new Uint8Array(16))].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  await env.UPLOADS.put(UPLOAD_PREFIX + id, bytes, { expirationTtl: UPLOAD_TTL_SECONDS, metadata });
+  return Response.json({ id }, { status: 201 });
+}
+
+/** How many screenshots wait in KV (not yet published, or expiring): "Capturas en espera". */
+async function countUploads(env) {
+  if (!env.UPLOADS) return noUploads();
+  const listed = await env.UPLOADS.list({ prefix: UPLOAD_PREFIX });
+  return Response.json(
+    { waiting: listed.keys.length, more: !listed.list_complete },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}
+
+/** GET (the image, its metadata in X-Upload-Meta) or DELETE one screenshot: only for the sweep workflow. */
+async function sweepUpload(request, id, env) {
+  if (!env.UPLOADS) return noUploads();
+  if (!["GET", "DELETE"].includes(request.method)) return new Response("Method not allowed", { status: 405 });
+  if (!(await verifyOidc(request, env))) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const key = UPLOAD_PREFIX + id;
+  if (request.method === "DELETE") {
+    await env.UPLOADS.delete(key);
+    return new Response(null, { status: 204 });
+  }
+  const { value, metadata } = await env.UPLOADS.getWithMetadata(key, { type: "arrayBuffer" });
+  if (value === null) return Response.json({ error: "Not found" }, { status: 404 });
+  return new Response(value, {
+    headers: {
+      "Content-Type": "image/jpeg",
+      "Cache-Control": "no-store",
+      "X-Upload-Meta": encodeURIComponent(JSON.stringify(metadata ?? {})),
+    },
+  });
+}
+
+// ---------- GitHub Actions' identity token (OIDC) ----------
+
+const OIDC_ISSUER = "https://token.actions.githubusercontent.com";
+const JWKS_REFRESH_MS = 60 * 60 * 1000;
+let jwks = { keys: new Map(), fetchedAt: 0 }; // kept while this Worker instance lives: few fetches, little CPU
+
+/**
+ * The claims of a valid identity token from this repository's daily-sweep workflow on main, else null: signed
+ * by GitHub (RS256, its published keys), for this Worker (aud: OIDC_AUDIENCE), not expired.
+ * https://docs.github.com/en/actions/reference/security/oidc
+ */
+export async function verifyOidc(request, env, now = Date.now()) {
+  const token = (request.headers.get("Authorization") ?? "").match(/^Bearer ([\w-]+\.[\w-]+\.[\w-]+)$/)?.[1];
+  if (!token || !env.OIDC_AUDIENCE) return null;
+  const [headerPart, payloadPart, signaturePart] = token.split(".");
+  let header;
+  let claims;
+  try {
+    header = JSON.parse(new TextDecoder().decode(fromBase64url(headerPart)));
+    claims = JSON.parse(new TextDecoder().decode(fromBase64url(payloadPart)));
+  } catch {
+    return null;
+  }
+  const seconds = now / 1000;
+  const audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
+  const ok =
+    header.alg === "RS256" &&
+    typeof header.kid === "string" &&
+    claims.iss === OIDC_ISSUER &&
+    audiences.includes(env.OIDC_AUDIENCE) &&
+    typeof claims.exp === "number" &&
+    claims.exp > seconds &&
+    (claims.nbf === undefined || claims.nbf <= seconds + 60) &&
+    claims.repository === env.REPO &&
+    claims.ref === "refs/heads/main" &&
+    String(claims.workflow_ref ?? "").startsWith(`${env.REPO}/.github/workflows/daily-sweep.yml@`);
+  if (!ok) return null;
+  const key = await signingKey(header.kid, now);
+  if (!key) return null;
+  try {
+    const signed = new TextEncoder().encode(`${headerPart}.${payloadPart}`);
+    const valid = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, fromBase64url(signaturePart), signed);
+    return valid ? claims : null;
+  } catch {
+    return null;
+  }
+}
+
+/** GitHub's public key with this id: fetched (and cached by Cloudflare for an hour) when unknown or old. */
+async function signingKey(kid, now) {
+  const fresh = now - jwks.fetchedAt < JWKS_REFRESH_MS;
+  if (fresh && jwks.keys.has(kid)) return jwks.keys.get(kid);
+  if (now - jwks.fetchedAt < 60_000) return null; // just fetched: an unknown key stays unknown for a minute
+  const response = await fetch(`${OIDC_ISSUER}/.well-known/jwks`, { cf: { cacheTtl: 3600, cacheEverything: true } });
+  if (!response.ok) return null;
+  const { keys = [] } = await response.json();
+  const imported = new Map();
+  for (const jwk of keys) {
+    if (jwk.kty !== "RSA" || !jwk.kid) continue;
+    const key = await crypto.subtle.importKey(
+      "jwk",
+      { kty: "RSA", n: jwk.n, e: jwk.e, alg: "RS256", ext: true },
+      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+      false,
+      ["verify"],
+    );
+    imported.set(jwk.kid, key);
+  }
+  jwks = { keys: imported, fetchedAt: now };
+  return imported.get(kid) ?? null;
+}
+
+/** Forget the cached keys (tests). */
+export function resetJwksCache() {
+  jwks = { keys: new Map(), fetchedAt: 0 };
+}
+
+// ---------- the share menu without the service worker ----------
+
+/**
+ * Android posts what's shared to /share (manifest.webmanifest); public/sw.js normally answers it in the browser.
+ * When the service worker isn't running yet (the first share after installing), it arrives here: a link (a few
+ * text fields) goes on to the page as before; images are too big to handle here, so the page asks to share again.
+ */
+async function shareWithoutServiceWorker(request) {
+  if (request.method !== "POST") return redirect("/");
+  const length = Number(request.headers.get("Content-Length") ?? Number.POSITIVE_INFINITY);
+  if (length <= 64 * 1024) {
+    const form = await request.formData().catch(() => null);
+    const values = form ? [...form.values()] : [];
+    if (values.length && values.every((value) => typeof value === "string")) {
+      const params = new URLSearchParams();
+      for (const name of ["title", "text", "url"]) {
+        const value = form.get(name);
+        if (typeof value === "string" && value.trim()) params.set(name, value.slice(0, 2000));
+      }
+      if (params.size) return redirect(`/?${params}`, 303);
+    }
+  }
+  return redirect("/?share=retry", 303);
 }
 
 /** The latest admin requests (open and answered). */
@@ -314,10 +548,12 @@ function readCookie(request, name) {
   return match ? match.slice(name.length + 1) : null;
 }
 
-function redirect(location, ...cookies) {
+/** A redirect (302, or the status given second) that may set cookies. */
+function redirect(location, ...rest) {
+  const status = typeof rest[0] === "number" ? rest.shift() : 302;
   const headers = new Headers({ Location: location, "Cache-Control": "no-store" });
-  for (const value of cookies) headers.append("Set-Cookie", value);
-  return new Response(null, { status: 302, headers });
+  for (const value of rest) headers.append("Set-Cookie", value);
+  return new Response(null, { status, headers });
 }
 
 function base64url(bytes) {
@@ -325,6 +561,7 @@ function base64url(bytes) {
 }
 
 function fromBase64url(text) {
-  const plain = atob(text.replaceAll("-", "+").replaceAll("_", "/"));
+  const padded = text + "=".repeat((4 - (text.length % 4)) % 4);
+  const plain = atob(padded.replaceAll("-", "+").replaceAll("_", "/"));
   return Uint8Array.from(plain, (char) => char.charCodeAt(0));
 }

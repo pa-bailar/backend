@@ -5,7 +5,7 @@ on the site, add a post or an account by hand.
 
 | What | Where | State |
 |---|---|---|
-| **The admin page**: status dashboard, check, add or read again a post, add an account | https://pa-bailar-admin.jzamorac-9.workers.dev | Done |
+| **The admin page**: status dashboard, check, add or read again a post, add an account, add an event from a story's screenshots | https://pa-bailar-admin.jzamorac-9.workers.dev | Done |
 | **The admin inbox**: the same requests as issues in this repository, from the GitHub app | Issues → New issue | Done |
 | **Commands** on your computer: `admin status`, `admin why`, `admin add-account`, `sweep --post` | Terminal | Done |
 | Corrections: `corrections.json` and `admin fix`, fed by the site's report form | | Planned |
@@ -34,6 +34,9 @@ Open https://pa-bailar-admin.jzamorac-9.workers.dev and sign in with GitHub (onl
   - **@cuenta:** rarely needed: when the link doesn't say the account, it's read from the post's public page.
 - **Agregar una cuenta a los barridos:** checks that Instagram can read it (business or creator accounts
   only), then adds it. The next sweep reads its last 30 days of posts.
+- **Agregar desde una historia:** an event announced in an Instagram story, from **screenshots** of it
+  (Instagram doesn't let anything outside the app read a story, and a story's link alone can't be read).
+  See "Adding an event from a story" below.
 - **Pedidos recientes:** the latest requests; tap one to see its answer again. The page follows a request it
   sent (or one you tapped) for 15 minutes; if it's still running then, it says so: tap it again later.
   Each button sends one request per tap.
@@ -46,11 +49,44 @@ opens it and shows the answer when it arrives.
 
 **Sharing from Instagram (Android):** install the page once (Chrome → ⋮ → "Instalar app" or "Agregar a la
 pantalla principal"). It then shows up as **PB Admin** (the record on marigold, with a wrench) in the share
-menu: on a post, the paper plane → "Compartir en…" → PB Admin. The page opens with the post's link filled in
-(without Instagram's `?igsh=` tracking): tap Revisar, Agregar or Volver a leer. If the session ended, it asks you to sign in
-and keeps the link for 30 minutes. Sharing anything else (a profile, a story) opens the page with a note that
-it isn't a post's link. iPhones don't support sharing to web pages: there, copy the link and paste
-it.
+menu, for links and for images:
+- **A post:** the paper plane → "Compartir en…" → PB Admin. The page opens with the post's link filled in
+  (without Instagram's `?igsh=` tracking): tap Revisar, Agregar or Volver a leer. If the session ended, it asks
+  you to sign in and keeps the link for 30 minutes.
+- **A story's screenshot** (or several): see "Adding an event from a story" below.
+- **A story's link:** a link alone can't be read, so the page keeps its @cuenta for 30 minutes, fills it in
+  under "Agregar desde una historia" and asks for the screenshot.
+- Anything else (a profile) opens the page with a note that it isn't a post's link.
+
+iPhones don't support sharing to web pages: there, copy a post's link and paste it, and pick story screenshots
+with **Elegir capturas**.
+
+If PB Admin was installed before story screenshots could be shared (October 2026), Android may take up to a day
+to list it for images: uninstall it and install it again (Chrome → the page → ⋮ → "Instalar app") to see it
+right away. The first share right after installing can arrive before the page is ready: it then says so, and
+sharing again works.
+
+### Adding an event from a story
+
+1. Open the story and take a **screenshot** (power + volume down). If the story shows another post's card
+   (a reshared post), tap the card and share **that post** instead: its link gives a better image and the
+   caption.
+2. **Android:** on the screenshot's preview (or later in Photos / Files), Share → **PB Admin**. A story spread
+   over several slides: take one screenshot per slide and share them together (up to 4), or one at a time:
+   they add up. **iPhone or computer:** open the page and tap **Elegir capturas**.
+3. The page shows the screenshots under **Agregar desde una historia**, with two optional fields:
+   - **@cuenta:** whose story it is. Usually not needed: it's read from the name at the top of the story. A
+     story's link shared just before fills it in.
+   - **Notas:** what the image doesn't say or says badly ("sábado 12, Galería Café Libro"). They help read the
+     story and are never published.
+4. Tap **Agregar desde historia**. Each screenshot is made smaller (1080 px wide, JPEG, the phone's status bar
+   cut off) on the phone, uploaded, and a request is opened like the others. The answer appears below.
+   Reading the screenshots and publishing their event is the sweep's story mode (`sweep --story`), which
+   comes separately: until it's merged, the inbox answers such a request with its list of commands.
+
+Screenshots shared or picked wait on the phone (for a day) until they're sent, so signing in again doesn't
+lose them; ✕ removes one. Once uploaded, they're kept on Cloudflare (KV) for at most 7 days: deleted as soon as
+their event is published, otherwise they expire. **Capturas en espera** (under the form) counts them.
 
 ### From GitHub (the inbox)
 
@@ -183,16 +219,37 @@ flowchart LR
 - **Files:**
   - `admin-web/wrangler.jsonc`: the Worker's settings. Its `name` must match the Worker's name in Cloudflare.
   - `admin-web/public/`: the page (`index.html`, `app.js`, `admin.css`), with no data in it, and what
-    makes it installable: `manifest.webmanifest` (name, colors, icons in `icons/`) with a
-    `share_target`, so Android sends shared posts to `/?text=<link>`. `_headers` gives these files their
-    security headers (below); Cloudflare applies it and doesn't serve it.
+    makes it installable: `manifest.webmanifest` (name, colors, icons in `icons/`) with a `share_target`:
+    Android posts what's shared (a link's text, up to 4 images) to `/share`. `sw.js`, the page's service
+    worker, answers that in the browser: it keeps shared images in the browser's Cache Storage (where
+    `app.js` picks them up, also after a sign-in) and sends links on to `/?text=<link>`. It handles nothing
+    else (no offline copy). `_headers` gives these files their security headers (below); Cloudflare applies
+    it and doesn't serve it.
   - `admin-web/icons-src/make-icons.mjs`: draws those icons, the site's record on marigold with a wrench badge,
     so the two apps can't be confused on the phone (`node admin-web/icons-src/make-icons.mjs`).
   - `admin-web/src/index.js`: the server side:
     - sign-in: `/auth/login`, `/auth/callback`, `/auth/logout`;
     - data: `/api/health`, `/api/me`, `/api/status`;
     - requests: `/api/requests` (POST opens a request issue, GET lists the latest) and
-      `/api/requests/<number>` (its answers).
+      `/api/requests/<number>` (its answers);
+    - story screenshots: `/api/uploads` (POST stores one, GET counts those waiting) and
+      `/api/uploads/<id>` (GET, DELETE: only for the sweep workflow, below);
+    - `/share`: what Android shares when `sw.js` isn't running yet (the first share after installing): a
+      link goes on to the page, images get "share again".
+  - `admin-web/test/worker.test.mjs`: the Worker's tests (`node --test "admin-web/test/*.test.mjs"`, run by
+    `ci`), with fakes for GitHub, its keys and KV.
+- **Story screenshots (KV):** the KV namespace bound as `UPLOADS` (`wrangler.jsonc`) keeps them as the page
+  sent them (the Worker does no image work: its CPU limit is 10 ms), each with its file name and date, under
+  `upload:<id>` with a 7-day expiry.
+  - Uploading needs the session and the page's origin; only JPEG, at most 8 MB (the page sends well under
+    1 MB).
+  - Reading or deleting one (`/api/uploads/<id>`) takes no session and no secret: GitHub Actions' identity
+    token (OIDC). The Worker checks its RS256 signature against GitHub's published keys (fetched from
+    `https://token.actions.githubusercontent.com/.well-known/jwks`, kept for an hour), and that it's for this
+    Worker (`aud`: `OIDC_AUDIENCE`), unexpired, from `pa-bailar/backend` on `refs/heads/main`, and from the
+    `daily-sweep.yml` workflow. Nothing else gets in, a session included.
+  - KV's free plan: 1,000 writes a day (one per screenshot), 25 MiB per value, and a new value can take up
+    to 60 s to reach other Cloudflare locations, so the download retries for about two minutes.
 - **Sign-in:** "Iniciar sesión con GitHub", through the `pa-bailar-admin` GitHub App. Only `jzamora5`
   (`ALLOWED_USER` in `wrangler.jsonc`) gets in.
   - The session is a cookie holding the GitHub token, encrypted with `SESSION_SECRET`.
@@ -210,10 +267,12 @@ flowchart LR
   - **Content-Security-Policy.** The page may load only its own files (`app.js`, `admin.css`, the manifest and
     icons) and Google Fonts, and talk only to its own Worker:
     `default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com;
-    font-src https://fonts.gstatic.com; img-src 'self'; connect-src 'self'; manifest-src 'self';
-    form-action 'none'; base-uri 'none'; frame-ancestors 'none'`. No inline scripts or `style=""` attributes:
-    `app.js` sets the meters' width through `element.style`. The Worker's answers aren't pages, so theirs allows
-    nothing (`default-src 'none'`).
+    font-src https://fonts.gstatic.com; img-src 'self' blob: https://pa-bailar.github.io; connect-src 'self';
+    manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'`.
+    Images: the page's own, the screenshots being prepared (`blob:`), and a published story's flyer on the site
+    (in its answer). The only worker is `sw.js`. No inline scripts or `style=""` attributes: `app.js` sets the
+    meters' width through `element.style`. The Worker's answers aren't pages, so theirs allows nothing
+    (`default-src 'none'`).
   - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` (no other site can frame the page),
     `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security`. The page's files also get
     `Permissions-Policy` (no camera, microphone, location, sensors, payments or USB) and
@@ -259,3 +318,10 @@ flowchart LR
      Changing it signs everyone out.
 
 Until the three secrets exist, the page says that the sign-in isn't set up yet.
+
+### Story screenshots setup (done once)
+
+Cloudflare dashboard → **Storage & Databases** → **KV** → **Create** (any name, e.g. `pa-bailar-uploads`), then
+put its id in `admin-web/wrangler.jsonc` (`kv_namespaces`, binding `UPLOADS`; an id isn't a secret). Done for
+the namespace `e276f117718d4ff184e7a55567c49212`. Without the binding, the page says that the screenshots'
+storage isn't set up. No new secret: the sweep workflow signs in with GitHub's identity token.

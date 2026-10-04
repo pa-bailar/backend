@@ -22,7 +22,7 @@ tests/                unit and end-to-end tests (no network)
 docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, monitoring (start here)
 docs/ADMIN.md         the admin tools: the admin page, the inbox, the commands
 docs/PLAN.md          the original go-live plan, kept for its decisions
-admin-web/            the admin page, a Cloudflare Worker (docs/ADMIN.md)
+admin-web/            the admin page, a Cloudflare Worker (docs/ADMIN.md); its tests in admin-web/test
 accounts.txt          the accounts to follow: academies, companies, organizers, artists
 state/                local sweep state (git-ignored; on GitHub: the sweep-state branch)
 .claude/              Claude Code: workspace instructions, skills, hooks (Working with Claude Code, below)
