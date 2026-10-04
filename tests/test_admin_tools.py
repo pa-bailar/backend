@@ -308,6 +308,20 @@ def test_reading_a_real_embed_page():
         public_post.parse_embed("x", "<html>Instagram</html>")  # the empty page plain scripts get
 
 
+def test_a_public_page_author_that_isnt_a_username_is_refused():
+    page = '<div class="UsernameText">../../accounts</div><img class="EmbeddedMediaImage" src="https://cdn.example/f.jpg"/>'
+    with pytest.raises(public_post.PublicPostError, match="quién la publicó"):
+        public_post.parse_embed("Dc_Jsv6R6Wu", page)
+    author, _ = public_post.parse_embed("Dc_Jsv6R6Wu", page.replace("../../accounts", "LevelUpBFC"))
+    assert author == "levelupbfc"
+
+
+def test_post_codes_are_ascii_only_like_the_sites_check():
+    assert links.post_code("https://www.instagram.com/p/Dd5JAAxjhg5/") == "Dd5JAAxjhg5"
+    assert links.post_code("https://www.instagram.com/p/Dd5JAÁxjhg5/") == "Dd5JA"  # stops at the first non-ASCII
+    assert links.post_code("https://www.instagram.com/p/ñandú/") is None
+
+
 def test_why_finds_the_author_on_the_public_page():
     result = why.diagnose(LINK, read=state(), author_of=lambda code: "otra", now=NOW)
     assert result.account == "otra" and "no está en los barridos" in result.checks[0][1]
@@ -428,13 +442,52 @@ def test_the_public_page_gives_the_posts_real_date_and_only_numeric_ids():
     "text",
     [
         f"/releer {LINK}",
-        f"Volver a leer {LINK}",
-        f"reléela por favor {LINK}",
+        f"Gracias.\n  /releer {LINK}",
         f"### Acción\n\nVolver a leer\n\n### Enlace\n\n{LINK}\n\n### Cuenta\n\n_No response_",
     ],
 )
 def test_the_inbox_understands_reading_a_post_again(text):
     assert inbox.parse(text) == inbox.Request("add-post", LINK, again=True)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        f"¿Hay que volver a leer esta? {LINK}",
+        f"Volver a leer {LINK}",
+        f"reléela por favor {LINK}",
+        f"mira {LINK} y luego /releer",
+    ],
+)
+def test_reading_again_in_free_text_needs_the_command_at_the_start_of_a_line(text):
+    """Reading again spends Gemini on a post already read: only the form's action or /releer ask for it."""
+    assert inbox.parse(text) == inbox.Request("why", LINK)
+
+
+@pytest.mark.parametrize(
+    ("text", "labelled", "answered"),
+    [
+        ("Idea: un filtro por barrio", False, False),  # the owner's own notes: left alone
+        ("Idea: un filtro por barrio", True, True),  # in the admin inbox: the help
+        (f"Revisa {LINK}", False, True),  # a request, wherever it's written
+        ("/estado", False, True),
+    ],
+)
+def test_the_inbox_answers_only_admin_issues_and_requests(text, labelled, answered, monkeypatch, tmp_path):
+    from pa_bailar.commands import admin
+
+    monkeypatch.setattr(admin.sweep_state, "refresh", lambda: True)
+    monkeypatch.setattr(admin, "answer", lambda request: ("respuesta", True))
+    outputs, reply = tmp_path / "outputs", tmp_path / "reply.md"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(outputs))
+    monkeypatch.setenv("INBOX_REPLY", str(reply))
+    monkeypatch.setenv("ISSUE_TITLE", text)
+    monkeypatch.setenv("ISSUE_BODY", "")
+    monkeypatch.delenv("COMMENT_BODY", raising=False)
+    monkeypatch.setenv("ADMIN_ISSUE", "true" if labelled else "false")
+    admin.main(["inbox"])
+    assert reply.exists() == answered
+    assert ("action=skip" in outputs.read_text(encoding="utf-8")) == (not answered)
 
 
 def test_reading_a_post_again_spends_one_gemini_request_even_if_it_hasnt_changed():

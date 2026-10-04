@@ -136,15 +136,21 @@ def main(argv: list[str] | None = None) -> None:
         issue = f"{os.environ.get('ISSUE_TITLE', '')}\n\n{os.environ.get('ISSUE_BODY', '')}"
         text = os.environ.get("COMMENT_BODY") or issue
         request = inbox.parse(text)
-        reply, done = answer(request)
-        Path(os.environ.get("INBOX_REPLY", "reply.md")).write_text(reply, encoding="utf-8")
+        # Only the admin's inbox: an issue already labelled `admin` (the form, the admin page), or a text that
+        # asks for something. The owner's other issues and comments aren't requests: no answer, no label.
+        if request.action == "help" and os.environ.get("ADMIN_ISSUE") != "true":
+            _write_outputs(action="skip")
+            print("Not an admin request: no answer.")
+            return
         _write_outputs(
             action=request.action,
             link=request.link or "",
             account=request.account or "",
             again=str(request.again).lower(),
-            done=str(done).lower(),
         )
+        reply, done = answer(request)
+        Path(os.environ.get("INBOX_REPLY", "reply.md")).write_text(reply, encoding="utf-8")
+        _write_outputs(done=str(done).lower())
         print(reply)
 
 

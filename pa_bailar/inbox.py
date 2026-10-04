@@ -2,10 +2,12 @@
 
 Understood (in the issue form's fields, or as plain text in an issue or a comment):
   - a post link: "Revisar" (why its event is or isn't on the site), "Agregar" (publish it), or "Volver a leer"
-    (/releer: read it again with Gemini even if it was read before and hasn't changed)
+    (the form's action, or /releer at the start of a line: read it again with Gemini even if it was read before
+    and hasn't changed)
   - "Agregar cuenta" with an @account: add it to the sweeps
   - "Estado" or /estado: how the sweeps, quotas and accounts are doing
-Anything else gets the list of what's understood.
+Anything else gets the list of what's understood, but only in the admin's inbox: an issue labelled `admin`
+(the form, the admin page) or a text that asks for one of these (`is_request`). Other issues are left alone.
 """
 
 import re
@@ -27,8 +29,10 @@ _ACTIONS: dict[str, Action] = {
     "agregar cuenta": "add-account",
     "estado": "status",
 }
-# "Volver a leer" (the form, the admin page), "/releer", "reléela"…: add-post, reading it again anyway.
-_AGAIN = re.compile(r"(^|\s)/releer\b|volver a leer|\brel[eé]el[ao]\b", re.IGNORECASE)
+# In free text, reading a post again is a command at the start of a line: the words "volver a leer" in a
+# sentence ("¿hay que volver a leer esto?") are no request to spend Gemini on it. The form and the admin page
+# say it in their "Acción" field.
+_AGAIN = re.compile(r"^\s*/releer\b", re.IGNORECASE | re.MULTILINE)
 
 HELP = """Puedo hacer esto (escribe en un issue nuevo o en un comentario):
 
@@ -77,7 +81,7 @@ def parse(text: str) -> Request:
             return Request("help")
         if action == "add-account" and not account:
             return Request("help")
-        again = action == "add-post" and bool(_AGAIN.search(fields.get("acción") or fields.get("accion") or ""))
+        again = (fields.get("acción") or fields.get("accion") or "").lower() == "volver a leer"
         return Request(action, post if action in ("why", "add-post") else None, account, again)
 
     lowered = text.lower()
@@ -94,3 +98,8 @@ def parse(text: str) -> Request:
         action = "add-post" if re.search(r"(^|\s)/?agr[eé]g|\bpubl[ií]c", lowered) else "why"
         return Request(action, link, account)
     return Request("help")
+
+
+def is_request(text: str) -> bool:
+    """Whether a text asks the admin tools for something they understand (not just the help)."""
+    return parse(text).action != "help"

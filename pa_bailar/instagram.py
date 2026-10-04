@@ -142,8 +142,8 @@ class InstagramClient:
 
 
 def redact(text: str) -> str:
-    """Text without access tokens (error messages that quote a Graph API URL)."""
-    return re.sub(r"(access_token=)[^&\s'\"]+", r"\1***", text)
+    """Text without access tokens or the app's secret (error messages that quote a Graph API URL)."""
+    return re.sub(r"((?:access_token|client_secret|fb_exchange_token|input_token)=)[^&\s'\"]+", r"\1***", text)
 
 
 def is_rate_limited(error: InstagramError) -> bool:

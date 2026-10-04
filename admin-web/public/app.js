@@ -284,7 +284,7 @@ function useSharedLink() {
   document.getElementById("post-link").value = link;
   document
     .getElementById("post-form")
-    .insertAdjacentHTML("afterbegin", `<p class="shared">📎 Enlace recibido: elige <b>Revisar</b> o <b>Agregar</b>.</p>`);
+    .insertAdjacentHTML("afterbegin", `<p class="shared">📎 Enlace recibido: elige <b>Revisar</b>, <b>Agregar</b> o <b>Volver a leer</b>.</p>`);
 }
 
 function showDashboard(status) {

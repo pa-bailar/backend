@@ -21,7 +21,7 @@ from typing import Any, cast
 
 from curl_cffi import requests
 
-from . import config
+from . import config, links
 from .instagram import MediaItem, Post
 
 ID_PREFIX = "public-"  # a post read here: the API knows it by another id (pipeline.py matches them by link)
@@ -54,7 +54,11 @@ def parse_embed(code: str, page: str) -> tuple[str, Post]:
     parsed = _from_structured_data(code, page) or _from_page(code, page)
     if parsed is None:
         raise PublicPostError("su página pública no muestra la publicación (¿privada o borrada?)")
-    return parsed
+    # The author becomes an account (its posts, accounts.txt): only a valid username gets that far.
+    author = links.account_name(parsed[0])
+    if author is None:
+        raise PublicPostError("su página pública no dice bien quién la publicó")
+    return author, parsed[1]
 
 
 def _post(code: str, post_id: str, media_type: str, caption: str, taken_at: int | None = None, **media: Any) -> Post:

@@ -161,7 +161,9 @@ async function readStatus(session, env) {
 
 // ---------- requests: issues in the admin inbox (.github/workflows/admin.yml answers them) ----------
 
-const POST_LINK = /^https?:\/\/(www\.|m\.)?instagram\.com\/([\w.]+\/)?(p|reel|reels|tv)\/[\w-]+/i;
+// The whole value is one post link (a slash, a query like ?igsh=… and a #fragment allowed, no spaces or new
+// lines): it goes into the issue's body, which the inbox reads line by line.
+const POST_LINK = /^https?:\/\/(www\.|m\.)?instagram\.com\/([\w.]+\/)?(p|reel|reels|tv)\/[\w-]+\/?(\?[^\s#]*)?(#\S*)?$/i;
 const ACCOUNT = /^@?[A-Za-z0-9._]{1,30}$/;
 const ACTIONS = {
   why: "Revisar",

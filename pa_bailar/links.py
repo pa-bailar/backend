@@ -11,7 +11,7 @@ from . import config
 
 _POST = re.compile(
     r"^(?:https?://)?(?:www\.|m\.)?instagram\.com/(?:(?P<account>[\w.]+)/)?(?:p|reel|reels|tv)/(?P<code>[\w-]+)",
-    re.IGNORECASE,
+    re.IGNORECASE | re.ASCII,  # \w: ASCII letters, digits and _ only, like the codes the site accepts
 )
 _ACCOUNT = re.compile(r"^@?([A-Za-z0-9._]{1,30})$")
 _PROFILE = re.compile(r"^(?:https?://)?(?:www\.|m\.)?instagram\.com/([A-Za-z0-9._]{1,30})/?(?:\?.*)?$", re.IGNORECASE)

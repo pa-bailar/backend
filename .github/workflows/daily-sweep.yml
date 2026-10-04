@@ -66,13 +66,14 @@ jobs:
   # Adding a post by hand publishes it without the filter, and may add its account to main: only for a
   # request the admin workflow passed on (an open `admin` issue by the owner). Whoever can start this workflow
   # otherwise (the cron-job.org token) can't use it to publish anything, nor put text into a shell command.
+  # Skipped (no runner, no minute billed) for a regular sweep.
   request:
+    if: ${{ inputs.post_url != '' || inputs.issue != '' }}
     runs-on: ubuntu-latest
     permissions:
-      issues: read
+      issues: write # the answer when the request can't start
     steps:
       - name: Check the admin request
-        if: ${{ inputs.post_url != '' || inputs.issue != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ inputs.issue }}
@@ -89,8 +90,26 @@ jobs:
             exit 1
           fi
 
+      # The sweep job won't run, so its answer neither: say it here. Only on an open admin issue by the owner,
+      # never on another issue whose number was passed in.
+      - name: Answer on the admin issue that adding couldn't start
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ inputs.issue }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if ! [[ "$ISSUE" =~ ^[0-9]+$ ]]; then exit 0; fi
+          ok="$(gh issue view "$ISSUE" --repo "$GITHUB_REPOSITORY" --json state,author,labels \
+            --jq '.state == "OPEN" and .author.login == env.NOTIFY and any(.labels[]; .name == "admin")')" || exit 0
+          if [ "$ok" != "true" ]; then exit 0; fi
+          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" \
+            --body "❌ No pude empezar a agregarla (el pedido llegó incompleto, o GitHub no respondió). Detalles en [la ejecución]($RUN_URL)."
+
   sweep:
     needs: request
+    # After the request check, or without it (a regular sweep: `request` skipped).
+    if: ${{ !cancelled() && needs.request.result != 'failure' }}
     runs-on: ubuntu-latest
     # The sweep step stops at 35 minutes (its own budget is 30); the rest (state, PR, merge wait) fits in
     # the remaining time. A step timeout counts as a failure, so the steps that keep progress still run;
