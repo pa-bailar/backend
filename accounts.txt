@@ -58,9 +58,17 @@ bachatasocialcongresss
 bailarito
 elparche.se
 bogotadanceclub
-
-# Added with the admin tools (admin add-account, add-post)
+# Festival Internacional Casinea: Cuban dances and salsa, 10th edition 13-16 Nov 2026, organized by iledanza.
 casineafest
+
+# Teachers, dancers and artists (orchestras, DJs): their own one-time workshops, intensives, socials and
+# shows in Bogotá. Most of their posts are videos and regular classes, which the triage filters out.
+# Franklin Torres: salsa On1/On2, timba and partnerwork teacher (classes at iledanza, bembeacademiadebaile);
+# announces his talleres and intensivos.
+frank.de.latorre
+# Angie Cuesta: salsa estilo femenino teacher and dancer, director of mover__se; announces her talleres
+# (e.g. a femenino intensive at iledanza, 2 Oct 2026).
+angie__cuesta
 
 # ---------------------------------------------------------------------------------------------------
 # Salsa bars and restaurants: NOT swept for now (every line below is a comment).
