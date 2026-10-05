@@ -154,8 +154,9 @@ compared with the previous runs, kept in `run_history.json` on the `sweep-state`
   - one-off failures;
   - Flash's quota running out;
   - accounts with no posts in 45 days.
-- **Events to review** are upcoming events Gemini wasn't confident about, or whose date it doubted, and
-  congresses or festivals dated on a single day (their other days may be missing).
+- **Events to review** are upcoming events Gemini wasn't confident about, or whose date it doubted, events it
+  couldn't place in Bogotá or another account's post called cancelled, and congresses or festivals dated on a
+  single day (their other days may be missing).
 
 Where to see it:
 - **The run's page** on GitHub Actions has the health report at the top of its summary, warnings as

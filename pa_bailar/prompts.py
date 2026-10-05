@@ -49,6 +49,8 @@ What does NOT count:
   events, results;
 - student showcases, wedding choreographies ("coreografía de boda"), tutorials, challenges, motivational
   posts, merchandise, and ads without a specific date;
+- a post about something else (a song or video release, a teacher's profile, a thank-you, a sponsor) that
+  only mentions an event in passing ("nos vemos el 21 en el concierto"): it doesn't announce that event;
 - posts announcing that an event is cancelled or postponed without a new date (a postponed event with
   its new date does count, with the new date);
 - events in another city or country, when the post says so (teachers and artists travel: "taller en
@@ -109,7 +111,8 @@ flyer. If an event in this post is one of the known events (same occasion, even 
 differs, e.g. "este sábado" vs the date), set same_as to that event's id and still fill in every detail
 you can see. A post presenting a teacher, an artist or one night of a congress or festival announces that
 same congress or festival: one event with its dates, linked by same_as when it's known. Otherwise set same_as
-to null.
+to null. Link only a post that announces the event itself, on its date: never link (same_as) a post that only
+mentions it in passing (a song release, a profile) or that gives it another date.
 
 {_EVENT_DEFINITION}
 (Mark is_recurring=true for any regular or weekly event you include.)
@@ -141,12 +144,18 @@ Rules:
 - A workshop series that has already started (some sessions passed) still lists every session.
 - Dates without a year: pick the occurrence closest after the publication date.
 - If the weekday and the date disagree, trust the date written with numbers and set confidence to low.
-- Prices: '15K' or '15 mil' = 15000.
+- Prices: '15K' or '15 mil' = 15000. amount_cop is only for Colombian pesos, and 0 only when it's free: a
+  price in another currency (USD, US$, MXN, EUR, €, dólares…) is never written as 0 nor converted; leave it
+  out of prices and put it in doubts (e.g. "precio en otra moneda: 1.000 MXN").
 - contact: an @username, a website or a phone number. If the flyer or the caption marks the number
   as WhatsApp (the word, or the green WhatsApp icon next to it), write 'WhatsApp ' before it, e.g.
   'WhatsApp 3001234567'; the site then opens a chat. Otherwise just the number.
 - Write extracted text (title, activities, doubts) in Spanish as it appears.
 - Never invent data. Leave unknown fields empty.
+- in_bogota, for every event: "yes" when it's in Bogotá or the post states no city; "no" when the post places it
+  in another city or country (a tour date in México, "taller en Medellín"); "unknown" when the post hints at
+  another place without saying where this event is (a tour across several cities). Events elsewhere don't count
+  (above): "no" is a safety net, never a reason to include one.
 - confidence: high when the date (and time, if any) are written explicitly; medium when you had to infer
   something (e.g. the date from "este sábado"); low when the date itself is uncertain or contradictory.
   The website asks visitors to confirm in the post when it's low.
@@ -209,7 +218,9 @@ Dates: copy what's printed, don't work them out (that's done later):
 Rules:
 - A story can announce several events (e.g. a weekend's schedule): return each one, each with image_index,
   the screenshot that shows it best.
-- Prices: '15K' or '15 mil' = 15000.
+- Prices: '15K' or '15 mil' = 15000. amount_cop is only for Colombian pesos, and 0 only when it's free: a
+  price in another currency (USD, US$, MXN, EUR, €, dólares…) is never written as 0 nor converted; leave it
+  out of prices and put it in doubts (e.g. "precio en otra moneda: 1.000 MXN").
 - contact: an @username, a website or a phone number ('WhatsApp ' before a number marked as WhatsApp).
 - Write extracted text (title, activities, doubts) in Spanish as it appears.
 - Never invent data. Leave unknown fields empty.

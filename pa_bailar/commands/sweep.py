@@ -45,7 +45,8 @@ def summary_markdown(stats: RunStats) -> str:
             "",
             f"{stats.posts_analyzed} posts analyzed ({stats.posts_triaged_out} ruled out by triage) · "
             f"{stats.events_new} new events · {stats.events_merged} merged into existing events · "
-            f"{stats.events_discarded} discarded (recurring/undated) · {stats.provisional} provisional · "
+            f"{stats.events_discarded} discarded (recurring, undated, past or outside Bogotá) · "
+            f"{stats.provisional} provisional · "
             f"{stats.upgraded} upgraded · {stats.reanalyzed} re-analyzed (edited captions) · "
             f"{stats.pending} pending for next run · {stats.errors} errors · "
             f"{stats.events_expired} past events and {stats.flyers_removed} flyers cleaned up",
@@ -158,7 +159,8 @@ def added_post_markdown(added: AddedPost) -> str:
         lines.append("")
         lines.append("Aparece en el sitio cuando termina de publicarse (unos minutos).")
     elif added.outcome == "discarded":
-        lines.append(f"❌ Gemini la leyó como evento, pero no es publicable: {added.reason}")
+        why = f" ({added.detail})" if added.detail else ""
+        lines.append(f"❌ Gemini la leyó como evento, pero no es publicable{why}: {added.reason}")
     else:
         lines.append(f"❌ Gemini dice que no anuncia un evento: “{added.reason}”")
     return "\n".join(lines) + "\n"

@@ -142,6 +142,27 @@ def test_the_weekday_settles_the_year_and_a_mismatch_is_flagged():
     assert any("viernes" in note for note in wrong.notes)
 
 
+def test_a_date_that_just_passed_stays_in_the_past_instead_of_rolling_to_next_year():
+    """A screenshot taken just after midnight of last night's "SÁB 3 OCT" is 3 Oct 2026 (then not published), not
+    3 Oct 2027 (review finding). Months back it's still next year's."""
+    assert resolve(day=3, month=10, weekday="sábado").start == date(2026, 10, 3)
+    assert resolve(day=3, month=10).start == date(2026, 10, 3)
+    assert resolve(day=28, month=9).start == date(2026, 9, 28)  # within a week
+    assert resolve(day=2, month=8).start == date(2027, 8, 2)  # months back: next year's
+    assert resolve(day=3, weekday="sábado").start == date(2026, 10, 3)  # "sábado 3": the month worked out
+
+
+def test_a_story_of_last_nights_event_shared_after_midnight_isnt_published(monkeypatch):
+    just_after_midnight = datetime(2026, 10, 4, 0, 30, tzinfo=BOGOTA)
+    monkeypatch.setattr(config, "now_bogota", lambda: just_after_midnight)
+    extractor = FakeStoryExtractor(
+        analysis(events=[story_event(title="Social", date_text="SÁB 3 OCT", day=3, month=10, weekday="sábado")])
+    )
+    shot = Screenshot(screenshot(1), "Screenshot_20261004-003000.jpg")
+    added = sweep(extractor).add_story([shot])
+    assert added.past == ["Social"] and storage.load_events() == []
+
+
 def test_a_printed_year_is_kept_even_when_past():
     assert resolve(day=1, month=10, year=2026).start == date(2026, 10, 1)
 

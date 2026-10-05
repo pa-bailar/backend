@@ -35,6 +35,8 @@ QUIET_RUNS = 14  # a week of runs...
 QUIET_MIN_POSTS = 10  # ...analyzing at least this many posts without finding a single event
 INACTIVE_DAYS = 45  # an account without posts for this long may be abandoned
 DATE_DOUBT = re.compile(r"\b(fecha|dias?)\b")  # doubts about the date (folded text): the costliest mistake
+# Doubts about whether it takes place at all, or in Bogotá (folded text): as costly (normalize.CITY_DOUBT).
+PLACE_DOUBT = re.compile(r"\b(bogota|cancelad[oa]s?|aplazad[oa]s?)\b")
 # "@name" in an issue mentions (and notifies) the GitHub user of that name. Instagram handles, and titles or
 # doubts quoting them, get an invisible word joiner after the "@": they read the same but ping no one.
 MENTION = re.compile(r"@(?=[\w-])")
@@ -254,9 +256,11 @@ SINGLE_DAY_DOUBT = "un solo día: ¿faltan fechas?"  # a congress or festival us
 
 def review_reasons(event: StoredEvent) -> list[str]:
     """Why an event is worth a second look (empty: it isn't): its doubts when Gemini wasn't confident or doubted
-    the date, and a congress or festival dated on one day only (its other days may be missing)."""
+    the date, whether it's in Bogotá or whether it was cancelled, and a congress or festival dated on one day only
+    (its other days may be missing)."""
     reasons = []
-    if event.confidence != "high" or any(DATE_DOUBT.search(fold(doubt)) for doubt in event.doubts):
+    serious = (DATE_DOUBT, PLACE_DOUBT)
+    if event.confidence != "high" or any(rule.search(fold(doubt)) for doubt in event.doubts for rule in serious):
         reasons += event.doubts or ["no details"]
     if event.event_type in ("congress", "festival") and not event.end_date:
         reasons.append(SINGLE_DAY_DOUBT)

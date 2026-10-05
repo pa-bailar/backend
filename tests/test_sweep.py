@@ -9,6 +9,7 @@ import pytest
 from pa_bailar import config, storage
 from pa_bailar.commands.sweep import summary_markdown
 from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError
+from pa_bailar.ids import new_event_id
 from pa_bailar.instagram import InstagramError
 from pa_bailar.models import PostAnalysis, ProcessedPost, Triage
 from pa_bailar.pipeline import Sweep
@@ -617,3 +618,142 @@ def test_an_accounts_latest_post_is_dated_in_bogota():
     stats = run(FakeInstagram({"academia": [late], "otra": []}), FakeExtractor({"p1": event_post("p1")}))
     assert stats.by_account["academia"].latest_post == evening.date().isoformat()
     assert storage.load_account_state()["academia"].latest_post == evening.date().isoformat()
+
+
+# ---------- Gemini's same_as link needs a day in common (review finding) ----------
+
+
+def test_a_same_as_link_to_another_day_never_moves_the_event_and_is_flagged():
+    later = (datetime.fromisoformat(EVENT_DATE) + timedelta(days=20)).date().isoformat()
+    concert = event_post("flyer", title="Concierto de salsa", date=later, start_time="21:00")
+    # A newer post (a song release that mentions the concert) linked to it, dated this week.
+    release = event_post("song", title="Lanzamiento", same_as=new_event_id("Concierto de salsa", later, set()))
+    instagram = FakeInstagram({"academia": [post("song", days_ago=1), post("flyer", days_ago=3)], "otra": []})
+    run(instagram, FakeExtractor({"flyer": concert, "song": release}))
+
+    events = {event["title"]: event for event in read(config.EVENTS_FILE)}
+    assert events["Concierto de salsa"]["date"] == later  # not moved to the newer post's date
+    assert [m["post_id"] for m in events["Concierto de salsa"]["media"]] == ["flyer"]
+    assert events["Lanzamiento"]["date"] == EVENT_DATE
+    assert any("cambio de fecha" in doubt for doubt in events["Lanzamiento"]["doubts"])
+
+
+# ---------- only upcoming events in Bogotá (review finding) ----------
+
+
+def test_an_orchestras_tour_post_read_in_a_new_accounts_first_sweep_publishes_nothing():
+    """4 Oct: a new account's 30-day first sweep read a tour post of 17 Sep, and two past concerts abroad (CDMX on
+    18 Sep, Veracruz on 19 Sep) came out as events."""
+    tour = PostAnalysis(
+        is_event_post=True,
+        reason="gira por México",
+        events=[
+            extracted(title="Concierto en CDMX", event_type="concert", date=days_ago_date(16), in_bogota="no"),
+            extracted(title="Concierto en Veracruz", event_type="concert", date=days_ago_date(15), in_bogota="no"),
+        ],
+    )
+    stats = run(FakeInstagram({"academia": [post("tour", days_ago=17)], "otra": []}), FakeExtractor({"tour": tour}))
+    assert read(config.EVENTS_FILE) == [] and stats.events_discarded == 2
+    record = storage.load_processed_posts()["tour"]
+    assert (record.outcome, record.detail) == ("discarded", "fuera de Bogotá, ya pasó")
+
+
+def test_a_new_event_whose_last_day_has_passed_isnt_published():
+    passed = event_post("p1", title="Social de ayer", date=days_ago_date(1))
+    stats = run(FakeInstagram({"academia": [post("p1", days_ago=3)], "otra": []}), FakeExtractor({"p1": passed}))
+    assert read(config.EVENTS_FILE) == [] and stats.events_discarded == 1
+    assert storage.load_processed_posts()["p1"].detail == "ya pasó"
+
+
+def test_an_event_under_way_is_still_published():
+    days = {"date": days_ago_date(1), "end_date": days_ago_date(-1)}
+    congress = event_post("p1", title="Congreso", event_type="congress", **days)
+    run(FakeInstagram({"academia": [post("p1", days_ago=3)], "otra": []}), FakeExtractor({"p1": congress}))
+    assert [event["title"] for event in read(config.EVENTS_FILE)] == ["Congreso"]
+
+
+def test_a_past_event_already_stored_still_takes_its_later_posts_and_rereads():
+    yesterday = days_ago_date(1)
+    storage.save_events([stored("social-ayer", title="Social", date=yesterday, posts=[media("flyer")])])
+    video = event_post("video", title="Social", same_as="social-ayer", date=yesterday)
+    run(FakeInstagram({"academia": [post("video", days_ago=2)], "otra": []}), FakeExtractor({"video": video}))
+    [event] = read(config.EVENTS_FILE)
+    assert sorted(m["post_id"] for m in event["media"]) == ["flyer", "video"]
+
+    # Its own post read again (an edited caption): it keeps its event.
+    edited = {**post("video", days_ago=2), "caption": "editado"}
+    run(FakeInstagram({"academia": [edited], "otra": []}), FakeExtractor({"video": video}))
+    assert sorted(m["post_id"] for m in read(config.EVENTS_FILE)[0]["media"]) == ["flyer", "video"]
+
+
+def test_an_event_in_another_city_isnt_published_and_an_unknown_city_is_flagged():
+    analysis = PostAnalysis(
+        is_event_post=True,
+        reason="",
+        events=[
+            extracted(title="Taller en Medellín", in_bogota="no"),
+            extracted(title="Social sin ciudad", start_time="21:00", in_bogota="unknown"),
+        ],
+    )
+    stats = run(FakeInstagram({"academia": [post("p1")], "otra": []}), FakeExtractor({"p1": analysis}))
+    [event] = read(config.EVENTS_FILE)
+    assert event["title"] == "Social sin ciudad" and stats.events_discarded == 1
+    assert any("Bogotá" in doubt for doubt in event["doubts"])
+    assert "in_bogota" not in event  # internal: the stored shape doesn't change
+
+
+# ---------- a caption edited to "CANCELADO" (review finding) ----------
+
+
+def cancel(post_dict: dict) -> dict:
+    return {**post_dict, "caption": "CANCELADO: lo sentimos"}
+
+
+CANCELLED = PostAnalysis(is_event_post=False, reason="El evento fue cancelado", events=[])
+
+
+def test_a_cancelled_flyer_takes_its_event_off_even_when_a_reminder_also_announced_it():
+    flyer, reminder = post("flyer", days_ago=3), post("reminder", days_ago=1)
+    analyses = {
+        "flyer": event_post("flyer", title="Social", start_time="21:00"),
+        "reminder": event_post("reminder", title="Recordatorio", same_as=event_id("Social"), start_time="21:00"),
+    }
+    run(FakeInstagram({"academia": [flyer, reminder], "otra": []}), FakeExtractor(analyses))
+    assert len(read(config.EVENTS_FILE)) == 1
+
+    run(FakeInstagram({"academia": [cancel(flyer), reminder], "otra": []}), FakeExtractor({"flyer": CANCELLED}))
+    assert read(config.EVENTS_FILE) == []
+    records = storage.load_processed_posts()
+    assert (records["flyer"].outcome, records["flyer"].detail) == ("discarded", "cancelado")
+    assert (records["reminder"].outcome, records["reminder"].event_ids) == ("discarded", [])
+
+
+def test_another_accounts_post_cancelled_flags_the_event_for_review_instead():
+    details = {"title": "Social Timbera", "venue": "Casa Latina", "start_time": "21:00"}
+    own, shared = post("own", days_ago=3), post("shared", days_ago=2)
+    analyses = {"own": event_post("own", **details), "shared": event_post("shared", **details)}
+    run(FakeInstagram({"academia": [own], "otra": [shared]}), FakeExtractor(analyses))
+    [event] = read(config.EVENTS_FILE)
+    assert event["account"] == "academia" and len(event["media"]) == 2
+
+    run(FakeInstagram({"academia": [own], "otra": [cancel(shared)]}), FakeExtractor({"shared": CANCELLED}))
+    [event] = storage.load_events()
+    assert [media.post_id for media in event.media] == ["own"]
+    assert event.confidence == "low" and any("cancelado" in doubt for doubt in event.doubts)
+    from pa_bailar import health
+
+    assert health.review_reasons(event)
+
+
+def test_a_post_read_again_without_events_for_another_reason_leaves_the_others_events_alone():
+    flyer, reminder = post("flyer", days_ago=3), post("reminder", days_ago=1)
+    analyses = {
+        "flyer": event_post("flyer", title="Social", start_time="21:00"),
+        "reminder": event_post("reminder", title="Recordatorio", same_as=event_id("Social"), start_time="21:00"),
+    }
+    run(FakeInstagram({"academia": [flyer, reminder], "otra": []}), FakeExtractor(analyses))
+    recap = PostAnalysis(is_event_post=False, reason="Es un resumen de fotos", events=[])
+    edited = {**flyer, "caption": "Fotos"}
+    run(FakeInstagram({"academia": [edited, reminder], "otra": []}), FakeExtractor({"flyer": recap}))
+    [event] = read(config.EVENTS_FILE)
+    assert [m["post_id"] for m in event["media"]] == ["reminder"]

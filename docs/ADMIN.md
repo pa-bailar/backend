@@ -168,8 +168,10 @@ The checks, in the order a post goes through the sweep:
    - **Gemini dijo que no es un evento:** with Gemini's reason. If it's wrong, **Agregar** reads it again
      without that first filter.
    - **Se descartó a propósito:** an event that repeats (a weekly class, or a course: more than 12 sessions,
-     more than 4 months, or sessions without their dates) or without a clear date. The site only lists
-     one-time dated events, and workshop series with every session dated (ARCHITECTURE.md, section 9.1).
+     more than 4 months, or sessions without their dates) or without a clear date, in another city or country,
+     already over when it was read (a new account's first sweep reads posts a month old), or announced as
+     cancelled or postponed. The site only lists upcoming one-time dated events in Bogotá, and workshop series
+     with every session dated (ARCHITECTURE.md, sections 6.3 and 9.1).
    - **Gemini no pudo leerla**, or **se quitó a mano** (removed on purpose).
 2. **If it was never analyzed:** whose post is it? The link, or else the post's public page, says the
    account. When the public page names another author, the post is a collaboration: it's its author's,
@@ -236,7 +238,9 @@ The sweep workflow runs in story mode, one at a time with the sweeps:
    If no account can be told, it answers "escribe la @cuenta" (the screenshots stay for a retry).
 5. **The dates, worked out in code** (`stories.resolve_date`), from the day the screenshot was taken (its file
    name, `Screenshot_20261004-183012…`, else the file's date, else when it was uploaded): the next such date
-   on or after it, the printed weekday settling the year (or the month, for "sábado 12"); "este sábado" is the
+   on or after it, or one up to 7 days before it (`stories.RECENT_PAST_DAYS`: "SÁB 3 OCT" shared at 00:30 on
+   4 October is last night's, so it isn't published, rather than next year's), the printed weekday settling the
+   year (or the month, for "sábado 12"); "este sábado" is the
    next Saturday; a weekly night ("todos los viernes") publishes only its next date. A workshop series' sessions
    (each printed with its day and month, `stories.resolve_sessions`) take the year that makes the series the
    earliest one not over yet, so a story shared after its first sessions still publishes it. A weekday that
@@ -263,7 +267,8 @@ the last part of the event's link on the site (`/evento/<id>/`).
   a post that announced nothing else is recorded as `hidden` ("Revisar" says it was taken off by hand).
 - It's kept in `state/hidden_events.json` (`models.HiddenEvent`: the event as it was, and when), so it stays
   off: the sweeps don't publish it again from **the same posts** (a caption edit, a provisional read upgraded
-  to Flash) nor from **a later post of the same event** (a reminder of one session, a collaborator's post), as
+  to Flash: the same event read again; another event of the same post, a social at 21:00 after a hidden workshop
+  at 16:00 that day, stays published) nor from **a later post of the same event** (a reminder of one session, a collaborator's post), as
   the merging rules tell (`merging.matches_hidden`). A **genuinely new event**, one those rules don't match
   (another date, another title or time), is published as usual, even from the same account.
 - If the run that hid it couldn't get its data PR merged, the next sweep takes it off anyway (events in

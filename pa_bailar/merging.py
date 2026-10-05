@@ -202,28 +202,58 @@ def looks_like_shared_event(stored: StoredEvent, account: str, candidate: EventD
 def find_existing(
     events: list[StoredEvent], account: str, candidate: ExtractedEvent, post_id: str
 ) -> StoredEvent | None:
-    """The stored event this extracted one refers to, if any. Gemini's `same_as` wins over the rules; the
-    same account's events come before other accounts' (no Gemini request: Gemini only sees this account's).
+    """The stored event this extracted one refers to, if any. Gemini's `same_as` wins over the rules when the two
+    share a day (refused_link); the same account's events come before other accounts' (no Gemini request: Gemini
+    only sees this account's).
 
     Events that already contain `post_id` are never matched: two events announced in the same post
     are different events, even if they share a date and time.
     """
     others = [e for e in events if all(m.post_id != post_id for m in e.media)]
-    if candidate.same_as:
-        linked = next((e for e in others if e.id == candidate.same_as and e.account == account), None)
-        if linked:
-            return linked
+    linked = _linked(others, account, candidate)
+    if linked and _overlap(linked, candidate):
+        return linked
     same_account = next((e for e in others if looks_like_same_event(e, account, candidate)), None)
     return same_account or next((e for e in others if looks_like_shared_event(e, account, candidate)), None)
 
 
+def _linked(events: list[StoredEvent], account: str, candidate: ExtractedEvent) -> StoredEvent | None:
+    """The event of this account Gemini linked the candidate to (`same_as`), if it's among `events`."""
+    if not candidate.same_as:
+        return None
+    return next((e for e in events if e.id == candidate.same_as and e.account == account), None)
+
+
+def refused_link(
+    events: list[StoredEvent], account: str, candidate: ExtractedEvent, post_id: str
+) -> StoredEvent | None:
+    """The known event Gemini linked the candidate to when they share no day: never merged (a post about something
+    else that mentions the event in passing would move it, and a series could lose its sessions), so the candidate
+    goes through the rules like any other, and may be a reschedule worth a look."""
+    others = [e for e in events if all(m.post_id != post_id for m in e.media)]
+    linked = _linked(others, account, candidate)
+    return linked if linked and not _overlap(linked, candidate) else None
+
+
+def already_stored(events: list[StoredEvent], account: str, candidate: ExtractedEvent, post_id: str) -> bool:
+    """Whether an extracted event is one already stored: one this post announced before (read again, a day in
+    common) or another post's (find_existing). A past event is published only then (pipeline._discard_reasons)."""
+    own = any(any(m.post_id == post_id for m in e.media) and _overlap(e, candidate) for e in events)
+    return own or find_existing(events, account, candidate, post_id) is not None
+
+
 def matches_hidden(hidden: StoredEvent, account: str, candidate: ExtractedEvent, post_id: str) -> bool:
     """Whether an extracted event is one taken off the site by hand (models.HiddenEvent): read again from one of
-    its posts (a day in common), linked to it by Gemini, or the same event by the merging rules (a later reminder
-    of it, another account's post of it). Anything else is a new event, even from the same account."""
-    if post_id in {media.post_id for media in hidden.media} and _overlap(hidden, candidate):
+    its posts (the same event by the same-account rules: a post can announce several events on one day, a workshop
+    at 16:00 and a social at 21:00, and hiding one keeps the other), linked to it by Gemini (with a day in common),
+    or the same event by the merging rules (a later reminder of it, another account's post of it). Anything else is
+    a new event, even from the same account."""
+    same_post = post_id in {media.post_id for media in hidden.media} and _overlap(hidden, candidate)
+    if same_post and (
+        looks_like_same_event(hidden, hidden.account, candidate) or fold(hidden.title) == fold(candidate.title)
+    ):
         return True
-    if candidate.same_as == hidden.id and hidden.account == account:
+    if candidate.same_as == hidden.id and hidden.account == account and _overlap(hidden, candidate):
         return True
     return looks_like_same_event(hidden, account, candidate) or looks_like_shared_event(hidden, account, candidate)
 

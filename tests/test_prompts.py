@@ -1,6 +1,6 @@
 """The prompts sent to Gemini: they format, and carry the rules the sweep relies on (no network)."""
 
-from pa_bailar.prompts import EXTRACTION_PROMPT, TRIAGE_PROMPT
+from pa_bailar.prompts import EXTRACTION_PROMPT, STORY_PROMPT, TRIAGE_PROMPT
 
 CONTEXT = {"account": "profe_x", "published": "2026-10-04 Sunday", "today": "2026-10-04 Sunday", "caption": "{x}"}
 
@@ -24,3 +24,23 @@ def test_only_concerts_and_festivals_for_partner_dancing_count():
         assert "electronic (EDM, techno, house)" in prompt
         assert "A concert or festival counts only when it's for social or partner dancing" in prompt
         assert "a salsa orchestra's concert, or a dance festival with socials and" in prompt  # these still count
+
+
+def test_a_post_that_only_mentions_an_event_in_passing_doesnt_announce_it():
+    # Review finding: a song release mentioning a concert was linked to it (same_as) and moved its date.
+    for prompt in (TRIAGE_PROMPT, EXTRACTION_PROMPT):
+        assert "only mentions an event in passing" in prompt
+    assert "never link (same_as) a post that only" in EXTRACTION_PROMPT
+
+
+def test_prices_in_another_currency_are_never_zero_pesos():
+    # Review finding: {"label": "VIP", "amount_cop": 0, "condition": "1,000.00 MXN"} was shown as free.
+    for prompt in (EXTRACTION_PROMPT, STORY_PROMPT):
+        assert "amount_cop is only for Colombian pesos, and 0 only when it's free" in prompt
+        assert "is never written as 0 nor converted" in prompt
+
+
+def test_the_extraction_says_where_each_event_is():
+    # Review finding: a tour post's concerts in CDMX and Veracruz were published; in_bogota is checked in code.
+    assert "- in_bogota, for every event:" in EXTRACTION_PROMPT
+    assert '"no" when the post places it' in EXTRACTION_PROMPT

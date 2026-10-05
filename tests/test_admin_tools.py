@@ -170,6 +170,12 @@ def test_why_explains_what_became_of_an_analyzed_post(fields, verdict_starts):
     assert result.suggestion == "add-post"
 
 
+def test_why_explains_an_event_abroad_or_already_over():
+    result = why.diagnose(LINK, read=state({"1": record(outcome="discarded", detail="fuera de Bogotá, ya pasó")}))
+    [(_, text)] = [check for check in result.checks if check[0] == "no"]
+    assert "en otra ciudad o país" in text and "su fecha ya había pasado" in text
+
+
 def test_why_says_when_an_event_was_removed_by_hand():
     removed = record(is_event_post=False, reason="Quitado a mano: taller de dibujo, no de baile.")
     result = why.diagnose(LINK, read=state({"1": removed}), now=NOW)
@@ -454,6 +460,14 @@ def test_the_answer_says_an_unchanged_post_wasnt_read_again():
     sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK, "academia")
     answer = added_post_markdown(sweep({"academia": [post("p1")]}, {}).add_post(LINK, "academia"))
     assert "no gasté cuota de Gemini" in answer and "Ya está en el sitio" in answer and "Publiqué" not in answer
+
+
+def test_the_answer_says_why_an_event_post_wasnt_published():
+    from pa_bailar.commands.sweep import added_post_markdown
+
+    abroad = event_post("p1", title="Taller en Medellín", in_bogota="no")
+    answer = added_post_markdown(sweep({"academia": [post("p1")]}, {"p1": abroad}).add_post(LINK, "academia"))
+    assert "no es publicable (fuera de Bogotá)" in answer
 
 
 def test_the_inbox_takes_only_the_link_from_the_form_field():
