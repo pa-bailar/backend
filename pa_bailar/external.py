@@ -44,7 +44,7 @@ log = logging.getLogger(__name__)
 
 SCHEMA_INSTRUCTION = "\n\nAnswer with only a JSON object (no other text) following this JSON schema:\n"
 REFUSALS = {401: "the key was refused", 402: "the account needs credit", 403: "the request was blocked"}
-FAILURES = ("busy", "invalid")  # count toward setting a model aside for the run
+FAILURES = ("busy", "invalid", "unavailable")  # count toward setting a model aside for the run
 MAX_ROUTED_MODELS = 3  # OpenRouter's `models` takes at most 3
 _THINKING = re.compile(r"<think>.*?</think>", re.DOTALL)  # some models think out loud before the JSON
 _IMAGE_LABEL = re.compile(r"^(Image|Screenshot) \d+:$")  # extraction.py's label before each image
@@ -98,8 +98,9 @@ def units(provider: ExternalProvider) -> list[Unit]:
 
 
 class NoAnswerError(Exception):
-    """A request gave no answer. `kind`: busy, invalid (not the schema's JSON), skipped (its limits: not tried),
-    refused (401, 402, 403: the provider is off for the run) or spent (its daily limit)."""
+    """A request gave no answer. `kind`: busy, invalid (not the schema's JSON), unavailable (404: the model is gone or
+    no longer free), skipped (its limits: not tried), refused (401, 402, 403: the provider is off for the run) or
+    spent (its daily limit)."""
 
     def __init__(self, kind: str, message: str):
         super().__init__(message)
@@ -171,10 +172,13 @@ def request_parts(
 
 
 def _classify(reply: httpx.Response, provider: ExternalProvider) -> str:
-    """What an error answer means: refused (the key, credit), spent (its own daily limit), skipped (too many tokens
-    for its limits: not a failure) or busy (a provider rate-limited upstream, a 5xx, anything else)."""
+    """What an error answer means: refused (the key, credit), unavailable (404: the model is gone, or no longer free),
+    spent (its own daily limit), skipped (too many tokens for its limits: not a failure) or busy (a provider
+    rate-limited upstream, a 5xx, anything else)."""
     if reply.status_code in REFUSALS:
         return "refused"
+    if reply.status_code == 404:
+        return "unavailable"
     text = reply.text.lower()
     if reply.status_code == 429 and any(sign in text for sign in _DAILY_LIMIT):
         return "spent"
@@ -317,7 +321,10 @@ class ExternalTier:
                 self.usage(unit.provider.name).requests = unit.provider.daily_requests
                 self._persist()
             elif miss.kind in FAILURES and quarantine:
-                self._failures[unit.label] += 1
+                # A model that's gone won't come back within the run: set aside at once.
+                self._failures[unit.label] += (
+                    1 if miss.kind != "unavailable" else config.EXTERNAL_FAILURES_TO_QUARANTINE
+                )
                 if self._failures[unit.label] >= config.EXTERNAL_FAILURES_TO_QUARANTINE:
                     self.quarantined.add(unit.label)
                     log.warning(

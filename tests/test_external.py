@@ -224,6 +224,16 @@ def test_a_model_failing_twice_is_set_aside_for_the_run(sleeps):
     assert pool.report().outcomes[f"groq:{GROQ}"] == {"busy": 1, "invalid": 1}
 
 
+def test_a_model_no_longer_free_is_set_aside_at_once(sleeps):
+    gone = httpx.Response(404, json={"error": {"message": "This model is unavailable for free.", "code": 404}})
+    api = FakeAPI({QWEN: [gone], GEMMA: [TRIAGE, TRIAGE]})
+    pool = tier(api, {"groq": None, "openrouter": "k"})
+    pool.generate(contents(), Triage)
+    pool.generate(contents(), Triage)
+    assert api.models == [QWEN, GEMMA, GEMMA]
+    assert pool.report().outcomes[f"openrouter:{QWEN}"] == {"unavailable": 1}
+
+
 @pytest.mark.parametrize("status", [401, 402, 403])
 def test_a_refused_key_or_missing_credit_turns_the_provider_off_for_the_run(sleeps, status):
     api = FakeAPI({GROQ: [httpx.Response(status, text="no")], QWEN: [TRIAGE, TRIAGE]})

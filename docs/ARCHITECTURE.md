@@ -238,7 +238,7 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 | **Free limits** | Groq (2026-10-05): 30 requests/minute and 1,000/day, but 8,000 tokens/minute and 200,000/day; each image counts as 2,048 input tokens, at most 3 images per request. OpenRouter without credit: 20 requests/minute and 50/day for all free models together. Daily limits reset at midnight UTC (7:00 p.m. Bogotá) |
 | **Our budgets** | Groq: 900 requests and 180,000 tokens a day. OpenRouter: 40 requests a day. Kept under the free limits, for manual runs and the bake-off |
 | **Cost** | Free. Free models get pulled or paywalled without notice: `admin bakeoff` re-checks them (section 12.3) |
-| **If it fails** | One request per model and post, a 60-second timeout, no retries: a busy model (a 429 from the model's provider, a 5xx, a timeout) or an answer that isn't the schema's JSON moves on to the next model, and when none answers, the post waits for the next run as it would without them. A model that fails twice in a run is set aside for the rest of it. A key refused (401), credit needed (402) or a blocked request (403) turns that provider off for the run (a notice; a warning after 3 runs) |
+| **If it fails** | One request per model and post, a 60-second timeout, no retries: a busy model (a 429 from the model's provider, a 5xx, a timeout) or an answer that isn't the schema's JSON moves on to the next model, and when none answers, the post waits for the next run as it would without them. A model that fails twice in a run is set aside for the rest of it, and one answering 404 (gone, or no longer free) at once. A key refused (401), credit needed (402) or a blocked request (403) turns that provider off for the run (a notice; a warning after 3 runs) |
 
 ---
 
@@ -725,8 +725,9 @@ flowchart TD
   at most 3 and as many as fit in a minute's tokens: with the extraction prompt and its schema, usually one. A 413
   or a 429 about tokens skips it too, without counting as a failure.
 - **Per run:** a model that fails twice (busy, a timeout, invalid JSON: `EXTERNAL_FAILURES_TO_QUARANTINE`) is set
-  aside for the rest of the run, with one warning in the log. A provider answering 401, 402 or 403 is turned off for
-  the run. What each model did (answered, busy, invalid, skipped, refused, spent) is in the run's statistics
+  aside for the rest of the run, with one warning in the log; a model answering 404 (gone, or no longer free) at
+  once. A provider answering 401, 402 or 403 is turned off for the run. What each model did (answered, busy,
+  invalid, unavailable, skipped, refused, spent) is in the run's statistics
   (`RunStats.external`) and history, for the health checks.
 - **Shared daily budgets:** requests (and Groq's tokens) per provider are saved in `state/external_usage.json`
   with their UTC day, like Gemini's usage. A provider's own daily-limit 429 spends it for the day.
@@ -734,7 +735,8 @@ flowchart TD
   read on recent posts, and `admin bakeoff --discover` lists OpenRouter's free models with image input now
   ([`docs/ADMIN.md`](ADMIN.md)). The list in `config.EXTERNAL_PROVIDERS` stays explicit: nothing switches by itself.
   On 5 October 2026, on 15 posts, OpenRouter's free qwen read about as well as Flash-Lite but failed or was
-  rate-limited upstream often, and gemma never answered: why OpenRouter comes last.
+  rate-limited upstream often, and gemma never answered: why OpenRouter comes last. The same day OpenRouter
+  answered 404 for `qwen/qwen3.8-27b:free` ("unavailable for free"): the list needs that re-check.
 
 ---
 
