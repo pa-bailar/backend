@@ -24,12 +24,12 @@ from datetime import date, datetime, timedelta
 
 from PIL import Image
 
-from . import config, links
+from . import config, links, patterns
 from .models import StoryEvent, StorySession
 from .text import WEEKDAYS, fold
 
 STORY_PREFIX = "story-"
-_STORY_ID = re.compile(r"story-[0-9a-f]{16}")
+_STORY_ID = re.compile(patterns.STORY_ID)
 MAX_SCREENSHOTS = 4
 # Perceptual hashes this close (bits of 64 that differ) are the same story, if shared within SAME_STORY_HOURS of
 # each other: a story lasts 24 hours, and an academy's weekly flyer made from one template (only the date
@@ -213,20 +213,25 @@ def resolve_date(event: StoryEvent, taken: date, today: date) -> ResolvedDate:
         start = max(taken, today) if event.weekly else taken
         result.start = start + timedelta(days=(weekday - start.weekday()) % 7)
         result.notes.append("fecha deducida del día de la semana")
-    if result.start is None:
-        return result
-    if weekday is not None and result.start.weekday() != weekday:
+    if result.start is not None:
+        _check_start(result, result.start, event, weekday, taken)
+    return result
+
+
+def _check_start(result: ResolvedDate, start: date, event: StoryEvent, weekday: int | None, taken: date) -> None:
+    """With the event's first day found: its last day, and the notes and flags on it (a printed weekday that
+    doesn't match, an inferred year, a weekly night, a date far ahead)."""
+    if weekday is not None and start.weekday() != weekday:
         result.weekday_mismatch = True
-        result.notes.append(f"dice {event.weekday}, pero esa fecha es {WEEKDAYS[result.start.weekday()]}")
+        result.notes.append(f"dice {event.weekday}, pero esa fecha es {WEEKDAYS[start.weekday()]}")
     if result.year_inferred:
         result.notes.append("año deducido")
     if event.weekly:
         result.notes.append("semanal: publiqué la próxima fecha")
-    result.end = _end_date(event, result.start)
-    if (result.start - taken).days > FAR_AHEAD_DAYS:
+    result.end = _end_date(event, start)
+    if (start - taken).days > FAR_AHEAD_DAYS:
         result.far_ahead = True
         result.notes.append(f"más de {FAR_AHEAD_DAYS} días adelante: revisar")
-    return result
 
 
 def _series_from(first_year: int, printed: list[tuple[int, int]]) -> list[date] | None:
@@ -374,8 +379,3 @@ def known_account(name: str, cut: bool, known: Iterable[str]) -> str | None:
         return starting[0] if len(starting) == 1 else None
     close = difflib.get_close_matches(name, accounts, n=1, cutoff=0.88)
     return close[0] if close else None
-
-
-def profile_link(account: str) -> str:
-    """A story's permalink: the account's profile (the story itself is gone after 24 hours)."""
-    return f"https://www.instagram.com/{account}/"

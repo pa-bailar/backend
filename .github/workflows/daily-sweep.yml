@@ -91,8 +91,15 @@ jobs:
     if: ${{ inputs.post_url != '' || inputs.story != '' || inputs.hide != '' || inputs.issue != '' }}
     runs-on: ubuntu-latest
     permissions:
+      contents: read # the answer's action (.github/actions/answer-issue)
       issues: write # the answer when the request can't start
     steps:
+      # Only for the answer below: the action that writes it. No credentials kept.
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/actions
+
       - name: Check the admin request
         env:
           GH_TOKEN: ${{ github.token }}
@@ -126,20 +133,14 @@ jobs:
           fi
 
       # The sweep job won't run, so its answer neither: say it here. Only on an open admin issue by the owner,
-      # never on another issue whose number was passed in.
+      # never on another issue whose number was passed in (the action checks).
       - name: Answer on the admin issue that adding couldn't start
         if: ${{ failure() }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE: ${{ inputs.issue }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          if ! [[ "$ISSUE" =~ ^[0-9]+$ ]]; then exit 0; fi
-          ok="$(gh issue view "$ISSUE" --repo "$GITHUB_REPOSITORY" --json state,author,labels \
-            --jq '.state == "OPEN" and .author.login == env.NOTIFY and any(.labels[]; .name == "admin")')" || exit 0
-          if [ "$ok" != "true" ]; then exit 0; fi
-          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" \
-            --body "❌ No pude empezar (el pedido llegó incompleto, o GitHub no respondió). Detalles en [la ejecución]($RUN_URL)."
+        uses: ./.github/actions/answer-issue
+        with:
+          issue: ${{ inputs.issue }}
+          owner: ${{ env.NOTIFY }}
+          body: "❌ No pude empezar (el pedido llegó incompleto, o GitHub no respondió). Detalles en [la ejecución](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
 
   # A story's screenshots, from the admin page's Worker (admin-web/, docs/ADMIN.md), which keeps them in KV until
   # the story is published. Its own job, so only these few steps (no third-party packages) can ask GitHub for an
@@ -151,9 +152,16 @@ jobs:
     if: ${{ !cancelled() && needs.request.result == 'success' && inputs.story != '' }}
     runs-on: ubuntu-latest
     permissions:
+      contents: read # the answer's action (.github/actions/answer-issue)
       id-token: write # GitHub's identity token, for the Worker
       issues: write # the answer when the screenshots can't be downloaded
     steps:
+      # Only for the answer below: the action that writes it. No credentials kept.
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/actions
+
       - name: Download the screenshots
         env:
           STORY: ${{ inputs.story }}
@@ -191,13 +199,11 @@ jobs:
 
       - name: Answer on the admin issue that the screenshots couldn't be read
         if: ${{ failure() }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE: ${{ inputs.issue }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" \
-            --body "❌ No pude descargar las capturas de la página de administración (¿pasaron más de 7 días, o ya se publicaron?). Compártelas otra vez. Detalles en [la ejecución]($RUN_URL)."
+        uses: ./.github/actions/answer-issue
+        with:
+          issue: ${{ inputs.issue }}
+          owner: ${{ env.NOTIFY }}
+          body: "❌ No pude descargar las capturas de la página de administración (¿pasaron más de 7 días, o ya se publicaron?). Compártelas otra vez. Detalles en [la ejecución](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
 
   sweep:
     needs: [request, story-images]
@@ -479,26 +485,31 @@ jobs:
           curl -fsS -m 10 --retry 3 --data-binary "@$body" "$url" > /dev/null
 
       # Admin tools: the answer to "add this post" (or story, or hide it), on the issue that asked (and the issue
-      # closes).
-      - name: Answer on the admin issue
+      # closes). Only on an open admin issue by the owner (the action checks).
+      - name: Write the answer for the admin issue
         if: ${{ always() && inputs.issue != '' }}
         env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          ISSUE: ${{ inputs.issue }}
           PR_URL: ${{ steps.pr.outputs.url }}
           EVENTS_CHANGED: ${{ steps.pr.outputs.events }}
+          JOB_STATUS: ${{ job.status }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           report="$GITHUB_WORKSPACE/admin-report.md"
           if [ ! -s "$report" ]; then echo "❌ Algo falló." > "$report"; fi
-          if [ "${{ job.status }}" != "success" ]; then
+          if [ "$JOB_STATUS" != "success" ]; then
             echo "" >> "$report"; echo "⚠️ La ejecución tuvo un problema: [detalles]($RUN_URL)." >> "$report"
           elif [ -n "$PR_URL" ] && [ "$EVENTS_CHANGED" = "true" ]; then
             echo "" >> "$report"; echo "Publicado en el sitio ([cambio de datos]($PR_URL))." >> "$report"
           fi
-          gh issue comment "$ISSUE" --body-file "$report"
-          gh issue close "$ISSUE" --reason completed
+
+      - name: Answer on the admin issue
+        if: ${{ always() && inputs.issue != '' }}
+        uses: ./.github/actions/answer-issue
+        with:
+          issue: ${{ inputs.issue }}
+          owner: ${{ env.NOTIFY }}
+          body-file: ${{ github.workspace }}/admin-report.md
+          close: "true"
 
   # The story's screenshots aren't needed any more: delete them from the admin page's KV (they'd expire after 7
   # days anyway). Its own job for the identity token, like story-images.

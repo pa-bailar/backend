@@ -9,7 +9,7 @@ import pytest
 from pydantic import ValidationError
 
 from pa_bailar import config, health, storage, why
-from pa_bailar.commands.sweep import added_post_markdown, added_story_markdown
+from pa_bailar.commands.answers import added_post_markdown, added_story_markdown
 from pa_bailar.extraction import _known_list
 from pa_bailar.ids import new_event_id
 from pa_bailar.merging import find_existing, looks_like_same_event, merge_into
@@ -44,7 +44,7 @@ def series(
 @pytest.fixture(autouse=True)
 def accounts_and_images(isolated_files, monkeypatch):
     config.ACCOUNTS_FILE.write_text("academia\notra\n", encoding="utf-8")
-    monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: make_image())
+    monkeypatch.setattr("pa_bailar.pipeline.common.download_image", lambda url: make_image())
 
 
 # ---------- the rules (models.series_problems, StoredEvent) ----------

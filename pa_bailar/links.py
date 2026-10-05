@@ -8,13 +8,12 @@ account is only in the link sometimes, which matters because Instagram's API can
 import re
 
 from . import config
+from .patterns import HANDLE, POST_LINK
 
-_POST = re.compile(
-    r"^(?:https?://)?(?:www\.|m\.)?instagram\.com/(?:(?P<account>[\w.]+)/)?(?:p|reel|reels|tv)/(?P<code>[\w-]+)",
-    re.IGNORECASE | re.ASCII,  # \w: ASCII letters, digits and _ only, like the codes the site accepts
-)
-_ACCOUNT = re.compile(r"^@?([A-Za-z0-9._]{1,30})$")
-_PROFILE = re.compile(r"^(?:https?://)?(?:www\.|m\.)?instagram\.com/([A-Za-z0-9._]{1,30})/?(?:\?.*)?$", re.IGNORECASE)
+# \w: ASCII letters, digits and _ only, like the codes the site accepts
+_POST = re.compile(f"^{POST_LINK}", re.IGNORECASE | re.ASCII)
+_ACCOUNT = re.compile(rf"^@?({HANDLE})$")
+_PROFILE = re.compile(rf"^(?:https?://)?(?:www\.|m\.)?instagram\.com/({HANDLE})/?(?:\?.*)?$", re.IGNORECASE)
 
 
 def post_code(url: str) -> str | None:
@@ -38,6 +37,11 @@ def account_name(text: str) -> str | None:
 
 def same_post(permalink: str, code: str) -> bool:
     return post_code(permalink) == code
+
+
+def profile_link(account: str) -> str:
+    """An account's profile: a story's permalink (the story itself is gone after 24 hours), discovery's report."""
+    return f"https://www.instagram.com/{account}/"
 
 
 def event_url(event_id: str) -> str:

@@ -17,6 +17,7 @@ from typing import Any, Literal
 
 from . import config, links, storage, sweep_state
 from .instagram import InstagramError, Post, is_not_visible, published_at
+from .models import AccountState, ProcessedPost, StoredEvent
 from .text import clock, event_dates_label
 
 Mark = Literal["ok", "no", "info"]
@@ -74,14 +75,14 @@ def diagnose(
         return result
 
     processed: dict[str, dict[str, Any]] = read(config.PROCESSED_POSTS_FILE.name, {})
-    record = next((r for r in processed.values() if links.same_post(r.get("permalink", ""), code)), None)
+    found = next((r for r in processed.values() if links.same_post(r.get("permalink", ""), code)), None)
     followed = storage.read_accounts()
-    events = storage.read_json(config.EVENTS_FILE, [])
     today = now.date().isoformat()
 
-    if record:
-        result.account = record["account"]
-        _explain_record(result, record, events, today, swept=record["account"] in followed)
+    if found:
+        record = ProcessedPost.model_validate(found)
+        result.account = record.account
+        _explain_record(result, record, storage.load_events(), today, swept=record.account in followed)
         return result
 
     author = author_of(code) if author_of else None
@@ -111,34 +112,32 @@ def diagnose(
 
 
 def _explain_record(
-    result: Diagnosis, record: dict[str, Any], events: list[dict[str, Any]], today: str, swept: bool
+    result: Diagnosis, record: ProcessedPost, events: list[StoredEvent], today: str, swept: bool
 ) -> None:
-    account = record["account"]
+    account = record.account
     result.check("ok" if swept else "no", f"@{account} {'está' if swept else 'ya no está'} en los barridos.")
-    model = record.get("model") or "?"
-    light = " (Flash-Lite, provisional: se relee con Flash)" if record.get("provisional") else ""
-    result.check("ok", f"Analizada el {_date(record['processed_at'])} con {model}{light}.")
+    model = record.model or "?"
+    light = " (Flash-Lite, provisional: se relee con Flash)" if record.provisional else ""
+    result.check("ok", f"Analizada el {_date(record.processed_at)} con {model}{light}.")
 
-    outcome = record.get("outcome")
+    outcome = record.outcome
     if outcome is None:  # analyzed before outcomes were recorded
-        outcome = "event" if record.get("is_event_post") else "not_event"
-    ids = record.get("event_ids") or []
+        outcome = "event" if record.is_event_post else "not_event"
+    ids = record.event_ids
     if not ids and outcome == "event":  # old record: find its events by the post's link
-        ids = [e["id"] for e in events if any(m.get("permalink") == record["permalink"] for m in e.get("media", []))]
+        ids = [e.id for e in events if any(m.permalink == record.permalink for m in e.media)]
 
     if outcome in ("event", "merged"):
-        on_site = [e for e in events if e["id"] in ids]
-        upcoming = [e for e in on_site if (e.get("end_date") or e.get("date") or "") >= today]  # until its last day
+        on_site = [e for e in events if e.id in ids]
+        upcoming = [e for e in on_site if (e.last_day or "") >= today]  # until its last day
         if upcoming:
             joined = " (unida a un evento que otra publicación ya había anunciado)" if outcome == "merged" else ""
             result.check("ok", f"Se convirtió en {len(upcoming)} evento(s){joined}.")
             result.events = [
                 {
-                    "title": e["title"],
-                    "date": event_dates_label(
-                        e["date"], e.get("end_date"), [session["date"] for session in e.get("sessions") or []]
-                    ),
-                    "url": links.event_url(e["id"]),
+                    "title": e.title,
+                    "date": event_dates_label(e.date, e.end_date, e.session_dates),
+                    "url": links.event_url(e.id),
                 }
                 for e in upcoming
             ]
@@ -151,7 +150,7 @@ def _explain_record(
             result.verdict = "No está en el sitio. Agregarla la vuelve a leer."
             result.suggestion = "add-post"
     elif outcome == "discarded":
-        detail = record.get("detail") or ""
+        detail = record.detail or ""
         why = "; ".join(DISCARD_DETAIL.get(part, part) for part in detail.split(", ") if part) or "no era publicable"
         result.check("no", f"Era un evento, pero no se publicó: {why}.")
         result.verdict = "Se descartó a propósito. Si es un evento único con fecha, agregarla la vuelve a leer."
@@ -161,14 +160,14 @@ def _explain_record(
         result.verdict = "No está en el sitio a propósito. Agregarla lo publica de nuevo."
         result.suggestion = "add-post"
     elif outcome == "rejected":
-        result.check("no", f"Gemini no pudo leerla: {record.get('reason', '')}")
+        result.check("no", f"Gemini no pudo leerla: {record.reason}")
         result.verdict = "Agregarla lo intenta de nuevo."
         result.suggestion = "add-post"
-    elif str(record.get("reason", "")).startswith(REMOVED_BY_HAND):
-        result.check("no", f"Se quitó a mano: {record['reason'].removeprefix(REMOVED_BY_HAND).strip(' :')}")
+    elif record.reason.startswith(REMOVED_BY_HAND):
+        result.check("no", f"Se quitó a mano: {record.reason.removeprefix(REMOVED_BY_HAND).strip(' :')}")
         result.verdict = "No está en el sitio a propósito."
     else:
-        result.check("no", f"Gemini dijo que no es un evento: “{record.get('reason', '')}”")
+        result.check("no", f"Gemini dijo que no es un evento: “{record.reason}”")
         result.verdict = "Si sí es un evento, agregarla la lee de nuevo sin ese filtro."
         result.suggestion = "add-post"
 
@@ -202,10 +201,11 @@ def _explain_unseen(
     result.check("ok", f"Publicada el {_date(published.isoformat())}")
     history: list[dict[str, Any]] = read(config.RUN_HISTORY_FILE.name, [])
     last = history[-1] if history else None
-    account_state = read(config.ACCOUNT_STATE_FILE.name, {}).get(account, {})
-    first_seen = account_state.get("first_seen")
+    raw_state = read(config.ACCOUNT_STATE_FILE.name, {}).get(account)
+    state = AccountState.model_validate(raw_state) if raw_state is not None else None
+    first_seen = state.first_seen if state else None
     # Each account is read about once a day, not every run: compare with this account's last reading.
-    read_at = account_state.get("last_swept_at") or (last["finished_at"] if last else None)
+    read_at = (state.last_swept_at if state else None) or (last["finished_at"] if last else None)
     tried = next(
         (r for r in reversed(history) if account in r.get("read_accounts", []) + r.get("failed_accounts", [])),
         last,

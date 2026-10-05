@@ -1,16 +1,31 @@
+// @ts-check
 // Pieces of the admin page that only turn data into HTML, kept apart from app.js (which needs the browser) so
 // the tests can check them in Node (test/render.test.mjs). Everything that comes from the data is escaped.
 
-/** Text made safe for HTML, in an element or an attribute. */
+/**
+ * One new workshop series, as status.json's `new_series` lists it (pa_bailar/status.py new_series).
+ * @typedef {{ id: string, title: string, account: string, sessions: string, url?: string | null,
+ *   sources?: { kind: string, link?: string | null }[] }} Series
+ */
+
+/**
+ * Text made safe for HTML, in an element or an attribute.
+ * @param {unknown} text
+ */
 export const escapeHtml = (text) => String(text ?? "").replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
 
-/** Only http(s) links are linked (a link in the data could be anything). */
+/**
+ * Only http(s) links are linked (a link in the data could be anything).
+ * @param {unknown} link
+ * @returns {string | null}
+ */
 const safeLink = (link) => (/^https?:\/\//i.test(String(link ?? "")) ? String(link) : null);
 
 /**
  * "Series nuevas": workshop series first published in the last two weeks (status.json's `new_series`,
  * pa_bailar/status.py new_series), each with its sessions, where it came from, its link on the site, and a one-tap
  * "Ocultar" (data-hide-event, handled in app.js: it opens a hide-event request). Empty when there are none.
+ * @param {Series[] | null | undefined} series
  */
 export function seriesCard(series) {
   if (!Array.isArray(series) || !series.length) return "";

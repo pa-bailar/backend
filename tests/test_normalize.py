@@ -135,6 +135,8 @@ def test_negative_prices_are_removed():
         ("WhatsApp 320 2332984", "WhatsApp 320 2332984"),
         ("Wpp: 3018847358", "WhatsApp 3018847358"),
         ("SOCIAL", None),
+        ("@" + "a" * 30, "@" + "a" * 30),
+        ("@" + "a" * 31, None),  # longer than Instagram allows: no profile to link
         ("  ", None),
         (None, None),
     ],
@@ -144,13 +146,13 @@ def test_contacts_are_kept_only_when_the_site_can_link_them(raw, clean):
 
 
 def test_prices_without_a_label_are_dropped_and_untitled_events_arent_published():
-    from pa_bailar.pipeline import _unpublishable
+    from pa_bailar.pipeline.common import unpublishable
 
     event = normalize_event(
         extracted(prices=[Price(label=" ", amount_cop=20000), Price(label="General", amount_cop=0)])
     )
     assert [price.label for price in event.prices] == ["General"]  # the site's check-data requires a label
-    assert _unpublishable(normalize_event(extracted(title="  "))) == ["sin fecha"]
+    assert unpublishable(normalize_event(extracted(title="  "))) == ["sin fecha"]
 
 
 # ---------- events over several days ----------

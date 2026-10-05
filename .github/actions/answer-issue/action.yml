@@ -1,0 +1,67 @@
+# The answer on an admin request's issue (docs/ADMIN.md), for every workflow that answers one (admin, daily-sweep).
+# It comments only on an admin request: an issue opened by the owner and labelled `admin` (and, unless
+# require-open is "false", still open). Any other issue number, e.g. one passed to daily-sweep by hand, gets
+# nothing. The answer's text arrives as a file or an input, never inside the script.
+name: Answer on the admin issue
+description: Comment on an admin request's issue, and optionally close it, if it is one.
+
+inputs:
+  issue:
+    description: The issue's number
+    required: true
+  body-file:
+    description: The answer, as a file (or use body)
+    required: false
+    default: ""
+  body:
+    description: The answer, as text (when there's no body-file)
+    required: false
+    default: ""
+  close:
+    description: '"true": close the issue after answering'
+    required: false
+    default: "false"
+  require-open:
+    description: '"false": answer a closed issue too (the admin workflow: a request made by commenting on an answered issue)'
+    required: false
+    default: "true"
+  owner:
+    description: The only account whose issues are admin requests
+    required: false
+    default: jzamora5
+  token:
+    description: A token that can read and comment on issues
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Answer
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        ISSUE: ${{ inputs.issue }}
+        BODY_FILE: ${{ inputs.body-file }}
+        BODY: ${{ inputs.body }}
+        CLOSE: ${{ inputs.close }}
+        REQUIRE_OPEN: ${{ inputs.require-open }}
+        OWNER: ${{ inputs.owner }}
+      run: |
+        if ! [[ "$ISSUE" =~ ^[0-9]+$ ]]; then
+          echo "::warning::No answer: \"$ISSUE\" isn't an issue number."
+          exit 0
+        fi
+        ok="$(gh issue view "$ISSUE" --repo "$GITHUB_REPOSITORY" --json state,author,labels \
+          --jq '(env.REQUIRE_OPEN != "true" or .state == "OPEN") and .author.login == env.OWNER
+            and any(.labels[]; .name == "admin")')"
+        if [ "$ok" != "true" ]; then
+          echo "::warning::No answer: #$ISSUE isn't an admin request by $OWNER$([ "$REQUIRE_OPEN" = "true" ] && echo ' (open)')."
+          exit 0
+        fi
+        if [ -n "$BODY_FILE" ]; then
+          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" --body-file "$BODY_FILE"
+        else
+          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+        fi
+        if [ "$CLOSE" = "true" ]; then gh issue close "$ISSUE" --repo "$GITHUB_REPOSITORY" --reason completed; fi

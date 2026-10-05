@@ -11,15 +11,16 @@ pull request twice a day. The site, its design system and the data contract (`do
 
 ```
 pa_bailar/            the collector (one Python package; every module in docs/ARCHITECTURE.md, Code map)
-  commands/           what you run: sweep, discover, refresh_token, admin
-  pipeline.py         the sweep: Instagram -> Gemini -> events, merged and stored
+  commands/           what you run: sweep, discover, refresh_token, admin (answers.py: the admin tools' answers)
+  pipeline/           the sweep: Instagram -> Gemini -> events, merged and stored; and the admin tools' add a
+                      post or a story, hide a story or an event (one module each)
   instagram.py        Instagram Graph API (Business Discovery)
   public_post.py      one post from its public page, when the API can't give it (admin tools)
   stories.py          a story's event from screenshots shared to the admin page: dates, crop, account
   extraction.py       triage then extraction; prompts.py has the prompts, gemini.py the models and quotas
   merging.py, ids.py, normalize.py, clips.py, storage.py, models.py, config.py
-  health.py, status.py, why.py, inbox.py, links.py, sweep_state.py, discovery.py, text.py, logs.py
-tests/                unit and end-to-end tests (no network)
+  health.py, status.py, why.py, inbox.py, links.py, patterns.py, sweep_state.py, discovery.py, text.py, logs.py
+tests/                unit and end-to-end tests (no network); fixtures/patterns.json is shared with admin-web/test
 docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, monitoring (start here)
 docs/ADMIN.md         the admin tools: the admin page, the inbox, the commands
 docs/PLAN.md          the original go-live plan, kept for its decisions

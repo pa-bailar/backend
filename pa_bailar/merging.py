@@ -237,7 +237,7 @@ def refused_link(
 
 def already_stored(events: list[StoredEvent], account: str, candidate: ExtractedEvent, post_id: str) -> bool:
     """Whether an extracted event is one already stored: one this post announced before (read again, a day in
-    common) or another post's (find_existing). A past event is published only then (pipeline._discard_reasons)."""
+    common) or another post's (find_existing). A past event is published only then (Sweep._discard_reasons)."""
     own = any(any(m.post_id == post_id for m in e.media) and _overlap(e, candidate) for e in events)
     return own or find_existing(events, account, candidate, post_id) is not None
 

@@ -7,6 +7,7 @@ from itertools import pairwise
 
 from . import config
 from .models import STYLES, ExtractedEvent, Price, Session
+from .patterns import HANDLE
 from .text import WEEKDAYS, fold
 
 _TIME_PATTERN = re.compile(r"^(\d{1,2}):(\d{2})$")
@@ -104,7 +105,7 @@ def normalize_styles(styles: Sequence[str]) -> list[str]:
 
 
 _WHATSAPP = re.compile(r"\b(whats\s*app|wpp|wsp|wa)\b", re.IGNORECASE)
-_HANDLE = re.compile(r"^@[A-Za-z0-9._]+$")
+_HANDLE = re.compile(rf"^@{HANDLE}$")  # longer than Instagram allows: not an account (dropped, unless it's digits)
 _WEBSITE = re.compile(r"^(https?://)?[\w-]+(\.[\w-]+)+(/\S*)?$", re.IGNORECASE)
 
 

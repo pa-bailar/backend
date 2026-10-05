@@ -21,19 +21,18 @@ import re
 from dataclasses import dataclass
 from typing import Literal
 
-from . import links
+from . import links, patterns
 
 Action = Literal["why", "add-post", "add-account", "status", "add-story", "hide-story", "hide-event", "help"]
 
 # The issue form (.github/ISSUE_TEMPLATE/admin.yml) and the admin page write "### Field\n\nvalue".
 _FIELD = re.compile(r"^###\s*(?P<name>[^\n]+)\n+(?P<value>.*?)(?=\n###|\Z)", re.MULTILINE | re.DOTALL)
 _LINK = re.compile(r"https?://(?:www\.|m\.)?instagram\.com/\S+", re.IGNORECASE)
-_HANDLE = re.compile(r"(?<![\w/])@([A-Za-z0-9._]{1,30})")
-_UPLOAD_ID = re.compile(r"\b[0-9a-f]{32}\b")  # a screenshot the admin page uploaded (admin-web/src/index.js)
-_STORY_ID = re.compile(r"\bstory-[0-9a-f]{16}\b")
-# An event's id (ids.py): lowercase words joined by hyphens, like the site's check-data.mjs.
-EVENT_ID = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
-EVENT_ID_MAX = 120
+_HANDLE = re.compile(rf"(?<![\w/])@({patterns.HANDLE})")
+_UPLOAD_ID = re.compile(rf"\b{patterns.UPLOAD_ID}\b")  # a screenshot the admin page uploaded
+_STORY_ID = re.compile(rf"\b{patterns.STORY_ID}\b")
+EVENT_ID = re.compile(patterns.EVENT_ID)  # an event's id (ids.py): lowercase words joined by hyphens
+EVENT_ID_MAX = patterns.EVENT_ID_MAX
 MAX_SCREENSHOTS = 4
 NOTES_MAX = 500
 # The form's "Acción" values (and the admin page's, which writes the same body).
@@ -157,6 +156,24 @@ def _commands(text: str) -> set[str]:
     return {match.group("name").lower() for match in _COMMAND.finditer(text)}
 
 
+def _form_request(fields: dict[str, str], post: str | None, account: str | None) -> Request:
+    """A request from the form's fields (the issue form, the admin page): its Acción, and the fields it needs.
+    `post` and `account` are what the whole text names, when the fields don't."""
+    chosen = (fields.get("acción") or fields.get("accion") or "").lower()
+    action = _ACTIONS.get(chosen, "help")
+    if action in ("add-story", "hide-story"):
+        return _story_request(fields, chosen)
+    if action == "hide-event":
+        return _hide_event(fields.get("evento") or "")
+    field_link = _first_link(fields.get("enlace") or "")
+    post = field_link or post  # the link alone, never what follows it
+    if action in ("why", "add-post") and not (post and links.post_code(post)):
+        return Request("help")
+    if action == "add-account" and not account:
+        return Request("help")
+    return Request(action, post if action in ("why", "add-post") else None, account, chosen == "volver a leer")
+
+
 def parse(text: str) -> Request:
     fields = {m.group("name").strip().lower(): _clean(m.group("value")) for m in _FIELD.finditer(text)}
     link = _first_link(text)
@@ -170,19 +187,7 @@ def parse(text: str) -> Request:
         account = handle.group(1).lower() if handle else None
 
     if "acción" in fields or "accion" in fields:
-        chosen = (fields.get("acción") or fields.get("accion") or "").lower()
-        action = _ACTIONS.get(chosen, "help")
-        if action in ("add-story", "hide-story"):
-            return _story_request(fields, chosen)
-        if action == "hide-event":
-            return _hide_event(fields.get("evento") or "")
-        field_link = _first_link(fields.get("enlace") or "")
-        post = field_link or post  # the link alone, never what follows it
-        if action in ("why", "add-post") and not (post and links.post_code(post)):
-            return Request("help")
-        if action == "add-account" and not account:
-            return Request("help")
-        return Request(action, post if action in ("why", "add-post") else None, account, chosen == "volver a leer")
+        return _form_request(fields, post, account)
 
     story = _story_command(text)
     if story:

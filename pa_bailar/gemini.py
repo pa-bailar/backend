@@ -19,6 +19,7 @@ import logging
 import time
 from collections import Counter
 from datetime import datetime, timedelta
+from typing import Literal
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -146,6 +147,36 @@ class ModelPool:
             time.sleep(wait)
         self._last_call[model] = time.monotonic()
 
+    def _after_client_error(
+        self, model: str, attempt: int, error: errors.ClientError
+    ) -> Literal["retry", "skip", "busy"]:
+        """What a 4xx means for `model`: "retry" it (the per-minute limit: after waiting a minute), "skip" to the next
+        model (not available to this key, or out of today's quota: nothing failed), or "busy" (the per-minute limit
+        again: the next model, and this request counts as failed). Raises GeminiKeyError for a key that doesn't work,
+        and RejectedRequestError for a request Gemini refuses."""
+        if _is_key_error(error):
+            raise GeminiKeyError(str(error)) from error
+        if error.code in (403, 404):  # not available to this key (e.g. no longer in the free tier)
+            log.warning("    %s is not available to this API key (%s)", model, error.code)
+            self.unavailable.add(model)
+            self._exhaust(model)
+            return "skip"
+        if error.code == 429 and _is_daily_quota_error(error):
+            log.info("    %s daily quota used up, trying the next model", model)
+            self._exhaust(model)
+            return "skip"
+        if error.code == 429 and attempt > 1:
+            # Per-minute again after waiting: busy, not spent. The day's budget stays (a run that
+            # marked it spent would lose the model for the whole quota day); the post is retried.
+            log.info("    %s per-minute limit again, trying the next model", model)
+            return "busy"
+        if error.code == 429:
+            log.info("    %s per-minute limit, waiting %ss", model, RATE_LIMIT_WAIT_SECONDS)
+            time.sleep(RATE_LIMIT_WAIT_SECONDS)
+            return "retry"
+        # Any other 4xx is about the request itself (e.g. an unreadable image): permanent.
+        raise RejectedRequestError(f"{model} rejected the request: {error}") from error
+
     def generate[T: BaseModel](
         self,
         models: tuple[str, ...],
@@ -193,29 +224,12 @@ class ModelPool:
                     if attempt < ATTEMPTS_PER_MODEL:
                         time.sleep(SERVER_ERROR_BACKOFF_SECONDS * attempt)
                 except errors.ClientError as error:
-                    if _is_key_error(error):
-                        raise GeminiKeyError(str(error)) from error
-                    if error.code in (403, 404):  # not available to this key (e.g. no longer in the free tier)
-                        log.warning("    %s is not available to this API key (%s)", model, error.code)
-                        self.unavailable.add(model)
-                        self._exhaust(model)
-                        break
-                    if error.code == 429 and _is_daily_quota_error(error):
-                        log.info("    %s daily quota used up, trying the next model", model)
-                        self._exhaust(model)
-                        break
-                    if error.code == 429 and attempt > 1:
-                        # Per-minute again after waiting: busy, not spent. The day's budget stays (a run that
-                        # marked it spent would lose the model for the whole quota day); the post is retried.
-                        log.info("    %s per-minute limit again, trying the next model", model)
-                        failed = True
-                        break
-                    if error.code == 429:
-                        log.info("    %s per-minute limit, waiting %ss", model, RATE_LIMIT_WAIT_SECONDS)
-                        time.sleep(RATE_LIMIT_WAIT_SECONDS)
+                    verdict = self._after_client_error(model, attempt, error)
+                    if verdict == "retry":
                         continue
-                    # Any other 4xx is about the request itself (e.g. an unreadable image): permanent.
-                    raise RejectedRequestError(f"{model} rejected the request: {error}") from error
+                    if verdict == "busy":
+                        failed = True
+                    break  # the next model
         if not failed:
             raise QuotaExhaustedError(f"no quota left today ({', '.join(models) or 'no model'})")
         raise ExtractionError(f"no model could answer ({', '.join(models)})")

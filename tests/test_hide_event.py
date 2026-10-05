@@ -7,7 +7,7 @@ import pytest
 
 from pa_bailar import config, inbox, status, storage, why
 from pa_bailar.commands.admin import answer
-from pa_bailar.commands.sweep import hidden_event_markdown
+from pa_bailar.commands.answers import hidden_event_markdown
 from pa_bailar.models import PostAnalysis
 from pa_bailar.pipeline import AddPostError, Sweep
 from tests.factories import EVENT_DATE, event_id, extracted, make_image
@@ -22,7 +22,7 @@ SERIES_ID = event_id(SERIES_TITLE)
 def accounts_and_images(isolated_files, monkeypatch):
     config.ACCOUNTS_FILE.write_text("academia\notra\n", encoding="utf-8")
     monkeypatch.setattr(config, "PRIVATE_DIR", isolated_files / "private")
-    monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: make_image())
+    monkeypatch.setattr("pa_bailar.pipeline.common.download_image", lambda url: make_image())
 
 
 def series_post(post_id: str):

@@ -46,6 +46,73 @@ def gemini_allowance(pool: ModelPool) -> int:
     return max(0, daily_budget(model) - by_sweeps - pool.used(model) - config.DISCOVERY_LEAVES_FOR_SWEEPS)
 
 
+def check_profiles(
+    instagram: InstagramClient, todo: list[str], cache: dict[str, discovery.DiscoveredAccount], today: str
+) -> None:
+    """Ask Instagram whether each account is a business (its profile and dance hint) or personal, paced and paused
+    around the sweeps and Instagram's quota; stops at its rate limit. The cache is saved after each one."""
+    for count, username in enumerate(todo, start=1):
+        time.sleep(SECONDS_BETWEEN_INSTAGRAM_CALLS if count > 1 else 0)
+        while discovery.near_sweep(config.now_bogota()):
+            log.info("  The daily sweep is about to run or running: pausing Instagram checks 5 min")
+            time.sleep(QUIET_PAUSE_SECONDS)
+        while instagram.app_usage_percent >= USAGE_PAUSE_PERCENT:
+            log.info("  Instagram app at %s%% of its hourly quota: pausing 10 min", instagram.app_usage_percent)
+            time.sleep(USAGE_PAUSE_SECONDS)
+            instagram.app_usage_percent = 0  # the next call reports the real value again
+        try:
+            profile = instagram.fetch_profile(username)
+        except InstagramError as error:
+            if is_rate_limited(error):
+                log.warning("Instagram rate limit reached (%s): stopping. Run again in an hour to continue.", error)
+                break
+            if not is_not_visible(error):
+                log.warning("  @%s: %s (will retry next run)", username, error)
+                continue
+            cache[username] = discovery.DiscoveredAccount(username=username, status="personal", checked_on=today)
+        else:
+            hint = discovery.profile_hint(profile)
+            cache[username] = discovery.DiscoveredAccount(
+                username=username, status="business", profile=profile, dance_hint=hint
+            )
+            log.info("  [%s/%s] @%s business%s", count, len(todo), username,
+                     f", dance hint {hint}" if hint else "")  # fmt: skip
+        discovery.save_cache(CACHE_FILE, cache)
+
+
+def classify(pool: ModelPool, cache: dict[str, discovery.DiscoveredAccount], max_gemini: int) -> None:
+    """Classify the business accounts with a dance hint (strongest hint first), at most `max_gemini` and within
+    what the sweeps leave of today's quota. Stops at the first Gemini failure; the cache is saved after each one."""
+    to_classify = [a for a in cache.values() if a.status == "business" and a.dance_hint and not a.classification]
+    to_classify.sort(key=lambda a: -a.dance_hint)
+    allowance = gemini_allowance(pool)
+    if to_classify and allowance < max_gemini:
+        log.info(
+            "Gemini: %s classifications today at most, leaving the daily sweeps %s Flash-Lite requests",
+            allowance,
+            config.DISCOVERY_LEAVES_FOR_SWEEPS,
+        )
+    for account in to_classify[: min(max_gemini, allowance)]:
+        if account.profile is None:  # business accounts always have one; nothing to classify otherwise
+            continue
+        try:
+            classification, model = pool.generate(
+                config.TRIAGE_MODELS, discovery.classify_prompt(account.profile), AccountClassification
+            )
+        except GeminiKeyError as error:
+            log.warning(
+                "  classification stopped: Gemini's API key doesn't work (%s): replace it in .env and run again", error
+            )
+            break
+        except (ExtractionError, genai_errors.APIError, httpx.TransportError) as error:
+            # Out of quota, or Gemini busy or unreachable: what's classified so far is saved.
+            log.warning("  classification stopped: %s (run again later to continue)", error)
+            break
+        account.classification, account.classified_by = classification, model
+        log.info("  @%s → %s, Bogotá: %s", account.username, classification.kind, classification.in_bogota)
+        discovery.save_cache(CACHE_FILE, cache)
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m pa_bailar discover", description=__doc__.splitlines()[0])
     parser.add_argument("export", type=Path, help="following.html or following.json from your Instagram export")
@@ -82,63 +149,10 @@ def main(argv: list[str] | None = None) -> None:
     todo = new[: args.max_instagram] + again[: args.recheck_personal]
     if again and args.recheck_personal:
         log.info("Rechecking %s of %s accounts marked personal", min(len(again), args.recheck_personal), len(again))
-    for count, username in enumerate(todo, start=1):
-        time.sleep(SECONDS_BETWEEN_INSTAGRAM_CALLS if count > 1 else 0)
-        while discovery.near_sweep(config.now_bogota()):
-            log.info("  The daily sweep is about to run or running: pausing Instagram checks 5 min")
-            time.sleep(QUIET_PAUSE_SECONDS)
-        while instagram.app_usage_percent >= USAGE_PAUSE_PERCENT:
-            log.info("  Instagram app at %s%% of its hourly quota: pausing 10 min", instagram.app_usage_percent)
-            time.sleep(USAGE_PAUSE_SECONDS)
-            instagram.app_usage_percent = 0  # the next call reports the real value again
-        try:
-            profile = instagram.fetch_profile(username)
-        except InstagramError as error:
-            if is_rate_limited(error):
-                log.warning("Instagram rate limit reached (%s): stopping. Run again in an hour to continue.", error)
-                break
-            if not is_not_visible(error):
-                log.warning("  @%s: %s (will retry next run)", username, error)
-                continue
-            cache[username] = discovery.DiscoveredAccount(username=username, status="personal", checked_on=today)
-        else:
-            hint = discovery.profile_hint(profile)
-            cache[username] = discovery.DiscoveredAccount(
-                username=username, status="business", profile=profile, dance_hint=hint
-            )
-            log.info("  [%s/%s] @%s business%s", count, len(todo), username,
-                     f", dance hint {hint}" if hint else "")  # fmt: skip
-        discovery.save_cache(CACHE_FILE, cache)
+    check_profiles(instagram, todo, cache, today)
 
     # 2. Gemini: classify business accounts with a dance hint, within what the sweeps leave
-    to_classify = [a for a in cache.values() if a.status == "business" and a.dance_hint and not a.classification]
-    to_classify.sort(key=lambda a: -a.dance_hint)
-    allowance = gemini_allowance(pool)
-    if to_classify and allowance < args.max_gemini:
-        log.info(
-            "Gemini: %s classifications today at most, leaving the daily sweeps %s Flash-Lite requests",
-            allowance,
-            config.DISCOVERY_LEAVES_FOR_SWEEPS,
-        )
-    for account in to_classify[: min(args.max_gemini, allowance)]:
-        if account.profile is None:  # business accounts always have one; nothing to classify otherwise
-            continue
-        try:
-            classification, model = pool.generate(
-                config.TRIAGE_MODELS, discovery.classify_prompt(account.profile), AccountClassification
-            )
-        except GeminiKeyError as error:
-            log.warning(
-                "  classification stopped: Gemini's API key doesn't work (%s): replace it in .env and run again", error
-            )
-            break
-        except (ExtractionError, genai_errors.APIError, httpx.TransportError) as error:
-            # Out of quota, or Gemini busy or unreachable: what's classified so far is saved.
-            log.warning("  classification stopped: %s (run again later to continue)", error)
-            break
-        account.classification, account.classified_by = classification, model
-        log.info("  @%s → %s, Bogotá: %s", account.username, classification.kind, classification.in_bogota)
-        discovery.save_cache(CACHE_FILE, cache)
+    classify(pool, cache, args.max_gemini)
 
     REPORT_FILE.write_text(discovery.report_markdown(cache, already, len(following)), encoding="utf-8")
     remaining = len([u for u in following if u not in cache and u not in already])

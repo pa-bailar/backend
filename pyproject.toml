@@ -10,8 +10,11 @@ target-version = "py312"
 extend-exclude = [".venv"]
 
 [tool.ruff.lint]
-# pycodestyle, pyflakes, import order, naming, pyupgrade, bugbear, simplify
-select = ["E", "W", "F", "I", "N", "UP", "B", "SIM"]
+# pycodestyle, pyflakes, import order, naming, pyupgrade, bugbear, simplify, complexity
+select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "C90"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12 # past this, split the function into named steps
 
 [tool.mypy]
 python_version = "3.12"

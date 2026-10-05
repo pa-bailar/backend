@@ -24,6 +24,9 @@
 // Secrets (Cloudflare → the Worker → Settings → Variables and Secrets): GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET,
 // SESSION_SECRET. Plain settings are in wrangler.jsonc ("vars").
 
+// The shapes a request may take, shared with the page and checked against the inbox's (pa_bailar/patterns.py).
+import { ACCOUNT, EVENT_ID, EVENT_ID_MAX, POST_LINK, STORY_ID, UPLOAD_ID } from "../public/patterns.js";
+
 const SESSION_COOKIE = "session";
 const STATE_COOKIE = "oauth_state";
 const SESSION_DAYS = 30;
@@ -34,7 +37,6 @@ const SESSION_DAYS = 30;
 const UPLOAD_PREFIX = "upload:";
 const UPLOAD_TTL_SECONDS = 7 * 24 * 3600;
 const UPLOAD_MAX_BYTES = 8 * 1024 * 1024; // a 1080 px JPEG is well under 1 MB
-const UPLOAD_ID = /^[a-f0-9]{32}$/;
 const MAX_STORY_IMAGES = 4;
 
 // Security headers on every answer from here (JSON, redirects): none of them is a page, so the policy allows
@@ -185,14 +187,7 @@ async function readStatus(session, env) {
 
 // ---------- requests: issues in the admin inbox (.github/workflows/admin.yml answers them) ----------
 
-// The whole value is one post link (a slash, a query like ?igsh=… and a #fragment allowed, no spaces or new
-// lines): it goes into the issue's body, which the inbox reads line by line.
-const POST_LINK = /^https?:\/\/(www\.|m\.)?instagram\.com\/([\w.]+\/)?(p|reel|reels|tv)\/[\w-]+\/?(\?[^\s#]*)?(#\S*)?$/i;
-const ACCOUNT = /^[A-Za-z0-9._]{1,30}$/; // tested without its "@"
-const STORY_ID = /^story-[a-f0-9]{16}$/; // a story published from screenshots (pa_bailar/stories.py)
-// An event's id on the site (pa_bailar/ids.py; pa_bailar/inbox.py EVENT_ID): lowercase words joined by hyphens.
-const EVENT_ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-const EVENT_ID_MAX = 120;
+// A request's link, account, story and event are checked with public/patterns.js (imported above).
 const NOTES_MAX = 500;
 const ACTIONS = {
   why: "Revisar",

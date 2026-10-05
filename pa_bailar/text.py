@@ -2,7 +2,7 @@
 
 import unicodedata
 from collections.abc import Sequence
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 MONTHS = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")  # short, Spanish
 WEEKDAYS = ("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")  # date.weekday() order
@@ -49,6 +49,18 @@ def event_dates_label(start: str | None, end: str | None = None, sessions: Seque
     return sessions_label(sessions) if len(sessions) > 1 else dates_label(start, end)
 
 
-def clock(moment: datetime) -> str:
+def day_label(day: str) -> str:
+    """One day, with its weekday, for the admin tools' answers: '2026-10-10' → 'sábado 10 oct 2026'."""
+    moment = date.fromisoformat(day)
+    return f"{WEEKDAYS[moment.weekday()]} {moment.day} {MONTHS[moment.month - 1]} {moment.year}"
+
+
+def parse_hhmm(text: str) -> time:
+    """ "21:00" → 21:00 (the times in config and stored events). Raises ValueError for anything else."""
+    hour, minute = map(int, text.split(":"))
+    return time(hour, minute)
+
+
+def clock(moment: datetime | time) -> str:
     """The time of day as the admin tools' answers say it: '9:00 p. m.', '12:30 a. m.'."""
     return f"{moment.hour % 12 or 12}:{moment.minute:02d} {'a. m.' if moment.hour < 12 else 'p. m.'}"

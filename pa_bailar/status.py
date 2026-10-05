@@ -12,17 +12,16 @@ Plain reading of what the sweeps record (no AI, no Gemini requests):
 """
 
 from collections.abc import Callable
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from . import config, discovery, links, storage, sweep_state
 from .gemini import daily_budget, quota_day, quota_reset
-from .models import AccountState
+from .models import AccountState, StoredEvent
 from .pipeline import hours_overdue
-from .text import clock, sessions_label
+from .text import WEEKDAYS, clock, parse_hhmm, sessions_label
 
 RECENT_RUNS = 5
-WEEKDAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
 
 
 def next_sweeps(now: datetime, count: int = 2) -> list[datetime]:
@@ -31,8 +30,7 @@ def next_sweeps(now: datetime, count: int = 2) -> list[datetime]:
     day = now.date()
     while len(upcoming) < count:
         for hhmm in sorted(config.SWEEP_TIMES):
-            hour, minute = map(int, hhmm.split(":"))
-            moment = datetime.combine(day, time(hour, minute), config.BOGOTA_TZ)
+            moment = datetime.combine(day, parse_hhmm(hhmm), config.BOGOTA_TZ)
             if moment > now and len(upcoming) < count:
                 upcoming.append(moment)
         day += timedelta(days=1)
@@ -64,24 +62,20 @@ def check_instagram() -> dict[str, Any]:
     return {"ok": True, "app_usage_percent": client.app_usage_percent, "error": None}
 
 
-def _first_published(event: dict[str, Any], processed: dict[str, dict[str, Any]]) -> datetime | None:
+def _first_published(event: StoredEvent, processed: dict[str, dict[str, Any]]) -> datetime | None:
     """When the event was first published: the earliest analysis of a post that became or joined it, else (records
-    forgotten) its earliest post's date."""
+    forgotten) its earliest post's date. The records stay plain data: the counts read only part of them."""
     times = [
         datetime.fromisoformat(record["processed_at"])
         for record in processed.values()
-        if event.get("id") in (record.get("event_ids") or []) and record.get("processed_at")
+        if event.id in (record.get("event_ids") or []) and record.get("processed_at")
     ]
     if not times:
-        times = [
-            datetime.fromisoformat(media["published"]) for media in event.get("media", []) if media.get("published")
-        ]
+        times = [datetime.fromisoformat(media.published) for media in event.media if media.published]
     return min(times) if times else None
 
 
-def new_series(
-    events: list[dict[str, Any]], processed: dict[str, dict[str, Any]], now: datetime
-) -> list[dict[str, Any]]:
+def new_series(events: list[StoredEvent], processed: dict[str, dict[str, Any]], now: datetime) -> list[dict[str, Any]]:
     """Workshop series (events with `sessions`) first published in the last NEW_SERIES_DAYS and not over yet,
     newest first: a new kind of event, worth a look. Each with its sessions ("4 sesiones: 8, 22, 29 nov y 6 dic"),
     where it came from (its posts' links, or a story's profile) and its link on the site, for "Ocultar"."""
@@ -89,22 +83,22 @@ def new_series(
     today = now.date().isoformat()
     found = []
     for event in events:
-        dates = [session["date"] for session in event.get("sessions") or []]
+        dates = event.session_dates
         first = _first_published(event, processed)
         if not dates or dates[-1] < today or first is None or first < since:
             continue
         found.append(
             {
-                "id": event["id"],
-                "title": event.get("title", ""),
-                "account": event.get("account", ""),
+                "id": event.id,
+                "title": event.title,
+                "account": event.account,
                 "sessions": sessions_label(dates),
                 "dates": dates,
-                "url": links.event_url(event["id"]),
+                "url": links.event_url(event.id),
                 "first_published": first.isoformat(timespec="minutes"),
                 "sources": [
-                    {"kind": "story" if media.get("media_type") == "STORY" else "post", "link": media.get("permalink")}
-                    for media in event.get("media", [])
+                    {"kind": "story" if media.media_type == "STORY" else "post", "link": media.permalink}
+                    for media in event.media
                 ],
             }
         )
@@ -123,14 +117,15 @@ def collect(
     history = read(config.RUN_HISTORY_FILE.name, [])
     usage = read(config.GEMINI_USAGE_FILE.name, {})
     used = usage.get("requests", {}) if usage.get("day") == quota_day() else {}
-    account_state = read(config.ACCOUNT_STATE_FILE.name, {})
-    states = {name: AccountState.model_validate(value) for name, value in account_state.items()}
+    states = {
+        name: AccountState.model_validate(value) for name, value in read(config.ACCOUNT_STATE_FILE.name, {}).items()
+    }
     processed = read(config.PROCESSED_POSTS_FILE.name, {})
     followed = storage.read_accounts()
 
-    events = storage.read_json(config.EVENTS_FILE, None)
+    events = storage.load_events() if config.EVENTS_FILE.exists() else None
     # Upcoming until its last day: an event over several days is on the site while it goes on.
-    upcoming = [event for event in events or [] if (event.get("end_date") or event.get("date") or "") >= today]
+    upcoming = [event for event in events or [] if (event.last_day or "") >= today]
     discovered = discovery.load_cache(config.PRIVATE_DIR / "discovery.json")
 
     return {
@@ -151,7 +146,7 @@ def collect(
         "accounts": {
             "followed": len(followed),
             "first_sweep_pending": [
-                account for account in followed if not account_state.get(account, {}).get("backfill_done")
+                account for account in followed if account not in states or not states[account].backfill_done
             ],
             # Past their turn by more than a sweep's gap: a sweep didn't reach them (its share, Instagram's limit).
             "waiting": [
@@ -168,7 +163,7 @@ def collect(
         if events is None
         else {
             "upcoming": len(upcoming),
-            "low_confidence": sum(1 for event in upcoming if event.get("confidence") == "low"),
+            "low_confidence": sum(1 for event in upcoming if event.confidence == "low"),
         },
         "new_series": new_series(events or [], processed, now),
         "discovery": None

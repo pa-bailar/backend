@@ -18,9 +18,9 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
-from . import config, storage
+from . import config, links, storage
 from .models import AccountClassification
-from .text import fold
+from .text import fold, parse_hhmm
 
 DANCE_KEYWORDS = [
     "bail", "danc", "danz", "salsa", "bachat", "kizomba", "zouk", "mambo", "casino", "timba", "merengue",
@@ -224,7 +224,7 @@ def report_markdown(cache: dict[str, DiscoveredAccount], already_followed: set[s
         ]
         for r in rows:
             lines.append(
-                f"| [@{r.username}](https://www.instagram.com/{r.username}/) | {r.kind} | {r.in_bogota} "
+                f"| [@{r.username}]({links.profile_link(r.username)}) | {r.kind} | {r.in_bogota} "
                 f"{('(' + r.city + ')') if r.city and r.in_bogota != 'yes' else ''} | {r.styles} | "
                 f"{'yes' if r.announces_events else 'no'} | {r.followers} | {r.reason} |"
             )
@@ -262,9 +262,9 @@ QUIET_AFTER_SWEEP = timedelta(minutes=45)
 def near_sweep(now: datetime) -> bool:
     """True while the daily sweep needs the Instagram app's hourly quota (`now` in Bogotá)."""
     for sweep_time in config.SWEEP_TIMES:
-        hour, minute = map(int, sweep_time.split(":"))
+        at = parse_hhmm(sweep_time)
         for day in (-1, 0, 1):  # windows can cross midnight
-            start = (now + timedelta(days=day)).replace(hour=hour, minute=minute, second=0, microsecond=0)
+            start = (now + timedelta(days=day)).replace(hour=at.hour, minute=at.minute, second=0, microsecond=0)
             if start - QUIET_BEFORE_SWEEP <= now < start + QUIET_AFTER_SWEEP:
                 return True
     return False
