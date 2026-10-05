@@ -2,7 +2,7 @@
 
 Run with the faster-whisper venv (D:\\AI\\whisper):
   D:/AI/whisper/.venv/Scripts/python media/tools/timing.py <video>
-      → media/out/<video>/voice-track.wav and projects/<video>/data/timing.json (line and word times, video
+      → out/<video>/voice-track.wav (media home) and projects/<video>/data/timing.json (line and word times, video
         seconds: the track starts at video time 0, after "lead" seconds of silence)
   D:/AI/whisper/.venv/Scripts/python media/tools/timing.py --transcribe <file.wav> …
       → what Whisper hears (QA for a take: a swallowed word shows up here)
@@ -18,8 +18,7 @@ import wave
 from pathlib import Path
 
 import numpy as np
-from common import TTS_RATE, tts_path, video
-from tts import DIRECTION
+from common import DIRECTION, TTS_RATE, shown, tts_path, video, voice_key
 
 RATE = TTS_RATE
 
@@ -122,8 +121,10 @@ def build(name: str) -> None:
     timing = {
         "fps_hint": v.fps,
         "duration": round(len(track) / RATE, 3),
-        "voice": f"media/out/{name}/voice-track.wav",
+        "voice": f"(media home) {shown(out)}",
         "lead": lead,
+        # what the track was made from: tools/render.py refuses to render when the voice changed since
+        "voice_key": voice_key(v.settings),
         "lines": lines,
         "segments": segs,
         "note": "Times are video seconds. Line start/end are exact (from the joined files); "

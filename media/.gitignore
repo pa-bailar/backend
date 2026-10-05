@@ -1,9 +1,8 @@
-# Generated or downloaded, never committed: rebuild them with the tools (README.md)
+# Generated files live in the media home (D:\AI\pa-bailar-media, or PA_BAILAR_MEDIA_HOME), outside the checkout.
+# These folders only hold copies from before it (and the site checks in out/): never committed.
 node_modules/
 out/
 cache/
-# Each video's binaries (screens, flyers, audio) are written here by the tools; only the fonts are kept
-public/*
-!public/fonts/
+public/
 # The Remotion agent skills: installed locally (npx skills add remotion-dev/skills), versions pinned in skills-lock.json
 .claude/skills/remotion-*/

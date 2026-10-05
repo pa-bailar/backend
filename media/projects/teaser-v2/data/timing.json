@@ -3,6 +3,7 @@
  "duration": 19.811,
  "voice": "media/out/teaser-v2/voice-track.wav",
  "lead": 0.55,
+ "voice_key": "5e5c81f5e07651cf",
  "lines": [
   {
    "id": "a1",

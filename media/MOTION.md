@@ -83,6 +83,8 @@ the site's visual language and its ONE motion system, but makes it physical.
     (8-bit) on every blurred frame (a visible flicker) and blacked out the background on one scroll frame, so
     the `Shutter` (`src/lib/blur.tsx`) does the same averaging with `<Freeze>` and opacity 1/(i+1). The scroll's
     blur is done inside the phone the same way (only the list image is resampled). Full render: ~1 min.
-12. **A real thumb** (the bar's hiding below is how the site worked until 4 October 2026; it no longer hides): a touch disc that arrives on an arc, presses (shrinks, a ring ripples), drags while
+12. **Stories: fade in, no fade-out (the owner, 5 Oct 2026).** The first frames ease in from the paper (8 frames); the last frame holds on the end card, with
+    the arrow still bobbing, so the Story loops into the next one without a dip to blank.
+13. **A real thumb** (the bar's hiding below is how the site worked until 4 October 2026; it no longer hides): a touch disc that arrives on an arc, presses (shrinks, a ring ripples), drags while
     pressed, lifts; the list glides after each flick and settles a hair past the stop; the site's sticky bar
     hides while scrolling down and comes back on the settle, as on the site.

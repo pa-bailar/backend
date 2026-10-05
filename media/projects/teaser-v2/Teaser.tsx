@@ -1,30 +1,16 @@
 // The teaser: five scenes on the beat (STORYBOARD.md) joined by motivated moves instead of hard cuts (an iris out
 // of the record's spot, two whip pans with motion blur, a match cut from the sticker to the record), the grain
 // over everything, and one soundtrack.
-import { Audio } from "@remotion/media";
 import React from "react";
 import { AbsoluteFill, Composition, Folder, useCurrentFrame } from "remotion";
-import {
-  C,
-  FadeIn,
-  FPS,
-  Grain,
-  HEIGHT,
-  samplesFor,
-  Scene,
-  sec,
-  Shutter,
-  whip,
-  WHIP_LEAD,
-  whipBlur,
-  WIDTH,
-} from "../../src/kit";
+import { samplesFor, Scene, sec, Shutter, vertical, VideoShell, whip, WHIP_LEAD, whipBlur } from "../../src/kit";
 import { App, APP_BLUR } from "./scenes/App";
 import { Cover, IRIS_FRAMES } from "./scenes/Cover";
 import { type Cta, End } from "./scenes/End";
 import { Free, LAUNCH } from "./scenes/Free";
 import { Question, QUESTION_BLUR } from "./scenes/Question";
-import { DURATION_S, file, SCENES } from "./theme";
+import { file, SCENES } from "./theme";
+import settings from "./video.json";
 
 export type TeaserProps = { soundtrack: "voice-only" | "with-music"; cta: Cta; blur?: boolean };
 
@@ -97,25 +83,23 @@ const Scenes: React.FC<{ cta: Cta }> = ({ cta }) => (
 
 export const Teaser: React.FC<TeaserProps> = ({ soundtrack, cta, blur = true }) => {
   const frame = useCurrentFrame();
+  // A Story: it fades in from the paper and never out (the owner, 5 Oct 2026).
   return (
-    <AbsoluteFill style={{ background: C.paper }}>
+    <VideoShell fadeIn={8} audio={file(`audio/${soundtrack}.wav`)}>
       <Shutter samples={blur ? samplesFor(frame, BLUR, WHIPS) : 1}>
         <Scenes cta={cta} />
       </Shutter>
-      <FadeIn frames={8} />
-      <Grain />
-      <Audio src={file(`audio/${soundtrack}.wav`)} />
-    </AbsoluteFill>
+    </VideoShell>
   );
 };
 
 /**
  * Three deliverables: the Story without music (Instagram's music goes under it) and with the bed, both ending on
- * "Link aquí abajo 👇" over an empty band for the link sticker; and the Reel (no link stickers on Reels), with
- * music, ending on "Link en mi perfil".
+ * "Link aquí arriba" with a drawn arrow, right under the band at the top that the link sticker covers; and the Reel
+ * (no link stickers on Reels), with music, ending on "Link en mi perfil".
  */
 export const TeaserV2: React.FC = () => {
-  const common = { component: Teaser, durationInFrames: DURATION_S * FPS, fps: FPS, width: WIDTH, height: HEIGHT };
+  const common = { component: Teaser, ...vertical(settings) };
   return (
     <Folder name="teaser-v2">
       <Composition

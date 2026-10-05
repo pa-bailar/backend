@@ -52,7 +52,7 @@ export const Question: React.FC = () => {
         })}
       </AbsoluteFill>
       <AbsoluteFill style={cam(0.5)}>
-        <div style={{ position: "absolute", left: 80, right: 80, top: 270, ...TYPE.display(118), lineHeight: 1.06 }}>
+        <div style={{ position: "absolute", left: 80, right: 80, top: 278, ...TYPE.display(118), lineHeight: 1.06 }}>
           <Words
             frame={frame}
             words={[

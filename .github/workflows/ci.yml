@@ -1,5 +1,6 @@
 # The `ci` check on every pull request: lint (ruff), format check, type check (mypy, strict) and unit tests
-# (pytest), and the admin page's Worker tests (admin-web/test, Node's own test runner). Not enforced: main isn't protected (rulesets on private repositories need a paid plan), so PRs merge
+# (pytest), the admin page's Worker tests (admin-web/test, Node's own test runner), and the `media` job below (the video
+# toolkit: tsc and Node tests, only when media/ changes). Not enforced: main isn't protected (rulesets on private repositories need a paid plan), so PRs merge
 # when it's green by convention. Also runs on main after each merge, so the pip cache is saved where every
 # branch can use it.
 name: ci
@@ -42,3 +43,42 @@ jobs:
           node-version: 24
       - name: Admin page Worker tests
         run: node --test "admin-web/test/*.test.mjs"
+
+  # The video toolkit (media/): type-check the Remotion library and compositions, and the weekend rule in JS. Its Python
+  # tests (media/tests) already run in the job above (pytest collects them; standard library only). Skipped when a
+  # change doesn't touch media/ or this file. No secrets.
+  media:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Changed media/?
+        id: changed
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -n "$BASE" ] && ! echo "$BASE" | grep -q '^0*$' && git diff --quiet "$BASE" HEAD -- media/ .github/workflows/ci.yml; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v7
+        if: steps.changed.outputs.run == 'true'
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: media/package-lock.json
+      - name: Install
+        if: steps.changed.outputs.run == 'true'
+        working-directory: media
+        run: npm ci
+      - name: Type check
+        if: steps.changed.outputs.run == 'true'
+        working-directory: media
+        run: npx tsc --noEmit
+      - name: Node tests
+        if: steps.changed.outputs.run == 'true'
+        working-directory: media
+        run: node --test "tests/*.test.mjs"

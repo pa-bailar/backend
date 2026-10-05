@@ -1,0 +1,28 @@
+{
+  "$comment": "The video canvas and its rules, shared by the Remotion library (src/lib/tokens.ts) and the Python tools (tools/common.py BRAND). Change a value here, never a copy of it. DESIGN.md explains each one.",
+  "canvas": { "width": 1080, "height": 1920, "fps": 30 },
+  "safe": {
+    "$comment": "Instagram's UI covers the rest: no text above top (progress bar, account) or below bottom (reply bar, Reel caption), nor closer than side to the edges. Images may run into them; words never do.",
+    "top": 250,
+    "bottom": 1580,
+    "side": 80
+  },
+  "stickerBand": {
+    "$comment": "Stories: the owner puts Instagram's link sticker at the top, over y 0-250, for the whole clip. Nothing enters it on any frame; review.py band measures it and allows no content above bottom + margin.",
+    "top": 0,
+    "bottom": 250,
+    "margin": 2
+  },
+  "titleBand": { "top": 280, "bottom": 520 },
+  "margins": { "left": 80, "right": 80, "top": 250 },
+  "beat": { "$comment": "The default tempo for a video's grid when its video.json has no music.bpm.", "bpm": 98 },
+  "loudness": {
+    "$comment": "Integrated loudness targets (LUFS) per soundtrack, the true-peak ceiling loudnorm aims for and the one mix.py enforces (dBTP), and how far off target a mix may land (LU).",
+    "voice_only": -15,
+    "with_music": -14,
+    "music_only": -16,
+    "true_peak_target": -1.5,
+    "true_peak_max": -1.0,
+    "tolerance": 1.0
+  }
+}

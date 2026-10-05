@@ -16,14 +16,30 @@
 //
 // It reads the page through the hooks the site's own code uses (ids, data attributes); when the site changes, fix
 // them here and the matching beats in scenes/App.tsx (the README lists the last such change).
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { arg, comingSaturday, loadAll, MEDIA, openPhone, openSite, periodsOnPage, rectOf, shot, wait } from "../../tools/capture.mjs";
+import {
+  arg,
+  loadAll,
+  MEDIA,
+  openPhone,
+  openSite,
+  periodsOnPage,
+  PUBLIC,
+  rectOf,
+  shot,
+  SITE,
+  wait,
+  weekendClock,
+  writeAtomic,
+} from "../../tools/capture.mjs";
 
-const OUT = path.join(MEDIA, "public", "teaser-v2", "app");
+// Everything goes to a fresh folder that replaces app/ only when the whole walk worked (a failed run leaves the last
+// capture and its app.json together).
+const APP = path.join(PUBLIC, "teaser-v2", "app"); // in the media home
+const OUT = `${APP}.${process.pid}.tmp`;
 const DATA = path.join(MEDIA, "projects", "teaser-v2", "data", "app.json");
-const SITE = "https://pa-bailar.github.io/";
-const NOW_ISO = arg("now", comingSaturday());
+const NOW_ISO = arg("now", weekendClock());
 const NOW = new Date(NOW_ISO);
 const STYLES = arg("styles", "salsa,bachata").split(",");
 const PERIODS = ["hoy", "fin-de-semana", "proxima-semana"]; // the three the voice names
@@ -114,8 +130,13 @@ const sticky = await page.evaluate(() => {
 });
 await page.screenshot({ path: path.join(OUT, "bar.png"), clip: { x: 0, y: 0, width: 360, height: sticky } });
 meta.bar = { file: "bar.png", h: sticky };
-for (const key of PERIODS) {
-  if (!periods.find((x) => x.key === key)) console.warn(`   WARNING: no "${key}" with ${STYLES.join("+")} at ${NOW_ISO}: pick another --now`);
+// Every period the voice names must be on the page: a missing one is an error, not a warning (the scene would point at
+// nothing).
+const missing = PERIODS.filter((key) => !periods.find((x) => x.key === key));
+if (missing.length) {
+  await browser.close();
+  await rm(OUT, { recursive: true, force: true }); // the last capture stays as it was
+  throw new Error(`no ${missing.map((k) => `"${k}"`).join(", ")} with ${STYLES.join("+")} at ${NOW_ISO}: pick another --now or --styles`);
 }
 
 // ---------- 4. One event's details, opened the way a visitor would, at half then full height ----------
@@ -183,5 +204,9 @@ console.log("   detail", detail, "half panel", Math.round(meta.detail.half.panel
 const saturday = new Date(NOW.getTime() - 5 * 3600e3);
 meta.shelfLife = `${saturday.toISOString().slice(0, 10)} (the screens' "Hoy"; post before it's over)`;
 await browser.close();
-await writeFile(DATA, JSON.stringify(meta, null, 1));
-console.log(`done: ${OUT}\nshelf life: ${meta.shelfLife}`);
+const OLD = `${APP}.${process.pid}.old`;
+await rename(APP, OLD).catch(() => {});
+await rename(OUT, APP);
+await rm(OLD, { recursive: true, force: true });
+await writeAtomic(DATA, JSON.stringify(meta, null, 1));
+console.log(`done: ${APP}\nshelf life: ${meta.shelfLife}`);

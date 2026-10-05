@@ -7,16 +7,27 @@ venv, the ACE-Step venv).
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+import unicodedata
 import wave
 from dataclasses import dataclass
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 MEDIA = Path(__file__).resolve().parent.parent
 BACKEND = MEDIA.parent
-CACHE = MEDIA / "cache"
+# The canvas, safe zones, sticker band, default tempo and loudness targets, shared with src/lib/tokens.ts.
+BRAND: dict = json.loads((MEDIA / "brand.json").read_text(encoding="utf-8"))
+# The media home: everything generated (the TTS and music cache, each video's public/ binaries, renders and working
+# files, the archive of posted versions) lives outside any checkout, so every worktree shares it and removing a
+# worktree can't delete it. PA_BAILAR_MEDIA_HOME overrides it (tools/paths.mjs and remotion.config.ts read the same).
+HOME = Path(os.environ.get("PA_BAILAR_MEDIA_HOME") or r"D:\AI\pa-bailar-media")
+CACHE = HOME / "cache"
+# The site's three faces (OFL), committed; src/lib/fonts.ts imports them.
+FONTS = MEDIA / "fonts"
 # winget's Gyan.FFmpeg package (D:\AI\README.md), any version: <package>\ffmpeg-<version>-full_build\bin
 WINGET_PACKAGES = Path.home() / "AppData" / "Local" / "Microsoft" / "WinGet" / "Packages"
 TTS_RATE = 24000  # Gemini TTS: 24 kHz 16-bit mono PCM
@@ -74,6 +85,11 @@ def load_env() -> None:
             os.environ.setdefault(key.strip(), value.strip().strip("'\""))
 
 
+def bogota_today() -> date:
+    """Today in Bogotá (UTC−5, no daylight saving): the day the site and its visitors are on."""
+    return datetime.now(timezone(timedelta(hours=-5))).date()
+
+
 def key(*parts: object) -> str:
     """A short, stable cache key for the given inputs."""
     return hashlib.sha256(json.dumps(parts, ensure_ascii=False).encode()).hexdigest()[:16]
@@ -98,20 +114,79 @@ class Video:
     @property
     def public(self) -> Path:
         """Binaries the composition loads with staticFile (screens, flyers, audio): not committed."""
-        return MEDIA / "public" / self.name
+        return HOME / "public" / self.name
 
     @property
     def out(self) -> Path:
         """Working files and renders: not committed."""
-        return MEDIA / "out" / self.name
+        return HOME / "out" / self.name
 
     @property
     def fps(self) -> int:
-        return int(self.settings.get("fps", 30))
+        return int(self.settings.get("fps", BRAND["canvas"]["fps"]))
 
     @property
     def duration(self) -> float:
         return float(self.settings["duration"])
+
+    @property
+    def version(self) -> str:
+        """video.json's "version" ("2.4"): part of every render's name. Bump it for each cut the owner sees."""
+        text = str(self.settings.get("version", ""))
+        if not re.fullmatch(r"\d+(\.\d+)*", text):
+            raise SystemExit(f'video.json of {self.name} needs a "version" like "1" or "2.4" (got {text!r})')
+        return text
+
+    @property
+    def archive(self) -> Path:
+        """Posted versions, kept whole: archive/<video>/v<version>/ (renders, and public/ as it was)."""
+        return HOME / "archive" / self.name
+
+    def render(self, deliverable: str, draft: bool = False) -> Path:
+        """out/<video>/<video>-v<version>-<deliverable>[-draft].mp4"""
+        return self.out / render_name(self.name, self.version, deliverable, draft)
+
+    def versions(self, deliverable: str) -> list[tuple[tuple[int, ...], Path]]:
+        """Every full render of a deliverable (out/ and the archive), oldest version first."""
+        found: dict[tuple[int, ...], Path] = {}
+        for folder in (self.archive, self.out):
+            for path in sorted(folder.rglob("*.mp4")) if folder.exists() else []:
+                parsed = parse_render_name(self.name, path.name)
+                if parsed and parsed[1] == deliverable:
+                    found.setdefault(parsed[0], path)
+        return sorted(found.items())
+
+
+def mix_key(v: "Video") -> str:
+    """A key of what the soundtracks are made from in video.json (the bed, its first hit, "mix", the length):
+    tools/mix.py writes it next to them, tools/make.py re-mixes when it changes."""
+    music = v.settings.get("music", {})
+    return key(music.get("bed"), music.get("first_hit", 0), v.settings.get("mix", {}), v.duration)
+
+
+def version_tuple(text: str) -> tuple[int, ...]:
+    return tuple(int(p) for p in text.split("."))
+
+
+def render_name(name: str, version: str, deliverable: str, draft: bool = False) -> str:
+    return f"{name}-v{version}-{deliverable}{'-draft' if draft else ''}.mp4"
+
+
+def parse_render_name(name: str, filename: str) -> tuple[tuple[int, ...], str] | None:
+    """(version, deliverable) of a full render named by render_name() for video `name`; None for anything else
+    (drafts included)."""
+    m = re.fullmatch(rf"{re.escape(name)}-v(\d+(?:\.\d+)*)-([\w-]+)\.mp4", filename)
+    if not m or m.group(2).endswith("-draft"):
+        return None
+    return version_tuple(m.group(1)), m.group(2)
+
+
+def shown(path: Path) -> str:
+    """A path to print: relative to the media home or to media/ when it's inside one, else whole."""
+    for root in (HOME, MEDIA):
+        if path.resolve().is_relative_to(root.resolve()):
+            return path.resolve().relative_to(root.resolve()).as_posix()
+    return path.as_posix()
 
 
 def video(name: str) -> Video:
@@ -134,3 +209,55 @@ def write_wav(path: Path, pcm: bytes, rate: int = TTS_RATE) -> None:
 def tts_path(text: str, voice: str, direction: str, take: int = 0) -> Path:
     """Where one TTS line is cached: the same words, voice, direction and take never call Gemini twice."""
     return CACHE / "tts" / f"{key(text, voice, direction, take)}.wav"
+
+
+# The owner's chosen reading direction (a video's "voice"."direction" overrides it). Part of every line's cache key:
+# changing it re-records every line.
+DIRECTION = (
+    "Lee este texto en español con acento colombiano de Bogotá (rolo), natural y cercano, como un audio de "
+    "WhatsApp a un amigo: relajado, con una sonrisa, sin sonar a locutor ni a comercial. Haz pausas cortas "
+    "donde hay puntos suspensivos."
+)
+
+
+def voice_key(settings: dict) -> str | None:
+    """A key of everything the voice track and its timing are made of: each line's words, take and gap, the voice,
+    the direction, the lead and the pauses, and the bytes of each cached line. tools/timing.py stores it in
+    timing.json; tools/render.py refuses to render when it no longer matches (timing older than the voice)."""
+    voice = settings.get("voice")
+    if not voice:
+        return None
+    direction = voice.get("direction", DIRECTION)
+    parts: list[object] = [voice["name"], direction, voice.get("lead", 0.55), voice.get("max_pause", 0.32)]
+    for line in voice["lines"]:
+        path = tts_path(line["text"], voice["name"], direction, line.get("take", 0))
+        audio = hashlib.sha256(path.read_bytes()).hexdigest()[:16] if path.exists() else "missing"
+        parts.append([line["text"], line.get("take", 0), line.get("gap", 0.3), audio])
+    return key(*parts)
+
+
+def _norm(word: str) -> str:
+    """A word as makeTiming() compares it (src/lib/timing.ts): no accents, no punctuation, lower case."""
+    plain = "".join(c for c in unicodedata.normalize("NFD", word.lower()) if not unicodedata.combining(c))
+    return re.sub(r"[^a-z']", "", plain)
+
+
+def at_seconds(spec: str, timing: dict | None, fps: int = 30) -> float:
+    """A moment as tools/stills.mjs takes it: seconds ("8.5" or "8.5s"), a frame ("f255"), a line's start ("c4") or a
+    word's start ("c4:link", the nth with "c4:link:1"), from a video's data/timing.json."""
+    spec = spec.strip()
+    if re.fullmatch(r"f\d+", spec):
+        return int(spec[1:]) / fps
+    if re.fullmatch(r"\d+(\.\d+)?s?", spec):
+        return float(spec.removesuffix("s"))
+    line_id, _, rest = spec.partition(":")
+    line = next((x for x in (timing or {}).get("lines", []) if x["id"] == line_id), None)
+    if line is None:
+        raise SystemExit(f'no line "{line_id}" in timing.json (times are seconds, f<frame>, <line> or <line>:<word>)')
+    if not rest:
+        return float(line["start"])
+    word, _, nth = rest.partition(":")
+    hits = [w for w in line["words"] if _norm(w["word"]) == _norm(word)]
+    if len(hits) <= int(nth or 0):
+        raise SystemExit(f'no word "{word}" (#{nth or 0}) in {line_id}')
+    return float(hits[int(nth or 0)]["start"])

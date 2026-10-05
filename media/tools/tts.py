@@ -1,28 +1,38 @@
 """The voice: one Gemini TTS file per script line (free tier, MEDIA_GEMINI_API_KEY in the backend's .env), cached.
 
   .venv/Scripts/python media/tools/tts.py <video> [line-id ...]
-      Every line of projects/<video>/video.json ("voice"."lines") that isn't cached yet → media/cache/tts/. A line is
-      cached by its words, voice, direction and "take": the same line never calls Gemini twice. For another reading
-      of a line, add or bump its "take" in video.json and run again (the old take stays cached).
+      Every line of projects/<video>/video.json ("voice"."lines") that isn't cached yet → cache/tts/ (media home). A
+      line is cached by its words, voice, direction and "take": the same line never calls Gemini twice. For another
+      reading of a line, add or bump its "take" in video.json and run again (the old take stays cached).
   .venv/Scripts/python media/tools/tts.py --audition "<text>" --voices Achird,Sulafat,Puck [--direction "<text>"]
-      One sample per voice → media/out/auditions/<voice>-<key>.wav, to choose a voice or a direction.
+      One sample per voice → out/auditions/<voice>-<key>.wav (media home), to choose a voice or a direction.
 
 Then tools/timing.py joins the lines and times every word.
 """
 
 import argparse
 import os
+import re
 import time
 
-from common import CACHE, MEDIA, key, load_env, tts_path, video, write_wav
+from common import CACHE, DIRECTION, HOME, key, load_env, shown, tts_path, video, write_wav
 
 # 2.5 answers reliably on the free tier; both time out at times (90 s timeout, retries with backoff).
 MODELS = ("gemini-2.5-flash-preview-tts", "gemini-3.8-flash-tts")
-DIRECTION = (
-    "Lee este texto en español con acento colombiano de Bogotá (rolo), natural y cercano, como un audio de "
-    "WhatsApp a un amigo: relajado, con una sonrisa, sin sonar a locutor ni a comercial. Haz pausas cortas "
-    "donde hay puntos suspensivos."
-)
+
+
+def classify(error: Exception) -> str:
+    """What to do after a failed call: "retry" (timeouts, busy, per-minute limits, 5xx), "next" (this model won't
+    answer today: its daily quota, a bad request, an unknown model) or "stop" (the key itself is refused)."""
+    code = getattr(error, "code", None)
+    text = str(error)
+    if code in (401, 403) or (code == 400 and "API key" in text):
+        return "stop"
+    if code == 429 and re.search(r"per ?day|daily", text, re.IGNORECASE):
+        return "next"
+    if code in (400, 404):
+        return "next"
+    return "retry"
 
 
 def say(text: str, voice: str, direction: str) -> tuple[bytes, str]:
@@ -48,8 +58,14 @@ def say(text: str, voice: str, direction: str) -> tuple[bytes, str]:
                     ),
                 )
                 return response.candidates[0].content.parts[0].inline_data.data, model
-            except Exception as error:  # timeouts and "busy" are common: back off and retry
-                last = " ".join(str(error).split())[:120]
+            except Exception as error:  # timeouts and "busy" are common: back off and retry; not the rest
+                last = " ".join(str(error).split())[:160]
+                action = classify(error)
+                if action == "stop":
+                    raise SystemExit(f"TTS refused the key (MEDIA_GEMINI_API_KEY): {last}") from None
+                if action == "next":
+                    print(f"   {model}: {last}; not retrying this model", flush=True)
+                    break
                 wait = 5 * 2**attempt
                 print(f"   {model} attempt {attempt + 1} failed ({last}); retry in {wait} s", flush=True)
                 time.sleep(wait)
@@ -73,13 +89,13 @@ def lines(name: str, wanted: list[str]) -> None:
 
 
 def audition(text: str, voices: list[str], direction: str) -> None:
-    out = MEDIA / "out" / "auditions"
+    out = HOME / "out" / "auditions"
     for voice in voices:
         path = out / f"{voice}-{key(text, direction)}.wav"
         if not path.exists():
             pcm, _ = say(text, voice, direction)
             write_wav(path, pcm)
-        print(path.relative_to(MEDIA).as_posix())
+        print(shown(path))
 
 
 if __name__ == "__main__":
