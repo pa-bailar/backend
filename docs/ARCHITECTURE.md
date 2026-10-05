@@ -98,7 +98,7 @@ In words:
 
 | Repository | Visibility | Owns | Does not own |
 |---|---|---|---|
-| `pa-bailar/backend` (this one) | Private | The collector: the `pa_bailar` Python package, `accounts.txt`, the prompts, the sweep workflow, the sweep state (`sweep-state` branch), the health checks, local tools (`discover`, `refresh-token`), the admin page (`admin-web/`, docs/ADMIN.md) | The data files and the site: it only writes them into a checkout of the site repository and proposes them through a PR |
+| `pa-bailar/backend` (this one) | Private | The collector: the `pa_bailar` Python package, `accounts.txt`, the prompts, the sweep workflow, the sweep state (`sweep-state` branch), the health checks, local tools (`discover`, `refresh-token`), the admin page (`admin-web/`, docs/ADMIN.md), the video toolkit (`media/`, its README) | The data files and the site: it only writes them into a checkout of the site repository and proposes them through a PR |
 | `pa-bailar/pa-bailar.github.io` | Public | The site (`frontend/`, Astro), the published data (`data/events.json`, `data/meta.json`, `data/flyers/`, `data/previews/`), the data contract (`docs/DATA.md`), its CI and the GitHub Pages deploy | Collecting data. It never calls Instagram or Gemini |
 
 **Why two repositories:**
@@ -220,6 +220,9 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
   `META_APP_SECRET`.
 - **The App's private key** (`private/*.pem`) stays on your computer. Its contents are the
   `APP_PRIVATE_KEY` secret.
+- **Videos are made locally** with `media/` (its README): Gemini TTS with `MEDIA_GEMINI_API_KEY` (a separate
+  free-tier project, only in the local `.env`), Whisper and ACE-Step from `D:\AI`, Remotion and ffmpeg. Nothing
+  there runs in the sweep or on GitHub; CI only lints its Python tools with the rest of the repository.
 
 ---
 
