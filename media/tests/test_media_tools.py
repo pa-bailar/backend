@@ -248,9 +248,9 @@ def test_moov_first_walks_the_top_level_boxes(tmp_path):
 
 
 def test_cover_grid_crop_is_centered_and_named_by_version(tmp_path, monkeypatch):
-    assert cover.grid_crop(1080, 1920) == (1080, 1350, 0, 285)
-    assert cover.grid_crop(1080, 1920, (1080, 1440)) == (1080, 1440, 0, 240)
-    assert cover.grid_crop(540, 960) == (540, 675, 0, 142)
+    assert cover.grid_crop(1080, 1920) == (1080, 1440, 0, 240)  # the 3:4 grid: 240 px off the top and the bottom
+    assert cover.grid_crop(1080, 1920, (1080, 1350)) == (1080, 1350, 0, 285)
+    assert cover.grid_crop(540, 960) == (540, 720, 0, 120)
     monkeypatch.setattr(common, "HOME", tmp_path)
     v = common.Video("teaser-v2", {"version": "2.4", "renders": {"voice-only": "a", "reel": "b"}})
     full, grid = cover.cover_paths(v)

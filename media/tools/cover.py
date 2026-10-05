@@ -1,10 +1,10 @@
 """A Reel's cover image: one frame of the Reel at full size, and the centered crop the profile grid shows.
 
   .venv/Scripts/python media/tools/cover.py <video> --at 19.5 | 19.5s | f585 | c4 | c4:link [--deliverable reel]
-      [--grid 1080x1350]
+      [--grid 1080x1440]
   → out/<video>/<video>-v<version>-cover.png        1080×1920, to upload as the Reel's cover
-    out/<video>/<video>-v<version>-cover-grid.png   1080×1350, the centered 4:5 crop the profile grid shows (--grid
-                                                    for another shape: 1080x1440 is 3:4)
+    out/<video>/<video>-v<version>-cover-grid.png   1080×1440, the centered 3:4 crop the profile grid shows (since
+                                                    2025; --grid for another shape)
 
 The frame is rendered by tools/stills.mjs (from the code, with motion blur: not a frame out of the H.264 file), from
 the deliverable given (default: the first Reel one in video.json's "renders", else the first). Times as everywhere:
@@ -24,7 +24,7 @@ from pathlib import Path
 
 from common import BRAND, MEDIA, Video, at_seconds, ffmpeg, shown, video
 
-GRID = (1080, 1350)  # the profile grid's 4:5 crop of a 9:16 cover, centered
+GRID = (1080, 1440)  # the profile grid's 3:4 crop of a 9:16 cover, centered (240 px off the top and the bottom)
 
 
 def grid_crop(width: int, height: int, grid: tuple[int, int] = GRID) -> tuple[int, int, int, int]:
