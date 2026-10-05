@@ -145,9 +145,8 @@ def _story_command(text: str) -> Request | None:
                 return Request("help")
             handle = _HANDLE.search(rest)
             notes = _HANDLE.sub(" ", _UPLOAD_ID.sub(" ", rest), count=1)
-            return Request(
-                "add-story", account=handle.group(1).lower() if handle else None, images=images, notes=_one_line(notes)
-            )
+            account = links.account_name(handle.group(1)) if handle else None  # "@academia." ends a sentence
+            return Request("add-story", account=account, images=images, notes=_one_line(notes))
     return None
 
 
@@ -184,7 +183,7 @@ def parse(text: str) -> Request:
         account = links.account_name(fields["cuenta"])
     if account is None:
         handle = _HANDLE.search(_LINK.sub(" ", text))
-        account = handle.group(1).lower() if handle else None
+        account = links.account_name(handle.group(1)) if handle else None  # "@academia." ends a sentence
 
     if "acción" in fields or "accion" in fields:
         return _form_request(fields, post, account)

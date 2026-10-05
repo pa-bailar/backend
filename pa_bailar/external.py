@@ -75,6 +75,22 @@ def is_external(model: str | None) -> bool:
     return bool(model) and any(str(model).startswith(f"{p.name}:") for p in config.EXTERNAL_PROVIDERS)
 
 
+_PROVIDER_LABELS = {"groq": "Groq", "openrouter": "OpenRouter"}
+
+
+def model_label(model: str) -> str:
+    """A reading's model for the admin tools' answers: "Groq (Qwen)", "OpenRouter (Gemma)", "Flash-Lite", "Flash";
+    any other name as it is."""
+    if is_external(model):
+        provider, _, name = model.partition(":")
+        family = re.match(r"[a-z]+", name.split("|")[0].rsplit("/", 1)[-1].lower())
+        label = _PROVIDER_LABELS.get(provider, provider)
+        return f"{label} ({family.group(0).capitalize()})" if family else label
+    if model.startswith("gemini-"):
+        return "Flash-Lite" if model.endswith("flash-lite") else "Flash" if model.endswith("flash") else model
+    return model
+
+
 @dataclass(frozen=True)
 class Unit:
     """One request: a provider and the model(s) it names (several only with OpenRouter's routing)."""

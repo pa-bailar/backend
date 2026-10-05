@@ -593,3 +593,35 @@ def test_why_lists_an_event_under_way_with_its_days():
     storage.write_json(config.EVENTS_FILE, [event.model_dump(mode="json")])
     result = why.diagnose(LINK, read=state({"1": record(outcome="event", event_ids=[event.id])}), now=today)
     assert result.events[0]["date"] == "13–15 nov 2026" and result.verdict == "Está en el sitio."
+
+
+@pytest.mark.parametrize(
+    ("text", "account"),
+    [
+        ("/cuenta @academia.", "academia"),
+        ("/historia 0123456789abcdef0123456789abcdef @Academia.", "academia"),
+        (f"/agregar {LINK} @salsa.club.", "salsa.club"),
+    ],
+)
+def test_a_handle_at_the_end_of_a_sentence_loses_its_period(text, account):
+    """Review finding: "/cuenta @academia." asked for the account "academia." (Instagram handles can't end in one)."""
+    assert inbox.parse(text).account == account
+
+
+@pytest.mark.parametrize(
+    ("model", "label"),
+    [
+        ("groq:qwen/qwen3.8-27b", "Groq (Qwen)"),
+        ("openrouter:google/gemma-4-31b-it:free", "OpenRouter (Gemma)"),
+        ("gemini-3.5-flash-lite", "Flash-Lite"),
+    ],
+)
+def test_a_provisional_reading_names_the_model_that_read_it(model, label):
+    """Review finding: every provisional reading was labelled "Flash-Lite", the last resort's (Groq, OpenRouter) too."""
+    from pa_bailar.commands.answers import added_post_markdown
+    from pa_bailar.pipeline import AddedPost
+
+    added = AddedPost("academia", False, LINK, "event", "", model, True, [stored()])
+    answer = added_post_markdown(added)
+    assert f"leído con {label} (provisional: se relee con " in answer
+    assert ("Flash-Lite" in answer) == (label == "Flash-Lite")
