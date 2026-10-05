@@ -12,4 +12,6 @@ export * from "./brand/paper";
 export * from "./brand/type";
 export * from "./brand/phone";
 export * from "./brand/objects";
+export * from "./brand/shell";
+export * from "./brand/end";
 export * from "./data/events";

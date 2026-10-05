@@ -33,7 +33,7 @@ the tools, the library's building blocks and the workflow, written so you don't 
   (Gemini TTS, free tier) and the music (ACE-Step, local) are generated. $0: no paid APIs.
 - The owner's decisions: the light theme, no URL on screen (Story: Instagram keeps a link sticker on for the whole clip, so the owner
   places it at the top, in the band above y 250 that every scene leaves empty, and the end card says "Link aquí
-  arriba" with a drawn up arrow, `Arrow` in the kit, never an emoji hand; Reel: "Link en mi perfil"), fade audio and picture in and out, Spanish (Bogotá, informal "tú") on screen
+  arriba" with a drawn up arrow, `Arrow` in the kit, never an emoji hand; Reel: "Link en mi perfil"), Stories: fade in, no fade-out (the owner, 5 Oct 2026) (the audio still ramps 0.3 s at both ends, against clicks), Spanish (Bogotá, informal "tú") on screen
   and in the voice.
 - Screens and events date a video: say its shelf life when you hand it over.
 - Never print `.env` or keys. The TTS tool reads `MEDIA_GEMINI_API_KEY` itself.

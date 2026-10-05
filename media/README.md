@@ -120,8 +120,8 @@ H.264), `TYPE.sans(size, color?)`.
 **`lib/scene`**:
 - `<Scene start end pre post move name>` is a scene that overlaps its neighbors for transitions.
 - `useScene()` gives `{frame, abs, t}`.
-- `<FadeIn frames>` eases in from the paper; `<FadeOut frames>` fades out to it at the end (the owner's rule: fade in
-  and out).
+- `<FadeIn frames>` eases in from the paper; `<FadeOut frames>` fades out to it at the end. Stories: fade in, no fade-out (the owner, 5 Oct 2026): use
+  `VideoShell` (fade-in on, fade-out off by default).
 
 **`lib/blur`**:
 - `<Shutter samples>` is exact-color motion blur over everything; `samplesFor(frame, ranges, fastRanges)` picks
@@ -175,7 +175,7 @@ start). **`lib/fonts`**: loads the faces (`fontsReady` resolves when they're in)
   Nothing AI-generated but the voice and the music.
 - Owner decisions so far: the light theme, no URL on screen (Story: Instagram keeps a link sticker on for the whole clip, so the owner
   places it at the top, in the band above y 250 that every scene leaves empty, and the end card says "Link aquí
-  arriba" with a drawn up arrow, `Arrow` in the kit, never an emoji hand; Reel: "Link en mi perfil"), fade audio and picture in and out, the Bodoni at
+  arriba" with a drawn up arrow, `Arrow` in the kit, never an emoji hand; Reel: "Link en mi perfil"), Stories: fade in, no fade-out (the owner, 5 Oct 2026) (the audio still ramps 0.3 s at both ends, against clicks), the Bodoni at
   `opsz` 18 / 600.
 - Screens and events date a video: post it before its shelf life ends (`app.json` / `events.json` record it).
 - Gemini TTS times out at times: the tool retries, and a cached line never calls it again.

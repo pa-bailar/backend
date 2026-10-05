@@ -12,17 +12,13 @@ import {
   C,
   camera,
   dateLabel,
-  Arrow,
-  FadeIn,
+  EndCard,
   FPS,
   Flyer,
-  Grain,
   gridOf,
-  HEIGHT,
   jit,
   kick,
   leave,
-  Letters,
   PeriodTitle,
   priceLabel,
   Record,
@@ -38,7 +34,8 @@ import {
   useScene,
   type EventsSnapshot,
   type VideoEvent,
-  WIDTH,
+  vertical,
+  VideoShell,
 } from "../../src/kit";
 import snapshot from "./data/events.json";
 import settings from "./video.json";
@@ -56,7 +53,8 @@ const CARD_H = 222;
 const CARDS_TOP = 610;
 // The page head sits low enough that the camera's push-in never lifts it into the sticker's band (y < 250).
 const HEAD_TOP = 276;
-// The end card (as the teaser's): the call to action right under the band, the icon and the record below it.
+// The end card (the kit's EndCard, as the teaser's): the call to action right under the band, the icon and the
+// record around SPOT, the wordmark and the sign-off below.
 const SPOT = { x: 540, y: 820 };
 
 const capital = (s: string) => s[0].toUpperCase() + s.slice(1);
@@ -126,10 +124,9 @@ export const EsteFinde: React.FC<{ blur?: boolean }> = () => {
   const icon = sp(frame, endAt, SPRING.pop);
   const rec = sp(frame, endAt + 2, SPRING.weight);
   const range = spanLabel(data.from, data.to);
-  const link = endAt + 16;
-  const bob = kick(t, beats(link / FPS + 0.4, DURATION_S));
+  // A Story: it fades in from the paper and never out (the owner, 5 Oct 2026).
   return (
-    <AbsoluteFill style={{ background: C.paper }}>
+    <VideoShell>
       <AbsoluteFill style={cam(0.6)}>
         {frame < endAt ? (
           <div style={{ opacity: 1 - leave(frame, OUT, 6) }}>
@@ -158,85 +155,34 @@ export const EsteFinde: React.FC<{ blur?: boolean }> = () => {
         ))}
       </AbsoluteFill>
       {frame >= endAt ? (
-        <>
-          <AbsoluteFill style={cam(0.6)}>
-            {/* The call to action, right under the sticker's band: the arrow points up at the link. */}
-            <div
-              style={{
-                position: "absolute",
-                left: 80,
-                right: 80,
-                top: 276,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                ...rise(frame, link, { distance: 40 }),
-              }}
-            >
-              <Arrow size={132} weight={3.2} style={{ translate: `0px ${-14 * bob}px` }} />
-              <div style={{ ...TYPE.sans(68), textAlign: "center" }}>Link aquí arriba</div>
-            </div>
-          </AbsoluteFill>
-          <Stripes frame={frame} start={endAt} top={500} />
-          <AbsoluteFill style={cam(1)}>
-            <AppIcon
-              size={420}
-              style={{ left: SPOT.x - 210, top: SPOT.y - 210, scale: `${(0.4 + 0.6 * icon) * (1 + 0.03 * pulse)}` }}
-            />
-            <Record
-              size={360}
-              angle={spinAngle(t, endAt / FPS, 0.6)}
-              style={{ position: "absolute", left: SPOT.x - 180, top: SPOT.y - 180, scale: `${0.3 + 0.7 * rec}` }}
-            />
-          </AbsoluteFill>
-          <AbsoluteFill style={cam(0.6)}>
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top: SPOT.y + 300,
-                textAlign: "center",
-                ...TYPE.display(150, C.tomato600),
-                lineHeight: 1,
-                whiteSpace: "pre",
-              }}
-            >
-              <Letters frame={frame} start={endAt + 6} text="Pa' Bailar" step={1.2} seed="finde" />
-            </div>
-            <div
-              style={{
-                position: "absolute",
-                left: 80,
-                right: 80,
-                top: SPOT.y + 470,
-                textAlign: "center",
-                ...TYPE.serif(66),
-                ...rise(frame, endAt + 22, { distance: 50 }),
-              }}
-            >
-              Nos vemos bailando.
-            </div>
-          </AbsoluteFill>
-        </>
+        <EndCard
+          cta="story"
+          frame={frame}
+          cam={cam}
+          link={endAt + 16}
+          bob={kick(t, beats((endAt + 16) / FPS + 0.4, DURATION_S))}
+          stripesAt={endAt}
+          name={{ at: endAt + 6, size: 150, step: 1.2, seed: "finde" }}
+          spot={SPOT}
+          signoff={{ text: "Nos vemos bailando.", at: endAt + 22 }}
+        >
+          <AppIcon
+            size={420}
+            style={{ left: SPOT.x - 210, top: SPOT.y - 210, scale: `${(0.4 + 0.6 * icon) * (1 + 0.03 * pulse)}` }}
+          />
+          <Record
+            size={360}
+            angle={spinAngle(t, endAt / FPS, 0.6)}
+            style={{ position: "absolute", left: SPOT.x - 180, top: SPOT.y - 180, scale: `${0.3 + 0.7 * rec}` }}
+          />
+        </EndCard>
       ) : null}
-      {/* A Story fades in, never out (the owner, 5 Oct 2026). */}
-      <FadeIn />
-      <Grain />
-    </AbsoluteFill>
+    </VideoShell>
   );
 };
 
 export const EsteFindeVideo: React.FC = () => (
   <Folder name="este-finde">
-    <Composition
-      id="este-finde-story"
-      component={EsteFinde}
-      durationInFrames={DURATION_S * FPS}
-      fps={FPS}
-      width={WIDTH}
-      height={HEIGHT}
-      defaultProps={{ blur: false }}
-    />
+    <Composition id="este-finde-story" component={EsteFinde} {...vertical(settings)} defaultProps={{ blur: false }} />
   </Folder>
 );

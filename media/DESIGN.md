@@ -56,6 +56,16 @@ grooves (white 7%), a marigold label at 42% of the radius and a wine spindle hol
 It spins up like a platter and turns at 33⅓ rpm (200°/s) wherever it appears (2, 5), with a fixed highlight (a soft
 white sheen that doesn't turn) so the turning reads.
 
+## Start and end
+
+- **Stories: fade in, no fade-out (the owner, 5 Oct 2026).** `VideoShell` (`src/brand/shell.tsx`) puts every video on the paper with an 8-frame fade-in from it, the
+  grain and the soundtrack; its `fadeOut` is off by default and stays off for Stories. The audio ramps 0.3 s in and
+  out (`mix.py`'s "fade"), only so it never clicks.
+- **The end card** is the kit's `EndCard` (`src/brand/end.tsx`): "Link aquí arriba" with the drawn `Arrow` right under
+  the sticker band (`CTA_TOP` = 276, bobbing `CTA_BOB` = 14 px) for a Story, "Link en mi perfil" for a Reel; the
+  stripes at y 500; the app icon and the record around a spot (the video brings its own: a match cut, a pop); the
+  wordmark 300 px below it and an optional sign-off 490 px below.
+
 ## Texture
 
 - **Grain:** an SVG fractal-noise layer multiplied over everything (paper texture), 10% opacity, its seed changing every 2 frames (a 15 fps
