@@ -24,6 +24,8 @@ docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, mon
 docs/ADMIN.md         the admin tools: the admin page, the inbox, the commands
 docs/PLAN.md          the original go-live plan, kept for its decisions
 admin-web/            the admin page, a Cloudflare Worker (docs/ADMIN.md); its tests in admin-web/test
+media/                the video toolkit for Instagram Stories and Reels: tools, a Remotion library, one folder
+                      per video (media/README.md is its catalog; nothing in it runs in the sweep)
 accounts.txt          the accounts to follow: academies, companies, organizers, artists
 state/                local sweep state (git-ignored; on GitHub: the sweep-state branch)
 .claude/              Claude Code: workspace instructions, skills, hooks (Working with Claude Code, below)
@@ -196,7 +198,7 @@ looks for instructions, skills and hooks. The files themselves are versioned her
 | File | What it is |
 |---|---|
 | `.claude/WORKSPACE.md` | The instructions for every session: the two repositories, how changes are made, what never to touch |
-| `.claude/skills/<name>/SKILL.md` | Skills: step-by-step procedures Claude follows. `sync-docs` updates the docs to match a branch before its pull request |
+| `.claude/skills/<name>/SKILL.md` | Skills: step-by-step procedures Claude follows. `sync-docs` updates the docs to match a branch before its pull request; `teaser` makes or changes a video with `media/` |
 | `.claude/hooks/require-docs-sync.mjs` | Blocks opening a pull request (`gh pr create`) until `sync-docs` has run at the branch's latest commit, which it records in `.git/docs-synced` |
 
 The `Code` folder points at them (set up once per computer):

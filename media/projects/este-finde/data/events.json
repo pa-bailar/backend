@@ -1,0 +1,216 @@
+{
+ "from": "2026-10-09",
+ "to": "2026-10-11",
+ "styles": [],
+ "source": "live",
+ "events": [
+  {
+   "id": "taller-habitar-nos-un-recorrido-de-conexion-de-7-oct",
+   "title": "Taller Habitar (nos), un recorrido de conexión de adentro hacia afuera",
+   "event_type": "workshop",
+   "styles": [
+    "otro"
+   ],
+   "organizer": "La Casona de la Danza",
+   "venue": "La Casona de la Danza",
+   "area": null,
+   "date": "2026-10-07",
+   "end_date": "2026-10-09",
+   "sessions": null,
+   "start_time": "10:00",
+   "end_time": "12:00",
+   "prices": [],
+   "account": "danzaenlaciudad",
+   "flyer": "flyers/18380887969228934-2.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "primer-aniversario-ludance-fiesta-crossover-10-oct",
+   "title": "Primer Aniversario LuDance - Fiesta Crossover",
+   "event_type": "social",
+   "styles": [
+    "salsa",
+    "bachata",
+    "otro"
+   ],
+   "organizer": "LuDance Estudio",
+   "venue": "LuDance Estudio",
+   "area": "Santa Isabel",
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Preventa",
+     "amount_cop": 25000,
+     "condition": "hasta el 3 de octubre"
+    },
+    {
+     "label": "Cover",
+     "amount_cop": 30000,
+     "condition": null
+    }
+   ],
+   "account": "ludancestudios",
+   "flyer": "flyers/18154168786450664-0.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "workshops-pro-fondos-11-oct",
+   "title": "Workshops Pro Fondos",
+   "event_type": "workshop",
+   "styles": [
+    "urbano",
+    "otro"
+   ],
+   "organizer": "@proyectourbandance",
+   "venue": "Proyecto Urban Dance",
+   "area": "Galerías",
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "15:00",
+   "end_time": "16:00",
+   "prices": [
+    {
+     "label": "1 clase",
+     "amount_cop": 30000,
+     "condition": null
+    },
+    {
+     "label": "2 clases",
+     "amount_cop": 50000,
+     "condition": null
+    },
+    {
+     "label": "3 clases",
+     "amount_cop": 70000,
+     "condition": null
+    },
+    {
+     "label": "Preventa full pass",
+     "amount_cop": 65000,
+     "condition": null
+    }
+   ],
+   "account": "proyectourbandance",
+   "flyer": "flyers/18134142721660577-1.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "workshop-pro-fondos-sabroseo-11-oct",
+   "title": "Workshop Pro Fondos: Sabroseo",
+   "event_type": "workshop",
+   "styles": [
+    "urbano"
+   ],
+   "organizer": "PUD",
+   "venue": "Proyecto Urban Dance",
+   "area": "Galerías",
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "16:00",
+   "end_time": "17:00",
+   "prices": [
+    {
+     "label": "1 clase",
+     "amount_cop": 30000,
+     "condition": null
+    },
+    {
+     "label": "2 clases",
+     "amount_cop": 50000,
+     "condition": null
+    },
+    {
+     "label": "3 clases",
+     "amount_cop": 70000,
+     "condition": null
+    },
+    {
+     "label": "Preventa full pass",
+     "amount_cop": 65000,
+     "condition": null
+    }
+   ],
+   "account": "proyectourbandance",
+   "flyer": "flyers/18134142721660577-2.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "workshop-pro-fondos-coreografia-11-oct",
+   "title": "Workshop Pro Fondos: Coreografía",
+   "event_type": "workshop",
+   "styles": [
+    "urbano"
+   ],
+   "organizer": "PUD",
+   "venue": "Proyecto Urban Dance",
+   "area": "Galerías",
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "17:00",
+   "end_time": "18:00",
+   "prices": [
+    {
+     "label": "1 clase",
+     "amount_cop": 30000,
+     "condition": null
+    },
+    {
+     "label": "2 clases",
+     "amount_cop": 50000,
+     "condition": null
+    },
+    {
+     "label": "3 clases",
+     "amount_cop": 70000,
+     "condition": null
+    },
+    {
+     "label": "Preventa full pass",
+     "amount_cop": 65000,
+     "condition": null
+    }
+   ],
+   "account": "proyectourbandance",
+   "flyer": "flyers/18134142721660577-3.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "tour-de-la-salsa-capitulo-001-11-oct",
+   "title": "Tour de la Salsa — Capítulo 001",
+   "event_type": "social",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Salsa Culto",
+   "venue": "El Goce Pagano",
+   "area": "Bogotá",
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "19:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Preventa Individual",
+     "amount_cop": 45000,
+     "condition": null
+    },
+    {
+     "label": "Preventa Pareja",
+     "amount_cop": 80000,
+     "condition": null
+    }
+   ],
+   "account": "salsaculto",
+   "flyer": "flyers/18110615609173199-3.webp",
+   "ratio": 0.8
+  }
+ ]
+}

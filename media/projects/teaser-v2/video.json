@@ -1,0 +1,37 @@
+{
+  "title": "Teaser v2: what Pa' Bailar is, in 21 s (Story + Reel)",
+  "fps": 30,
+  "duration": 21.0,
+  "voice": {
+    "name": "Achird",
+    "lead": 0.55,
+    "max_pause": 0.32,
+    "lines": [
+      { "id": "a1", "text": "¿Quieres salir a bailar este finde… y no sabes a dónde ir?", "gap": 0.3 },
+      { "id": "a2s", "text": "Por eso hice Pa' Bailar.", "gap": 0.4 },
+      { "id": "c1", "text": "Miras qué hay hoy, este finde, la otra semana…", "gap": 0.1 },
+      { "id": "c2", "text": "a qué hora, dónde, cuánto vale y cómo llegar.", "gap": 0.35 },
+      { "id": "c3", "text": "No hay que registrarse, es gratis.", "gap": 0.3 },
+      { "id": "c4", "text": "Te dejo el link… y nos vemos bailando.", "gap": 0.0 }
+    ]
+  },
+  "music": {
+    "bpm": 98,
+    "duration": 30,
+    "seeds": [7, 2026],
+    "prompts": {
+      "fania": "Instrumental 1970s New York salsa dura, Fania Records sound. Opens with a loud unison brass hit on beat one, then a tight groove: piano montuno, two trombones and trumpet playing short punchy mambo riffs, congas tumbao, timbales with cowbell on the downbeats, bongo bell, deep baby bass tumbao. Warm analog tape, vintage vinyl texture, joyful, confident, danceable. No vocals, no choir.",
+      "bogota": "Instrumental modern Colombian salsa for a dance social in Bogotá. Strong brass stab on the first beat, clear four-on-the-floor downbeats from the cowbell, bright piano montuno, trumpets and trombones with short call-and-response hooks, congas, timbales fills at phrase ends, round electric bass. Clean, punchy, modern mix, upbeat and friendly, steady tempo. No vocals, no singing, no choir.",
+      "boogaloo": "Instrumental Latin boogaloo and salsa groove, relaxed and feel-good, like a late-60s Nuyorican record. Starts on a hand-clap and horn hit, then piano montuno with a soul feel, muted trumpets, warm trombone, congas, güiro, cowbell marking every beat, walking bass tumbao. Laid-back, smiling, warm vintage analog texture, tape saturation. No vocals, no chanting."
+    },
+    "bed": "cache/music/teaser-v2-option-1.wav",
+    "first_hit": 0.07
+  },
+  "mix": { "fade": 0.3, "voice_only_lufs": -15, "with_music_lufs": -14, "bed_db": -8 },
+  "capture": { "styles": ["Salsa", "Bachata"] },
+  "renders": {
+    "voice-only": "teaser-v2-voice-only",
+    "with-music": "teaser-v2-with-music",
+    "reel": "teaser-v2-reel"
+  }
+}

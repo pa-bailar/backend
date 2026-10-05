@@ -1,0 +1,368 @@
+{
+ "fps_hint": 30,
+ "duration": 19.811,
+ "voice": "media/out/teaser-v2/voice-track.wav",
+ "lead": 0.55,
+ "lines": [
+  {
+   "id": "a1",
+   "text": "¿Quieres salir a bailar este finde… y no sabes a dónde ir?",
+   "start": 0.55,
+   "end": 3.99,
+   "words": [
+    {
+     "word": "¿Quieres",
+     "start": 0.55,
+     "end": 1.04,
+     "p": 0.83
+    },
+    {
+     "word": "salir",
+     "start": 1.04,
+     "end": 1.26,
+     "p": 0.98
+    },
+    {
+     "word": "a",
+     "start": 1.26,
+     "end": 1.38,
+     "p": 1.0
+    },
+    {
+     "word": "bailar",
+     "start": 1.38,
+     "end": 1.7,
+     "p": 1.0
+    },
+    {
+     "word": "este",
+     "start": 1.7,
+     "end": 1.94,
+     "p": 0.96
+    },
+    {
+     "word": "finde…",
+     "start": 1.94,
+     "end": 2.44,
+     "p": 0.14
+    },
+    {
+     "word": "y",
+     "start": 2.44,
+     "end": 2.86,
+     "p": 0.82
+    },
+    {
+     "word": "no",
+     "start": 2.86,
+     "end": 3.12,
+     "p": 0.96
+    },
+    {
+     "word": "sabes",
+     "start": 3.12,
+     "end": 3.42,
+     "p": 0.99
+    },
+    {
+     "word": "a",
+     "start": 3.42,
+     "end": 3.58,
+     "p": 0.79
+    },
+    {
+     "word": "dónde",
+     "start": 3.58,
+     "end": 3.76,
+     "p": 0.9
+    },
+    {
+     "word": "ir?",
+     "start": 3.76,
+     "end": 4.02,
+     "p": 1.0
+    }
+   ]
+  },
+  {
+   "id": "a2s",
+   "text": "Por eso hice Pa' Bailar.",
+   "start": 4.29,
+   "end": 5.96,
+   "words": [
+    {
+     "word": "Por",
+     "start": 4.36,
+     "end": 4.6,
+     "p": 0.88
+    },
+    {
+     "word": "eso",
+     "start": 4.6,
+     "end": 4.76,
+     "p": 1.0
+    },
+    {
+     "word": "hice",
+     "start": 4.76,
+     "end": 5.16,
+     "p": 0.01
+    },
+    {
+     "word": "Pa'",
+     "start": 5.16,
+     "end": 5.48,
+     "p": 0.12
+    },
+    {
+     "word": "Bailar.",
+     "start": 5.48,
+     "end": 6.06,
+     "p": 0.76
+    }
+   ]
+  },
+  {
+   "id": "c1",
+   "text": "Miras qué hay hoy, este finde, la otra semana…",
+   "start": 6.36,
+   "end": 10.771,
+   "words": [
+    {
+     "word": "Miras",
+     "start": 6.82,
+     "end": 7.14,
+     "p": 0.77
+    },
+    {
+     "word": "qué",
+     "start": 7.14,
+     "end": 7.26,
+     "p": 0.52
+    },
+    {
+     "word": "hay",
+     "start": 7.26,
+     "end": 7.5,
+     "p": 0.99
+    },
+    {
+     "word": "hoy,",
+     "start": 7.5,
+     "end": 7.94,
+     "p": 0.99
+    },
+    {
+     "word": "este",
+     "start": 8.36,
+     "end": 8.58,
+     "p": 0.99
+    },
+    {
+     "word": "finde,",
+     "start": 8.58,
+     "end": 9.06,
+     "p": 0.87
+    },
+    {
+     "word": "la",
+     "start": 9.56,
+     "end": 9.76,
+     "p": 0.99
+    },
+    {
+     "word": "otra",
+     "start": 9.76,
+     "end": 9.92,
+     "p": 0.99
+    },
+    {
+     "word": "semana…",
+     "start": 9.92,
+     "end": 10.871,
+     "p": 0.65
+    }
+   ]
+  },
+  {
+   "id": "c2",
+   "text": "a qué hora, dónde, cuánto vale y cómo llegar.",
+   "start": 10.871,
+   "end": 14.381,
+   "words": [
+    {
+     "word": "a",
+     "start": 11.02,
+     "end": 11.2,
+     "p": 0.07
+    },
+    {
+     "word": "qué",
+     "start": 11.2,
+     "end": 11.36,
+     "p": 0.97
+    },
+    {
+     "word": "hora,",
+     "start": 11.36,
+     "end": 11.84,
+     "p": 1.0
+    },
+    {
+     "word": "dónde,",
+     "start": 12.14,
+     "end": 12.52,
+     "p": 0.95
+    },
+    {
+     "word": "cuánto",
+     "start": 12.92,
+     "end": 13.24,
+     "p": 0.96
+    },
+    {
+     "word": "vale",
+     "start": 13.24,
+     "end": 13.5,
+     "p": 1.0
+    },
+    {
+     "word": "y",
+     "start": 13.5,
+     "end": 13.78,
+     "p": 0.74
+    },
+    {
+     "word": "cómo",
+     "start": 13.78,
+     "end": 13.96,
+     "p": 0.99
+    },
+    {
+     "word": "llegar.",
+     "start": 13.96,
+     "end": 14.4,
+     "p": 1.0
+    }
+   ]
+  },
+  {
+   "id": "c3",
+   "text": "No hay que registrarse, es gratis.",
+   "start": 14.731,
+   "end": 17.111,
+   "words": [
+    {
+     "word": "No",
+     "start": 14.88,
+     "end": 15.02,
+     "p": 0.89
+    },
+    {
+     "word": "hay",
+     "start": 15.02,
+     "end": 15.16,
+     "p": 1.0
+    },
+    {
+     "word": "que",
+     "start": 15.16,
+     "end": 15.36,
+     "p": 0.97
+    },
+    {
+     "word": "registrarse,",
+     "start": 15.36,
+     "end": 16.22,
+     "p": 0.99
+    },
+    {
+     "word": "es",
+     "start": 16.44,
+     "end": 16.58,
+     "p": 0.89
+    },
+    {
+     "word": "gratis.",
+     "start": 16.58,
+     "end": 17.14,
+     "p": 0.98
+    }
+   ]
+  },
+  {
+   "id": "c4",
+   "text": "Te dejo el link… y nos vemos bailando.",
+   "start": 17.411,
+   "end": 19.511,
+   "words": [
+    {
+     "word": "Te",
+     "start": 17.44,
+     "end": 17.64,
+     "p": 0.97
+    },
+    {
+     "word": "dejo",
+     "start": 17.64,
+     "end": 17.84,
+     "p": 1.0
+    },
+    {
+     "word": "el",
+     "start": 17.84,
+     "end": 17.96,
+     "p": 1.0
+    },
+    {
+     "word": "link…",
+     "start": 17.96,
+     "end": 18.54,
+     "p": 0.51
+    },
+    {
+     "word": "y",
+     "start": 18.54,
+     "end": 18.7,
+     "p": 0.64
+    },
+    {
+     "word": "nos",
+     "start": 18.7,
+     "end": 18.84,
+     "p": 0.98
+    },
+    {
+     "word": "vemos",
+     "start": 18.84,
+     "end": 19.04,
+     "p": 1.0
+    },
+    {
+     "word": "bailando.",
+     "start": 19.04,
+     "end": 19.5,
+     "p": 1.0
+    }
+   ]
+  }
+ ],
+ "segments": [
+  {
+   "start": 0.0,
+   "end": 6.32,
+   "text": "¿Quieres salir a bailar este finde… y no sabes a dónde ir? Por eso hice Pa' Bailar."
+  },
+  {
+   "start": 6.82,
+   "end": 14.4,
+   "text": "Miras qué hay hoy, este finde, la otra semana… a qué hora, dónde, cuánto vale y cómo llegar."
+  },
+  {
+   "start": 14.88,
+   "end": 19.5,
+   "text": "No hay que registrarse, es gratis. Te dejo el link… y nos vemos bailando."
+  }
+ ],
+ "note": "Times are video seconds. Line start/end are exact (from the joined files); word times are Whisper medium (es)."
+}
