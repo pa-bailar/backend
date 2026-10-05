@@ -37,10 +37,22 @@ lacoartadacentrocultural
 iledanza
 # Son de Habana: academy in Bogotá that announces workshops and socials (discovery, 4 Oct 2026).
 sondehabana
+# Son Rumbero: academy in Bogotá (salsa, bachata, merengue) (discovery, 4 Oct 2026).
+sonrumbero
+# Rechecked 4 Oct 2026 (marked personal before, readable now): Bogotá academies that announce workshops and events.
+bailaderia
+bailo.formacion
+efadanza
+originalstepdance
+fogal_arte
 
 # Dance companies
 herencialatinad.c
 ebi_dancecompany
+# Osupa Project: Bogotá dance company and directors (salsa, bachata, afro-Cuban) (discovery, 4 Oct 2026).
+osupaproject
+# Zafiro Project: Bogotá bachata training and competition team; also organizes socials (rechecked 4 Oct 2026).
+zafiro_project_team
 
 # Event organizers
 festivalsalsaalparque
@@ -67,10 +79,27 @@ casineafest
 soywiwioficial
 # Arrollando: a dance competition that announces congresses and masterclasses (".dc": Bogotá).
 arrollando.dc
+# Discovery, 4 Oct 2026 (second batch): Bogotá organizers of socials, competitions and intensives.
+# Alpaso Jam: salsa and timba socials, competitions and training.
+alpasojam
+# Ashé: salsa and bachata improvisation championships and socials.
+ashe_impro
+# Salseros Clandestinos: events, intensives and workshops.
+salseros_clandestinos
+# Val Kandela: urban dance parties (Los Kandelazos Bailables).
+valkandela
+# Rechecked 4 Oct 2026: Clan Disfrute (dance experiences and parties) and LaFem Congress (yearly salsa and
+# bachata congress in Bogotá, with parties and bootcamps).
+clandisfrute
+lafemcongress
 # Competitions: one-time dated events with workshops and socials around them (events placed in another
 # city are left out by the prompts' city rule). Discovery, 4 Oct 2026.
 dreamcupco
 jackandjilloficial
+# Grosso Impro: salsa and bachata improvisation workshops and competitions (city not stated).
+grossoimpro
+# Puntalpie: international Latin-rhythm congresses and competitions (city not stated).
+puntalpie
 
 # Teachers, dancers and artists (orchestras, DJs): their own one-time workshops, intensives, socials and
 # shows in Bogotá. Most of their posts are videos and regular classes, which the triage filters out.
@@ -90,10 +119,20 @@ oswaldgil2
 sarasandoval.oficial
 teffa_mg
 zaimora24
+# Discovery, 4 Oct 2026 (second batch): more Bogotá teachers who announce workshops and intensives.
+fredyysaraoficial
+alejochacon.co
+jen.ssy
+tibaduiza__
+lauuurin__
+# David y Laura: bachata teachers in Bogotá; workshops and shows (rechecked 4 Oct 2026).
+davidylauradancers
 # La-33: Bogotá salsa and boogaloo orchestra; announces concerts.
 la33orquesta
 # Fernando España: salsa DJ; announces his sets at dance venues in Bogotá.
 fernandoespanadj
+# La Nena Magdalena: Bogotá salsa and tropical DJ and selector; announces her parties.
+lanenamagdalena
 
 # Added with the admin tools (admin add-account, sweep --post)
 jaleocompetencia_
@@ -149,3 +188,36 @@ dlivingstudio
 #   Cuban-themed restaurant, bar and gallery with live music. (discovery, 4 Oct 2026)
 # ladiezluxury_outlet
 #   Night venue focused on salsa music and dancing. (discovery, 4 Oct 2026)
+# casavander_
+#   Restaurant-bar with music events and salsa tributes. (discovery, 4 Oct 2026)
+# elgocepagano
+#   Salsa bar (salsoteca) with rumba and live salsa concerts. (discovery, 4 Oct 2026)
+# habana93
+#   Gastrobar with live music and salsa, special events. (discovery, 4 Oct 2026)
+# pachanga_y_pochola
+#   Bar with live music, DJs and room to dance salsa and other genres. (discovery, 4 Oct 2026)
+# perdidobarvecino
+#   Bar (Zona G) with occasional salsa nights and DJ sets. (discovery, 4 Oct 2026)
+# mundanobaroficial
+#   Bar with live music, food and occasional dance classes and events. (discovery, 4 Oct 2026)
+# cacaoblunt
+#   Night club with dancehall and afro parties. (discovery, 4 Oct 2026)
+# oronegroclub
+#   Salsa bar and club (Modelia) with frequent parties. (discovery, 4 Oct 2026)
+# salsacamaraoficial
+#   Salsa restaurant-bar with live music and rumba. (discovery, 4 Oct 2026)
+# quemaquequema
+#   Restaurant-bar with live music and salsa. (discovery, 4 Oct 2026)
+# sonorasocialclub_
+#   Night club with reggaeton and dancehall parties. (discovery, 4 Oct 2026)
+
+# ---------------------------------------------------------------------------------------------------
+# Candidates: NOT swept (every line below is a comment). Teachers and dancers who announce workshops,
+# but whose profile doesn't say they're based in Bogotá (discovery, 4 Oct 2026). Sweep one once it's
+# clear they hold events in Bogotá.
+# ---------------------------------------------------------------------------------------------------
+# angie_restrepoo, bailarita, dannyydayana, henrii.pinzon, jesusuztariz_, jonathanpino__, josephqfaces,
+# juanchopr_, judygarzon_, kta_pe, natalygonzalez.oficial, oswaldyluisa_cubandance, paulapopayancortes,
+# xicalactica
+# Also not swept for now: pinochoconciertos (says it organizes salsa events and festivals, but the name points
+# to concerts: check its posts first); karenyricardo (world-class couple touring with workshops).

@@ -1064,12 +1064,12 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 
 ## 14. Quotas and capacity
 
-With **72 followed accounts** (4 October 2026) and two runs a day (each account read about once a day:
+With **95 followed accounts** (4 October 2026) and two runs a day (each account read about once a day:
 section 5, "Whose turn it is"):
 
 | Resource | Limit | Use per run | Use per day | Headroom |
 |---|---|---|---|---|
-| Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | About 40 (half the accounts, plus up to 5 late ones) | About 75 | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
+| Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | About 53 (half the accounts, plus up to 5 late ones) | About 100 | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
 | Gemini Flash-Lite | 500 / day (498 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Gemini Flash (two models) | 20 / day each (36 usable) | 1 per post that announces events, plus upgrades of provisional posts | Usually all of it while there's a backlog of provisional posts (98 on 4 October 2026), under 20 once it's gone | Tight while new accounts load (provisional fallback, upgraded on later runs); fine afterwards |
 | GitHub Actions minutes (private repository) | 2,000 / month | 3–5 min normally; about 15 on nights new accounts load (up to ~35) | ~10 normally | ~300 a month normally; heavy loading weeks stay under the limit. Admin requests add 1–2 min each, plus the wait for a running sweep. Set an Actions spending limit of $0 so runs stop instead of being charged |
