@@ -1,3 +1,4 @@
+// @ts-check
 // The shapes the admin tools accept, for the page (app.js) and its Worker (src/index.js, which imports this file
 // and bundles it): the same rules as pa_bailar/patterns.py, which reads the requests. tests/fixtures/patterns.json
 // holds examples that both test suites check (admin-web/test/patterns.test.mjs here, tests/test_patterns.py

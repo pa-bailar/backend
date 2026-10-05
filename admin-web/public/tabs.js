@@ -1,3 +1,4 @@
+// @ts-check
 // The admin page's two tabs (docs/ADMIN.md): "Estadísticas", what the last sweep left (read only), and
 // "Herramientas", everything that changes something. Only the choices and the markup live here, without the
 // browser, so the tests can check them in Node (test/tabs.test.mjs); app.js wires them to the page.
@@ -14,7 +15,11 @@ export const TAB_KEY = "admin-tab";
 
 const IDS = TABS.map((tab) => tab.id);
 
-/** The tab a URL hash names (#estadisticas, #herramientas), or null. */
+/**
+ * The tab a URL hash names (#estadisticas, #herramientas), or null.
+ * @param {unknown} hash
+ * @returns {string | null}
+ */
 export function tabFromHash(hash) {
   const id = String(hash ?? "").replace(/^#/, "").toLowerCase();
   return IDS.includes(id) ? id : null;
@@ -23,13 +28,19 @@ export function tabFromHash(hash) {
 /**
  * The tab to open: "Herramientas" when something was shared to the page (a link, story screenshots: they wait
  * there); else the one the URL's hash names; else the one picked last time; else the first.
+ * @param {{ shared?: boolean, hash?: string, stored?: string | null }} [choices]
+ * @returns {string}
  */
 export function initialTab({ shared = false, hash = "", stored = null } = {}) {
   if (shared) return "herramientas";
-  return tabFromHash(hash) ?? (IDS.includes(stored) ? stored : IDS[0]);
+  return tabFromHash(hash) ?? (stored && IDS.includes(stored) ? stored : IDS[0]);
 }
 
-/** The tab a key moves to from `current` (←/→ wrap around, Home, End), or null for any other key. */
+/**
+ * The tab a key moves to from `current` (←/→ wrap around, Home, End), or null for any other key.
+ * @param {string} current
+ * @param {string} key
+ */
 export function tabAfterKey(current, key) {
   const index = Math.max(0, IDS.indexOf(current));
   switch (key) {
@@ -49,6 +60,9 @@ export function tabAfterKey(current, key) {
 /**
  * The tab bar and its panels, with `selected` open and the others hidden. `panels` is {id: html}; `badges` is
  * {id: number}, a count shown on a tab (new series waiting in Herramientas), nothing when 0.
+ * @param {string} selected
+ * @param {Record<string, string>} panels
+ * @param {Record<string, number>} [badges]
  */
 export function tabsHtml(selected, panels, badges = {}) {
   const tabs = TABS.map(({ id, label }) => {
