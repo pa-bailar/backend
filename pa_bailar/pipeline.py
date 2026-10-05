@@ -18,6 +18,7 @@ take a story off the site again (`hide_story`).
 
 import hashlib
 import logging
+import re
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, date, datetime, timedelta
@@ -59,7 +60,7 @@ from .models import (
     Triage,
 )
 from .normalize import normalize_event
-from .text import WEEKDAYS, clock
+from .text import WEEKDAYS, clock, fold
 
 log = logging.getLogger(__name__)
 
@@ -179,6 +180,18 @@ def _unpublishable(event: ExtractedEvent) -> list[str]:
     if event.in_bogota == "no":
         reasons.append("fuera de Bogotá")
     return reasons
+
+
+# A caption or Gemini's reason saying the event is off (folded text: lowercase, no accents).
+_CANCELLED = re.compile(
+    r"\b(cancelad[oa]s?|cancelamos|se cancela|cancell?ed|aplazad[oa]s?|aplazamos|se aplaza|pospuest[oa]s?"
+    r"|posponemos|se pospone|postponed|suspendid[oa]s?|suspendemos)\b"
+)
+
+
+def _says_cancelled(post: Post, analysis: PostAnalysis) -> bool:
+    """Whether the post's caption, or Gemini's reason for finding no event in it, says it's cancelled or postponed."""
+    return bool(_CANCELLED.search(fold(f"{post.get('caption') or ''} {analysis.reason}")))
 
 
 def _no_quota_message() -> str:
@@ -1103,7 +1116,9 @@ class Sweep:
         # If this post was analyzed before, forget what it contributed and add it again below. Events that
         # only this post announced give their ids back, so a re-extraction keeps the events' URLs.
         reusable = [event for event in self.events if {media.post_id for media in event.media} == {post["id"]}]
+        announced = {event.id for event in self.events if any(media.post_id == post["id"] for media in event.media)}
         self.events = detach_post(self.events, post["id"])
+        cancelled = not publishable and bool(announced) and _says_cancelled(post, analysis)
 
         if not publishable:
             log.info("     skipped: %s", analysis.reason)
@@ -1117,12 +1132,38 @@ class Sweep:
             self._set_outcome(post, "merged" if merged_only else "event", [event_id for event_id, _ in results])
         elif added:  # every event it announces was hidden by hand
             self._set_outcome(post, "hidden", detail="oculto a mano")
+        elif cancelled:  # it announced events, and now says they're cancelled ("CANCELADO")
+            self._take_down_cancelled(account, announced)
+            self._set_outcome(post, "discarded", detail="cancelado")
         elif analysis.is_event_post and analysis.events:
             self._set_outcome(post, "discarded", detail=", ".join(sorted(reasons)))
         else:
             self._set_outcome(post, "not_event")
         self._save()
         return True
+
+    def _take_down_cancelled(self, account: str, event_ids: set[str]) -> None:
+        """A post that announced these events now says they're cancelled or postponed (its caption edited to
+        "CANCELADO"); those only it announced are gone already (detach_post). Of the others, still announced by
+        other posts, the events of this post's own account (the one that announced them first: events are stored
+        under it) leave the site, and the other posts' records lose them. Another account's event stays, with low
+        confidence and a doubt, so the health report lists it for review: a venue or collaborator dropping out
+        doesn't cancel the organizer's event."""
+        for event in [event for event in self.events if event.id in event_ids]:
+            if event.account == account:
+                self.events.remove(event)
+                for record in self.processed.values():
+                    if event.id not in record.event_ids:
+                        continue
+                    record.event_ids = [other for other in record.event_ids if other != event.id]
+                    if not record.event_ids:  # nothing left to upgrade or show
+                        record.outcome, record.detail, record.provisional = "discarded", "cancelado", False
+                log.info("     cancelled, taken off the site: %s %s", _days(event), event.title)
+            else:
+                doubt = f"@{account} lo anunció cancelado o aplazado: revisar"
+                flagged = event.model_copy(update={"confidence": "low", "doubts": [*event.doubts, doubt]})
+                self.events[self.events.index(event)] = flagged
+                log.info("     @%s says it's cancelled, flagged for review: %s %s", account, _days(event), event.title)
 
     def _discard_reasons(self, account: str, post_id: str, event: ExtractedEvent) -> list[str]:
         """Why an extracted event isn't published (empty: it is), in Spanish: _unpublishable, or "ya pasó" when its

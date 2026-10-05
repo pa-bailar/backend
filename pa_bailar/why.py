@@ -28,6 +28,7 @@ DISCARD_DETAIL = {
     "sin fecha": "no tiene una fecha clara",
     "fuera de Bogotá": "es en otra ciudad o país, y el sitio solo publica eventos en Bogotá",
     "ya pasó": "su fecha ya había pasado cuando se leyó",
+    "cancelado": "se anunció cancelado o aplazado",
 }
 
 
