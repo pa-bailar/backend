@@ -5,6 +5,7 @@
 // share menu) fills in the tools and opens Herramientas; story screenshots shared to it (received by sw.js) or
 // picked here go to "Agregar desde una historia".
 
+import { HIDE_STORY_COMMAND, POST_LINK_IN_TEXT, STORY_LINK_IN_TEXT } from "./patterns.js";
 import { escapeHtml, seriesCard } from "./render.js";
 import { initialTab, TAB_KEY, tabAfterKey, tabFromHash, tabsHtml } from "./tabs.js";
 
@@ -236,8 +237,6 @@ function setAnswer(html) {
   answer.querySelectorAll("img").forEach((image) => image.addEventListener("error", () => image.remove(), { once: true }));
 }
 
-const HIDE_COMMAND = /\/ocultar (story-[a-f0-9]{16})/; // in the answer to a story: undo it (pa_bailar/stories.py)
-
 /** Show a request's answers, checking every few seconds until it's closed (answered). */
 let following = 0; // which follow() is current: a check still on its way for an earlier one is dropped
 function follow(number) {
@@ -265,7 +264,7 @@ function follow(number) {
     if (open && !inTime) note = "Sigue en curso: tócalo en Pedidos recientes más tarde para ver la respuesta.";
     else if (open) note = answers ? "Sigue en curso…" : "Esperando la respuesta (un minuto o dos)…";
     // A story published from screenshots: one button takes it off the site again ("Ocultar historia").
-    const story = request.answers.map((item) => item.body.match(HIDE_COMMAND)?.[1]).filter(Boolean).at(-1);
+    const story = request.answers.map((item) => item.body.match(HIDE_STORY_COMMAND)?.[1]).filter(Boolean).at(-1);
     const undo = story && !open
       ? `<div class="tool__buttons"><button class="button button--outline" type="button" data-hide="${escapeHtml(story)}">Ocultar del sitio (deshacer)</button></div>`
       : "";
@@ -553,8 +552,6 @@ function initStoryForm() {
 
 const SHARED_KEY = "shared-post";
 const SHARED_MAX_AGE_MS = 30 * 60 * 1000;
-const INSTAGRAM_POST = /https?:\/\/(?:www\.|m\.)?instagram\.com\/(?:[\w.]+\/)?(?:p|reel|reels|tv)\/[\w-]+\/?/i;
-const INSTAGRAM_STORY = /https?:\/\/(?:www\.|m\.)?instagram\.com\/stories\/([A-Za-z0-9._]{1,30})\//i;
 let sharedFallback = null; // when the browser's storage is blocked
 let storyAccountFallback = null;
 
@@ -566,8 +563,8 @@ let storyAccountFallback = null;
 function keepSharedLink(params) {
   const text = ["url", "text", "link"].map((name) => params.get(name) ?? "").join(" ");
   if (!text.trim()) return null;
-  const link = text.match(INSTAGRAM_POST)?.[0]; // without Instagram's tracking (?igsh=…)
-  const story = text.match(INSTAGRAM_STORY)?.[1];
+  const link = text.match(POST_LINK_IN_TEXT)?.[0]; // without Instagram's tracking (?igsh=…)
+  const story = text.match(STORY_LINK_IN_TEXT)?.[1];
   if (!link && story) {
     storyAccountFallback = story.toLowerCase();
     try {

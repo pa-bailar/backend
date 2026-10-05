@@ -24,12 +24,12 @@ from datetime import date, datetime, timedelta
 
 from PIL import Image
 
-from . import config, links
+from . import config, links, patterns
 from .models import StoryEvent, StorySession
 from .text import WEEKDAYS, fold
 
 STORY_PREFIX = "story-"
-_STORY_ID = re.compile(r"story-[0-9a-f]{16}")
+_STORY_ID = re.compile(patterns.STORY_ID)
 MAX_SCREENSHOTS = 4
 # Perceptual hashes this close (bits of 64 that differ) are the same story, if shared within SAME_STORY_HOURS of
 # each other: a story lasts 24 hours, and an academy's weekly flyer made from one template (only the date

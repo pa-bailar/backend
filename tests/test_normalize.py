@@ -135,6 +135,8 @@ def test_negative_prices_are_removed():
         ("WhatsApp 320 2332984", "WhatsApp 320 2332984"),
         ("Wpp: 3018847358", "WhatsApp 3018847358"),
         ("SOCIAL", None),
+        ("@" + "a" * 30, "@" + "a" * 30),
+        ("@" + "a" * 31, None),  # longer than Instagram allows: no profile to link
         ("  ", None),
         (None, None),
     ],

@@ -1,0 +1,59 @@
+{
+  "_about": "Examples of the shapes the admin tools accept, checked by tests/test_patterns.py (pa_bailar/patterns.py) and admin-web/test/patterns.test.mjs (admin-web/public/patterns.js), so the two languages can't drift apart. good: both accept it; bad: both refuse it; python_only: the inbox accepts it (people paste links that way) but the admin page asks for the link alone.",
+  "account": {
+    "good": ["academia", "salsa.club_bogota", "a", "A.B_9", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
+    "bad": ["", "@academia", "salsa club", "salsa-club", "ñandú", "academia/", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
+  },
+  "post_link": {
+    "good": [
+      "https://www.instagram.com/p/Dd5JAAxjhg5/",
+      "https://instagram.com/reel/C1-x_Y/?igsh=MWZ4b2E5",
+      "http://m.instagram.com/academia/p/Dd5JAAxjhg5",
+      "https://www.instagram.com/tv/ABC123/#comments",
+      "https://www.instagram.com/reels/Dd5JAAxjhg5/",
+      "HTTPS://WWW.INSTAGRAM.COM/P/Dd5JAAxjhg5/"
+    ],
+    "bad": [
+      "https://www.instagram.com/academia/",
+      "https://www.instagram.com/stories/academia/3456789/",
+      "https://www.instagrm.com/p/Dd5JAAxjhg5/",
+      "https://evil.example/instagram.com/p/Dd5JAAxjhg5/",
+      "https://www.instagram.com/p/",
+      "ftp://instagram.com/p/Dd5JAAxjhg5/"
+    ],
+    "python_only": [
+      "https://www.instagram.com/p/Dd5JAAxjhg5ñ/",
+      "instagram.com/p/Dd5JAAxjhg5",
+      "www.instagram.com/p/Dd5JAAxjhg5/",
+      "https://www.instagram.com/p/Dd5JAAxjhg5/ mira este"
+    ]
+  },
+  "story_id": {
+    "good": ["story-0123456789abcdef"],
+    "bad": [
+      "story-0123456789ABCDEF",
+      "story-0123456789abcde",
+      "story-0123456789abcdef0",
+      "0123456789abcdef",
+      " story-0123456789abcdef",
+      "historia-0123456789abcdef"
+    ]
+  },
+  "event_id": {
+    "good": ["programa-intensivo-8-nov", "social", "a1-b2", "social-de-halloween-24-oct"],
+    "bad": [
+      "",
+      "Social",
+      "social--noche",
+      "-social",
+      "social-",
+      "social noche",
+      "social_noche",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ]
+  },
+  "upload_id": {
+    "good": ["0123456789abcdef0123456789abcdef"],
+    "bad": ["0123456789ABCDEF0123456789ABCDEF", "0123456789abcdef0123456789abcde", "0123456789abcdef0123456789abcdef0"]
+  }
+}
