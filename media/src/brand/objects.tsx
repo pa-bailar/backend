@@ -98,3 +98,29 @@ export const AppIcon: React.FC<{ size: number; style?: React.CSSProperties }> = 
     }}
   />
 );
+
+/**
+ * A drawn arrow (round caps, the ink's weight), pointing `to` up, down, left or right. For calls to action that point
+ * at something on screen (e.g. Instagram's link sticker): cleaner than an emoji hand, and it takes the brand's color.
+ */
+export const Arrow: React.FC<{
+  size: number;
+  to?: "up" | "down" | "left" | "right";
+  color?: string;
+  weight?: number;
+  style?: React.CSSProperties;
+}> = ({ size, to = "up", color = C.tomato600, weight = 2.6, style }) => {
+  const turn = { up: 0, right: 90, down: 180, left: 270 }[to];
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} style={{ display: "block", rotate: `${turn}deg`, ...style }} aria-hidden>
+      <path
+        d="M12 20V4M5 11l7-7 7 7"
+        fill="none"
+        stroke={color}
+        strokeWidth={weight}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};

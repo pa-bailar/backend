@@ -31,8 +31,9 @@ the tools, the library's building blocks and the workflow, written so you don't 
 
 - Real material only: screens of the live site, the academies' own flyers, the site's data. Only the voice
   (Gemini TTS, free tier) and the music (ACE-Step, local) are generated. $0: no paid APIs.
-- The owner's decisions: the light theme, no URL on screen (Story: "Link aquí abajo 👇" over an empty y 1360–1580
-  band; Reel: "Link en mi perfil"), fade audio and picture in and out, Spanish (Bogotá, informal "tú") on screen
+- The owner's decisions: the light theme, no URL on screen (Story: Instagram keeps a link sticker on for the whole clip, so the owner
+  places it at the top, in the band above y 250 that every scene leaves empty, and the end card says "Link aquí
+  arriba" with a drawn up arrow, `Arrow` in the kit, never an emoji hand; Reel: "Link en mi perfil"), fade audio and picture in and out, Spanish (Bogotá, informal "tú") on screen
   and in the voice.
 - Screens and events date a video: say its shelf life when you hand it over.
 - Never print `.env` or keys. The TTS tool reads `MEDIA_GEMINI_API_KEY` itself.

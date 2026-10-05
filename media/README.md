@@ -153,6 +153,7 @@ start). **`lib/fonts`**: loads the faces (`fontsReady` resolves when they're in)
 | `Rect`, `mid`, `pad`, `union` | rect helpers for capture positions |
 | `Flyer`, `toss()` | a real flyer (whole, the site's border, a shadow that lifts); a throw onto a pile with weight |
 | `Sticker`, `AppIcon` | the round tomato sticker; the app icon's squircle |
+| `Arrow` | a drawn arrow (up, down, left, right) in the brand's ink weight, for calls to action that point at something |
 
 **`data/events`**:
 - `VideoEvent` and `EventsSnapshot` are the shape of `events.json`; show `day`/`day_start`, not `date`/`start_time`.
@@ -171,8 +172,9 @@ start). **`lib/fonts`**: loads the faces (`fontsReady` resolves when they're in)
 
 - Real material only: text, logos, dates and UI are code or real screenshots; flyers are the academies' own.
   Nothing AI-generated but the voice and the music.
-- Owner decisions so far: the light theme, no URL on screen (Story: "Link aquí abajo 👇" over an empty y 1360–1580
-  band for the link sticker; Reel: "Link en mi perfil"), fade audio and picture in and out, the Bodoni at
+- Owner decisions so far: the light theme, no URL on screen (Story: Instagram keeps a link sticker on for the whole clip, so the owner
+  places it at the top, in the band above y 250 that every scene leaves empty, and the end card says "Link aquí
+  arriba" with a drawn up arrow, `Arrow` in the kit, never an emoji hand; Reel: "Link en mi perfil"), fade audio and picture in and out, the Bodoni at
   `opsz` 18 / 600.
 - Screens and events date a video: post it before its shelf life ends (`app.json` / `events.json` record it).
 - Gemini TTS times out at times: the tool retries, and a cached line never calls it again.
