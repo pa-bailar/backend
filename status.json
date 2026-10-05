@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-04T21:25:50-05:00",
+  "generated_at": "2026-10-04T21:29:05-05:00",
   "sweeps": {
     "recent": [
       {
@@ -255,7 +255,7 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 173,
+        "used": 174,
         "budget": 498
       }
     ]
@@ -273,14 +273,34 @@
     "waiting": []
   },
   "posts": {
-    "recorded": 425,
+    "recorded": 426,
     "provisional": 119
   },
   "events": {
-    "upcoming": 43,
+    "upcoming": 44,
     "low_confidence": 1
   },
   "new_series": [
+    {
+      "id": "intensivo-2026-4-0-salsa-en-linea-8-nov",
+      "title": "Intensivo 2026 4.0 - Salsa en línea",
+      "account": "frank.de.latorre",
+      "sessions": "4 sesiones: 8, 22, 29 nov y 6 dic",
+      "dates": [
+        "2026-11-08",
+        "2026-11-22",
+        "2026-11-29",
+        "2026-12-06"
+      ],
+      "url": "https://pa-bailar.github.io/evento/intensivo-2026-4-0-salsa-en-linea-8-nov/",
+      "first_published": "2026-10-04T21:29-05:00",
+      "sources": [
+        {
+          "kind": "story",
+          "link": "https://www.instagram.com/frank.de.latorre/"
+        }
+      ]
+    },
     {
       "id": "iniciacion-a-la-salsa-en-linea-3-oct",
       "title": "Iniciación a la Salsa en Línea",

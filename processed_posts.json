@@ -6096,5 +6096,23 @@
     ],
     "detail": null,
     "image_hashes": []
+  },
+  "story-8ccbeb9e2cbbba06": {
+    "account": "frank.de.latorre",
+    "permalink": "https://www.instagram.com/frank.de.latorre/",
+    "processed_at": "2026-10-04T21:29:04-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un taller intensivo de salsa en línea para noviembre y diciembre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "e3b0c44298fc1c14",
+    "outcome": "event",
+    "event_ids": [
+      "intensivo-2026-4-0-salsa-en-linea-8-nov"
+    ],
+    "detail": null,
+    "image_hashes": [
+      "900b0f8193232386"
+    ]
   }
 }
