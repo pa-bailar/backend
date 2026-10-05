@@ -19,8 +19,12 @@ from common import CACHE, MEDIA, key, video
 ACE = Path(r"D:\AI\ace-step")
 
 
+# The generation settings (ACE-Step 1.5 turbo): part of each bed's cache key, so changing one never reuses a bed.
+STEPS, SHIFT, THINKING = 8, 3.0, True
+
+
 def path_for(name: str, prompt: str, seed: int, bpm: int, duration: int) -> Path:
-    return CACHE / "music" / f"{name}-s{seed}-{key(prompt, seed, bpm, duration)}.wav"
+    return CACHE / "music" / f"{name}-s{seed}-{key(prompt, seed, bpm, duration, STEPS, SHIFT, THINKING)}.wav"
 
 
 def main(name: str) -> None:
@@ -66,10 +70,10 @@ def main(name: str) -> None:
             keyscale="",
             timesignature="4",
             duration=duration,
-            inference_steps=8,
-            shift=3.0,
+            inference_steps=STEPS,
+            shift=SHIFT,
             seed=seed,
-            thinking=True,
+            thinking=THINKING,
         )
         config = GenerationConfig(batch_size=1, use_random_seed=False, seeds=[seed], audio_format="wav")
         res = generate_music(dit, llm, params, config, save_dir=str(ACE / "outputs"))
@@ -82,6 +86,6 @@ def main(name: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 2 or sys.argv[1] in ("-h", "--help"):
         raise SystemExit(__doc__)
     main(sys.argv[1])

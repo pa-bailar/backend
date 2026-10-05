@@ -15,7 +15,7 @@
 // (ids, data attributes, visible text) so a capture survives design changes; when the site changes, fix the hooks
 // here and in the video's script.
 //
-// playwright-core (a dev dependency here) drives the installed Chrome.
+// playwright-core (a dev dependency here) drives the installed Chrome (its "chrome" channel: no path to keep).
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -23,7 +23,6 @@ import { chromium } from "playwright-core";
 
 export const MEDIA = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const SITE = "https://pa-bailar.github.io/";
-const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 
 /** `--name value` from the command line, or `fallback`. */
 export const arg = (name, fallback) => {
@@ -31,6 +30,17 @@ export const arg = (name, fallback) => {
   return i > 0 ? process.argv[i + 1] : fallback;
 };
 export const flag = (name) => process.argv.includes(`--${name}`);
+
+/** The command line's positional arguments: everything but the flags and the values of those that take one. */
+export function positionals(withValue) {
+  const out = [];
+  const args = process.argv.slice(2);
+  for (let i = 0; i < args.length; i++) {
+    if (args[i].startsWith("--")) i += withValue.includes(args[i].slice(2)) ? 1 : 0;
+    else out.push(args[i]);
+  }
+  return out;
+}
 
 /** The coming Saturday at 19:00 Bogotá (UTC−5, no DST); today if it's Saturday before 19:00. */
 export function comingSaturday() {
@@ -43,7 +53,7 @@ export function comingSaturday() {
 
 /** A phone with the site's state preset and the clock frozen at `now`. Close `browser` when done. */
 export async function openPhone({ now = comingSaturday(), theme = "light" } = {}) {
-  const browser = await chromium.launch({ executablePath: CHROME, headless: true, args: ["--hide-scrollbars"] });
+  const browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--hide-scrollbars"] });
   const context = await browser.newContext({
     viewport: { width: 360, height: 640 },
     deviceScaleFactor: 3,
@@ -59,7 +69,7 @@ export async function openPhone({ now = comingSaturday(), theme = "light" } = {}
   await context.addInitScript((t) => {
     localStorage.setItem("theme", t);
     localStorage.setItem("install-dismissed-at", String(Date.now()));
-    localStorage.setItem("swipe-hint-seen", "1");
+    localStorage.setItem("details-hint-seen", "1"); // the first card's Detalles would pulse (views/detailsHint.ts)
   }, theme);
   const page = await context.newPage();
   await page.clock.setFixedTime(new Date(now));
@@ -120,7 +130,7 @@ export async function shot(page, file, options = {}) {
 
 // ---------- the CLI: one screen ----------
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const [video, name] = process.argv.slice(2).filter((a, i, all) => !a.startsWith("--") && !all[i - 1]?.startsWith("--"));
+  const [video, name] = positionals(["path", "now", "theme", "scroll", "click", "wait"]);
   if (!video || !name) {
     console.error("usage: node media/tools/capture.mjs <video> <name> [--path /…] [--now ISO] [--theme light|dark] [--full] [--scroll px] [--click selector] [--wait ms]");
     process.exit(1);

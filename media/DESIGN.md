@@ -67,5 +67,5 @@ white sheen that doesn't turn) so the turning reads.
 ## Real material only
 
 Text, logos, dates and UI are drawn by code or are real screenshots of the live site. Flyers are the academies'
-own (downloaded from the live site by `tools/capture.mjs`), shown whole (never cropped), as the site does. Nothing is AI-generated except the voice
+own (downloaded from the site's data by `tools/events.py`, or by a video's own capture script), shown whole (never cropped), as the site does. Nothing is AI-generated except the voice
 (and the optional music bed).

@@ -12,8 +12,9 @@ Standard library + ffmpeg: any Python runs it.
 """
 
 import argparse
-import os
 import re
+import shutil
+import tempfile
 from pathlib import Path
 
 from common import ffmpeg, probe
@@ -27,8 +28,17 @@ def duration_of(path: Path) -> float:
 
 
 def sheet(path: Path, at: list[float], out: Path) -> None:
-    tmp = out.parent / f".{out.stem}"
-    tmp.mkdir(parents=True, exist_ok=True)
+    if not at:
+        raise SystemExit("no times to take frames at: the video is shorter than --every, give --at")
+    tmp = Path(tempfile.mkdtemp(prefix="sheet-"))
+    try:
+        _sheet(path, at, out, tmp)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    print(out.as_posix())
+
+
+def _sheet(path: Path, at: list[float], out: Path, tmp: Path) -> None:
     files = []
     for i, t in enumerate(at):
         f = tmp / f"{i:02d}.png"
@@ -41,25 +51,33 @@ def sheet(path: Path, at: list[float], out: Path) -> None:
     )
     label = f"drawtext=fontfile='{FONT}':fontsize=22:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=6:x=8:y=8"
     graph = ";".join(f"[{i}]scale=360:-1,{lines},{label}:text='{t:.2f} s'[p{i}]" for i, t in enumerate(at))
-    graph += ";" + "".join(f"[p{i}]" for i in range(len(at))) + f"hstack={len(at)}"
+    if len(at) > 1:  # hstack needs two inputs at least
+        graph += ";" + "".join(f"[p{i}]" for i in range(len(at))) + f"hstack={len(at)}"
+    else:
+        graph = graph.removesuffix("[p0]")
     ffmpeg(*inputs, "-filter_complex", graph, str(out))
-    for f in files:
-        f.unlink()
-    tmp.rmdir()
-    print(out.as_posix())
+
+
+def drawtext_value(text: str) -> str:
+    """Text for drawtext's quoted text option (drawn with expansion=none, so % is literal): ' becomes ’, and a colon
+    and a backslash are escaped."""
+    return text.replace("\\", "\\\\").replace("'", "’").replace(":", r"\:")
 
 
 def compare(a: Path, b: Path, labels: list[str], start: float, end: float | None, out: Path) -> None:
     span = ["-ss", str(start)] + (["-t", str(end - start)] if end else [])
-    label = "drawtext=fontfile='{}':fontsize=40:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=12:x=24:y=24:text="
-    label = label.format(FONT)
+    label = (
+        f"drawtext=fontfile='{FONT}':expansion=none:fontsize=40:fontcolor=white:box=1:boxcolor=black@0.6:"
+        "boxborderw=12:x=24:y=24:text="
+    )
     ffmpeg(
         *span,
         *("-i", str(a)),
         *span,
         *("-i", str(b)),
         "-filter_complex",
-        f"[0:v]scale=540:960,{label}'{labels[0]}'[a];[1:v]scale=540:960,{label}'{labels[1]}'[b];[a][b]hstack=2[v]",
+        f"[0:v]scale=540:960,{label}'{drawtext_value(labels[0])}'[a];"
+        f"[1:v]scale=540:960,{label}'{drawtext_value(labels[1])}'[b];[a][b]hstack=2[v]",
         *("-map", "[v]", "-map", "1:a?", "-c:v", "libx264", "-crf", "20", "-preset", "slow", "-pix_fmt", "yuv420p"),
         *("-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", str(out)),
     )
@@ -68,9 +86,20 @@ def compare(a: Path, b: Path, labels: list[str], start: float, end: float | None
 
 def diff(a: Path, b: Path) -> None:
     log = a.parent / f".psnr-{a.stem}.log"
-    # A relative path: a drive letter's colon would end the filter option.
-    rel = Path(os.path.relpath(log)).as_posix()
-    ffmpeg("-i", str(a), "-i", str(b), "-lavfi", f"[0:v][1:v]psnr=stats_file='{rel}'", "-f", "null", "-")
+    # Run in the log's folder and name it bare: a drive letter's colon would end the filter option.
+    a, b = a.resolve(), b.resolve()
+    ffmpeg(
+        "-i",
+        str(a),
+        "-i",
+        str(b),
+        "-lavfi",
+        f"[0:v][1:v]psnr=stats_file='{log.name}'",
+        "-f",
+        "null",
+        "-",
+        cwd=log.parent,
+    )
     rows = []
     for line in log.read_text().splitlines():
         n = re.search(r"n:(\d+)", line)

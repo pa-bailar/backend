@@ -8,14 +8,15 @@
 Reads media/out/<video>/voice-track.wav (tools/timing.py) and video.json's "music"."bed" (a file under media/,
 e.g. one of tools/music.py's candidates) and "mix": "voice_only_lufs" (−15), "with_music_lufs" (−14), "bed_db"
 (the bed's level before ducking, −8), "fade" (seconds in and out, 0.3). "first_hit": seconds trimmed off the bed's
-start so its first hit lands on frame 0. Without a bed, only voice-only.wav is written.
+start so its first hit lands on frame 0. Without a bed, only voice-only.wav is written. A video with no voice (no
+voice track, no "voice" in video.json) gets music-only.wav: the bed alone at "music_only_lufs" (−16).
 """
 
 import json
 import sys
 from pathlib import Path
 
-from common import MEDIA, ffmpeg, video
+from common import MEDIA, Video, ffmpeg, video
 
 
 def loudnorm(src: Path, dest: Path, target: float, duration: float, fade: float) -> None:
@@ -49,23 +50,46 @@ def lufs(path: Path) -> str:
     return f"{i} LUFS, true peak {peak} dBFS"
 
 
+def music_only(v: Video, bed: Path, first_hit: float, mix: dict, duration: float, fade: float) -> None:
+    """A video without a voice: the bed from its first hit, out over the last 1.2 s, normalized."""
+    raw = v.out / "music-only-raw.wav"
+    ffmpeg(
+        *(
+            "-i",
+            str(bed),
+            "-af",
+            f"atrim=start={first_hit},asetpts=PTS-STARTPTS,aresample=48000,afade=t=out:st={duration - 1.2}:d=1.2",
+        ),
+        *("-t", str(duration), str(raw)),
+    )
+    dest = v.public / "audio" / "music-only.wav"
+    # −16 by default: a bed alone at −14 reaches 0 dBTP (no voice to make the loudness).
+    loudnorm(raw, dest, float(mix.get("music_only_lufs", -16)), duration, fade)
+    print(f"{dest.relative_to(MEDIA).as_posix()}: {lufs(dest)}")
+
+
 def main(name: str) -> None:
     v = video(name)
     duration = v.duration
     mix = v.settings.get("mix", {})
     fade = float(mix.get("fade", 0.3))
     voice = v.out / "voice-track.wav"
-    if not voice.exists():
-        raise SystemExit(f"no {voice.relative_to(MEDIA).as_posix()}: run tools/timing.py {name} first")
     public = v.public / "audio"
     public.mkdir(parents=True, exist_ok=True)
     v.out.mkdir(parents=True, exist_ok=True)
+    music = v.settings.get("music", {})
+    if "voice" not in v.settings and not voice.exists():
+        if not music.get("bed"):
+            raise SystemExit("no voice and no music bed in video.json: nothing to mix")
+        music_only(v, MEDIA / music["bed"], float(music.get("first_hit", 0)), mix, duration, fade)
+        return
+    if not voice.exists():
+        raise SystemExit(f"no {voice.relative_to(MEDIA).as_posix()}: run tools/timing.py {name} first")
     tmp = v.out / "voice-48k.wav"
     ffmpeg("-i", str(voice), "-af", "aresample=48000", "-ac", "2", str(tmp))
     loudnorm(tmp, public / "voice-only.wav", float(mix.get("voice_only_lufs", -15)), duration, fade)
     written = [public / "voice-only.wav"]
 
-    music = v.settings.get("music", {})
     if music.get("bed"):
         bed = MEDIA / music["bed"]
         first_hit = float(music.get("first_hit", 0))
@@ -95,6 +119,6 @@ def main(name: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 2 or sys.argv[1] in ("-h", "--help"):
         raise SystemExit(__doc__)
     main(sys.argv[1])

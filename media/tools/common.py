@@ -17,10 +17,8 @@ from pathlib import Path
 MEDIA = Path(__file__).resolve().parent.parent
 BACKEND = MEDIA.parent
 CACHE = MEDIA / "cache"
-WINGET_FFMPEG = Path(
-    r"C:\Users\Jhoan\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe"
-    r"\ffmpeg-9.0.2-full_build\bin"
-)
+# winget's Gyan.FFmpeg package (D:\AI\README.md), any version: <package>\ffmpeg-<version>-full_build\bin
+WINGET_PACKAGES = Path.home() / "AppData" / "Local" / "Microsoft" / "WinGet" / "Packages"
 TTS_RATE = 24000  # Gemini TTS: 24 kHz 16-bit mono PCM
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -32,15 +30,21 @@ def tool(name: str) -> str:
     found = shutil.which(name)
     if found:
         return found
-    exe = WINGET_FFMPEG / f"{name}.exe"
-    if exe.exists():
+    for exe in sorted(WINGET_PACKAGES.glob(f"Gyan.FFmpeg_*/ffmpeg-*-full_build/bin/{name}.exe"), reverse=True):
         return str(exe)
     raise SystemExit(f"{name} not found: install ffmpeg (winget install Gyan.FFmpeg)")
 
 
-def ffmpeg(*args: str) -> str:
-    """Run ffmpeg quietly; returns its stderr (where filters like loudnorm and ebur128 report)."""
-    done = subprocess.run([tool("ffmpeg"), "-hide_banner", "-y", *args], capture_output=True, text=True)
+def ffmpeg(*args: str, cwd: Path | None = None) -> str:
+    """Run ffmpeg quietly (in `cwd` if given); returns its stderr (where filters like loudnorm and ebur128 report)."""
+    done = subprocess.run(
+        [tool("ffmpeg"), "-hide_banner", "-y", *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=cwd,
+    )
     if done.returncode:
         raise SystemExit(f"ffmpeg failed:\n{done.stderr[-2000:]}")
     return done.stderr
@@ -51,6 +55,8 @@ def probe(path: Path) -> dict:
         [tool("ffprobe"), "-v", "error", "-show_format", "-show_streams", "-of", "json", str(path)],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         check=True,
     ).stdout
     return json.loads(out)

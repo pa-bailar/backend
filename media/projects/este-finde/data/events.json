@@ -16,13 +16,77 @@
    "area": null,
    "date": "2026-10-07",
    "end_date": "2026-10-09",
-   "sessions": null,
+   "sessions": [
+    {
+     "date": "2026-10-07",
+     "start_time": "10:00",
+     "end_time": "12:00"
+    },
+    {
+     "date": "2026-10-09",
+     "start_time": "10:00",
+     "end_time": "12:00"
+    }
+   ],
    "start_time": "10:00",
    "end_time": "12:00",
    "prices": [],
    "account": "danzaenlaciudad",
+   "day": "2026-10-09",
+   "day_start": "10:00",
+   "day_end": "12:00",
    "flyer": "flyers/18380887969228934-2.webp",
    "ratio": 0.8
+  },
+  {
+   "id": "iniciacion-a-la-salsa-en-linea-3-oct",
+   "title": "Iniciación a la Salsa en Línea",
+   "event_type": "workshop",
+   "styles": [
+    "salsa en línea"
+   ],
+   "organizer": "frank.de.latorre",
+   "venue": "Academia EFA Danza",
+   "area": null,
+   "date": "2026-10-03",
+   "end_date": "2026-10-24",
+   "sessions": [
+    {
+     "date": "2026-10-03",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    },
+    {
+     "date": "2026-10-10",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    },
+    {
+     "date": "2026-10-17",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    },
+    {
+     "date": "2026-10-24",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    }
+   ],
+   "start_time": "17:00",
+   "end_time": "18:00",
+   "prices": [
+    {
+     "label": "Valor del paquete por persona",
+     "amount_cop": 150000,
+     "condition": null
+    }
+   ],
+   "account": "frank.de.latorre",
+   "day": "2026-10-10",
+   "day_start": "17:00",
+   "day_end": "18:00",
+   "flyer": "flyers/18137899501621419-0.webp",
+   "ratio": 0.5622
   },
   {
    "id": "primer-aniversario-ludance-fiesta-crossover-10-oct",
@@ -54,8 +118,53 @@
     }
    ],
    "account": "ludancestudios",
+   "day": "2026-10-10",
+   "day_start": "20:00",
+   "day_end": null,
    "flyer": "flyers/18154168786450664-0.webp",
    "ratio": 0.8
+  },
+  {
+   "id": "social-pal-parche-10-oct",
+   "title": "Social Pal Parche",
+   "event_type": "social",
+   "styles": [
+    "salsa",
+    "bachata",
+    "urbano",
+    "dancehall"
+   ],
+   "organizer": "Jaleo",
+   "venue": "Algarete",
+   "area": "Zona Rosa",
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:40",
+   "end_time": "05:00",
+   "prices": [
+    {
+     "label": "Fieles",
+     "amount_cop": 20000,
+     "condition": "solo 50 cupos"
+    },
+    {
+     "label": "Preventa",
+     "amount_cop": 30000,
+     "condition": null
+    },
+    {
+     "label": "Taquilla",
+     "amount_cop": 40000,
+     "condition": null
+    }
+   ],
+   "account": "jaleocompetencia_",
+   "day": "2026-10-10",
+   "day_start": "20:40",
+   "day_end": "05:00",
+   "flyer": "flyers/17981434907897551-0.webp",
+   "ratio": 0.7585
   },
   {
    "id": "workshops-pro-fondos-11-oct",
@@ -96,6 +205,9 @@
     }
    ],
    "account": "proyectourbandance",
+   "day": "2026-10-11",
+   "day_start": "15:00",
+   "day_end": "16:00",
    "flyer": "flyers/18134142721660577-1.webp",
    "ratio": 0.8
   },
@@ -137,6 +249,9 @@
     }
    ],
    "account": "proyectourbandance",
+   "day": "2026-10-11",
+   "day_start": "16:00",
+   "day_end": "17:00",
    "flyer": "flyers/18134142721660577-2.webp",
    "ratio": 0.8
   },
@@ -178,6 +293,9 @@
     }
    ],
    "account": "proyectourbandance",
+   "day": "2026-10-11",
+   "day_start": "17:00",
+   "day_end": "18:00",
    "flyer": "flyers/18134142721660577-3.webp",
    "ratio": 0.8
   },
@@ -209,7 +327,56 @@
     }
    ],
    "account": "salsaculto",
+   "day": "2026-10-11",
+   "day_start": "19:00",
+   "day_end": null,
    "flyer": "flyers/18110615609173199-3.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "jazz-through-time-capitulo-1-back-to-the-roots-11-oct",
+   "title": "Jazz Through Time - Capítulo 1: Back to the Roots",
+   "event_type": "workshop",
+   "styles": [
+    "swing",
+    "afro",
+    "otro"
+   ],
+   "organizer": null,
+   "venue": null,
+   "area": "Bogotá",
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [
+    {
+     "label": "One Chapter",
+     "amount_cop": 260000,
+     "condition": "Main set 16-27 sept"
+    },
+    {
+     "label": "Two Chapters",
+     "amount_cop": 450000,
+     "condition": "Main set 16-27 sept"
+    },
+    {
+     "label": "One Chapter",
+     "amount_cop": 330000,
+     "condition": "Last call 28 sept - 11 oct"
+    },
+    {
+     "label": "Two Chapters",
+     "amount_cop": 601000,
+     "condition": "Last call 28 sept - 11 oct"
+    }
+   ],
+   "account": "zaimora24",
+   "day": "2026-10-11",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/17954021634253041-2.webp",
    "ratio": 0.8
   }
  ]

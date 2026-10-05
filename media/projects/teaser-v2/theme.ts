@@ -2,11 +2,12 @@
 // cut. Everything else comes from the kit.
 import { assets, grid, makeTiming } from "../../src/kit";
 import timingJson from "./data/timing.json";
+import settings from "./video.json";
 
 export const VIDEO = "teaser-v2";
 /** Files in public/teaser-v2/ (app screens from capture.mjs, the soundtracks from tools/mix.py). */
 export const file = assets(VIDEO);
-export const DURATION_S = 21;
+export const DURATION_S = settings.duration; // video.json: tools/mix.py pads the audio to it too
 
 const timing = makeTiming(timingJson);
 export const { line, word } = timing;
