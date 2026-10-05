@@ -41,6 +41,9 @@ PADDING = 0.03  # added around Gemini's box: full-screen flyers have text near t
 MIN_BOX_AREA = 0.12  # a smaller box is a misreading (a sticker, the avatar)
 BOX_ASPECT = (0.3, 2.5)  # width / height of a plausible flyer
 FAR_AHEAD_DAYS = 60  # a date further ahead is flagged for a look
+# A printed date at most this many days before the screenshot is that recent day (an event that just passed: a
+# screenshot taken after midnight of last night's social), not next year's.
+RECENT_PAST_DAYS = 7
 SCREENSHOT_MAX_AGE_DAYS = 30
 _WEEKDAY_KEYS = {fold(name)[:3]: number for number, name in enumerate(WEEKDAYS)}
 _FILE_TIME = re.compile(r"(20\d\d)[-_.]?(\d\d)[-_.]?(\d\d)[-_. T]?(\d\d)[-_.:h]?(\d\d)[-_.:m]?(\d\d)")
@@ -179,9 +182,11 @@ def _next_with_day(day: int, after: date, weekday: int | None) -> date | None:
 def resolve_date(event: StoryEvent, taken: date, today: date) -> ResolvedDate:
     """The event's day from what the story prints, relative to the day the screenshot was taken:
     - "hoy" / "mañana": that day or the next;
-    - day and month: the next such date on or after the screenshot's day, the printed weekday settling the year
-      (a printed year is used as it is);
-    - a day alone ("sábado 12"): the next 12th, the weekday settling the month;
+    - day and month: the next such date on or after the screenshot's day, or up to RECENT_PAST_DAYS before it (an
+      event that just passed stays in the past, and isn't published, instead of becoming next year's), the printed
+      weekday settling the year (a printed year is used as it is);
+    - a day alone ("sábado 12"): the next 12th (or one up to RECENT_PAST_DAYS before), the weekday settling the
+      month;
     - a weekday alone ("este sábado"): the next one; a weekly night ("todos los viernes"): the next one from today.
     A workshop series (two or more sessions printed) is worked out by resolve_sessions.
     Flags a weekday that doesn't match the date, an inferred year, and a date more than FAR_AHEAD_DAYS ahead."""
@@ -197,11 +202,11 @@ def resolve_date(event: StoryEvent, taken: date, today: date) -> ResolvedDate:
         years = [event.year] if event.year else [taken.year, taken.year + 1]
         result.year_inferred = not event.year
         dates = [found for year in years if (found := _valid(year, event.month, event.day))]
-        upcoming = [found for found in dates if found >= taken]
+        upcoming = [found for found in dates if found >= taken - timedelta(days=RECENT_PAST_DAYS)]
         matching = [found for found in upcoming if weekday is not None and found.weekday() == weekday]
         result.start = _first(matching, upcoming, dates[-1:])
     elif event.day:
-        result.start = _next_with_day(event.day, taken, weekday)
+        result.start = _next_with_day(event.day, taken - timedelta(days=RECENT_PAST_DAYS), weekday)
         if result.start:
             result.notes.append("mes deducido")
     elif weekday is not None:
