@@ -5,7 +5,7 @@ on the site, add a post or an account by hand.
 
 | What | Where | State |
 |---|---|---|
-| **The admin page**: status dashboard (with new workshop series to look at, and Ocultar), check, add or read again a post, add an account, add an event from a story's screenshots | https://pa-bailar-admin.jzamorac-9.workers.dev | Done |
+| **The admin page**, two tabs: **Estadísticas** (sweeps, quotas, accounts, events) and **Herramientas** (new workshop series to look at, and Ocultar; check, add or read again a post; add an account; add an event from a story's screenshots) | https://pa-bailar-admin.jzamorac-9.workers.dev | Done |
 | **The admin inbox**: the same requests as issues in this repository, from the GitHub app | Issues → New issue | Done |
 | **Commands** on your computer: `admin status`, `admin why`, `admin add-account`, `sweep --post`, `sweep --story`, `sweep --hide-story`, `sweep --hide-event` | Terminal | Done |
 | Corrections: `corrections.json` and `admin fix`, fed by the site's report form | | Planned |
@@ -20,6 +20,26 @@ as the sweeps.
 
 Open https://pa-bailar-admin.jzamorac-9.workers.dev and sign in with GitHub (only `jzamora5` gets in).
 
+The page has two tabs, pinned at the top while you scroll:
+- **Estadísticas:** what the last sweep left, read only (below).
+- **Herramientas:** everything that changes something: the new series with their Ocultar buttons, adding a
+  post, a story or an account, and the requests' answers. A number on the tab counts the new series waiting
+  there.
+
+The first visit opens Estadísticas; after that, the tab you picked last (kept in this browser). Something
+shared to the page (a post's link, a story's link, story screenshots, also when they wait through a sign-in)
+always opens Herramientas. `#estadisticas` or `#herramientas` at the end of the address opens that tab; the
+address follows the tab you pick. On a keyboard, ← and → (or Home, End) move between the tabs.
+
+**Herramientas**, from the top:
+
+- **Series nuevas** (only when there are some): workshop series (one event with several dated sessions,
+  ARCHITECTURE.md section 9.1) first published in the last 14 days and not over yet (`NEW_SERIES_DAYS`,
+  `status.new_series`). Each shows its title (linked to the site), @cuenta, its sessions ("4 sesiones: 8, 22,
+  29 nov y 6 dic"), where it came from (its posts' links, or "historia") and **Ocultar del sitio**: one tap (it
+  asks first) opens an "Ocultar evento" request, like the other tools. It's a safety net while Gemini learns
+  this new kind of event: look at each new series once. It comes from `status.json` but sits here, not in
+  Estadísticas, because its button changes the site.
 - **Revisar o agregar un evento:** paste a post's Instagram link.
   - **Revisar:** whether its event is on the site and, if not, why. An answer in about a minute.
   - **Agregar:** reads the post and publishes its event. A few minutes: it waits for a running sweep (and
@@ -39,16 +59,11 @@ Open https://pa-bailar-admin.jzamorac-9.workers.dev and sign in with GitHub (onl
   See "Adding an event from a story" below.
 - **Pedidos recientes:** the latest requests; tap one to see its answer again. The page follows a request it
   sent (or one you tapped) for 15 minutes; if it's still running then, it says so: tap it again later.
-  Each button sends one request per tap.
-- **Series nuevas** (only when there are some): workshop series (one event with several dated sessions,
-  ARCHITECTURE.md section 9.1) first published in the last 14 days and not over yet (`NEW_SERIES_DAYS`,
-  `status.new_series`). Each shows its title (linked to the site), @cuenta, its sessions ("4 sesiones: 8, 22,
-  29 nov y 6 dic"), where it came from (its posts' links, or "historia") and **Ocultar del sitio**: one tap (it
-  asks first) opens an "Ocultar evento" request, like the other tools. It's a safety net while Gemini learns
-  this new kind of event: look at each new series once.
-- **Below:** the sweeps (✅ or ⚠️, with links to the runs), Gemini usage per model and when it resets,
-  Instagram, accounts and events. It's the latest `status.json`, as of the last sweep. When it can't be read
-  (none saved yet, GitHub failing, offline), a note takes its place and the tools above still work.
+  Each button sends one request per tap. It stays in Herramientas: it's where the requests' answers show.
+
+**Estadísticas:** the sweeps (✅ or ⚠️, with links to the runs), Gemini usage per model and when it resets,
+Instagram, accounts and events. It's the latest `status.json`, as of the last sweep. When it can't be read
+(none saved yet, GitHub failing, offline), a note takes its place and Herramientas still works.
 
 Each request is an issue in this repository (label `admin`), answered by the `admin` workflow: the page
 opens it and shows the answer when it arrives.
@@ -321,8 +336,9 @@ flowchart LR
   Cloudflare deploys it from this repository's `admin-web/` folder on every push to `main`.
 - **Files:**
   - `admin-web/wrangler.jsonc`: the Worker's settings. Its `name` must match the Worker's name in Cloudflare.
-  - `admin-web/public/`: the page (`index.html`, `app.js`, `admin.css`, and `render.js`: the parts that only
-    turn data into HTML, such as the new series card, escaped and tested in Node), with no data in it, and what
+  - `admin-web/public/`: the page (`index.html`, `app.js`, `admin.css`, `render.js`: the parts that only
+    turn data into HTML, such as the new series card, escaped and tested in Node, and `tabs.js`: which tab
+    opens, the arrow keys and the tabs' markup, also tested in Node), with no data in it, and what
     makes it installable: `manifest.webmanifest` (name, colors, icons in `icons/`) with a `share_target`:
     Android posts what's shared (a link's text, up to 4 images) to `/share`. `sw.js`, the page's service
     worker, answers that in the browser: it keeps shared images in the browser's Cache Storage (where
@@ -341,7 +357,8 @@ flowchart LR
     - `/share`: what Android shares when `sw.js` isn't running yet (the first share after installing): a
       link goes on to the page, images get "share again".
   - `admin-web/test/worker.test.mjs`: the Worker's tests (`node --test "admin-web/test/*.test.mjs"`, run by
-    `ci`), with fakes for GitHub, its keys and KV; `render.test.mjs`, the page's rendering (escaping included).
+    `ci`), with fakes for GitHub, its keys and KV; `render.test.mjs`, the page's rendering (escaping included);
+    `tabs.test.mjs`, the tabs.
 - **Story screenshots (KV):** the KV namespace bound as `UPLOADS` (`wrangler.jsonc`) keeps them as the page
   sent them (the Worker does no image work: its CPU limit is 10 ms), each with its file name and date, under
   `upload:<id>` with a 7-day expiry.

@@ -45,6 +45,59 @@ a { color: var(--accent); }
 .muted { color: var(--muted); }
 .small { font-size: 13px; }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The two tabs (tabs.js): pinned to the top while scrolling, so the other one is always a tap away. */
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  margin: -8px 0 6px;
+  padding: 8px 0;
+  background: var(--bg);
+}
+.tab {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px; /* a finger-sized target */
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tab[aria-selected="true"] { background: var(--action); border-color: var(--action); color: var(--on-action); }
+.tab:focus-visible, .tabpanel:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tabpanel:focus-visible { outline-offset: 4px; }
+.tab__badge { /* how many new series wait in Herramientas */
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--action);
+  color: var(--on-action);
+  font-size: 13px;
+  line-height: 22px;
+  text-align: center;
+}
+.tab[aria-selected="true"] .tab__badge { background: var(--on-action); color: var(--action); }
+/* What the page scrolls to (a shared story, an answer) shows below the pinned tabs, not under them. */
+.card, .tool, #answer { scroll-margin-top: 72px; }
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);

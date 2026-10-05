@@ -1,9 +1,12 @@
 // The admin page in the browser: who's signed in, then the dashboard drawn from `admin status` (status.json,
 // written by each sweep: pa_bailar/status.py). All data comes from the Worker (src/index.js), after GitHub
-// sign-in; this file has none. A post shared to the installed page (Android's share menu) fills in the tools;
-// story screenshots shared to it (received by sw.js) or picked here go to "Agregar desde una historia".
+// sign-in; this file has none. Two tabs (tabs.js): "Estadísticas" (the status, read only) and "Herramientas"
+// (the requests that change something, and "Series nuevas"). A post shared to the installed page (Android's
+// share menu) fills in the tools and opens Herramientas; story screenshots shared to it (received by sw.js) or
+// picked here go to "Agregar desde una historia".
 
 import { escapeHtml, seriesCard } from "./render.js";
+import { initialTab, TAB_KEY, tabAfterKey, tabFromHash, tabsHtml } from "./tabs.js";
 
 const main = document.getElementById("main");
 const userLine = document.getElementById("user");
@@ -592,6 +595,17 @@ function takeSharedLink() {
   return link;
 }
 
+/** Whether a shared link is waiting to be used (without taking it). */
+function hasSharedLink() {
+  if (sharedFallback) return true;
+  try {
+    const kept = JSON.parse(localStorage.getItem(SHARED_KEY) ?? "null");
+    return Boolean(kept && Date.now() - kept.at < SHARED_MAX_AGE_MS);
+  } catch {
+    return false;
+  }
+}
+
 /** The account of a story whose link was shared in the last 30 minutes (its screenshot comes next), or null. */
 function storyAccount() {
   try {
@@ -623,36 +637,99 @@ function useSharedLink(shared, share) {
   }
   if (share === "images") note(storyForm, "Capturas recibidas: revisa la @cuenta y las notas, y toca <b>Agregar desde historia</b>.");
   if (share === "retry") note(storyForm, "No llegó lo que compartiste (PB Admin aún no estaba lista): vuelve a compartirlo.");
-  // After the fonts load, which moves what's above it.
-  if (shared === "story" || share) document.fonts.ready.then(() => storyForm.scrollIntoView({ block: "start" }));
+  // After the fonts load, which moves what's above it. A shared post's form is below "Series nuevas" when there
+  // are some (render.js): scrolled to, as the story's is.
+  const tools = document.getElementById("tools");
+  const target = shared === "story" || share ? storyForm : (link || shared === "other") && tools.previousElementSibling ? tools : null;
+  if (target) document.fonts.ready.then(() => target.scrollIntoView({ block: "start" }));
 }
 
-/** The status cards from status.json, or a note when there's none: the tools above work without it. */
+/**
+ * What status.json gives each tab: `stats`, its cards for "Estadísticas" (or a note when there's none: the
+ * tools work without it), and `series`, the "Series nuevas" card for "Herramientas" (its Ocultar buttons change
+ * the site), with how many there are for the tab's badge.
+ */
 function statusCards(result) {
   const status = result?.data;
-  if (!result) return card(`<p>No se pudo leer el estado: revisa la conexión.</p>`);
-  if (status?.missing) return card(`<p>Todavía no hay estado guardado: aparece después del próximo barrido.</p>`);
-  if (!result.ok || status?.error) return card(`<p>${escapeHtml(status?.error ?? "No se pudo leer el estado.")}</p>`);
+  const note = (html) => ({ stats: card(html), series: "", seriesCount: 0 });
+  if (!result) return note(`<p>No se pudo leer el estado: revisa la conexión.</p>`);
+  if (status?.missing) return note(`<p>Todavía no hay estado guardado: aparece después del próximo barrido.</p>`);
+  if (!result.ok || status?.error) return note(`<p>${escapeHtml(status?.error ?? "No se pudo leer el estado.")}</p>`);
   try {
-    return [
-      seriesCard(status.new_series), // first: it may need a tap
+    const stats = [
       sweepsCard(status.sweeps),
       geminiCard(status.gemini),
       instagramCard(status.instagram),
       accountsCard(status),
       `<p class="small muted">Datos del barrido de ${when(status.generated_at)}</p>`,
     ].join("");
+    const series = Array.isArray(status.new_series) ? status.new_series : [];
+    return { stats, series: seriesCard(series), seriesCount: series.length };
   } catch (error) {
     console.error(error); // status.json changed shape (pa_bailar/status.py)
-    return card(`<p>No se pudo mostrar el estado.</p>`);
+    return note(`<p>No se pudo mostrar el estado.</p>`);
   }
 }
 
-async function showDashboard(cards, shared, share) {
+// ---------- the tabs (tabs.js): Estadísticas (read only) and Herramientas (what changes something) ----------
+
+/** Open a tab. A tab picked by hand is remembered for the next visit and named in the URL (#herramientas). */
+function selectTab(id, { focus = false, picked = false } = {}) {
+  for (const tab of main.querySelectorAll('[role="tab"]')) {
+    const on = tab.dataset.tab === id;
+    tab.setAttribute("aria-selected", String(on));
+    tab.tabIndex = on ? 0 : -1;
+    if (on && focus) tab.focus();
+  }
+  for (const panel of main.querySelectorAll('[role="tabpanel"]')) panel.hidden = panel.id !== `panel-${id}`;
+  if (!picked) return;
+  try {
+    localStorage.setItem(TAB_KEY, id);
+  } catch {}
+  history.replaceState(null, "", `#${id}`);
+  // Scrolled down the other tab: start the new one at its top, under the tab bar.
+  const top = main.getBoundingClientRect().top + window.scrollY;
+  if (window.scrollY > top) window.scrollTo({ top });
+}
+
+function initTabs() {
+  const tablist = main.querySelector('[role="tablist"]');
+  tablist.addEventListener("click", (event) => {
+    const tab = event.target.closest('[role="tab"]');
+    if (tab) selectTab(tab.dataset.tab, { picked: true });
+  });
+  tablist.addEventListener("keydown", (event) => {
+    const current = event.target.closest('[role="tab"]')?.dataset.tab;
+    const next = current && tabAfterKey(current, event.key);
+    if (!next) return;
+    event.preventDefault();
+    selectTab(next, { focus: true, picked: true });
+  });
+  // A link to #estadisticas or #herramientas while the page is open.
+  window.addEventListener("hashchange", () => {
+    const id = tabFromHash(location.hash);
+    if (id) selectTab(id);
+  });
+}
+
+function storedTab() {
+  try {
+    return localStorage.getItem(TAB_KEY);
+  } catch {
+    return null;
+  }
+}
+
+async function showDashboard({ stats, series, seriesCount }, shared, share) {
   await loadShots(); // before drawing: the tools show the screenshots waiting
-  main.innerHTML = toolsCard() + cards;
+  // Something shared to the page (a link, screenshots, also kept across a sign-in) is used in Herramientas.
+  const fromShare = Boolean(shared || share || shots.length || hasSharedLink() || storyAccount());
+  const tab = initialTab({ shared: fromShare, hash: location.hash, stored: storedTab() });
+  // "Series nuevas" first in Herramientas: it's what the tab's badge counts, and it's short.
+  main.innerHTML = tabsHtml(tab, { estadisticas: stats, herramientas: series + toolsCard() }, { herramientas: seriesCount });
   // The meters' fill, set here: the Content Security Policy (public/_headers) blocks style="" in the HTML.
   main.querySelectorAll(".meter i[data-share]").forEach((bar) => (bar.style.width = `${bar.dataset.share}%`));
+  initTabs();
   initTools();
   // "Series nuevas" (render.js): one tap hides a series from the site, through the same requests as the tools.
   main.addEventListener("click", async (event) => {
