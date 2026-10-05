@@ -1,6 +1,8 @@
 """The admin tools' answers to `sweep --post`, `--story`, `--hide-story` and `--hide-event`, in Spanish markdown: the
 workflow comments them on the admin issue (docs/ADMIN.md)."""
 
+from urllib.parse import quote
+
 from pa_bailar import config, links
 from pa_bailar.models import StoredEvent
 from pa_bailar.pipeline import AddedPost, AddedStory, HiddenFromSite, HiddenStory
@@ -186,12 +188,31 @@ def hidden_event_markdown(hidden: HiddenFromSite) -> str:
     """The answer to "Ocultar" (an event, `sweep --hide-event`), in Spanish."""
     event = hidden.event
     if hidden.already:
-        return f"ℹ️ El evento `{event.id}` ({event.title}) ya estaba oculto.\n"
+        return f"ℹ️ El evento `{event.id}` ({event.title}) ya estaba oculto.\n\n" + _undo_hide(event)
     lines = [
         f"🙈 Quité del sitio **{event.title}** (@{event.account}) · {_dates(event)}.",
         "",
         "Sale del sitio cuando termina de publicarse (unos minutos). Los barridos no lo vuelven a publicar desde "
         "sus publicaciones ni desde otra publicación del mismo evento; un evento nuevo sí se publica.",
-        "Para publicarlo de nuevo: **Agregar** o **Volver a leer** una de sus publicaciones.",
     ]
+    return "\n".join(lines) + "\n\n" + _undo_hide(event)
+
+
+def _undo_hide(event: StoredEvent) -> str:
+    """How to publish a hidden event again, one line per post or story it came from: a post's link opens the
+    admin page with it filled in (its share-target address, `?url=`), where Agregar publishes it again
+    (Sweep.add_post reads it again: `_announced_hidden`)."""
+    lines = ["**¿Fue por error?** Vuelve a publicarlo desde cualquiera de estas:"]
+    stories = False
+    for media in event.media:
+        if media.media_type == "STORY":
+            stories = True
+            continue
+        again = f"{config.ADMIN_URL}/?url={quote(media.permalink, safe='')}"
+        lines.append(f"- [Publicación]({media.permalink}) · [Volver a publicarla]({again}) (toca **Agregar**)")
+    if stories:
+        lines.append(
+            f"- Una historia de @{event.account}: comparte otra vez sus capturas con PB Admin "
+            "(**Agregar desde una historia**)."
+        )
     return "\n".join(lines) + "\n"

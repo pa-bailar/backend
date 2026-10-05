@@ -429,6 +429,29 @@ def test_hiding_a_story_takes_it_off_the_site_and_reading_it_again_works():
     assert len(extractor.calls) == 2 and len(storage.load_events()) == 1
 
 
+def test_sharing_a_storys_screenshots_again_brings_back_the_event_hidden_from_it():
+    """A story with two events, one hidden by mistake ("Ocultar"): its record still says "event", yet the same
+    screenshots (or another screenshot of it) are read again and the hidden one comes back."""
+    two = analysis(
+        events=[
+            story_event(title="Noche de Salsa", day=EVENT_DAY.day, month=EVENT_DAY.month, start_time="21:00"),
+            story_event(title="Taller de Salsa", day=EVENT_DAY.day, month=EVENT_DAY.month, start_time="16:00"),
+        ]
+    )
+    extractor = FakeStoryExtractor(two)
+    added = sweep(extractor).add_story(shots(1))
+    taller = next(event.id for event in added.events if event.title == "Taller de Salsa")
+    sweep(extractor).hide_event(taller)
+    assert storage.load_processed_posts()[added.story_id].outcome == "event"
+
+    later = [Screenshot(screenshot(1, header="salsa.club 3 h"), "Screenshot_x.jpg")]
+    sweep(extractor).add_story(later)  # another screenshot of it: not taken as a duplicate
+    assert len(extractor.calls) == 2
+    assert sorted(event.title for event in storage.load_events()) == ["Noche de Salsa", "Taller de Salsa"]
+    assert storage.load_hidden_events() == {}
+    assert sweep(extractor).add_story(shots(1)).unchanged  # nothing hidden any more: not read again
+
+
 def test_hiding_keeps_an_event_other_posts_announce():
     post = stored(
         "noche-de-salsa", account="salsa.club", date=EVENT_DAY.isoformat(), start_time="21:00", title="Noche de Salsa"

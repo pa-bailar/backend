@@ -2,6 +2,7 @@
 offers it (status.new_series): the inbox, the sweep with fakes, the status. No network."""
 
 from datetime import datetime, timedelta
+from urllib.parse import quote
 
 import pytest
 
@@ -128,6 +129,50 @@ def test_adding_one_of_its_posts_by_hand_publishes_it_again_with_its_id():
     added = sweep_with([p1], {"p1": series_post("p1")}).add_post("https://www.instagram.com/p/p1/", "academia")
     assert added.outcome == "event" and [event.id for event in added.events] == [SERIES_ID]
     assert storage.load_hidden_events() == {}
+
+
+def test_adding_an_unchanged_post_by_hand_brings_back_its_hidden_event_and_keeps_its_sibling():
+    """Undoing an "Ocultar" by mistake: the post still announces another event (so its record says "event") and its
+    caption is the same, yet Agregar reads it again so the hidden one comes back."""
+    p1 = post("p1", days_ago=3)
+    two_events = PostAnalysis(
+        is_event_post=True,
+        reason="",
+        events=[
+            extracted(title="Taller de bachata", event_type="workshop", start_time="16:00"),
+            extracted(title="Social de bachata", start_time="21:00"),
+        ],
+    )
+    run(FakeInstagram({"academia": [p1], "otra": []}), FakeExtractor({"p1": two_events}))
+    taller, social = event_id("Taller de bachata"), event_id("Social de bachata")
+    sweep_with([p1], {}).hide_event(taller)
+    assert storage.load_processed_posts()["p1"].outcome == "event"
+
+    added = sweep_with([p1], {"p1": two_events}).add_post("https://www.instagram.com/p/p1/", "academia")
+    assert sorted(event.id for event in added.events) == sorted([taller, social])
+    assert sorted(event["id"] for event in read(config.EVENTS_FILE)) == sorted([taller, social])
+    assert storage.load_hidden_events() == {}
+    # Nothing hidden any more: the same post again isn't read again.
+    again = sweep_with([p1], {}).add_post("https://www.instagram.com/p/p1/", "academia")
+    assert again.unchanged
+
+
+def test_the_answer_links_each_post_to_publish_it_again_and_says_how_for_a_story():
+    p1 = post("p1", days_ago=3)
+    run(FakeInstagram({"academia": [p1], "otra": []}), FakeExtractor({"p1": series_post("p1")}))
+    hidden = sweep_with([p1], {}).hide_event(SERIES_ID)
+    answer_text = hidden_event_markdown(hidden)
+    permalink = hidden.event.media[0].permalink
+    assert f"[Publicación]({permalink})" in answer_text
+    assert f"{config.ADMIN_URL}/?url={quote(permalink, safe='')}" in answer_text
+    assert "historia" not in answer_text
+    assert "\n\n**¿Fue por error?**" in answer_text  # its own paragraph
+    assert "Volver a publicarla" in hidden_event_markdown(sweep_with([p1], {}).hide_event(SERIES_ID))  # already
+
+    story = hidden.event.media[0].model_copy(update={"media_type": "STORY", "post_id": "story-1"})
+    from_story = hidden.event.model_copy(update={"media": [story]})
+    text = hidden_event_markdown(type(hidden)(from_story))
+    assert "comparte otra vez sus capturas" in text and "Volver a publicarla" not in text
 
 
 def test_a_hidden_event_stays_off_even_if_the_data_pr_that_hid_it_never_merged():
