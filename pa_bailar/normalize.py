@@ -113,16 +113,17 @@ _TEXT_ONLY_STYLES = {
     "danza urbana": "urbano",
     "danzas urbanas": "urbano",
 }
-_TEXT_STYLES = {key: style for key, style in _STYLE_SYNONYMS.items() if key not in _NOT_IN_TEXT} | _TEXT_ONLY_STYLES
+# Word (folded) → the style it names. Also the base of a `solo:` account's caption filter (account_options).
+TEXT_STYLE_WORDS = {key: style for key, style in _STYLE_SYNONYMS.items() if key not in _NOT_IN_TEXT} | _TEXT_ONLY_STYLES
 _TEXT_STYLE = re.compile(
-    r"\b(" + "|".join(re.escape(key) for key in sorted(_TEXT_STYLES, key=len, reverse=True)) + r")\b"
+    r"\b(" + "|".join(re.escape(key) for key in sorted(TEXT_STYLE_WORDS, key=len, reverse=True)) + r")\b"
 )
 
 
 def styles_in_text(text: str | None) -> list[str]:
     """The styles a text names ("Noche de SALSA y bachata" → salsa, bachata), longest names first, so "salsa en
     linea" wins over "salsa". For an event that came back without styles: free, no request."""
-    found = [_TEXT_STYLES[m.group(1)] for m in _TEXT_STYLE.finditer(fold(text))]
+    found = [TEXT_STYLE_WORDS[m.group(1)] for m in _TEXT_STYLE.finditer(fold(text))]
     return normalize_styles(found)
 
 

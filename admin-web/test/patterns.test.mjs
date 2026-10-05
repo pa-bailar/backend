@@ -10,6 +10,8 @@ import {
   EVENT_ID,
   EVENT_ID_MAX,
   HIDE_STORY_COMMAND,
+  MAX_SCREENSHOTS,
+  NOTES_MAX,
   POST_LINK,
   POST_LINK_IN_TEXT,
   STORY_ID,
@@ -52,5 +54,15 @@ describe("finding links in shared text", () => {
   });
   it("finds how to hide a story in its answer", () => {
     assert.equal("Ocultar: `/ocultar story-0123456789abcdef`".match(HIDE_STORY_COMMAND)?.[1], "story-0123456789abcdef");
+  });
+});
+
+describe("the limits, as the backend's", () => {
+  it("takes as many screenshots and as long notes", () => {
+    assert.deepEqual({ max_screenshots: MAX_SCREENSHOTS, notes_max: NOTES_MAX }, EXAMPLES.limits);
+  });
+  it("keeps the service worker's copy in step (a classic script can't import it)", () => {
+    const sw = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
+    assert.equal(Number(sw.match(/const MAX_FILES = (\d+);/)?.[1]), MAX_SCREENSHOTS);
   });
 });

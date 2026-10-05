@@ -8,7 +8,7 @@
 // which passes links on and asks to share images again.
 
 const SHARED_CACHE = "shared-images";
-const MAX_FILES = 4;
+const MAX_FILES = 4; // patterns.js's MAX_SCREENSHOTS (a classic script can't import it): test/patterns.test.mjs
 const IMAGE_NAME = /\.(jpe?g|png|webp|heic|heif|gif)$/i;
 
 self.addEventListener("install", () => self.skipWaiting());

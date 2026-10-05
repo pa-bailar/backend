@@ -15,16 +15,32 @@ A line is the username, then optional words (docs/ARCHITECTURE.md, section 6.1):
 
 from dataclasses import dataclass
 
+from .normalize import TEXT_STYLE_WORDS, style_family
 from .text import fold
 
-# The words a caption uses for each style a `solo:` account can be limited to (accents and case ignored).
-FOCUS_KEYWORDS: dict[str, tuple[str, ...]] = {
-    "salsa": ("salsa", "salser", "timba", "casino", "son cubano", "pachanga", "boogaloo", "mambo"),
+# The styles a `solo:` account can be limited to.
+FOCUS_STYLES = ("salsa", "bachata", "merengue", "kizomba", "tango")
+# Looser words the filter takes on top of the ones that name a style in a caption (normalize.TEXT_STYLE_WORDS, the
+# safeguards' words: one source): parts of words ("salser", "bachat": salsera, bachatero) and words too loose to fill
+# in a style (normalize._NOT_IN_TEXT: "timba", "casino", "mambo"). Letting a post through by mistake costs a triage;
+# dropping one loses its event.
+_LOOSE_WORDS = {
+    "salsa": ("salser", "timba", "casino", "son cubano", "pachanga", "mambo"),
     "bachata": ("bachat",),
-    "merengue": ("merengue",),
-    "kizomba": ("kizomba", "semba", "urban kiz"),
-    "tango": ("tango", "milonga"),
+    "kizomba": ("semba", "urban kiz"),
+    "tango": ("milonga",),
 }
+
+
+def _keywords(style: str) -> tuple[str, ...]:
+    """The style's words, without those another one already finds ("salsa dura" has "salsa")."""
+    words = {style, *_LOOSE_WORDS.get(style, ())}
+    words |= {word for word, named in TEXT_STYLE_WORDS.items() if style_family(named) == style}
+    return tuple(sorted(word for word in words if not any(other != word and other in word for other in words)))
+
+
+# The words a caption uses for each style (accents and case ignored, found anywhere in the caption).
+FOCUS_KEYWORDS: dict[str, tuple[str, ...]] = {style: _keywords(style) for style in FOCUS_STYLES}
 
 
 @dataclass(frozen=True)

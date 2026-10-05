@@ -33,8 +33,8 @@ _UPLOAD_ID = re.compile(rf"\b{patterns.UPLOAD_ID}\b")  # a screenshot the admin 
 _STORY_ID = re.compile(rf"\b{patterns.STORY_ID}\b")
 EVENT_ID = re.compile(patterns.EVENT_ID)  # an event's id (ids.py): lowercase words joined by hyphens
 EVENT_ID_MAX = patterns.EVENT_ID_MAX
-MAX_SCREENSHOTS = 4
-NOTES_MAX = 500
+MAX_SCREENSHOTS = patterns.MAX_SCREENSHOTS
+NOTES_MAX = patterns.NOTES_MAX
 # The form's "Acción" values (and the admin page's, which writes the same body).
 _ACTIONS: dict[str, Action] = {
     "revisar": "why",

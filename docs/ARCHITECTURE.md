@@ -471,8 +471,9 @@ flowchart TD
     so marking or unmarking an account updates its stored events. Its first sweep is a regular one (10 posts, the
     lookback): a bar's older posts are past nights.
   - `solo:<styles>` (salsa, bachata, merengue, kizomba, tango): a general bar, club or cultural space that also
-    holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`: "salsa",
-    "salser", "timba", "bachat"…, accents and case ignored) is recorded as no event before any Gemini request,
+    holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`: the words
+    the safeguards read a style from, `normalize.TEXT_STYLE_WORDS`, plus looser ones such as "salser", "timba",
+    "bachat"…, accents and case ignored) is recorded as no event before any Gemini request,
     for free ("no menciona salsa ni bachata"); the others get `prompts.FOCUS_RULES` too. A caption edited later
     is checked again.
   - A post added by hand (`--post`, PB Admin) gets neither the filter nor the rules: whoever adds it wants it read

@@ -1,5 +1,5 @@
 {
-  "_about": "Examples of the shapes the admin tools accept, checked by tests/test_patterns.py (pa_bailar/patterns.py) and admin-web/test/patterns.test.mjs (admin-web/public/patterns.js), so the two languages can't drift apart. good: both accept it; bad: both refuse it; python_only: the inbox accepts it (people paste links that way) but the admin page asks for the link alone.",
+  "_about": "Examples of the shapes the admin tools accept, checked by tests/test_patterns.py (pa_bailar/patterns.py) and admin-web/test/patterns.test.mjs (admin-web/public/patterns.js), so the two languages can't drift apart. good: both accept it; bad: both refuse it; python_only: the inbox accepts it (people paste links that way) but the admin page asks for the link alone. limits: the most screenshots in a story request and characters in its notes, the same in both.",
   "account": {
     "good": ["academia", "salsa.club_bogota", "a", "A.B_9", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
     "bad": ["", "@academia", "salsa club", "salsa-club", "ñandú", "academia/", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
@@ -52,6 +52,7 @@
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     ]
   },
+  "limits": { "max_screenshots": 4, "notes_max": 500 },
   "upload_id": {
     "good": ["0123456789abcdef0123456789abcdef"],
     "bad": ["0123456789ABCDEF0123456789ABCDEF", "0123456789abcdef0123456789abcde", "0123456789abcdef0123456789abcdef0"]
