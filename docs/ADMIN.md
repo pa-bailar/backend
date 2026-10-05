@@ -326,6 +326,10 @@ flowchart LR
   (lowercase words joined by hyphens, at most 120 characters). If its `request` check fails (not exactly one of `post_url`, `story` or `hide`,
   values of the wrong shape, or the issue isn't an open admin request), it answers on the issue when that issue
   is an open `admin` issue of yours.
+- **`.github/actions/answer-issue`:** every answer on an admin issue, in both workflows, goes through this
+  action. It comments (and closes, when asked) only on an issue of yours labelled `admin`: in `daily-sweep`
+  also only an open one; `admin` answers closed issues too (a request made by commenting on an answered issue).
+  Any other issue number gets no comment. The answer reaches it as a file or an input, never inside a script.
 - **`.github/ISSUE_TEMPLATE/admin.yml`:** the form (Acción: Revisar, Agregar, Volver a leer, Agregar cuenta,
   Estado, Ocultar historia or Ocultar evento; Enlace; Cuenta; Historia; Evento). The page writes its issues the same way, and also
   "Agregar historia" (Capturas, Cuenta, Notas), which isn't in the form: its screenshots come from the page.
@@ -338,7 +342,9 @@ flowchart LR
   - `admin-web/wrangler.jsonc`: the Worker's settings. Its `name` must match the Worker's name in Cloudflare.
   - `admin-web/public/`: the page (`index.html`, `app.js`, `admin.css`, `render.js`: the parts that only
     turn data into HTML, such as the new series card, escaped and tested in Node, and `tabs.js`: which tab
-    opens, the arrow keys and the tabs' markup, also tested in Node), with no data in it, and what
+    opens, the arrow keys and the tabs' markup, also tested in Node; `patterns.js`: the shapes a request may
+    take, a post link, an @account, a story's or an event's id, an upload's id, which `src/index.js` imports
+    too), with no data in it, and what
     makes it installable: `manifest.webmanifest` (name, colors, icons in `icons/`) with a `share_target`:
     Android posts what's shared (a link's text, up to 4 images) to `/share`. `sw.js`, the page's service
     worker, answers that in the browser: it keeps shared images in the browser's Cache Storage (where
@@ -358,7 +364,11 @@ flowchart LR
       link goes on to the page, images get "share again".
   - `admin-web/test/worker.test.mjs`: the Worker's tests (`node --test "admin-web/test/*.test.mjs"`, run by
     `ci`), with fakes for GitHub, its keys and KV; `render.test.mjs`, the page's rendering (escaping included);
-    `tabs.test.mjs`, the tabs.
+    `tabs.test.mjs`, the tabs; `patterns.test.mjs`, `patterns.js` against the examples in
+    `tests/fixtures/patterns.json`, which `tests/test_patterns.py` checks against `pa_bailar/patterns.py` (the
+    inbox's), so the page and the inbox can't drift apart.
+  - `patterns.js`, `render.js` and `tabs.js` start with `// @ts-check`: editors type-check them from their JSDoc
+    (no build step).
 - **Story screenshots (KV):** the KV namespace bound as `UPLOADS` (`wrangler.jsonc`) keeps them as the page
   sent them (the Worker does no image work: its CPU limit is 10 ms), each with its file name and date, under
   `upload:<id>` with a 7-day expiry.

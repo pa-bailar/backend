@@ -310,11 +310,13 @@ sequenceDiagram
   and the sweep job doesn't start: whoever can start the workflow (the cron-job.org token) can't publish a
   post with it. When it fails, it answers on the issue that adding couldn't start, but only if that issue is
   an open `admin` issue by `jzamora5` (never on another issue). The inputs only reach shell commands through
-  environment variables.
+  environment variables. Every answer on the issue, in every job, goes through `.github/actions/answer-issue`,
+  which makes that check; `request` and `story-images` check out only `.github/actions` for it (no
+  credentials kept, `contents: read`).
 - **`story-images`** (only with `story`): downloads the story's screenshots from the admin page's Worker
   (`/api/uploads/<id>`, retrying about 2 minutes while KV spreads them) with GitHub's identity token (OIDC,
   `id-token: write` on this job only, which runs no third-party package), and hands them to `sweep` as an
-  artifact kept a day. If it can't, it answers on the issue.
+  artifact kept a day. If it can't, it answers on the issue (an open `admin` issue by `jzamora5` only).
 - **`sweep`** (after `request` and `story-images`, or without them: neither failed), the steps below. Job
   limit: 60 minutes. Its output `delete_story` lists the screenshots to delete when the story is published.
 - **`story-cleanup`** (after a successful `sweep` with `delete_story`): deletes those screenshots from the
@@ -342,7 +344,7 @@ sequenceDiagram
 | 13 | Wait for the data PR to merge | A PR was opened | Polls every 30 s, up to 20 minutes. Fails if the PR is closed or doesn't merge in time | App token |
 | 14 | Republish the site | Success, no PR, not an admin request (`issue`) | `gh workflow run deploy.yml -f checked_at=<now in Bogotá>`, so "Actualizado el" stays current on days without new events | App token |
 | 15 | Report to the health check | Always, except admin requests (`issue`) | Pings `HEALTHCHECK_URL` (success) or `HEALTHCHECK_URL/fail`, with the report as the body | `HEALTHCHECK_URL` |
-| 16 | Answer on the admin issue | `issue` given (admin tools) | Comments the result of adding the post or story, or hiding the story or event (`ADMIN_REPORT_FILE`), and the data PR, then closes the issue | `GITHUB_TOKEN` |
+| 16 | Answer on the admin issue | `issue` given (admin tools) | Writes the result of adding the post or story, or hiding the story or event (`ADMIN_REPORT_FILE`), and the data PR; `.github/actions/answer-issue` comments it and closes the issue, only if it's an open `admin` issue by `jzamora5` | `GITHUB_TOKEN` |
 
 Other workflow settings:
 - **`concurrency: data`** (`cancel-in-progress: false`): two sweeps never run at the same time. A new one
@@ -399,7 +401,9 @@ Section 11 covers how those are reported.
 
 ## 6. Inside the sweep: the pipeline
 
-`pa_bailar/pipeline.py`, class `Sweep`.
+`pa_bailar/pipeline/`, class `Sweep` (`sweep.py`). Storing an analyzed post, which the admin tools share, is
+`SweepBase` (`base.py`); the admin tools' own steps are `manual_post.py`, `story_admin.py` and `hiding.py`
+(section 16).
 
 ### 6.1 Accounts
 
@@ -462,7 +466,7 @@ flowchart TD
 A re-analyzed post "had events" when its record's outcome is `event` or `merged`, or, for records kept before
 outcomes existed (no `outcome`), when Gemini called it an event post. When it had events and now has none, and
 its caption or Gemini's reason says they're cancelled or postponed ("CANCELADO", aplazado, pospuesto…;
-`pipeline._says_cancelled`), its events leave the site even when other posts announce them too, if they're its
+`pipeline/base.py`, `_says_cancelled`), its events leave the site even when other posts announce them too, if they're its
 own account's (the account that announced them first); another account's event stays, with low confidence and
 a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for review (section 11.1)
 (`Sweep._take_down_cancelled`). When Flash-Lite is out of today's quota,
@@ -1056,11 +1060,14 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
 ### 13.1 Checks
 
 `ci.yml` runs on every pull request and on every push to `main`:
-- `ruff check` (lint);
+- `ruff check` (lint, including a complexity cap: no function over 12, `C901`);
 - `ruff format --check`;
 - `mypy` (strict, with the Pydantic plugin);
 - `pytest`;
 - the admin page's Worker tests (`node --test "admin-web/test/*.test.mjs"`, Node 24).
+
+Both test suites check the shapes the admin tools accept (`pa_bailar/patterns.py`, `admin-web/public/patterns.js`)
+against the same examples, `tests/fixtures/patterns.json`, so the inbox and the admin page can't drift apart.
 
 The tests use fake Instagram and Gemini clients, so no network or quota is involved. The
 autouse fixture `isolated_files` sends every file a test writes to a temporary folder.
@@ -1082,7 +1089,8 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 | Secrets exposed to steps that don't need them | The Gemini and Meta secrets are only in the sweep step's environment. The Meta app secret isn't on GitHub at all |
 | A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. Adding a post or a story by hand (`post_url`, `story`) or hiding a story or an event (`hide`) needs an open `admin` issue by `jzamora5` (the `request` job, section 5.2), `story` and `hide` must have their exact shapes, and inputs never reach shell code directly, so the token can't publish or hide anything or run commands |
 | The Meta token in error text | It's sent in the URL; `instagram.redact` removes it (and the app secret and exchanged tokens of `refresh-token`) from every error before logs, `status.json` or admin answers (section 8) |
-| Odd text in a link or a public page reaching files, accounts or issues | Post codes match ASCII letters, digits, `_` and `-` only (`links._POST`, like the site's `check-data.mjs`); a public page's author must be a valid username; the admin page only accepts a value that is one post link and nothing else (`POST_LINK` in `admin-web/src/index.js`, anchored at both ends, no spaces or new lines) |
+| Odd text in a link or a public page reaching files, accounts or issues | Post codes match ASCII letters, digits, `_` and `-` only (`patterns.POST_LINK`, like the site's `check-data.mjs`); a public page's author must be a valid username; the admin page only accepts a value that is one post link and nothing else (`POST_LINK` in `admin-web/public/patterns.js`, which the Worker imports: anchored at both ends, no spaces or new lines) |
+| A comment on an issue that isn't an admin request (e.g. a number passed to `daily-sweep` by hand) | Every answer goes through `.github/actions/answer-issue`: only an issue by `jzamora5` labelled `admin` (and open, in `daily-sweep`) gets one |
 | Answering, labelling or spending Gemini on what isn't a request | The inbox only answers issues labelled `admin` or texts with a post link or a command; commands are the form's action or a `/command` at the start of a line, never ordinary words (section 12.3) |
 | Bad data on the public site | The site's `ci` checks every data PR against the contract (`check-data.mjs`) before it can merge, and the site's `main` only takes squash-merged PRs that pass `ci` |
 | Private files committed | `.env` and `private/` are git-ignored. `private/` holds your Instagram export, the discovery results and the App's `.pem` |
@@ -1164,8 +1172,12 @@ flowchart LR
     PL --> PUB
     WHY --> SS
     DI --> SS
-    SW --> PL["pipeline.py<br/>(Sweep)"]
+    SW --> PL["pipeline/<br/>(Sweep)"]
+    SW --> ANS["commands/answers.py"]
     SW --> HE["health.py"]
+    INB --> PAT["patterns.py"]
+    LNK["links.py"] --> PAT
+    PL --> LNK
     PL --> IGC["instagram.py"]
     PL --> EXT["extraction.py"]
     PL --> MER["merging.py"]
@@ -1196,7 +1208,11 @@ flowchart LR
 | `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions; prices in another currency never shown as free |
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |
 | `ids.py` | Readable, stable event ids (the event's URL) |
-| `pipeline.py` | `Sweep`: accounts, posts, storing (only upcoming events in Bogotá; a cancelled post's events taken down), retention, run statistics; the admin tools' add a post or a story, hide a story or an event |
+| `pipeline/` | `Sweep`, one class built from a module per part (the package re-exports the public names): |
+| `pipeline/common.py` | Run statistics (`RunStats`), the clients' protocols, `AddPostError`, retryable errors, flyers and media records |
+| `pipeline/base.py` | `SweepBase`: the state (events, analyzed posts, hidden events, accounts), storing one analyzed post (only upcoming events in Bogotá; a cancelled post's events taken down), one identity per post |
+| `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; `hours_overdue` |
+| `pipeline/manual_post.py`, `story_admin.py`, `hiding.py` | The admin tools, mixed into `Sweep`: add a post (`add_post`), add a story (`add_story`), hide a story or an event (`hide_story`, `hide_event`) |
 | `clips.py` | Videos' preview clips: download, cut 6 silent seconds with ffmpeg |
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, `accounts.txt` |
 | `health.py` | Run history, health rules, events to review, the report and its fingerprint |
@@ -1204,7 +1220,9 @@ flowchart LR
 | `sweep_state.py` | The sweeps' latest state on your computer: reads the `sweep-state` branch with git |
 | `why.py` | `admin why`: why a post's event is or isn't on the site (fixed checks, Spanish answer) |
 | `inbox.py` | The admin inbox: what an issue or comment asks for |
-| `links.py` | Instagram post links (code, account) and links to the site's events |
+| `links.py` | Instagram post links (code, account), profile links, and links to the site's events |
+| `patterns.py` | The shapes the admin tools accept (an @account, a post link, a story's, an event's and an upload's id), mirrored by `admin-web/public/patterns.js` and checked against the same examples (`tests/fixtures/patterns.json`) |
 | `discovery.py` | Parsing the Instagram export, dance hints, the classification prompt, the report, quiet windows around sweeps |
-| `text.py`, `logs.py` | Accent-insensitive comparison, dates and times for the admin answers ("13–15 nov 2026", "4 sesiones: 8, 22, 29 nov y 6 dic", "9:00 p. m."), Spanish weekdays, logging setup |
+| `text.py`, `logs.py` | Accent-insensitive comparison, dates and times for the admin answers ("13–15 nov 2026", "sábado 10 oct 2026", "4 sesiones: 8, 22, 29 nov y 6 dic", "9:00 p. m."), reading "HH:MM", Spanish weekdays, logging setup |
 | `commands/*.py` | The commands (sweep, discover, refresh-token, admin): arguments, wiring, exit codes, GitHub outputs |
+| `commands/answers.py` | The admin tools' answers to `sweep --post`, `--story`, `--hide-story` and `--hide-event`, in Spanish |
