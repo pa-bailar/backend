@@ -79,7 +79,7 @@ def working_file(path: Path) -> bool:
     if path.is_dir():
         return name in SCRATCH_DIRS or name.startswith("audio-orig")
     return (
-        name.endswith(("-draft.mp4", "-sheet.png", ".log"))
+        name.endswith(("-draft.mp4", "-sheet.png", "-review.ok", ".log"))
         or "-vs-" in name
         or name.startswith(("old-", "new-", "psnr", "timing-orig"))
     )

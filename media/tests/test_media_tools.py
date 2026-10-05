@@ -406,6 +406,39 @@ def test_stale_when_missing_or_older_than_an_input(tmp_path):
     assert make.stale([], [src])
 
 
+def test_a_stage_that_runs_makes_every_later_one_run():
+    fresh = dict.fromkeys(make.STAGES)
+    assert make.schedule(fresh, [], False) == [(s, None) for s in make.STAGES]
+    # A new voice line: timing, mix, render and the review follow, though their plan said up to date.
+    chain = make.schedule(fresh | {"tts": "1 line(s) not cached"}, [], False)
+    assert [s for s, why in chain if why] == list(make.STAGES)
+    assert dict(chain)["render"] == "mix ran before it"
+    # A new render: its review runs (the sheet's plan, made before the render, said up to date).
+    assert make.schedule(fresh | {"render": "stale"}, [], False)[-1] == ("sheet", "render ran before it")
+    # Stages that don't apply (no voice) are skipped; asked-for stages only.
+    assert make.schedule({"render": "stale", "sheet": None}, ["render"], False) == [("render", "stale")]
+    assert make.schedule({"mix": None, "render": None, "sheet": None}, [], True)[0] == ("mix", "forced")
+
+
+def test_a_review_is_done_only_when_it_passed(tmp_path, monkeypatch):
+    dest = touch(tmp_path / "x-v1-story.mp4")
+    marker = render.passed_marker(dest)
+    v = common.Video("x-review-test", {"duration": 4, "version": "1", "renders": {"story": "x-story"}})
+    v.settings["sticker_band"] = {"deliverables": ["story"]}
+    monkeypatch.setattr(review, "duration_of", lambda p: 4.0)
+    monkeypatch.setattr(review, "sheet", lambda *a, **k: touch(dest.with_name(f"{dest.stem}-sheet.png")))
+    monkeypatch.setattr(review, "allowed_spans", lambda *a: [])
+    monkeypatch.setattr(preflight, "check", lambda *a, **k: True)
+    monkeypatch.setattr(review, "band", lambda *a: True)
+    assert render.review(v, "story", dest) and marker.exists()
+    monkeypatch.setattr(review, "band", lambda *a: False)  # something entered the sticker band
+    assert not render.review(v, "story", dest)
+    assert not marker.exists() and dest.with_name(f"{dest.stem}-sheet.png").exists()  # a sheet, but not passed
+    monkeypatch.setattr(review, "band", lambda *a: True)
+    monkeypatch.setattr(preflight, "check", lambda *a, **k: False)  # Instagram would refuse it
+    assert not render.review(v, "story", dest) and not marker.exists()
+
+
 # ---------- tts ----------
 
 
