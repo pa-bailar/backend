@@ -287,6 +287,9 @@ class ProcessedPost(BaseModel):
     # Stories: a perceptual hash (stories.image_hash) of each screenshot, so the same story shared again (another
     # screenshot of it) is recognized.
     image_hashes: list[str] = []
+    # Added by hand (Agregar, Volver a leer, a story's screenshots): later reads of it (an upgrade, an edited caption)
+    # skip the account's extra rules and style filter too (account_options), as the first one did.
+    by_hand: bool = False
 
 
 # ---------- Stories: screenshots shared to the admin page (stories.py) ----------

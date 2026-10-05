@@ -125,7 +125,7 @@ def read_accounts() -> list[str]:
 
 def read_account_options() -> dict[str, AccountOptions]:
     """Each account in accounts.txt with what its line says besides the name (`bar`, `solo:…`: account_options)."""
-    lines = config.ACCOUNTS_FILE.read_text(encoding="utf-8").splitlines()
+    lines = config.ACCOUNTS_FILE.read_text(encoding="utf-8-sig").splitlines()
     return dict(parsed for line in lines if (parsed := parse_line(line)))
 
 

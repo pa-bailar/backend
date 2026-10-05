@@ -92,11 +92,16 @@ class SweepBase:
     def _is_bar(self, account: str) -> bool:
         return self.options.get(account, AccountOptions()).bar
 
-    def _rules(self, account: str) -> str:
-        """The prompts' extra rules for this account (a bar, a style focus), from accounts.txt. None for a post added
-        by hand: whoever adds it wants it read as it is."""
+    def _by_hand(self, post_id: str) -> bool:
+        """This read, or the post's first one, was asked for by hand: read as it is (no account rules or filter)."""
+        record = self.processed.get(post_id)
+        return self.by_hand or bool(record and record.by_hand)
+
+    def _rules(self, account: str, post_id: str) -> str:
+        """The prompts' extra rules for this account (a bar, a style focus), from accounts.txt; "" for a post added by
+        hand: whoever adds it wants it read as it is."""
         options = self.options.get(account, AccountOptions())
-        return "" if self.by_hand else account_rules(options.bar, options.focus)
+        return "" if self._by_hand(post_id) else account_rules(options.bar, options.focus)
 
     def _hidden_match(self, account: str, candidate: ExtractedEvent, post_id: str) -> HiddenEvent | None:
         return next(
@@ -133,7 +138,8 @@ class SweepBase:
     def _rename_post(self, old: str, new: str) -> None:
         """Move a post's record and its place in events to a new id (flyers and clips keep their file names)."""
         self.processed[new] = self.processed.pop(old)
-        for event in self.events:
+        # Hidden events too, so adding the post by hand still recognizes what was hidden from it (_announced_hidden).
+        for event in [*self.events, *(item.event for item in self.hidden.values())]:
             for media in event.media:
                 if media.post_id == old:
                     media.post_id = new
@@ -164,7 +170,13 @@ class SweepBase:
         count_as_new: bool = True,
     ) -> bool:
         """Store the post's events. False when it must be retried next run (a flyer couldn't be saved)."""
-        cleaned = [normalize_event(doubtful_city(event, post.get("caption"))) for event in analysis.events]
+        # A bar's events are at the bar (a Bogotá venue): its captions name where guests and styles come from.
+        checked = (
+            analysis.events
+            if self._is_bar(account)
+            else [doubtful_city(e, post.get("caption")) for e in analysis.events]
+        )
+        cleaned = [normalize_event(event) for event in checked]
         publishable: list[ExtractedEvent] = []
         reasons: set[str] = set()  # why the others weren't published, for the post's record
         for event in cleaned if analysis.is_event_post else []:
@@ -317,6 +329,7 @@ class SweepBase:
         self, account: str, post: Post, is_event_post: bool, reason: str, model: str, provisional: bool
     ) -> None:
         self.processed[post["id"]] = ProcessedPost(
+            by_hand=self._by_hand(post["id"]),
             account=account,
             permalink=post["permalink"],
             processed_at=config.now_bogota().isoformat(timespec="seconds"),
@@ -326,6 +339,15 @@ class SweepBase:
             provisional=provisional,
             caption_hash=caption_hash(post),
         )
+
+    def _record_not_event(self, account: str, post: Post, reason: str, model: str) -> None:
+        """A post that announces no event (the triage, or the account's style filter), recorded and saved."""
+        self.stats.count(account, "posts_analyzed")
+        self.stats.posts_triaged_out += 1
+        self._record_processed(account, post, False, reason, model, provisional=False)
+        self._set_outcome(post, "not_event")
+        self._save()
+        log.info("     not an event: %s", reason)
 
     def _set_outcome(
         self, post: Post, outcome: PostOutcome, event_ids: list[str] | None = None, detail: str | None = None
