@@ -1,7 +1,9 @@
 # Design (video)
 
 The video borrows the site's design system (`pa-bailar-web/docs/DESIGN.md`, `frontend/src/styles/tokens.css`)
-and adds only what motion needs. Values live in `src/lib/tokens.ts`; type presets are `TYPE.display/serif/sans`.
+and adds only what motion needs. The canvas, the safe zones, the sticker band, the title band, the default tempo
+and the loudness targets live in `brand.json` (read by `src/lib/tokens.ts` and the Python tools); colors and type
+presets (`TYPE.display/serif/sans`) in `src/lib/tokens.ts`.
 Scene numbers below are teaser v2's (`projects/teaser-v2`), as examples.
 
 ## Canvas
@@ -9,6 +11,10 @@ Scene numbers below are teaser v2's (`projects/teaser-v2`), as examples.
 - 1080×1920, 30 fps. The site's screenshots are 360×640 CSS px at scale 3, so 1 CSS px = 3 video px.
 - **Safe zones:** no text above y = 250 or below y = 1580 (1920 − 340), nor closer than 80 px to the sides.
   Images (the phone, flyers) may run into the zones; words never do.
+- **Sticker band (Stories):** the owner puts Instagram's link sticker at the top, over y 0–250, for the whole clip,
+  so nothing enters it on any frame, image or word (`STICKER_BAND`; `review.py band` allows nothing above y 252,
+  except the spans a video.json lists for full-frame transitions). Mind the camera: a 3% push-in at depth 0.6 lifts
+  something at y 276 to about y 256, so page heads start at y 276 or lower.
 - **Title band:** scene titles sit at y 280–520, the same place in every scene, so the eye never hunts.
 
 ## Colors (v2: "Fania de día", the site's light theme, plus the logo's tomato for the cover)
@@ -38,7 +44,7 @@ type only, ≥3:1 for AA large); cream-50 on tomato 4.9:1.
 | Bodoni Moda italic 600, `opsz` 18 | The second line of a thought, tagline, sign-off; never digits (its italic 4 reads as a 1) | 64–76 px |
 | Instrument Sans 600 | The end card's call to action (no URL on screen), and anything with digits (dates, times, prices, counts) | 30–68 px |
 
-Fonts are the Google Fonts files (OFL) in `public/fonts/`, loaded locally. Titles get the period-heading treatment
+Fonts are the Google Fonts files (OFL) in `fonts/`, bundled with the code (imports, not the public folder). Titles get the period-heading treatment
 from the site: a 6 px offset shadow in `cream300` (the site's 2 px × 3).
 
 ## Motion

@@ -15,12 +15,14 @@ record, the wordmark and "Nos vemos bailando." It fades in and doesn't fade out 
 From the backend root:
 
 ```bash
-.venv/Scripts/python media/tools/events.py este-finde --from 2026-10-09 --to 2026-10-11 --live
+.venv/Scripts/python media/tools/events.py este-finde --weekend
 ```
 
 ```bash
-.venv/Scripts/python media/tools/render.py este-finde
+.venv/Scripts/python media/tools/make.py este-finde
 ```
 
-Then check `media/out/este-finde/story.mp4` with `review.py sheet`. Nothing in `EsteFinde.tsx` names an event. Long
+`--weekend` follows the weekend rule (Monday to Thursday the coming one, Friday to Sunday the one under way). The
+render is `out/este-finde/este-finde-v<version>-story.mp4` in the media home, with its keyframe sheet and the
+sticker-band check (`make.py` runs them); bump `version` in `video.json` for each week's cut. Nothing in `EsteFinde.tsx` names an event. Long
 titles clip at two lines, and more than four events show as the count in the subtitle.

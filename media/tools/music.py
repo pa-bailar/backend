@@ -2,7 +2,7 @@
 
 Run with the ACE-Step venv (it holds the GPU: don't run ComfyUI at the same time):
   D:/AI/ace-step/.venv/Scripts/python media/tools/music.py <video>
-  → media/cache/music/<prompt>-s<seed>-<key>.wav (48 kHz stereo), skipping those already made
+  → cache/music/<prompt>-s<seed>-<key>.wav in the media home (48 kHz stereo), skipping those already made
 
 video.json's "music": "prompts" ({name: description: style, mood, instruments, texture, "No vocals"}), "seeds",
 "bpm", "duration" (seconds; make it longer than the video). Listen, compare them with tools/analyze.py, then set

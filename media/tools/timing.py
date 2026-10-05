@@ -2,7 +2,7 @@
 
 Run with the faster-whisper venv (D:\\AI\\whisper):
   D:/AI/whisper/.venv/Scripts/python media/tools/timing.py <video>
-      → media/out/<video>/voice-track.wav and projects/<video>/data/timing.json (line and word times, video
+      → out/<video>/voice-track.wav (media home) and projects/<video>/data/timing.json (line and word times, video
         seconds: the track starts at video time 0, after "lead" seconds of silence)
   D:/AI/whisper/.venv/Scripts/python media/tools/timing.py --transcribe <file.wav> …
       → what Whisper hears (QA for a take: a swallowed word shows up here)

@@ -221,8 +221,10 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 - **The App's private key** (`private/*.pem`) stays on your computer. Its contents are the
   `APP_PRIVATE_KEY` secret.
 - **Videos are made locally** with `media/` (its README): Gemini TTS with `MEDIA_GEMINI_API_KEY` (a separate
-  free-tier project, only in the local `.env`), Whisper and ACE-Step from `D:\AI`, Remotion and ffmpeg. Nothing
-  there runs in the sweep or on GitHub; CI only lints its Python tools with the rest of the repository.
+  free-tier project, only in the local `.env`), Whisper and ACE-Step from `D:\AI`, Remotion and ffmpeg; what they
+  generate lives in a media home outside the checkout (`D:\AI\pa-bailar-media`). Nothing there runs in the sweep;
+  CI lints and unit-tests its Python tools with the rest of the repository, and its `media` job type-checks the
+  Remotion code when `media/` changes (no secrets).
 
 ---
 

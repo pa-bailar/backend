@@ -1,11 +1,11 @@
 """The voice: one Gemini TTS file per script line (free tier, MEDIA_GEMINI_API_KEY in the backend's .env), cached.
 
   .venv/Scripts/python media/tools/tts.py <video> [line-id ...]
-      Every line of projects/<video>/video.json ("voice"."lines") that isn't cached yet → media/cache/tts/. A line is
-      cached by its words, voice, direction and "take": the same line never calls Gemini twice. For another reading
-      of a line, add or bump its "take" in video.json and run again (the old take stays cached).
+      Every line of projects/<video>/video.json ("voice"."lines") that isn't cached yet → cache/tts/ (media home). A
+      line is cached by its words, voice, direction and "take": the same line never calls Gemini twice. For another
+      reading of a line, add or bump its "take" in video.json and run again (the old take stays cached).
   .venv/Scripts/python media/tools/tts.py --audition "<text>" --voices Achird,Sulafat,Puck [--direction "<text>"]
-      One sample per voice → media/out/auditions/<voice>-<key>.wav, to choose a voice or a direction.
+      One sample per voice → out/auditions/<voice>-<key>.wav (media home), to choose a voice or a direction.
 
 Then tools/timing.py joins the lines and times every word.
 """
