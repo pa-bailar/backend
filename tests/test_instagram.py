@@ -60,3 +60,14 @@ def test_refresh_token_errors_never_show_the_secrets(monkeypatch):
     with pytest.raises(SystemExit) as raised:
         refresh_token.graph_get("oauth/access_token", client_secret="s3cr3t")
     assert "s3cr3t" not in str(raised.value) and "client_secret=***" in str(raised.value)
+
+
+def test_a_timestamp_written_like_the_api_reads_back_the_same():
+    from datetime import datetime
+
+    from pa_bailar import config
+    from pa_bailar.instagram import api_timestamp, published_at
+
+    moment = datetime(2026, 10, 4, 18, 30, 5, tzinfo=config.BOGOTA_TZ)
+    assert api_timestamp(moment) == "2026-10-04T23:30:05+0000"
+    assert published_at({"timestamp": api_timestamp(moment)}) == moment

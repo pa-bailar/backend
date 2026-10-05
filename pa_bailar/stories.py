@@ -374,8 +374,3 @@ def known_account(name: str, cut: bool, known: Iterable[str]) -> str | None:
         return starting[0] if len(starting) == 1 else None
     close = difflib.get_close_matches(name, accounts, n=1, cutoff=0.88)
     return close[0] if close else None
-
-
-def profile_link(account: str) -> str:
-    """A story's permalink: the account's profile (the story itself is gone after 24 hours)."""
-    return f"https://www.instagram.com/{account}/"

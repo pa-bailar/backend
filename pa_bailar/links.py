@@ -40,5 +40,10 @@ def same_post(permalink: str, code: str) -> bool:
     return post_code(permalink) == code
 
 
+def profile_link(account: str) -> str:
+    """An account's profile: a story's permalink (the story itself is gone after 24 hours), discovery's report."""
+    return f"https://www.instagram.com/{account}/"
+
+
 def event_url(event_id: str) -> str:
     return f"{config.SITE_URL}/evento/{event_id}/"

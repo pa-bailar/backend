@@ -2,7 +2,7 @@
 
 import json
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, NotRequired, TypedDict, cast
 
 import requests
@@ -158,6 +158,12 @@ def is_not_visible(error: InstagramError) -> bool:
 
 def published_at(post: Post) -> datetime:
     return datetime.fromisoformat(post["timestamp"].replace("+0000", "+00:00"))
+
+
+def api_timestamp(moment: datetime) -> str:
+    """A moment written as the API writes a post's `timestamp` ("2026-10-04T23:30:00+0000"; published_at reads it),
+    for the posts and stories that don't come from the API."""
+    return moment.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S+0000")
 
 
 def _image_url(item: MediaItem) -> str | None:

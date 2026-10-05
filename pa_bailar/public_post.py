@@ -22,7 +22,7 @@ from typing import Any, cast
 from curl_cffi import requests
 
 from . import config, links
-from .instagram import MediaItem, Post
+from .instagram import MediaItem, Post, api_timestamp
 
 ID_PREFIX = "public-"  # a post read here: the API knows it by another id (pipeline/base.py matches them by link)
 
@@ -71,7 +71,7 @@ def _post(code: str, post_id: str, media_type: str, caption: str, taken_at: int 
             "id": f"{ID_PREFIX}{post_id}",
             "media_type": media_type,
             "permalink": f"https://www.instagram.com/p/{code}/",
-            "timestamp": moment.strftime("%Y-%m-%dT%H:%M:%S+0000"),
+            "timestamp": api_timestamp(moment),
             "caption": caption,
             **media,
         },

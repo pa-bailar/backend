@@ -3,12 +3,12 @@ neither Gemini nor Instagram (dates, crops, ids, the account's name) is in stori
 
 import logging
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import cast
 
-from .. import config, storage, stories
+from .. import config, links, storage, stories
 from ..gemini import GeminiKeyError, QuotaExhaustedError, RejectedRequestError
-from ..instagram import InstagramError, Post
+from ..instagram import InstagramError, Post, api_timestamp
 from ..models import AccountState, ExtractedEvent, PostAnalysis, Session, StoredEvent, StoryAnalysis, StoryEvent
 from ..text import WEEKDAYS
 from .base import SweepBase
@@ -162,8 +162,8 @@ class StoryAdmin(SweepBase):
             {
                 "id": story_id,
                 "media_type": "STORY",
-                "permalink": stories.profile_link(owner),
-                "timestamp": published.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S+0000"),
+                "permalink": links.profile_link(owner),  # a story is gone after 24 hours
+                "timestamp": api_timestamp(published),
             },
         )
         day = f"{published:%Y-%m-%d}"

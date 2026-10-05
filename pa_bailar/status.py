@@ -12,14 +12,14 @@ Plain reading of what the sweeps record (no AI, no Gemini requests):
 """
 
 from collections.abc import Callable
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from . import config, discovery, links, storage, sweep_state
 from .gemini import daily_budget, quota_day, quota_reset
 from .models import AccountState
 from .pipeline import hours_overdue
-from .text import clock, sessions_label
+from .text import clock, parse_hhmm, sessions_label
 
 RECENT_RUNS = 5
 WEEKDAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
@@ -31,8 +31,7 @@ def next_sweeps(now: datetime, count: int = 2) -> list[datetime]:
     day = now.date()
     while len(upcoming) < count:
         for hhmm in sorted(config.SWEEP_TIMES):
-            hour, minute = map(int, hhmm.split(":"))
-            moment = datetime.combine(day, time(hour, minute), config.BOGOTA_TZ)
+            moment = datetime.combine(day, parse_hhmm(hhmm), config.BOGOTA_TZ)
             if moment > now and len(upcoming) < count:
                 upcoming.append(moment)
         day += timedelta(days=1)
