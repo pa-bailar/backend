@@ -1,1 +1,54 @@
-{}
+{
+  "iii-congreso-internacional-la-revuelta-latin-fest-18-feb": {
+    "hidden_at": "2026-10-05T10:02:20-05:00",
+    "event": {
+      "title": "III Congreso Internacional La Revuelta Latin Fest",
+      "event_type": "congress",
+      "is_recurring": false,
+      "styles": [
+        "salsa",
+        "bachata"
+      ],
+      "organizer": "Latin Production Colombia",
+      "venue": "Expofitness",
+      "address": null,
+      "area": null,
+      "date": "2027-02-18",
+      "end_date": "2027-02-22",
+      "sessions": null,
+      "weekday": null,
+      "start_time": null,
+      "end_time": null,
+      "prices": [],
+      "artists": [],
+      "activities": [
+        "seminario integral 360",
+        "campeonato internacional",
+        "clases maestras",
+        "sociales",
+        "franquicia Salsanamá",
+        "competencia 1 vs 1 profesional de Salsa"
+      ],
+      "contact": null,
+      "confidence": "high",
+      "doubts": [
+        "sin precios publicados",
+        "sede exacta no especificada mas allá de expofitness Medellin"
+      ],
+      "id": "iii-congreso-internacional-la-revuelta-latin-fest-18-feb",
+      "account": "latinproductioncolombia",
+      "media": [
+        {
+          "post_id": "18000166256809054",
+          "permalink": "https://www.instagram.com/reel/DdxLKMBRDd7/",
+          "media_type": "VIDEO",
+          "published": "2026-09-26T23:13:17+0000",
+          "flyer": "flyers/18000166256809054-0.webp",
+          "caption": "LA REVUELTA LATIN FEST CRECE Y LLEGA A SU TERCERA VERSIÓN! 🔥\n\nLa pasión por el arte, el talento y la formación nos vuelve a reunir del 18 al 22 de febrero del 2027.\n\nPresentamos oficialmente el III Congreso Internacional La Revuelta Latin Fest, un espacio que nace para reconocer a nuestros artistas como lo que son: atletas de alto rendimiento, personas que entrenan, se preparan, superan límites y convierten su pasión en una forma de vida. ❤️‍🔥\n\nEsta tercera edición llega más grande, más completa y con una visión 360° del artista.\n\n🎓 Seminario Integral 360°, con conferencias sobre:\n• Salud y bienestar del artista\n• Marca personal\n• Contratación estatal\n• Herramientas para fortalecer la carrera profesional\n\n🏆 Campeonato internacional\n🔥 Clases maestras\n💃 Sociales y experiencias para bailarines\n🌎 La franquicia Salsanamá llega por primera vez a La Revuelta Latin Fest, con una apuesta de expansión nacional.\n\n🇮🇹 Y hay más…\n\nEl ganador de la categoría 1 vs. 1 profesional de Salsa tendrá la oportunidad de ganar tiquetes a Italia para llevar su talento mucho más lejos. ✈️🇮🇹\n\nAdemás, contaremos con el respaldo y la vinculación de grandes marcas que creen en el talento, la cultura y en el crecimiento de nuestros artistas.\n\nPorque La Revuelta Latin Fest no es solo un evento. Es una plataforma para encontrarnos, formarnos, competir, conectar y llevar el arte cada vez más lejos. Nos vemos en expofitness Medellin 2027\n\n🔥 Tercera versión. Una nueva historia comienza.\n\n¿Están listos para vivirla?\n\nLA REVUELTA LATIN FEST 2027\nDonde la pasión se encuentra con la formación y el talento se convierte en oportunidad.\n\n#LaRevueltaLatinFest #LaRevuelta2027 #LatinProductionColombia #Salsa #Danza Redbullspect Cultura Expefitnesscol Salsanamá",
+          "preview": "previews/18000166256809054-0.mp4",
+          "slides": null
+        }
+      ]
+    }
+  }
+}

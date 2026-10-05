@@ -3859,12 +3859,10 @@
     "is_event_post": true,
     "reason": "El post anuncia el III Congreso Internacional La Revuelta Latin Fest que se llevará a cabo del 18 al 22 de febrero de 2027.",
     "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "provisional": false,
     "caption_hash": "e337c74557c2b2c4",
-    "outcome": "event",
-    "event_ids": [
-      "iii-congreso-internacional-la-revuelta-latin-fest-18-feb"
-    ],
+    "outcome": "hidden",
+    "event_ids": [],
     "detail": null,
     "image_hashes": []
   },

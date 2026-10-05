@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-05T09:27:32-05:00",
+  "generated_at": "2026-10-05T10:02:21-05:00",
   "sweeps": {
     "recent": [
       {
@@ -325,10 +325,10 @@
   },
   "posts": {
     "recorded": 485,
-    "provisional": 135
+    "provisional": 134
   },
   "events": {
-    "upcoming": 41,
+    "upcoming": 40,
     "low_confidence": 0
   },
   "new_series": [
