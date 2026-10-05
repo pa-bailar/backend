@@ -1,11 +1,11 @@
 {
  "url": "https://pa-bailar.github.io/",
  "now": "2026-10-10T19:00:00-05:00",
- "capturedAt": "2026-10-04T18:13:10.824Z",
+ "capturedAt": "2026-10-05T03:10:01.871Z",
  "viewport": "360x640@3",
  "styles": [
-  "Salsa",
-  "Bachata"
+  "salsa",
+  "bachata"
  ],
  "top": {
   "bar": {
@@ -14,24 +14,48 @@
    "w": 360,
    "h": 57
   },
-  "styleButton": {
-   "x": 256,
-   "y": 267,
-   "w": 88,
-   "h": 40
+  "chips": {
+   "salsa": {
+    "x": 239.5,
+    "y": 267,
+    "w": 58.703125,
+    "h": 40
+   },
+   "bachata": {
+    "x": 306.203125,
+    "y": 267,
+    "w": 75.796875,
+    "h": 40
+   }
   }
  },
  "pile": [
   {
    "file": "pile-0.webp",
-   "id": "primer-aniversario-ludance-fiesta-crossover-10-oct",
+   "id": "iniciacion-a-la-salsa-en-linea-3-oct",
    "ratio": 0.8,
-   "account": "ludancestudios",
-   "styles": "salsa · bachata · otro",
+   "account": "frank.de.latorre",
+   "styles": "salsa en línea",
    "chosen": true
   },
   {
    "file": "pile-1.webp",
+   "id": "primer-aniversario-ludance-fiesta-crossover-10-oct",
+   "ratio": 0.8,
+   "account": "ludancestudios",
+   "styles": "salsa · bachata · otros ritmos",
+   "chosen": true
+  },
+  {
+   "file": "pile-2.webp",
+   "id": "social-pal-parche-10-oct",
+   "ratio": 0.8,
+   "account": "jaleocompetencia_",
+   "styles": "salsa · bachata · urbano",
+   "chosen": true
+  },
+  {
+   "file": "pile-3.webp",
    "id": "tour-de-la-salsa-capitulo-001-11-oct",
    "ratio": 0.8,
    "account": "salsaculto",
@@ -39,91 +63,61 @@
    "chosen": true
   },
   {
-   "file": "pile-2.webp",
+   "file": "pile-4.webp",
    "id": "taller-de-salsa-estilo-caleno-17-oct",
    "ratio": 1,
    "account": "danceinmotionclub",
    "styles": "salsa caleña",
    "chosen": true
-  },
-  {
-   "file": "pile-3.webp",
-   "id": "bachatamania-social-17-oct",
-   "ratio": 1,
-   "account": "bachatamania_bogota",
-   "styles": "bachata",
-   "chosen": true
-  },
-  {
-   "file": "pile-4.webp",
-   "id": "edc-colombia-2026-10-oct",
-   "ratio": 0.8,
-   "account": "paramopresenta",
-   "styles": "urbano",
-   "chosen": false
   }
  ],
- "menu": {
-  "rect": {
-   "x": 107.359375,
-   "y": 311,
-   "w": 236.640625,
-   "h": 321
-  },
-  "items": {
-   "Salsa": {
-    "x": 108.359375,
-    "y": 364,
-    "w": 234.640625,
-    "h": 44
-   },
-   "Bachata": {
-    "x": 108.359375,
-    "y": 408,
-    "w": 234.640625,
-    "h": 44
+ "chips": [
+  {
+   "file": "chips-1.png",
+   "chosen": [
+    "salsa"
+   ],
+   "style": "salsa",
+   "label": "Salsa",
+   "tap": {
+    "x": 239.5,
+    "y": 267,
+    "w": 58.703125,
+    "h": 40
    }
   },
-  "frames": [
-   {
-    "file": "menu-0.png",
-    "chosen": []
-   },
-   {
-    "file": "menu-1.png",
-    "chosen": [
-     "Salsa"
-    ]
-   },
-   {
-    "file": "menu-2.png",
-    "chosen": [
-     "Salsa",
-     "Bachata"
-    ]
+  {
+   "file": "chips-2.png",
+   "chosen": [
+    "salsa",
+    "bachata"
+   ],
+   "style": "bachata",
+   "label": "Bachata",
+   "tap": {
+    "x": 322.203125,
+    "y": 267,
+    "w": 75.796875,
+    "h": 40
    }
-  ],
-  "done": {
-   "x": 263.09375,
-   "y": 579,
-   "w": 63.90625,
-   "h": 44
   }
- },
- "styleLabel": "2 ritmos",
+ ],
+ "summary": "19 eventos · Salsa, Bachata Limpiar",
  "periods": [
   {
    "key": "hoy",
    "label": "Hoy",
-   "top": 340,
+   "top": 380,
    "events": [
-    "primer-aniversario-ludance-fiesta-crossover-10-oct"
+    "iniciacion-a-la-salsa-en-linea-3-oct",
+    "primer-aniversario-ludance-fiesta-crossover-10-oct",
+    "social-pal-parche-10-oct"
    ]
   },
   {
    "key": "fin-de-semana",
    "label": "Este fin de semana",
-   "top": 1173.578125,
+   "top": 2512.265625,
    "events": [
     "tour-de-la-salsa-capitulo-001-11-oct"
    ]
@@ -131,147 +125,161 @@
   {
    "key": "proxima-semana",
    "label": "Próxima semana",
-   "top": 2035.046875,
+   "top": 3330.234375,
    "events": [
     "taller-de-salsa-estilo-caleno-17-oct",
+    "video-class-survivor-17-oct",
     "bachatamania-social-17-oct"
    ]
   },
   {
    "key": "resto-del-mes",
    "label": "Más adelante en octubre",
-   "top": 3408.015625,
+   "top": 5197.296875,
    "events": []
   },
   {
    "key": "2026-11",
    "label": "Noviembre",
-   "top": 3675.296875,
+   "top": 5464.578125,
    "events": []
   },
   {
    "key": "2026-12",
    "label": "Diciembre",
-   "top": 3912.6875,
+   "top": 5701.96875,
    "events": []
   },
   {
    "key": "2027-02",
    "label": "Febrero de 2027",
-   "top": 4150.078125,
+   "top": 5939.359375,
    "events": []
   },
   {
    "key": "2027-03",
    "label": "Marzo de 2027",
-   "top": 4387.46875,
+   "top": 6176.75,
    "events": []
   }
  ],
  "list": {
-  "cssHeight": 5097,
+  "cssHeight": 6887,
   "file": "list-full.png"
  },
- "bars": {
-  "hoy": {
-   "file": "bar-hoy.png",
-   "h": 57,
-   "label": "Hoy"
-  },
-  "fin-de-semana": {
-   "file": "bar-fin-de-semana.png",
-   "h": 57,
-   "label": "Finde"
-  },
-  "proxima-semana": {
-   "file": "bar-proxima-semana.png",
-   "h": 57,
-   "label": "Próx. semana"
-  }
+ "bar": {
+  "file": "bar.png",
+  "h": 97
  },
  "detail": {
   "event": "taller-de-salsa-estilo-caleno-17-oct",
-  "scrollTop": 1971.046875,
-  "card": {
-   "x": 0,
-   "y": 2142.828125,
-   "w": 360,
-   "h": 592.59375
-  },
+  "scrollTop": 3233.234375,
   "tap": {
    "x": 16,
-   "y": 2510.828125,
-   "w": 108.15625,
+   "y": 573.015625,
+   "w": 97.875,
    "h": 44
   },
-  "tapIsDetailsButton": true,
-  "sheet": {
-   "file": "detail-sheet.png",
-   "x": 0,
-   "y": 268.796875,
-   "w": 360,
-   "h": 371.203125,
-   "hasPanel": true,
-   "fullScreen": false
-  },
+  "scrollHalf": 3333,
   "half": {
+   "panel": {
+    "x": 0,
+    "y": 288,
+    "w": 360,
+    "h": 628
+   },
+   "grip": {
+    "x": 0,
+    "y": 289,
+    "w": 360,
+    "h": 32
+   },
    "when": {
-    "x": 84,
-    "y": 358.796875,
-    "w": 167.28125,
+    "x": 16,
+    "y": 321,
+    "w": 284,
     "h": 19.5
    },
-   "quickHow": {
+   "quick": {
     "x": 16,
-    "y": 468.578125,
-    "w": 104,
+    "y": 451.78125,
+    "w": 328,
     "h": 64
    },
    "cuando": {
     "x": 16,
-    "y": 577.578125,
-    "w": 328,
-    "h": 45
-   }
-  },
-  "rows": {
-   "cuando": {
-    "x": 16,
-    "y": 86.578125,
+    "y": 560.78125,
     "w": 328,
     "h": 45
    },
    "lugar": {
     "x": 16,
-    "y": 139.578125,
+    "y": 613.78125,
     "w": 328,
     "h": 23.71875
    },
    "precio": {
     "x": 16,
-    "y": 171.296875,
+    "y": 645.5,
     "w": 328,
     "h": 22.5
    },
    "comoLlegar": {
     "x": 213.46875,
-    "y": 139.578125,
+    "y": 613.78125,
     "w": 93.53125,
     "h": 19.5
+   }
+  },
+  "full": {
+   "panel": {
+    "x": 0,
+    "y": 12,
+    "w": 360,
+    "h": 628
    },
-   "precios": {
+   "grip": {
+    "x": 0,
+    "y": 13,
+    "w": 360,
+    "h": 32
+   },
+   "when": {
     "x": 16,
-    "y": 431.203125,
-    "w": 328,
-    "h": 80
+    "y": 45,
+    "w": 284,
+    "h": 19.5
    },
-   "preciosHeading": {
+   "quick": {
     "x": 16,
-    "y": 400.515625,
+    "y": 175.78125,
     "w": 328,
-    "h": 18.6875
+    "h": 64
    },
-   "panelTop": -222.203125
+   "cuando": {
+    "x": 16,
+    "y": 284.78125,
+    "w": 328,
+    "h": 45
+   },
+   "lugar": {
+    "x": 16,
+    "y": 337.78125,
+    "w": 328,
+    "h": 23.71875
+   },
+   "precio": {
+    "x": 16,
+    "y": 369.5,
+    "w": 328,
+    "h": 22.5
+   },
+   "comoLlegar": {
+    "x": 213.46875,
+    "y": 337.78125,
+    "w": 93.53125,
+    "h": 19.5
+   }
   }
  },
  "shelfLife": "2026-10-10 (the screens' \"Hoy\"; post before it's over)"
