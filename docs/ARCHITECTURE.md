@@ -298,8 +298,8 @@ sequenceDiagram
 ### 5.2 The workflow's steps
 
 `.github/workflows/daily-sweep.yml`, two jobs on `ubuntu-latest`, plus two for stories:
-- **`request`** checks an admin request (add a post or a story, hide a story or an event) before anything else runs. Only
-  with `post_url`, `story`, `hide` or `issue`: for a regular sweep the job is skipped (its `if` is at job level,
+- **`request`** checks an admin request (add a post or a story, hide a story or an event) before anything else
+  runs. Only with `post_url`, `story`, `hide` or `issue`: for a regular sweep the job is skipped (its `if` is at job level,
   so no runner starts and no minute is billed). Exactly one of `post_url`, `story` (1 to 4 upload ids) or
   `hide` (`story-<16 hex>`, or an event's id: lowercase words joined by hyphens, at most 120 characters) must
   be given, `issue` must be a number, and that issue an open `admin` issue by
@@ -1045,7 +1045,7 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 |---|---|
 | A compromised dependency reading the repository token during the sweep | No checkout keeps credentials (`persist-credentials: false`). The write token is only handed to the steps that write (the state save, the account commit, issues), and the App token is minted after the sweep |
 | Secrets exposed to steps that don't need them | The Gemini and Meta secrets are only in the sweep step's environment. The Meta app secret isn't on GitHub at all |
-| A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. Adding a post or a story by hand (`post_url`, `story`) or hiding a story (`hide`) needs an open `admin` issue by `jzamora5` (the `request` job, section 5.2), `story` and `hide` must have their exact shapes, and inputs never reach shell code directly, so the token can't publish or hide anything or run commands |
+| A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. Adding a post or a story by hand (`post_url`, `story`) or hiding a story or an event (`hide`) needs an open `admin` issue by `jzamora5` (the `request` job, section 5.2), `story` and `hide` must have their exact shapes, and inputs never reach shell code directly, so the token can't publish or hide anything or run commands |
 | The Meta token in error text | It's sent in the URL; `instagram.redact` removes it (and the app secret and exchanged tokens of `refresh-token`) from every error before logs, `status.json` or admin answers (section 8) |
 | Odd text in a link or a public page reaching files, accounts or issues | Post codes match ASCII letters, digits, `_` and `-` only (`links._POST`, like the site's `check-data.mjs`); a public page's author must be a valid username; the admin page only accepts a value that is one post link and nothing else (`POST_LINK` in `admin-web/src/index.js`, anchored at both ends, no spaces or new lines) |
 | Answering, labelling or spending Gemini on what isn't a request | The inbox only answers issues labelled `admin` or texts with a post link or a command; commands are the form's action or a `/command` at the start of a line, never ordinary words (section 12.3) |
