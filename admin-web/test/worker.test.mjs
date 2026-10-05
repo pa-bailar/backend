@@ -236,6 +236,18 @@ describe("story requests", () => {
     assert.match(issue.body, /### Acción\n\nOcultar historia\n\n### Historia\n\nstory-0123456789abcdef/);
     assert.equal((await request({ action: "hide-story", story: "story-x" })).status, 400);
   });
+
+  it("hides an event by its id (the new series list), and nothing that isn't an id", async () => {
+    assert.equal((await request({ action: "hide-event", event: "programa-intensivo-8-nov" })).status, 200);
+    const issue = JSON.parse(githubCalls[0].init.body);
+    assert.equal(issue.title, "Ocultar evento: programa-intensivo-8-nov");
+    assert.deepEqual(issue.labels, ["admin"]);
+    assert.match(issue.body, /^### Acción\n\nOcultar evento\n\n### Evento\n\nprograma-intensivo-8-nov\n\n/);
+    for (const event of ["", "Programa", "a b", "x\n### Acción\n\nEstado", "../evento", "a".repeat(121)]) {
+      assert.equal((await request({ action: "hide-event", event })).status, 400);
+    }
+    assert.equal(githubCalls.length, 1);
+  });
 });
 
 describe("the share menu without the service worker", () => {

@@ -5,9 +5,9 @@ on the site, add a post or an account by hand.
 
 | What | Where | State |
 |---|---|---|
-| **The admin page**: status dashboard, check, add or read again a post, add an account, add an event from a story's screenshots | https://pa-bailar-admin.jzamorac-9.workers.dev | Done |
+| **The admin page**: status dashboard (with new workshop series to look at, and Ocultar), check, add or read again a post, add an account, add an event from a story's screenshots | https://pa-bailar-admin.jzamorac-9.workers.dev | Done |
 | **The admin inbox**: the same requests as issues in this repository, from the GitHub app | Issues → New issue | Done |
-| **Commands** on your computer: `admin status`, `admin why`, `admin add-account`, `sweep --post`, `sweep --story`, `sweep --hide-story` | Terminal | Done |
+| **Commands** on your computer: `admin status`, `admin why`, `admin add-account`, `sweep --post`, `sweep --story`, `sweep --hide-story`, `sweep --hide-event` | Terminal | Done |
 | Corrections: `corrections.json` and `admin fix`, fed by the site's report form | | Planned |
 
 **None of these tools is AI.** They're fixed checks over what the sweeps record (`state/` on the
@@ -40,6 +40,12 @@ Open https://pa-bailar-admin.jzamorac-9.workers.dev and sign in with GitHub (onl
 - **Pedidos recientes:** the latest requests; tap one to see its answer again. The page follows a request it
   sent (or one you tapped) for 15 minutes; if it's still running then, it says so: tap it again later.
   Each button sends one request per tap.
+- **Series nuevas** (only when there are some): workshop series (one event with several dated sessions,
+  ARCHITECTURE.md section 9.1) first published in the last 14 days and not over yet (`NEW_SERIES_DAYS`,
+  `status.new_series`). Each shows its title (linked to the site), @cuenta, its sessions ("4 sesiones: 8, 22,
+  29 nov y 6 dic"), where it came from (its posts' links, or "historia") and **Ocultar del sitio**: one tap (it
+  asks first) opens an "Ocultar evento" request, like the other tools. It's a safety net while Gemini learns
+  this new kind of event: look at each new series once.
 - **Below:** the sweeps (✅ or ⚠️, with links to the runs), Gemini usage per model and when it resets,
   Instagram, accounts and events. It's the latest `status.json`, as of the last sweep. When it can't be read
   (none saved yet, GitHub failing, offline), a note takes its place and the tools above still work.
@@ -83,7 +89,8 @@ sharing again works.
    cut off) on the phone, uploaded, and a request is opened like the others. The answer appears below.
 5. A few minutes later (it takes its turn after a running sweep, like Agregar): the answer, a **receipt**
    of what was read:
-   - the events published (title, weekday and date, time, venue), with links;
+   - the events published (title, weekday and date, time, venue), with links; a workshop series shows its
+     sessions ("4 sesiones: 8, 22, 29 nov y 6 dic");
    - **Lo que leí:** the account and where it came from (typed, the post the story reshares, the name at the
      top of the story, or completed from a known account when that name was cut off; ⚠️ when Instagram
      couldn't confirm it), how each date was worked out ("año deducido", "fecha deducida del día de la
@@ -111,6 +118,7 @@ comment of yours that the inbox understands (`pa_bailar/inbox.py`):
 | `/estado` | The status, as on the page |
 | `/historia` and screenshot ids (then `@cuenta` and notes, on the same line) | **Agregar historia**: the screenshots must have been uploaded by the page (it writes this request itself) |
 | `/ocultar story-…` | **Ocultar historia**: takes what that story published off the site (the id is in its answer) |
+| `/ocultar` and an event's id (`/ocultar programa-intensivo-8-nov`, or its link on the site) | **Ocultar evento**: takes that event off the site, whatever it came from (posts or stories); see "Ocultar evento" below |
 | A command without its link, or anything else on a request issue (the form, the page) | The list above |
 
 A command is a word starting with `/` at the start of a line (any case: `/Agregar` works too). Ordinary
@@ -133,6 +141,7 @@ From the repository root (`.env` has the keys):
 .venv\Scripts\python -m pa_bailar sweep --post https://www.instagram.com/p/<code>/ [--account @x] [--again]
 .venv\Scripts\python -m pa_bailar sweep --story <id> [<id>…] --story-dir <folder> [--account @x] [--notes "…"]
 .venv\Scripts\python -m pa_bailar sweep --hide-story story-<hash>
+.venv\Scripts\python -m pa_bailar sweep --hide-event <event id>
 ```
 
 `sweep --story` reads `<id>.jpg` (and `<id>.json`, the file's name and dates, if there) from the folder: on
@@ -152,12 +161,15 @@ The checks, in the order a post goes through the sweep:
 1. **Was the post analyzed?** The sweeps record every analyzed post (`processed_posts.json`) with what became
    of it:
    - **Está en el sitio:** it became events (links to them, with their dates: "13–15 nov 2026" for an event
-     over several days), or joined an event another post announced.
-   - **Ya pasó su fecha:** the event left the site after its date (its last day, over several days).
+     over several days, "4 sesiones: 8, 22, 29 nov y 6 dic" for a workshop series), or joined an event
+     another post announced.
+   - **Ya pasó su fecha:** the event left the site after its date (its last day, over several days; its last
+     session, for a workshop series).
    - **Gemini dijo que no es un evento:** with Gemini's reason. If it's wrong, **Agregar** reads it again
      without that first filter.
-   - **Se descartó a propósito:** an event that repeats (a weekly class) or without a clear date. The site only
-     lists one-time dated events.
+   - **Se descartó a propósito:** an event that repeats (a weekly class, or a course: more than 12 sessions,
+     more than 4 months, or sessions without their dates) or without a clear date. The site only lists
+     one-time dated events, and workshop series with every session dated (ARCHITECTURE.md, section 9.1).
    - **Gemini no pudo leerla**, or **se quitó a mano** (removed on purpose).
 2. **If it was never analyzed:** whose post is it? The link, or else the post's public page, says the
    account. When the public page names another author, the post is a collaboration: it's its author's,
@@ -194,7 +206,8 @@ The sweep workflow runs in single-post mode (`sweep --post`), one at a time with
    keeps its Flash-Lite read (adding it again doesn't redo it while its caption is the same), and the answer
    says "Flash no tenía cuota" instead of "se relee con Flash".
 3. Publishes through the usual data PR (it merges itself and the site deploys), and answers: the events it
-   became (with links and dates, a range for an event over several days), or why not (not an event, recurring, no date, no Gemini quota left today).
+   became (with links and dates, a range for an event over several days, the sessions of a workshop series),
+   or why not (not an event, recurring, no date, no Gemini quota left today).
 
 Such runs don't count for the health checks, and don't report to healthchecks.io.
 
@@ -224,9 +237,11 @@ The sweep workflow runs in story mode, one at a time with the sweeps:
 5. **The dates, worked out in code** (`stories.resolve_date`), from the day the screenshot was taken (its file
    name, `Screenshot_20261004-183012…`, else the file's date, else when it was uploaded): the next such date
    on or after it, the printed weekday settling the year (or the month, for "sábado 12"); "este sábado" is the
-   next Saturday; a weekly night ("todos los viernes") publishes only its next date. A weekday that doesn't
-   match the date makes the event low-confidence, with a doubt; a date more than 60 days ahead gets a doubt. An
-   event whose date has passed isn't published.
+   next Saturday; a weekly night ("todos los viernes") publishes only its next date. A workshop series' sessions
+   (each printed with its day and month, `stories.resolve_sessions`) take the year that makes the series the
+   earliest one not over yet, so a story shared after its first sessions still publishes it. A weekday that
+   doesn't match the date makes the event low-confidence, with a doubt; a date more than 60 days ahead gets a
+   doubt. An event whose date (a series: its last session) has passed isn't published.
 6. **The flyer:** each screenshot is cropped to Gemini's box, if it's plausible (at least 12% of the
    screenshot, shaped like a flyer), with 3% padding; otherwise 12% comes off the top and the bottom. Each event
    uses the crop of the screenshot that shows it best. Only the crop is published.
@@ -241,6 +256,22 @@ The sweep workflow runs in story mode, one at a time with the sweeps:
 announced disappears with its flyer, one other posts announce stays (without the story). The story is
 recorded as `hidden`; sharing the same screenshots again reads them again.
 
+**Ocultar evento** (`sweep --hide-event <id>`, `Sweep.hide_event`): takes one event off the site, whatever it came
+from: the button in "Series nuevas", `/ocultar <id>`, or the form's "Ocultar evento" (field Evento). The id is
+the last part of the event's link on the site (`/evento/<id>/`).
+- The event leaves `events.json` (and its flyers, when nothing else uses them). Its posts' records lose it, and
+  a post that announced nothing else is recorded as `hidden` ("Revisar" says it was taken off by hand).
+- It's kept in `state/hidden_events.json` (`models.HiddenEvent`: the event as it was, and when), so it stays
+  off: the sweeps don't publish it again from **the same posts** (a caption edit, a provisional read upgraded
+  to Flash) nor from **a later post of the same event** (a reminder of one session, a collaborator's post), as
+  the merging rules tell (`merging.matches_hidden`). A **genuinely new event**, one those rules don't match
+  (another date, another title or time), is published as usual, even from the same account.
+- If the run that hid it couldn't get its data PR merged, the next sweep takes it off anyway (events in
+  `hidden_events.json` are never loaded).
+- **To publish it again:** Agregar or Volver a leer one of its posts (by hand, whoever asks wants it): it comes
+  back with its old link. Its id isn't given to another event meanwhile.
+- Forgotten 60 days after its last day, like the events themselves.
+
 ## How it works
 
 ```mermaid
@@ -249,7 +280,7 @@ flowchart LR
     G["GitHub app<br/>(issue or comment)"] --> I
     I -- "issues / issue_comment" --> A["admin workflow<br/>admin inbox"]
     A -- "status, why, add-account" --> C["Comment with<br/>the answer"]
-    A -- "add-post, add-story, hide-story:<br/>gh workflow run" --> S["daily-sweep workflow<br/>sweep --post / --story / --hide-story"]
+    A -- "add-post, add-story, hide-story, hide-event:<br/>gh workflow run" --> S["daily-sweep workflow<br/>sweep --post / --story / --hide-story / --hide-event"]
     S -- "story screenshots (OIDC)" --> P
     S -- "data PR" --> SITE["Site"]
     S --> C
@@ -261,7 +292,8 @@ flowchart LR
   isn't a request: no label, no answer), labels the issue `admin`, comments the answer and closes the issue.
   An added account is committed to `main` (`accounts.txt`). Adding a post starts the sweep workflow with
   `post_url`, `account` and `issue`, and `again` (true for Volver a leer); adding a story with `story` (the
-  screenshots' ids), `account`, `notes` and `issue`; hiding one with `hide` and `issue`. Requests take turns, first come
+  screenshots' ids), `account`, `notes` and `issue`; hiding a story or an event with `hide` (its id) and
+  `issue`. Requests take turns, first come
   first served: each waits until no sweep is running or waiting and no earlier `admin` run is going (GitHub
   would cancel a second queued sweep), up to 50 minutes; past that it answers that it didn't start. The
   workflow has no concurrency group either, for the same reason: several comments on one issue are all
@@ -270,11 +302,12 @@ flowchart LR
   data PR and state save; it commits an added account and answers on the issue. With `story`: the
   `story-images` job downloads the screenshots (the only job besides `story-cleanup` that may ask GitHub for an
   identity token), then `sweep --story`, and `story-cleanup` deletes them from KV after a successful run. With
-  `hide`: `sweep --hide-story`. If its `request` check fails (not exactly one of `post_url`, `story` or `hide`,
+  `hide`: `sweep --hide-story` for a story's id (`story-<16 hex>`), `sweep --hide-event` for an event's id
+  (lowercase words joined by hyphens, at most 120 characters). If its `request` check fails (not exactly one of `post_url`, `story` or `hide`,
   values of the wrong shape, or the issue isn't an open admin request), it answers on the issue when that issue
   is an open `admin` issue of yours.
 - **`.github/ISSUE_TEMPLATE/admin.yml`:** the form (Acción: Revisar, Agregar, Volver a leer, Agregar cuenta,
-  Estado or Ocultar historia; Enlace; Cuenta; Historia). The page writes its issues the same way, and also
+  Estado, Ocultar historia or Ocultar evento; Enlace; Cuenta; Historia; Evento). The page writes its issues the same way, and also
   "Agregar historia" (Capturas, Cuenta, Notas), which isn't in the form: its screenshots come from the page.
 
 ## The admin page
@@ -283,7 +316,8 @@ flowchart LR
   Cloudflare deploys it from this repository's `admin-web/` folder on every push to `main`.
 - **Files:**
   - `admin-web/wrangler.jsonc`: the Worker's settings. Its `name` must match the Worker's name in Cloudflare.
-  - `admin-web/public/`: the page (`index.html`, `app.js`, `admin.css`), with no data in it, and what
+  - `admin-web/public/`: the page (`index.html`, `app.js`, `admin.css`, and `render.js`: the parts that only
+    turn data into HTML, such as the new series card, escaped and tested in Node), with no data in it, and what
     makes it installable: `manifest.webmanifest` (name, colors, icons in `icons/`) with a `share_target`:
     Android posts what's shared (a link's text, up to 4 images) to `/share`. `sw.js`, the page's service
     worker, answers that in the browser: it keeps shared images in the browser's Cache Storage (where
@@ -302,7 +336,7 @@ flowchart LR
     - `/share`: what Android shares when `sw.js` isn't running yet (the first share after installing): a
       link goes on to the page, images get "share again".
   - `admin-web/test/worker.test.mjs`: the Worker's tests (`node --test "admin-web/test/*.test.mjs"`, run by
-    `ci`), with fakes for GitHub, its keys and KV.
+    `ci`), with fakes for GitHub, its keys and KV; `render.test.mjs`, the page's rendering (escaping included).
 - **Story screenshots (KV):** the KV namespace bound as `UPLOADS` (`wrangler.jsonc`) keeps them as the page
   sent them (the Worker does no image work: its CPU limit is 10 ms), each with its file name and date, under
   `upload:<id>` with a 7-day expiry.

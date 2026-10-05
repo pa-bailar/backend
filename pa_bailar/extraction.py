@@ -36,11 +36,15 @@ def _format_context(account: str, post: Post, published: datetime) -> dict[str, 
     }
 
 
+def _known_days(event: StoredEvent) -> str:
+    """ "2026-11-13", "2026-11-13 → 2026-11-15", or a workshop series' first → last day and its sessions."""
+    days = f"{event.date}{f' → {event.end_date}' if event.end_date else ''}"
+    return f"{days} (sessions: {', '.join(event.session_dates)})" if event.sessions else days
+
+
 def _known_list(known_events: list[StoredEvent]) -> str:
     return "\n".join(
-        f"- {event.id} | {event.date}{f' → {event.end_date}' if event.end_date else ''} | "
-        f"{event.start_time or '?'} | {event.title}"
-        for event in known_events
+        f"- {event.id} | {_known_days(event)} | {event.start_time or '?'} | {event.title}" for event in known_events
     )
 
 

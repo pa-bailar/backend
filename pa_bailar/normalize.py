@@ -3,10 +3,11 @@
 import re
 from collections.abc import Sequence
 from datetime import date, time
+from itertools import pairwise
 
 from . import config
-from .models import STYLES, ExtractedEvent
-from .text import fold
+from .models import STYLES, ExtractedEvent, Session
+from .text import WEEKDAYS, fold
 
 _TIME_PATTERN = re.compile(r"^(\d{1,2}):(\d{2})$")
 
@@ -139,20 +140,82 @@ def parse_end_date(start: str | None, end: str | None, doubts: list[str]) -> str
     return end
 
 
+COURSE_DOUBT = f"más de {config.MAX_SERIES_SESSIONS} sesiones o más de 4 meses: es un curso"
+
+
+def parse_sessions(
+    sessions: Sequence[Session] | None, start_time: str | None, end_time: str | None, doubts: list[str]
+) -> list[Session] | None:
+    """A workshop series' sessions as stored: real dates, in order, without repeats, each with valid times (the
+    event's own when a session gives none: "domingos 8, 22 y 29 de 2 a 5 p. m."). None when fewer than two are
+    left (not a series). The caller checks the count and the span (fit_sessions)."""
+    by_date: dict[str, Session] = {}
+    for session in sessions or []:
+        day = parse_iso_date(session.date)
+        if day and day not in by_date:
+            session_start, session_end = parse_time(session.start_time), parse_time(session.end_time)
+            if session.start_time and not session_start:
+                doubts.append(f"Hora de inicio no reconocida: {session.start_time}")
+            by_date[day] = Session(
+                date=day,
+                start_time=session_start or (None if session.start_time else start_time),
+                end_time=session_end or (None if session.end_time else end_time),
+            )
+    ordered = [by_date[day] for day in sorted(by_date)]
+    return ordered if len(ordered) >= config.MIN_SERIES_SESSIONS else None
+
+
+def _consecutive(sessions: list[Session]) -> bool:
+    days = [date.fromisoformat(session.date) for session in sessions]
+    return all((later - earlier).days == 1 for earlier, later in pairwise(days))
+
+
+def fit_sessions(update: dict[str, object], sessions: list[Session] | None, doubts: list[str]) -> None:
+    """Make a workshop series' event follow its sessions (`update` holds the event's parsed fields): `date` and
+    `end_date` the first and last session's, the times and weekday the first session's. Sessions on consecutive
+    days are an event over several days instead (date and end_date, no sessions), and too many sessions or too long
+    a span (MAX_SERIES_SESSIONS, MAX_SERIES_DAYS) are a course: recurring, not published."""
+    update["sessions"] = None
+    if not sessions:
+        return
+    first, last = date.fromisoformat(sessions[0].date), date.fromisoformat(sessions[-1].date)
+    if _consecutive(sessions) and len(sessions) <= config.MAX_EVENT_DAYS:
+        update |= {"date": sessions[0].date, "end_date": sessions[-1].date}
+        return
+    if len(sessions) > config.MAX_SERIES_SESSIONS or (last - first).days + 1 > config.MAX_SERIES_DAYS:
+        doubts.append(COURSE_DOUBT)
+        update["is_recurring"] = True
+        return
+    update |= {
+        "sessions": sessions,
+        "date": sessions[0].date,
+        "end_date": sessions[-1].date,
+        "start_time": sessions[0].start_time,
+        "end_time": sessions[0].end_time,
+        "weekday": WEEKDAYS[first.weekday()],
+    }
+
+
 def normalize_event(event: ExtractedEvent) -> ExtractedEvent:
-    """A copy with valid dates and times (invalid ones become None), clean styles and no negative prices."""
+    """A copy with valid dates and times (invalid ones become None), clean styles and no negative prices. A workshop
+    series' dates and times follow its sessions (fit_sessions)."""
     doubts = list(event.doubts)
     start_time, end_time = parse_time(event.start_time), parse_time(event.end_time)
     if event.start_time and not start_time:
         doubts.append(f"Hora de inicio no reconocida: {event.start_time}")
     start = parse_iso_date(event.date)
+    sessions = parse_sessions(event.sessions, start_time, end_time, doubts)
+    days: dict[str, object] = {
+        "date": start,
+        "end_date": None if sessions else parse_end_date(start, event.end_date, doubts),
+        "start_time": start_time,
+        "end_time": end_time,
+    }
+    fit_sessions(days, sessions, doubts)
     return event.model_copy(
         update={
             "title": " ".join(event.title.split()),
-            "date": start,
-            "end_date": parse_end_date(start, event.end_date, doubts),
-            "start_time": start_time,
-            "end_time": end_time,
+            **days,
             "styles": normalize_styles(event.styles),
             # The site's check-data.mjs requires a label: a price without one isn't shown.
             "prices": [price for price in event.prices if price.amount_cop >= 0 and price.label.strip()],

@@ -17,7 +17,7 @@ from typing import Any, Literal
 
 from . import config, links, storage, sweep_state
 from .instagram import InstagramError, Post, is_not_visible, published_at
-from .text import clock, dates_label
+from .text import clock, event_dates_label
 
 Mark = Literal["ok", "no", "info"]
 Suggestion = Literal["add-post", "none"]
@@ -36,7 +36,8 @@ class Diagnosis:
     checks: list[tuple[Mark, str]] = field(default_factory=list)
     verdict: str = ""
     suggestion: Suggestion = "none"
-    # {title, date, url} of the events on the site; date: '2026-11-13', or '13–15 nov 2026' over several days
+    # {title, date, url} of the events on the site; date: '2026-11-13', or '13–15 nov 2026' over several days, or
+    # '4 sesiones: 8, 22, 29 nov y 6 dic' for a workshop series
     events: list[dict[str, str]] = field(default_factory=list)
 
     def check(self, mark: Mark, text: str) -> None:
@@ -131,7 +132,9 @@ def _explain_record(
             result.events = [
                 {
                     "title": e["title"],
-                    "date": dates_label(e["date"], e.get("end_date")),
+                    "date": event_dates_label(
+                        e["date"], e.get("end_date"), [session["date"] for session in e.get("sessions") or []]
+                    ),
                     "url": links.event_url(e["id"]),
                 }
                 for e in upcoming
@@ -149,6 +152,10 @@ def _explain_record(
         why = "; ".join(DISCARD_DETAIL.get(part, part) for part in detail.split(", ") if part) or "no era publicable"
         result.check("no", f"Era un evento, pero no se publicó: {why}.")
         result.verdict = "Se descartó a propósito. Si es un evento único con fecha, agregarla la vuelve a leer."
+        result.suggestion = "add-post"
+    elif outcome == "hidden":
+        result.check("no", "Se quitó del sitio a mano (Ocultar): los barridos no lo vuelven a publicar.")
+        result.verdict = "No está en el sitio a propósito. Agregarla lo publica de nuevo."
         result.suggestion = "add-post"
     elif outcome == "rejected":
         result.check("no", f"Gemini no pudo leerla: {record.get('reason', '')}")

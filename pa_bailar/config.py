@@ -31,6 +31,8 @@ PROCESSED_POSTS_FILE = STATE_DIR / "processed_posts.json"
 ACCOUNT_STATE_FILE = STATE_DIR / "accounts.json"
 GEMINI_USAGE_FILE = STATE_DIR / "gemini_usage.json"
 RUN_HISTORY_FILE = STATE_DIR / "run_history.json"  # each sweep in short, for the health checks (health.py)
+# Events taken off the site by hand ("Ocultar", Sweep.hide_event): never published again from the same posts.
+HIDDEN_EVENTS_FILE = STATE_DIR / "hidden_events.json"
 
 # ---------- Instagram (Meta Graph API) ----------
 GRAPH_API_URL = "https://graph.facebook.com/v26.0"
@@ -118,6 +120,14 @@ MAX_RUN_MINUTES = 30
 # Events over several consecutive days (a congress, a festival weekend) have an end_date: at most this many
 # days in all. A longer range is dropped as a misreading (normalize.py), and the event keeps its first day.
 MAX_EVENT_DAYS = 7
+# A workshop series (a finite program on separate, non-consecutive dates, every one of them written in the post: a
+# "programa intensivo" on four Sundays) is one event with its `sessions`: from MIN to MAX sessions, the last one at
+# most MAX_SERIES_DAYS days in all after the first (4 months). Anything longer is a course: not published.
+MIN_SERIES_SESSIONS = 2
+MAX_SERIES_SESSIONS = 12
+MAX_SERIES_DAYS = 123
+# New series are listed for a look in `admin status` (and the admin page) this long after first published.
+NEW_SERIES_DAYS = 14
 
 # ---------- Retention ----------
 # Events whose last day was more than this many days ago are deleted, and their flyers with them (git history

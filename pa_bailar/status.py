@@ -6,6 +6,7 @@ Plain reading of what the sweeps record (no AI, no Gemini requests):
   - Instagram: whether the token works and how much of Instagram's quota is used (one call, optional);
   - accounts followed, those still in their first, deeper sweep (accounts.txt, accounts.json);
   - analyzed posts, provisional ones waiting for Flash, upcoming events (processed_posts.json, events.json);
+  - new workshop series to look at, each with a one-tap "Ocultar" (new_series);
   - discovery progress, on your computer (private/discovery.json).
 `collect` gathers it as plain data (JSON for the admin page); `markdown` writes it for people, in Spanish.
 """
@@ -14,11 +15,11 @@ from collections.abc import Callable
 from datetime import datetime, time, timedelta
 from typing import Any
 
-from . import config, discovery, storage, sweep_state
+from . import config, discovery, links, storage, sweep_state
 from .gemini import daily_budget, quota_day, quota_reset
 from .models import AccountState
 from .pipeline import hours_overdue
-from .text import clock
+from .text import clock, sessions_label
 
 RECENT_RUNS = 5
 WEEKDAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
@@ -61,6 +62,53 @@ def check_instagram() -> dict[str, Any]:
     except (InstagramError, OSError, SystemExit) as error:
         return {"ok": False, "app_usage_percent": None, "error": str(error)}
     return {"ok": True, "app_usage_percent": client.app_usage_percent, "error": None}
+
+
+def _first_published(event: dict[str, Any], processed: dict[str, dict[str, Any]]) -> datetime | None:
+    """When the event was first published: the earliest analysis of a post that became or joined it, else (records
+    forgotten) its earliest post's date."""
+    times = [
+        datetime.fromisoformat(record["processed_at"])
+        for record in processed.values()
+        if event.get("id") in (record.get("event_ids") or []) and record.get("processed_at")
+    ]
+    if not times:
+        times = [
+            datetime.fromisoformat(media["published"]) for media in event.get("media", []) if media.get("published")
+        ]
+    return min(times) if times else None
+
+
+def new_series(
+    events: list[dict[str, Any]], processed: dict[str, dict[str, Any]], now: datetime
+) -> list[dict[str, Any]]:
+    """Workshop series (events with `sessions`) first published in the last NEW_SERIES_DAYS and not over yet,
+    newest first: a new kind of event, worth a look. Each with its sessions ("4 sesiones: 8, 22, 29 nov y 6 dic"),
+    where it came from (its posts' links, or a story's profile) and its link on the site, for "Ocultar"."""
+    since = now - timedelta(days=config.NEW_SERIES_DAYS)
+    today = now.date().isoformat()
+    found = []
+    for event in events:
+        dates = [session["date"] for session in event.get("sessions") or []]
+        first = _first_published(event, processed)
+        if not dates or dates[-1] < today or first is None or first < since:
+            continue
+        found.append(
+            {
+                "id": event["id"],
+                "title": event.get("title", ""),
+                "account": event.get("account", ""),
+                "sessions": sessions_label(dates),
+                "dates": dates,
+                "url": links.event_url(event["id"]),
+                "first_published": first.isoformat(timespec="minutes"),
+                "sources": [
+                    {"kind": "story" if media.get("media_type") == "STORY" else "post", "link": media.get("permalink")}
+                    for media in event.get("media", [])
+                ],
+            }
+        )
+    return sorted(found, key=lambda item: item["first_published"], reverse=True)
 
 
 def collect(
@@ -122,6 +170,7 @@ def collect(
             "upcoming": len(upcoming),
             "low_confidence": sum(1 for event in upcoming if event.get("confidence") == "low"),
         },
+        "new_series": new_series(events or [], processed, now),
         "discovery": None
         if not discovered
         else {
@@ -175,10 +224,29 @@ def _run_line(run: dict[str, Any], now: datetime) -> str:
     return f"- {mark} {when}: " + ", ".join(part for part in parts if part) + link
 
 
+def _series_line(item: dict[str, Any]) -> str:
+    """A new series for people: its link, account (in code: no GitHub mention), sessions, posts, and how to hide it."""
+    sources = [
+        f"[{'historia' if source['kind'] == 'story' else 'publicación'}]({source['link']})"
+        for source in item["sources"]
+        if source.get("link")
+    ]
+    origin = f" · de {', '.join(sources)}" if sources else ""
+    return (
+        f"- [{item['title']}]({item['url']}) · `@{item['account']}` · {item['sessions']}{origin} · "
+        f"`/ocultar {item['id']}`"
+    )
+
+
 def markdown(status: dict[str, Any]) -> str:
     """The status for people (GitHub summaries, issue replies, the terminal), in Spanish."""
     now = datetime.fromisoformat(status["generated_at"])
     lines = ["## Estado de Pa' Bailar", ""]
+
+    if series := status.get("new_series"):
+        lines += ["### Series nuevas (revisar)", ""]
+        lines += [_series_line(item) for item in series]
+        lines += ["", "Si una no está bien: `/ocultar` y su código la quita del sitio (o Ocultar, en la página).", ""]
 
     sweeps = status["sweeps"]
     lines += ["### Barridos", ""]
