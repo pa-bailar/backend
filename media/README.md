@@ -79,6 +79,7 @@ ace = `D:/AI/ace-step/.venv/Scripts/python`. Each tool's docstring has the detai
 | `review.py sheet <mp4> [--at …]` | .venv | a keyframe strip with the safe zones | `<mp4>-sheet.png` |
 | `review.py compare <a> <b>` | .venv | side by side, labeled, for the owner | `<a>-vs-<b>.mp4` |
 | `review.py diff <a> <b>` | .venv | PSNR per frame (∞ = identical): a refactor must not change a render | (prints) |
+| `clean.py [--yes]` | .venv | lists old renders and working files (stills, drafts, sheets, scratch folders; older versions of each deliverable in the teaser archive), then with `--yes` moves them to the Recycle Bin; the latest renders and anything git tracks stay | (the Recycle Bin) |
 
 ## `video.json`
 

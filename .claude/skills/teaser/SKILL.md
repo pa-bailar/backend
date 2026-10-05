@@ -37,5 +37,7 @@ the tools, the library's building blocks and the workflow, written so you don't 
   and in the voice.
 - Screens and events date a video: say its shelf life when you hand it over.
 - Never print `.env` or keys. The TTS tool reads `MEDIA_GEMINI_API_KEY` itself.
+- Old renders pile up: after the owner settles on a version, run `media/tools/clean.py` (a list), then `--yes`
+  (the Recycle Bin, restorable).
 - Renders, the cache and `public/<video>/` aren't committed. Commit the folder's code, `video.json`, `data/*.json`
   and the notes. Changes go through a branch and a PR like any backend change (the docs sync runs before the PR).
