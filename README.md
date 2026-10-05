@@ -45,10 +45,11 @@ sweep writes into `..\pa-bailar-web\data`; set `DATA_DIR` to change it).
 
 ## Setup
 
-Secrets live in `.env` (repository root, git-ignored, never commit it): copy `.env.example`, which lists every
-name with what it's for (`GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `META_APP_ID`, `META_APP_SECRET`, the
-optional `OPENROUTER_API_KEY` and `GEMINI_LITE_ONLY`, and the video toolkit's). The admin page's secrets for local
-development go in `admin-web/.dev.vars` (copy `admin-web/.dev.vars.example`).
+Secrets live in `.env` (repository root, git-ignored, never commit it): copy `.env.example`, which lists the keys
+with what each is for (`GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `META_APP_ID`, `META_APP_SECRET`,
+`MEDIA_GEMINI_API_KEY`, `OPENROUTER_API_KEY`), and below them, commented out, the optional settings that only change
+a default. The admin page's secrets for local development go in `admin-web/.dev.vars` (copy
+`admin-web/.dev.vars.example`).
 
 First time (from the repository root):
 
