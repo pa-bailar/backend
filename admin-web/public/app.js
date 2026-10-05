@@ -82,6 +82,29 @@ function geminiCard(gemini) {
     <p class="small muted">La cuota se reinicia ${when(gemini.resets_at)}</p>${liteOnly}</section>`;
 }
 
+// The last resort (Groq, OpenRouter: status.py), when Gemini runs out: shown only on a day it was used.
+function externalCard(external) {
+  const used = (external?.providers ?? []).filter((provider) => provider.used);
+  if (!used.length) return "";
+  const rows = used
+    .map((provider) => {
+      const share = provider.budget ? Math.min(100, Math.round((provider.used / provider.budget) * 100)) : 100;
+      const full = provider.used >= provider.budget;
+      const answered = Object.entries(provider.answered ?? {})
+        .map(([model, count]) => `<code>${escapeHtml(model)}</code> ${escapeHtml(count)}`)
+        .join(", ");
+      return `<div class="model">
+        <div class="model__row"><span><code>${escapeHtml(provider.name)}</code> <span class="muted">solicitudes</span></span>
+          <span>${escapeHtml(provider.used)} / ${escapeHtml(provider.budget)}${full ? ` <span class="warn">agotado</span>` : ""}</span></div>
+        <div class="meter${full ? " full" : ""}"><i data-share="${escapeHtml(share)}"></i></div>
+        ${answered ? `<p class="small muted">Respuestas: ${answered}</p>` : ""}</div>`;
+    })
+    .join("");
+  return `<section class="card"><h2>Último recurso hoy</h2>
+    <p class="small"><span class="warn">⚠️</span> Gemini se quedó sin cuota: estos modelos leyeron en su lugar. Sus lecturas son provisionales.</p>
+    ${rows}<p class="small muted">Se reinicia ${when(external.resets_at)}</p></section>`;
+}
+
 function instagramCard(instagram) {
   if (!instagram) return "";
   const text = instagram.ok
@@ -656,6 +679,7 @@ function statusCards(result) {
     const stats = [
       sweepsCard(status.sweeps),
       geminiCard(status.gemini),
+      externalCard(status.external),
       instagramCard(status.instagram),
       accountsCard(status),
       `<p class="small muted">Datos del barrido de ${when(status.generated_at)}</p>`,

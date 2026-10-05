@@ -34,7 +34,8 @@ Pa' Bailar has no server. Everything runs on free services:
 
 - the sweep runs on **GitHub Actions**;
 - the site is static files on **GitHub Pages**;
-- the reading of posts is done by **Gemini** on Google AI Studio's free tier.
+- the reading of posts is done by **Gemini** on Google AI Studio's free tier (with Groq and OpenRouter's free
+  models as the last resort when its quota runs out, section 3.10).
 
 ```mermaid
 flowchart LR
@@ -146,7 +147,7 @@ Every service the system depends on. All of them are on free plans.
 | **Models and roles** | `gemini-3.5-flash-lite` does triage, provisional extraction and discovery. `gemini-3.8-flash`, then `gemini-3.5-flash`, do extraction (`config.TRIAGE_MODELS`, `EXTRACTION_MODELS`, `PROVISIONAL_MODELS`) |
 | **Free quotas** | Flash-Lite: 15 requests/minute and 500/day. Each Flash model: 5/minute and 20/day (`config.MODEL_LIMITS`, read from AI Studio on 2026-10-02). Each model has its own quota. Days reset at **midnight Pacific time** |
 | **Cost** | Free (the free tier may use prompts to improve Google's products; posts are public anyway) |
-| **If it fails** | The model is out of quota: the next model is used, and if all are out, the post stays pending. A server error, a timeout or a dropped connection: retried (3 attempts per model, then the next model; if none answers, the post waits for the next run). The request itself is rejected: the post is recorded as rejected and never retried (section 7) |
+| **If it fails** | The model is out of quota: the next model is used, and if all are out, the last resort (section 3.10) if its keys are set, else the post stays pending. A server error, a timeout or a dropped connection: retried (3 attempts per model, then the next model; if none answers, the post waits for the next run). The request itself is rejected: the post is recorded as rejected and never retried (section 7) |
 
 ### 3.3 GitHub
 
@@ -226,6 +227,19 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
   CI lints and unit-tests its Python tools with the rest of the repository, and its `media` job type-checks the
   Remotion code when `media/` changes (no secrets).
 
+### 3.10 Groq and OpenRouter: the last resort
+
+| | |
+|---|---|
+| **What for** | Reading posts when Gemini can't: every Gemini model for the step is out of today's quota or not available to the key. Triage when Flash-Lite is out; extraction when Flash and Flash-Lite are. Never before Gemini, and never for stories or upgrades (section 7.3) |
+| **API** | Both are OpenAI-compatible: `POST …/chat/completions` with the prompt's text and the images as base64 data URLs (`pa_bailar/external.py`, `config.EXTERNAL_PROVIDERS`). Plain `httpx`, no SDK |
+| **Keys** | `GROQ_API_KEY` (console.groq.com) and `OPENROUTER_API_KEY` (openrouter.ai). Both optional: a provider without its key is skipped, so without either the sweep works as before |
+| **Models** | Groq: `qwen/qwen3.8-27b`, its only vision model, in JSON mode with the schema in the prompt. OpenRouter: `google/gemma-4-31b-it:free` and `google/gemma-4-26b-a4b-it:free` (JSON mode, the schema in the prompt; one request with its `models` list), then `openrouter/free`, a router to a random free model that takes the schema (structured output: the schema as `response_format`, strict, with `provider.require_parameters`). Every answer is checked against the same Pydantic schemas as Gemini's |
+| **Free limits** | Groq (2026-10-05): 30 requests/minute and 1,000/day, but 8,000 tokens/minute and 200,000/day; each image counts as 2,048 input tokens, at most 3 images per request. OpenRouter without credit: 20 requests/minute and 50/day for all free models together. Daily limits reset at midnight UTC (7:00 p.m. Bogotá) |
+| **Our budgets** | Groq: 900 requests and 180,000 tokens a day. OpenRouter: 40 requests a day. Kept under the free limits, for manual runs and the bake-off |
+| **Cost** | Free. Free models get pulled or paywalled without notice: `admin bakeoff` re-checks them (section 12.3) |
+| **If it fails** | One request per model and post, a 60-second timeout, no retries: a busy model (a 429 from the model's provider, a 5xx, a timeout) or an answer that isn't the schema's JSON moves on to the next model, and when none answers, the post waits for the next run as it would without them. A model that fails twice in a run is set aside for the rest of it, and one answering 404 (gone, or no longer free) at once. A key refused (401), credit needed (402) or a blocked request (403) turns that provider off for the run (a notice; a warning after 3 runs) |
+
 ---
 
 ## 4. Secrets and settings
@@ -238,6 +252,8 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 | `META_APP_ID`, `META_APP_SECRET` | Secret | Local `.env` only | `refresh-token` | Never on GitHub: only the token command needs them |
 | `APP_PRIVATE_KEY` | Secret | GitHub Actions secret (the `.pem` file stays in `private/`) | "Get a token" step | pa-bailar-bot's private key, used to mint a short-lived installation token |
 | `APP_ID` | Variable | GitHub Actions variable | "Get a token" step | `5164772` |
+| `GROQ_API_KEY` | Secret (optional) | GitHub Actions secret, local `.env` | Sweep step, `admin bakeoff` | Groq's key: the first of the last resort (section 3.10). Unset: Groq is never used |
+| `OPENROUTER_API_KEY` | Secret (optional) | GitHub Actions secret, local `.env` | Sweep step, `admin bakeoff` | OpenRouter's key: the last resort after Groq (section 3.10). Unset: OpenRouter is never used |
 | `GEMINI_LITE_ONLY` | Variable | GitHub Actions variable (optional) | Sweep step | `1`: Flash-Lite also extracts, as final results (`config.LITE_ONLY`). For when Flash isn't available to the key; unset otherwise |
 | `HEALTHCHECK_URL` | Secret | GitHub Actions secret | "Report to the health check" step | The check's ping URL. Optional: without it the step does nothing |
 | `GITHUB_TOKEN` | Automatic | Created by GitHub per run | daily-sweep: the `request` job (reads the admin issue, answers it if adding can't start), `story-images` (answers if the screenshots can't be downloaded), the open-PR check (reads the public site), the state save, the account commit (`main`), the health issue, the answer on the admin issue. admin: labels and answers the issue, commits an added account, starts the sweep | daily-sweep: `contents: write` and `issues: write` (`request` and `story-images`: `contents: read` and `issues: write`). admin: `contents: write`, `issues: write`, `actions: write`. Only handed to the steps that need it |
@@ -335,7 +351,7 @@ sequenceDiagram
 | 6a | Get the story's screenshots | `story` | Downloads the `story-images` job's artifact into `stories/` | |
 | 6b | Make sure ffmpeg is installed | Always | For videos' preview clips (`clips.py`); usually already on the runner | |
 | 6c | Make sure the last data PR merged | Always | Fails if a `data` PR is still open in the site repository: the sweep reads the events from the site's `main`, so sweeping past an unmerged PR would lose its events for good (their posts are already marked analyzed). Merge or fix it first | `GITHUB_TOKEN` (reads the public site repository) |
-| 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x] [--again]`, one post by hand (`--again` from the `again` input, "Volver a leer"). With `story`: `sweep --story <ids> --story-dir stories [--account=x] --notes=…` (the screenshots from `story-images`, step 6a). With `hide`: `sweep --hide-story <story id>`, or `sweep --hide-event <event id>`. Otherwise `python -m pa_bailar sweep --days N [--all]` (N from the `days` input, 7 by default, at most 30; `--all` from `all_accounts`). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
+| 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x] [--again]`, one post by hand (`--again` from the `again` input, "Volver a leer"). With `story`: `sweep --story <ids> --story-dir stories [--account=x] --notes=…` (the screenshots from `story-images`, step 6a). With `hide`: `sweep --hide-story <story id>`, or `sweep --hide-event <event id>`. Otherwise `python -m pa_bailar sweep --days N [--all]` (N from the `days` input, 7 by default, at most 30; `--all` from `all_accounts`). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, and the optional `GROQ_API_KEY` and `OPENROUTER_API_KEY` (this step only) |
 | 8 | Write the status for the admin page | Unless cancelled; its failure doesn't fail the run | `python -m pa_bailar admin status --json` → `state/status.json`, saved with the state (one Graph API call, no Gemini). The admin page reads it | `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 9 | Get a token for the site repository | Unless cancelled | Mints a pa-bailar-bot installation token for the site repository only | `APP_ID`, `APP_PRIVATE_KEY` |
 | 10 | Open a data PR | Unless cancelled | Only if `data/events.json` or `data/flyers` changed (clips change `events.json` too) (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled. It runs before the state is saved, so the state never marks posts as analyzed whose events didn't leave the runner | App token |
@@ -484,7 +500,10 @@ flowchart TD
     IMG -->|fails| PEND
     IMG --> TR["Triage: Flash-Lite<br/>caption + first image (512 px)"]
     TR -->|"not an event"| REC["Record as analyzed"]
-    TR -->|"Flash-Lite out of<br/>today's quota"| PEND
+    TR -->|"Flash-Lite out of<br/>today's quota"| TLR["Triage: Groq, then OpenRouter<br/>(the last resort, if their keys are set)"]
+    TLR -->|"not an event"| REC
+    TLR -->|"event"| EX
+    TLR -->|"none could answer"| PEND
     TR -->|"event, or triage failed<br/>(busy, timeout)"| EX["Extraction: Flash<br/>every image + caption + this account's known events"]
     EX -->|"Flash out of quota"| PROV["Extraction: Flash-Lite<br/>marked provisional"]
     EX -->|"rejected by Gemini (4xx),<br/>or its answer blocked"| REJ["Record as rejected<br/>never retried"]
@@ -492,6 +511,9 @@ flowchart TD
     EX -->|"no model could answer"| PEND
     EX --> ST["Store (6.3)"]
     PROV --> ST
+    PROV -->|"Flash-Lite out of quota too"| LAST["Extraction: Groq, then OpenRouter<br/>marked provisional (if their keys are set)"]
+    LAST --> ST
+    LAST -->|"none could answer"| PEND
     UP --> ST
 ```
 
@@ -501,9 +523,9 @@ its caption or Gemini's reason says they're cancelled or postponed ("CANCELADO",
 `pipeline/base.py`, `_says_cancelled`), its events leave the site even when other posts announce them too, if they're its
 own account's (the account that announced them first); another account's event stays, with low confidence and
 a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for review (section 11.1)
-(`Sweep._take_down_cancelled`). When Flash-Lite is out of today's quota,
-new posts wait for the next run instead of going straight to Flash: skipping the filter would spend Flash's
-20 requests on posts that mostly aren't events. A triage that fails for another reason (busy, a timeout) lets
+(`Sweep._take_down_cancelled`). When Flash-Lite is out of today's quota, the triage goes to the last resort
+(section 7.3), and if it can't answer either (or has no keys), new posts wait for the next run instead of going
+straight to Flash: skipping the filter would spend Flash's 20 requests on posts that mostly aren't events. A triage that fails for another reason (busy, a timeout) lets
 the extraction decide.
 
 Triage exists to save the scarce Flash quota (20 a day per model). Most posts aren't events, and a
@@ -672,6 +694,51 @@ flowchart TD
   timeouts and dropped connections as httpx's own errors (`httpx.TransportError`, neither an `APIError` nor an
   `OSError`): the pool retries them like a busy server, and if no model answers, the post waits like any
   failure (`pipeline.RETRYABLE_ERRORS`; an add-post request answers "Inténtalo de nuevo en un rato").
+
+### 7.3 The last resort: Groq and OpenRouter
+
+`pa_bailar/external.py` (`ExternalTier`), called by `EventExtractor` (`extraction.py`). The whole chain:
+
+| Step | In order | Provisional? |
+|---|---|---|
+| Triage | Flash-Lite → Groq → OpenRouter | (a yes/no) |
+| Extraction | Flash (two models) → Flash-Lite → Groq → OpenRouter | Flash-Lite's and the last resort's, always |
+| Lite-only mode | Flash-Lite → Groq → OpenRouter | The last resort's (re-read with Flash-Lite) |
+| Upgrade of a provisional post | Flash only | No |
+| Story (admin tools) | Flash → Flash-Lite | Never the last resort: a story isn't read again, so its reading would stay |
+
+- **Only when Gemini is out:** the last resort is asked only when the Gemini models for the step raised
+  `QuotaExhaustedError` (all out of today's quota or not available to the key). A busy Gemini (5xx, timeouts)
+  or a rejected request keeps today's behavior: retried next run, or recorded as rejected. A triage that falls
+  through to the last resort and still gets no answer leaves the post waiting, as when Flash-Lite is out today.
+- **Off without keys:** each provider needs its key (`GROQ_API_KEY`, `OPENROUTER_API_KEY`); without both, nothing
+  changes. Lite-only mode keeps them as the last resort after Flash-Lite.
+- **Always provisional:** an extraction from the last resort is stored like Flash-Lite's provisional ones, and
+  upgraded with Flash on a later run when there's quota (section 6.2). Its record names the model with its
+  provider, `groq:qwen/qwen3.8-27b` or `openrouter:google/gemma-4-31b-it:free`, and `admin why` shows it.
+- **Fail fast:** one request per model and post, a 60-second timeout (`EXTERNAL_TIMEOUT_SECONDS`), no retries and no
+  waiting on a busy model. On OpenRouter one request names the models of the same output mode (`models`), and
+  OpenRouter itself tries the next one when a model is rate-limited or down; the answer says which one replied.
+- **Groq's tokens:** each request's tokens are estimated before it's sent (its text / 4, 2,048 per image, 800 for
+  the answer; the real count from the answer replaces it) and kept in a one-minute window. When the window is full
+  for longer than 15 seconds (`EXTERNAL_MAX_WAIT_SECONDS`), Groq is skipped for that post. It gets the first images,
+  at most 3 and as many as fit in a minute's tokens: with the extraction prompt and its schema, usually one. A 413
+  or a 429 about tokens skips it too, without counting as a failure.
+- **Per run:** a model that fails twice (busy, a timeout, invalid JSON: `EXTERNAL_FAILURES_TO_QUARANTINE`) is set
+  aside for the rest of the run, with one warning in the log; a model answering 404 (gone, or no longer free) at
+  once. A provider answering 401, 402 or 403 is turned off for the run. What each model did (answered, busy,
+  invalid, unavailable, skipped, refused, spent) is in the run's statistics
+  (`RunStats.external`) and history, for the health checks.
+- **Shared daily budgets:** requests (and Groq's tokens) per provider are saved in `state/external_usage.json`
+  with their UTC day, like Gemini's usage. A provider's own daily-limit 429 spends it for the day.
+- **Re-checking the models:** `admin bakeoff` compares Flash-Lite and every model of the last resort with what Flash
+  read on recent posts, and `admin bakeoff --discover` lists OpenRouter's free models with image input now
+  ([`docs/ADMIN.md`](ADMIN.md)). The list in `config.EXTERNAL_PROVIDERS` stays explicit: nothing switches by itself.
+  On 5 October 2026, on 15 posts, OpenRouter's free qwen read about as well as Flash-Lite but failed or was
+  rate-limited upstream often, and gemma never answered: why OpenRouter comes last. The same day OpenRouter
+  answered 404 for `qwen/qwen3.8-27b:free` ("unavailable for free"): it went paid-only, so it left the list
+  (a 404 sets a model aside at once). `--discover` lists only models that answer in text: Google's Lyria shows a
+  zero token price but is a paid music model.
 
 ---
 
@@ -866,9 +933,10 @@ memory between runs; the site never sees it.
 | `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha`, `fuera de Bogotá`, `ya pasó` or `cancelado`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined. Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
 | `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post` | Whether the account still gets the deeper first sweep, and when its next turn is |
 | `gemini_usage.json` | Today's quota day (Pacific) and requests per model | The day's runs share the daily budgets |
+| `external_usage.json` | The last resort's day (UTC) and, per provider, requests, tokens and the answers per model | The day's runs share Groq's and OpenRouter's budgets (section 7.3) |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
 | `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts (the same event read again: a sibling from the same post, another event that day, stays published) nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load (if the data PR that hid one didn't merge). Adding one of its posts by hand publishes it again |
-| `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests and models the key couldn't use; warning keys | The health rules compare a run with the previous ones (section 11) |
+| `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests (and the last resort's, per provider) and models the key couldn't use; what each of the last resort's models did, those set aside and the providers turned off; warning keys | The health rules compare a run with the previous ones (section 11) |
 
 ```mermaid
 flowchart LR
@@ -935,6 +1003,8 @@ They run after every sweep. No AI, no quota.
 | Pending posts | Notice, or **warning** when the backlog hasn't gone down in 4 runs | The quotas or the time are too small for the accounts followed |
 | No events in a week | **Warning** | 14 runs with at least 10 posts analyzed and not a single event: are triage or extraction rejecting everything? |
 | Flash's quota ran out | Notice | Posts were extracted provisionally |
+| The last resort was used | Notice | Gemini ran out: requests per provider, what each model did (answered, busy, invalid, skipped…) and the ones set aside after failing twice |
+| A provider of the last resort turned off | Notice, then **warning** after 3 runs in a row | Groq or OpenRouter answered 401, 402 or 403: check its key secret and the account, or delete the secret to stop using it |
 | Account inactive | Notice | No post in 45 days (or none at all) |
 | Events to review | Listed | Upcoming events (until their last day) with medium or low confidence, or whose doubts mention the date (`fecha`, `día`; a refused `same_as` link too), Bogotá (a city Gemini couldn't confirm) or a cancellation (`cancelado`, `aplazado`: another account's post said so), and congresses or festivals with a single day ("un solo día: ¿faltan fechas?": their other days may be missing) |
 
@@ -1046,7 +1116,8 @@ flowchart LR
 ### 12.3 `admin`: running it day to day
 
 `python -m pa_bailar admin <tool>` (`pa_bailar/commands/admin.py`), the tools behind the admin page.
-They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](ADMIN.md) is the guide.
+They read what the sweeps record (no AI, no Gemini requests), except `bakeoff`. [`docs/ADMIN.md`](ADMIN.md) is the
+guide.
 
 - **`admin why <link>`** (`pa_bailar/why.py`): why a post's event is or isn't on the site. From the post's
   record (its `outcome`, Gemini's reason, the events in `events.json`), or, for a post never analyzed, its
@@ -1090,9 +1161,16 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
   otherwise); whether the Instagram token works and the share of Instagram's quota used (one call, `--no-instagram`
   skips it); accounts still in their first sweep; provisional posts; upcoming events (until their last day);
-  new workshop series to look at, with `/ocultar <id>` (section 9.1); discovery progress.
+  new workshop series to look at, with `/ocultar <id>` (section 9.1); discovery progress; the last resort's use
+  today per provider (`external`), shown only when it was used.
   `--json` gives the same as data. On your computer it reads the sweeps' state from the `sweep-state`
   branch.
+- **`admin bakeoff`** (`pa_bailar/bakeoff.py`): the way to re-check the last resort's models (section 7.3). It picks
+  recent posts Flash read on its own (final, the only post of its events, a flyer stored), runs Flash-Lite and
+  every model of the last resort on each one's caption and flyer with the extraction prompt, and scores each model's
+  events against Flash's, field by field. Answers are cached in `state/bakeoff/` (git-ignored). It spends real
+  requests from the same daily quotas as the sweeps. `--discover` lists OpenRouter's free models with image input
+  now (one request, no key). On your computer only.
 
 ---
 
@@ -1154,6 +1232,8 @@ section 5, "Whose turn it is"):
 |---|---|---|---|---|
 | Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | About 53 (half the accounts, plus up to 5 late ones) | About 100 | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
 | Gemini Flash-Lite | 500 / day (498 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
+| Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Gemini is out: about 7,000 tokens per extraction, 3,000 per triage | 0 on a normal day | About 25 extractions a day; the minute's tokens allow one extraction a minute or so |
+| OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
 | Gemini Flash (two models) | 20 / day each (36 usable) | 1 per post that announces events, plus upgrades of provisional posts | Usually all of it while there's a backlog of provisional posts (98 on 4 October 2026), under 20 once it's gone | Tight while new accounts load (provisional fallback, upgraded on later runs); fine afterwards |
 | GitHub Actions minutes (private repository) | 2,000 / month | 3–5 min normally; about 15 on nights new accounts load (up to ~35) | ~10 normally | ~300 a month normally; heavy loading weeks stay under the limit. Admin requests add 1–2 min each, plus the wait for a running sweep. Set an Actions spending limit of $0 so runs stop instead of being charged |
 | GitHub Actions minutes (public site repository) | Unlimited | ci + deploy, ~2 min | | |
@@ -1188,6 +1268,9 @@ spent only on the few that announce events.
 | "Gemini API key doesn't work" (the run fails) | The key was revoked, expired or deleted | Create a key in Google AI Studio and update `GEMINI_API_KEY` (`.env` and the GitHub secret). No post was marked: they're read on the next run (`GeminiKeyError`) |
 | "The data PR wasn't opened" (a warning; the run fails at step 9 or 10) | The App token couldn't be minted (key revoked, App uninstalled), or GitHub's API or the push failed | Fix the cause (section 4: `APP_ID`, `APP_PRIVATE_KEY`, the App's installation). Nothing is lost: the run kept this run's posts unread, so the next run reads them again and opens the PR. The run's artifact `site-data-<run id>` (14 days) holds the events and flyers it had, if you'd rather open the PR by hand |
 | "A data PR hasn't merged" (the run fails at step 6c) | An earlier data PR's `ci` failed, or it took more than 20 minutes | Open it in the site repository: fix what `ci` says and merge it (or merge it if it just needed time). Sweeps resume on the next run |
+| Notice: the last resort was used | Gemini's daily quotas ran out (a backlog of new accounts) | Nothing to do: its reads are provisional and Flash upgrades them. If it happens every day, see "backlog stuck" |
+| Warning: Groq or OpenRouter turned off in 3 runs | The key was revoked, or the account needs credit | Create a new key and update `GROQ_API_KEY` or `OPENROUTER_API_KEY` (`.env` and the GitHub secret), or delete the secret to stop using it |
+| The last resort's models stop answering (busy, invalid in every run) | A free model was pulled, paywalled or got worse | `admin bakeoff --discover`, then `admin bakeoff --models …` with candidates; update `config.EXTERNAL_PROVIDERS` |
 | Gemini model names stop working (404) | Google retired a model | The pool skips it automatically. Update `MODEL_LIMITS` and the role tuples in `config.py` to current models |
 | An event on the site is wrong | Gemini misread a flyer | Check it under "Events to review". Editing `data/events.json` by hand in a site PR works, but a later re-extraction of that post (edited caption) can overwrite it |
 
@@ -1228,6 +1311,7 @@ flowchart LR
     PL --> NOR["normalize.py"]
     PL --> STO["storage.py"]
     EXT --> GEM["gemini.py<br/>(ModelPool)"]
+    EXT --> EXL["external.py<br/>(ExternalTier: Groq, OpenRouter)"]
     EXT --> PRO["prompts.py"]
     DI --> DIS["discovery.py"]
     DI --> IGC
@@ -1247,7 +1331,9 @@ flowchart LR
 | `gemini.py` | `ModelPool`: model order, pacing, daily budgets shared across runs, retries, error classes |
 | `prompts.py` | The triage and extraction prompts, and the story prompt |
 | `stories.py` | Stories from screenshots: their id and perceptual hash, when a screenshot was taken, dates (and a workshop series' sessions) worked out from what's printed, the flyer's crop, the account's name |
-| `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback |
+| `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback and the last resort |
+| `external.py` | `ExternalTier`: the last resort on OpenAI-compatible chat APIs (Groq, OpenRouter): order, budgets, Groq's token pacing, per-run quarantine, JSON checked against the schemas |
+| `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; OpenRouter's free vision models |
 | `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions; prices in another currency never shown as free |
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |
 | `ids.py` | Readable, stable event ids (the event's URL) |

@@ -101,6 +101,84 @@ PACING_MARGIN_SECONDS = 0.5  # added to 60 / requests_per_minute between calls t
 GEMINI_TIMEOUT_SECONDS = 120  # one request; a stuck call fails instead of hanging the run
 QUOTA_TIMEZONE = "America/Los_Angeles"  # Gemini daily quotas reset at midnight Pacific time
 
+# ---------- External providers (the last resort) ----------
+# Models outside Gemini, on OpenAI-compatible chat APIs (external.py), used only when every Gemini model for a step
+# is out of today's quota or not available to the key: triage when Flash-Lite is out, extraction when Flash and
+# Flash-Lite are. Their answers are always provisional (re-read with Gemini on a later run, as Flash-Lite's are).
+# Providers are tried in this order, each only if its key is set. Lite-only mode keeps them as the last resort
+# (their reads are then re-read by Flash-Lite). `admin bakeoff` compares the models with Flash, to re-check them
+# from time to time: free models come and go without notice. The list stays explicit: nothing switches by itself.
+
+
+@dataclass(frozen=True)
+class ExternalModel:
+    name: str
+    # Structured output (OpenRouter): `response_format` json_schema (strict) and `provider.require_parameters`, so
+    # only providers that honor the schema serve it. Otherwise json_object, with the schema in the prompt. Either way
+    # the answer is checked against the Pydantic schema.
+    structured: bool = False
+
+
+@dataclass(frozen=True)
+class ExternalProvider:
+    name: str  # also the prefix of the model recorded for a post: "groq:qwen/qwen3.8-27b"
+    url: str  # its chat/completions endpoint
+    key_env: str  # the environment variable with its key: unset, the provider is skipped
+    models: tuple[ExternalModel, ...]  # in order of preference
+    requests_per_minute: int
+    daily_requests: int  # our budget: kept under the provider's free daily limit
+    tokens_per_minute: int | None = None  # paced by an estimate of each request's tokens (external.py)
+    daily_tokens: int | None = None
+    max_images: int | None = None  # per request: the first ones are sent
+    # OpenRouter's routing: one request names several models (`models`, at most 3) and OpenRouter tries the next one
+    # itself when a model is rate-limited, down or fails. Models of the same output mode go in one request.
+    routing: bool = False
+
+
+EXTERNAL_PROVIDERS = (
+    # Groq's free plan (console.groq.com/docs/rate-limits, 2026-10-05): 30 requests/minute and 1,000/day, but only
+    # 8,000 tokens/minute and 200,000/day; each image counts as 2,048 input tokens, and a request takes at most 3.
+    # Its only vision model: qwen/qwen3.8-27b. JSON mode works with images.
+    ExternalProvider(
+        name="groq",
+        url="https://api.groq.com/openai/v1/chat/completions",
+        key_env="GROQ_API_KEY",
+        models=(ExternalModel("qwen/qwen3.8-27b"),),
+        requests_per_minute=30,
+        daily_requests=900,
+        tokens_per_minute=8_000,
+        daily_tokens=180_000,
+        max_images=3,
+    ),
+    # OpenRouter's free models without credit on the account: 20 requests/minute and 50/day, all free models
+    # together. Free models come and go: qwen/qwen3.8-27b:free went paid-only on 2026-10-05 (it answered 404), so
+    # check with `admin bakeoff --discover`. Gemma takes only json_object; `openrouter/free` routes to a random free
+    # model that takes the schema (strict json_schema with require_parameters): the very last try.
+    ExternalProvider(
+        name="openrouter",
+        url="https://openrouter.ai/api/v1/chat/completions",
+        key_env="OPENROUTER_API_KEY",
+        models=(
+            ExternalModel("google/gemma-4-31b-it:free"),
+            ExternalModel("google/gemma-4-26b-a4b-it:free"),
+            ExternalModel("openrouter/free", structured=True),
+        ),
+        requests_per_minute=20,
+        daily_requests=40,
+        routing=True,
+    ),
+)
+EXTERNAL_TIMEOUT_SECONDS = 60  # one request, then the next model: no retries
+EXTERNAL_IMAGE_TOKENS = 2_048  # an image's input tokens, for the token estimate (Groq's count)
+EXTERNAL_ANSWER_TOKENS = 800  # an answer's tokens, estimated before the request (the real count replaces it)
+# When a provider's per-minute tokens are used, wait at most this long; longer, and the post goes on without it.
+EXTERNAL_MAX_WAIT_SECONDS = 15
+# A model that fails this many times in a run (busy upstream, a 5xx, a timeout, an answer that isn't the schema's
+# JSON) is set aside for the rest of the run.
+EXTERNAL_FAILURES_TO_QUARANTINE = 2
+EXTERNAL_USAGE_FILE = STATE_DIR / "external_usage.json"  # today's use per provider (the day is UTC's)
+OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"  # `admin bakeoff --discover`: the free models now
+
 # ---------- Flyers ----------
 FLYER_MAX_SIZE = (1080, 1350)  # 4:5, Instagram's tallest feed ratio
 FLYER_WEBP_QUALITY = 80
@@ -153,6 +231,11 @@ def now_bogota() -> datetime:
 def bogota_date(moment: datetime) -> date:
     """The day a moment falls on in Bogotá: Instagram's times are UTC, and a post at 9 p.m. is that day's."""
     return moment.astimezone(BOGOTA_TZ).date()
+
+
+def optional_env(name: str) -> str | None:
+    """An environment variable that may be unset (an optional service's key): None when it's missing or empty."""
+    return os.environ.get(name, "").strip() or None
 
 
 def require_env(name: str) -> str:

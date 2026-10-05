@@ -7,12 +7,13 @@ on the site, add a post or an account by hand.
 |---|---|---|
 | **The admin page**, two tabs: **Estadísticas** (sweeps, quotas, accounts, events) and **Herramientas** (new workshop series to look at, and Ocultar; check, add or read again a post; add an account; add an event from a story's screenshots) | https://pa-bailar-admin.jzamorac-9.workers.dev | Done |
 | **The admin inbox**: the same requests as issues in this repository, from the GitHub app | Issues → New issue | Done |
-| **Commands** on your computer: `admin status`, `admin why`, `admin add-account`, `sweep --post`, `sweep --story`, `sweep --hide-story`, `sweep --hide-event` | Terminal | Done |
+| **Commands** on your computer: `admin status`, `admin why`, `admin add-account`, `sweep --post`, `sweep --story`, `sweep --hide-story`, `sweep --hide-event`, and `admin bakeoff` (re-checking the last resort's models) | Terminal | Done |
 | Corrections: `corrections.json` and `admin fix`, fed by the site's report form | | Planned |
 
 **None of these tools is AI.** They're fixed checks over what the sweeps record (`state/` on the
 `sweep-state` branch). Only adding a post or a story sends it to Gemini: one request, from the same daily budget
-as the sweeps.
+as the sweeps (a post goes to the last resort, Groq or OpenRouter, when Gemini is out; a story never does).
+`admin bakeoff`, on your computer only, runs models on purpose to compare them.
 
 ## Using it
 
@@ -62,7 +63,7 @@ address follows the tab you pick. On a keyboard, ← and → (or Home, End) move
   Each button sends one request per tap. It stays in Herramientas: it's where the requests' answers show.
 
 **Estadísticas:** the sweeps (✅ or ⚠️, with links to the runs), Gemini usage per model and when it resets,
-Instagram, accounts and events. It's the latest `status.json`, as of the last sweep. When it can't be read
+the last resort's use (Groq, OpenRouter: a card only on a day Gemini ran out), Instagram, accounts and events. It's the latest `status.json`, as of the last sweep. When it can't be read
 (none saved yet, GitHub failing, offline), a note takes its place and Herramientas still works.
 
 Each request is an issue in this repository (label `admin`), answered by the `admin` workflow: the page
@@ -167,6 +168,37 @@ GitHub the workflow downloads them from the page first.
 `accounts.txt` and the data in `..\pa-bailar-web\data` on your computer: commit and open the PRs yourself, or
 use the page or the inbox, which do it.
 
+### Re-checking the last resort's models (`admin bakeoff`)
+
+When Gemini runs out of quota, the sweep reads with Groq and then OpenRouter's free models (docs/ARCHITECTURE.md,
+section 7.3). Free models change, slow down or disappear without notice, so every so often (or when the health
+report shows them failing) check them against Gemini Flash:
+
+```bash
+.venv\Scripts\python -m pa_bailar admin bakeoff --discover                 # OpenRouter's free vision models now
+.venv\Scripts\python -m pa_bailar admin bakeoff                            # Flash-Lite and every last-resort model
+.venv\Scripts\python -m pa_bailar admin bakeoff --models "openrouter:new/vision:free" --posts 10
+.venv\Scripts\python -m pa_bailar admin bakeoff --score                    # only the score, no requests
+```
+
+- It picks recent posts Flash read on its own (final, the only post of their events, with a flyer stored) from
+  the site's `data/` (`..\pa-bailar-web\data`) and the sweeps' records, a third of them with a workshop series
+  or several days when there are. `--repick` chooses again; a different `--posts` does too.
+- Each model reads each post's caption and stored flyer with the sweep's own extraction prompt: one request per
+  model and post, **from the same daily quotas as the sweeps** (Gemini's, Groq's and OpenRouter's 50 a day). Run it
+  between sweeps, not on a day the quotas are tight.
+- Models are named as the sweep records them: `gemini-3.5-flash-lite`, `groq:qwen/qwen3.8-27b`,
+  `openrouter:google/gemma-4-31b-it:free`. A provider's model needs its key in `.env` (`GROQ_API_KEY`,
+  `OPENROUTER_API_KEY`).
+- Answers are cached in `state/bakeoff/` (git-ignored): a second run spends nothing on what was answered and
+  retries only the failures.
+- The score, per model: events found, missed and extra against Flash's, errors, average seconds, and each field's
+  agreement (date, end date, start time, type, title, styles, prices, venue, sessions), with the first
+  differences. Agreement with Flash measures similarity, not truth.
+- `--discover` lists OpenRouter's free models that take images (one request, no key), marking the ones already
+  listed and whether each takes structured output. To use a new one, add it to `config.EXTERNAL_PROVIDERS`
+  (`structured=True` if it does) in a pull request: nothing switches by itself.
+
 ## What the answers mean
 
 ### Revisar (`admin why`, `pa_bailar/why.py`)
@@ -212,7 +244,8 @@ The sweep workflow runs in single-post mode (`sweep --post`), one at a time with
    and slides; the answer says "La leí desde su página pública". An account the API can't read (personal or
    private) isn't added to the sweeps, and the answer says so.
 2. Extracts it with Gemini **without the first filter** (whoever asks knows it's an event): Flash, or
-   Flash-Lite as provisional when Flash's quota is used up. **Only when that can change something:** a post
+   Flash-Lite as provisional when Flash's quota is used up, or the last resort (Groq, then OpenRouter, also
+   provisional) when Flash-Lite's is too. **Only when that can change something:** a post
    analyzed before, with the same caption, isn't read again (no Gemini request): the answer says "Ya la había
    leído y no ha cambiado", links its events and offers **Volver a leer**. It is read again when its caption
    changed, or when the first filter had called it "not an event" or Gemini had rejected it, or with

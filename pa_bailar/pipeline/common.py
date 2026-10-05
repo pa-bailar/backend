@@ -10,6 +10,7 @@ import httpx
 from google.genai import errors as genai_errors
 
 from .. import clips, config, storage
+from ..external import ExternalReport
 from ..gemini import ExtractionError, quota_reset
 from ..instagram import Post, download_image, image_urls, slide_count, video_url
 from ..models import EventDetails, EventMedia, ExtractedEvent, PostAnalysis, StoredEvent, StoryAnalysis, Triage
@@ -34,6 +35,7 @@ class Extractor(Protocol):
     def can_analyze(self) -> bool: ...
     def models_unavailable(self) -> list[str]: ...
     def requests_this_run(self) -> dict[str, int]: ...
+    def external_report(self) -> ExternalReport: ...
     def triage(
         self, account: str, post: Post, published: datetime, images: list[bytes], rules: str = ...
     ) -> tuple[Triage, str]: ...
@@ -87,8 +89,9 @@ class RunStats:
     flyers_removed: int = 0
     rate_limited: bool = False  # Instagram throttled the app: accounts after that one wait for the next run
     out_of_time: bool = False  # the run used its time budget: some posts wait for the next run
-    gemini_requests: dict[str, int] = field(default_factory=dict)
+    gemini_requests: dict[str, int] = field(default_factory=dict)  # per Gemini model, and per external provider
     models_unavailable: list[str] = field(default_factory=list)  # Gemini models this key couldn't use
+    external: ExternalReport = field(default_factory=ExternalReport)  # the last resort (Groq, OpenRouter) this run
     due_accounts: list[str] = field(default_factory=list)  # whose turn it was (the ones not read wait for the next run)
     instagram_usage: int = 0  # share of Instagram's quota used when the run ended (0-100)
     by_account: dict[str, AccountStats] = field(default_factory=dict)

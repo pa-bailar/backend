@@ -8,6 +8,7 @@ import pytest
 
 from pa_bailar import config, storage
 from pa_bailar.commands.sweep import summary_markdown
+from pa_bailar.external import ExternalReport
 from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError
 from pa_bailar.ids import new_event_id
 from pa_bailar.instagram import InstagramError
@@ -84,6 +85,9 @@ class FakeExtractor:
 
     def models_unavailable(self) -> list[str]:
         return list(self.unavailable)
+
+    def external_report(self) -> ExternalReport:
+        return ExternalReport()
 
     def requests_this_run(self) -> dict[str, int]:
         return {"fake-flash": len(self.extracted_posts)}

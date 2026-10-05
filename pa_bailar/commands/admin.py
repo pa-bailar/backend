@@ -6,12 +6,13 @@ Usage (from the repository root):
     .venv\\Scripts\\python -m pa_bailar admin why <link>        why a post's event is, or isn't, on the site
     .venv\\Scripts\\python -m pa_bailar admin add-account @x    add an account to the sweeps
     .venv\\Scripts\\python -m pa_bailar admin inbox             answer an admin issue (the admin workflow)
+    .venv\\Scripts\\python -m pa_bailar admin bakeoff           the last resort's models against Flash (spends requests)
 Adding a post is `python -m pa_bailar sweep --post <link>`, and a story `sweep --story <ids>` (`--hide-story` takes
 one off the site, `--hide-event <id>` any event): they need Gemini or write the site's data, so the sweep workflow
 does them.
 
-None of these tools uses AI: they read what the sweeps record. On your computer they read the sweeps' latest
-state from the sweep-state branch (pa_bailar/sweep_state.py).
+None of these tools uses AI, except `bakeoff` (bakeoff.py): they read what the sweeps record. On your computer they
+read the sweeps' latest state from the sweep-state branch (pa_bailar/sweep_state.py).
 """
 
 import argparse
@@ -23,7 +24,7 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pa_bailar import config, inbox, links, public_post, status, storage, sweep_state, why
+from pa_bailar import bakeoff, config, inbox, links, public_post, status, storage, sweep_state, why
 
 if TYPE_CHECKING:
     from pa_bailar.instagram import InstagramClient
@@ -142,6 +143,21 @@ def main(argv: list[str] | None = None) -> None:
     tools.add_parser(
         "inbox", help="answer the issue or comment in ISSUE_TITLE, ISSUE_BODY or COMMENT_BODY (the admin workflow)"
     )
+    bake_parser = tools.add_parser(
+        "bakeoff", help="the last resort's models (and Flash-Lite) against Flash on recent posts: spends requests"
+    )
+    bake_parser.add_argument("--posts", type=int, default=bakeoff.DEFAULT_POSTS, help="how many posts")
+    bake_parser.add_argument(
+        "--models",
+        nargs="+",
+        default=list(bakeoff.DEFAULT_MODELS),
+        help='a Gemini model or "<provider>:<model>" (default: Flash-Lite and every model of the last resort)',
+    )
+    bake_parser.add_argument("--repick", action="store_true", help="choose the posts again")
+    bake_parser.add_argument("--score", action="store_true", help="only score the cached answers: no requests")
+    bake_parser.add_argument(
+        "--discover", action="store_true", help="list OpenRouter's free models with image input now (no key)"
+    )
     args = parser.parse_args(argv)
     _utf8_stdout()
     if not sweep_state.refresh():
@@ -157,6 +173,11 @@ def main(argv: list[str] | None = None) -> None:
     elif args.tool == "add-account":
         account = links.account_name(args.account)
         print(run_add_account(account) if account else f"“{args.account}” no es un nombre de cuenta válido.")
+    elif args.tool == "bakeoff":
+        if args.discover:
+            bakeoff.discover()
+        else:
+            bakeoff.run(args.posts, args.models, repick=args.repick, score_only=args.score)
     elif args.tool == "inbox":
         # A comment, or a new issue's title and body (the admin workflow passes them as environment variables).
         issue = f"{os.environ.get('ISSUE_TITLE', '')}\n\n{os.environ.get('ISSUE_BODY', '')}"

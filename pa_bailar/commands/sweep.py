@@ -42,6 +42,11 @@ def summary_markdown(stats: RunStats) -> str:
         f"| {model} | {stats.gemini_requests.get(model, 0)} | {limit.requests_per_day} |"
         for model, limit in config.MODEL_LIMITS.items()
     ]
+    model_rows += [  # the last resort, when Gemini ran out
+        f"| {provider.name} (last resort) | {requests} | {provider.daily_requests} (budget) |"
+        for provider in config.EXTERNAL_PROVIDERS
+        if (requests := stats.gemini_requests.get(provider.name))
+    ]
     return "\n".join(
         [
             "## Daily sweep",
