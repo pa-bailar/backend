@@ -1,7 +1,82 @@
 {
-  "generated_at": "2026-10-04T21:29:05-05:00",
+  "generated_at": "2026-10-05T09:27:32-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-10-05T09:27:32-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37321177247",
+        "accounts": 50,
+        "failed_accounts": [],
+        "read_accounts": [
+          "academia_cowork",
+          "academiaalmadetangoe",
+          "academiadebailepasolatino",
+          "academyfeel",
+          "alejochacon.co",
+          "alpasojam",
+          "angie__cuesta",
+          "ashe_impro",
+          "bailaderia",
+          "bailo.formacion",
+          "bembeacademiadebaile",
+          "bogotadanceclub.academy",
+          "bureodancestudio",
+          "clandisfrute",
+          "danceinmotionclub",
+          "davidylauradancers",
+          "distritosocialbog",
+          "efadanza",
+          "esferalatinaoficial",
+          "espacio.64",
+          "fogal_arte",
+          "fredyysaraoficial",
+          "grossoimpro",
+          "imperiolatino",
+          "jen.ssy",
+          "lafemcongress",
+          "lanenamagdalena",
+          "lauuurin__",
+          "ludancestudios",
+          "madyumdance",
+          "mambo_y_control",
+          "mover__se",
+          "originalstepdance",
+          "osupaproject",
+          "proyectourbandance",
+          "puntalpie",
+          "ritmosacademiadebaile",
+          "rpdancestudio",
+          "salsalatina.alsacia",
+          "salseros_clandestinos",
+          "showstarscol",
+          "sonrumbero",
+          "soondanz_company",
+          "studio110dance",
+          "studiolatindance",
+          "tibaduiza__",
+          "tubailecom",
+          "valkandela",
+          "zafiro_project_team",
+          "zafradance"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 59,
+        "events_new": 1,
+        "events_merged": 4,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 16,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 79,
+          "gemini-3.8-flash": 18,
+          "gemini-3.5-flash": 18
+        },
+        "models_unavailable": [],
+        "instagram_usage": 86,
+        "warnings": []
+      },
       {
         "finished_at": "2026-10-04T21:25:49-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/37253619237",
@@ -207,38 +282,16 @@
         "models_unavailable": [],
         "instagram_usage": null,
         "warnings": []
-      },
-      {
-        "finished_at": "2026-10-02T21:11:20-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37088209223",
-        "accounts": 50,
-        "failed_accounts": [],
-        "read_accounts": [],
-        "skipped_accounts": [],
-        "posts_analyzed": 44,
-        "events_new": 14,
-        "events_merged": 3,
-        "pending": 79,
-        "post_errors": 79,
-        "provisional": 22,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 68
-        },
-        "models_unavailable": [],
-        "instagram_usage": null,
-        "warnings": []
       }
     ],
     "next": [
-      "2026-10-05T09:00-05:00",
-      "2026-10-05T21:00-05:00"
+      "2026-10-05T21:00-05:00",
+      "2026-10-06T09:00-05:00"
     ]
   },
   "gemini": {
     "lite_only": false,
-    "resets_at": "2026-10-05T02:00-05:00",
+    "resets_at": "2026-10-06T02:00-05:00",
     "models": [
       {
         "model": "gemini-3.8-flash",
@@ -255,7 +308,7 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 174,
+        "used": 79,
         "budget": 498
       }
     ]
@@ -266,19 +319,17 @@
     "error": null
   },
   "accounts": {
-    "followed": 72,
-    "first_sweep_pending": [
-      "angie__cuesta"
-    ],
+    "followed": 95,
+    "first_sweep_pending": [],
     "waiting": []
   },
   "posts": {
-    "recorded": 426,
-    "provisional": 119
+    "recorded": 485,
+    "provisional": 135
   },
   "events": {
-    "upcoming": 44,
-    "low_confidence": 1
+    "upcoming": 41,
+    "low_confidence": 0
   },
   "new_series": [
     {
