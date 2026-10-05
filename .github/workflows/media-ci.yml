@@ -1,0 +1,40 @@
+# The video toolkit (media/): type-check the Remotion library and compositions, and its Node tests (the weekend rule,
+# words and moments, the captions, the media home's paths: media/README.md). Its Python tests (media/tests) run in
+# ci.yml's job (pytest collects them; standard library only). A workflow of its own so it only starts when media/ (or
+# this file) changes: a job that starts just to skip its steps still bills a whole Actions minute. No secrets.
+name: media
+
+on:
+  pull_request:
+    paths:
+      - "media/**"
+      - ".github/workflows/media-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: media-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  media:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: media/package-lock.json
+      - name: Install
+        working-directory: media
+        run: npm ci
+      - name: Type check
+        working-directory: media
+        run: npx tsc --noEmit
+      - name: Node tests
+        working-directory: media
+        run: node --test "tests/*.test.mjs"

@@ -162,7 +162,7 @@ in the media home unless they start with `projects/`.
 | `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json`, words and moments against `tests/timing-cases.json` (as the Python tests), the captions' pages and fades, the media home's paths | (prints) |
 
 The Python tests (`media/tests`, standard library only) run with the backend's: `.venv/Scripts/python -m pytest -q`.
-CI's `media` job (in `.github/workflows/ci.yml`) runs `npm ci`, `tsc` and `npm test` when `media/` changes.
+The `media` workflow (`.github/workflows/media-ci.yml`) runs `npm ci`, `tsc` and `npm test` on pull requests that change `media/`.
 
 ## `video.json`
 

@@ -225,8 +225,8 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 - **Videos are made locally** with `media/` (its README): Gemini TTS with `MEDIA_GEMINI_API_KEY` (a separate
   free-tier project, only in the local `.env`), Whisper and ACE-Step from `D:\AI`, Remotion and ffmpeg; what they
   generate lives in a media home outside the checkout (`D:\AI\pa-bailar-media`). Nothing there runs in the sweep;
-  CI lints and unit-tests its Python tools with the rest of the repository, and its `media` job type-checks the
-  Remotion code when `media/` changes (no secrets).
+  CI lints and unit-tests its Python tools with the rest of the repository, and `media-ci.yml` type-checks the
+  Remotion code on pull requests that change `media/` (no secrets).
 
 ### 3.10 Groq and OpenRouter: the last resort
 
@@ -1226,14 +1226,20 @@ guide.
 
 ### 13.1 Checks
 
-`ci.yml` runs on every pull request and on every push to `main`:
+`ci.yml` runs on every pull request (not again on `main` after a merge: the PR ran the same checks; a Monday run on
+`main` keeps the pip cache where every branch can use it, since a PR's cache stays with that PR):
 - `ruff check` (lint, including a complexity cap: no function over 12, `C901`);
 - `ruff format --check`;
 - `mypy` (strict, with the Pydantic plugin);
 - `pytest`;
 - the admin page's Worker tests (`node --test "admin-web/test/*.test.mjs"`, Node 24);
-- a second job, `media`, for the video toolkit: `npm ci`, `tsc --noEmit` and its Node tests (`media/tests`), only
-  when `media/` or `ci.yml` changed (its Python tests run with the rest under `pytest`).
+- and, in its own workflow `media-ci.yml`, the video toolkit: `npm ci`, `tsc --noEmit` and its Node tests
+  (`media/tests`), only on pull requests that change `media/` (its Python tests run with the rest under `pytest`).
+
+**Actions minutes** (the repository is private: 2,000 a month free; each job bills at least a whole minute): from
+1 to 5 October 2026 CI took 246 of 533 minutes (177 runs in a busy week of pull requests), the sweeps about 180. That's
+why CI no longer runs again after merges and the toolkit's job only starts when `media/` changes. A quiet month is
+mostly the sweeps: 2 a day × 10–15 minutes.
 
 Both test suites check the shapes the admin tools accept (`pa_bailar/patterns.py`, `admin-web/public/patterns.js`)
 against the same examples, `tests/fixtures/patterns.json`, so the inbox and the admin page can't drift apart.
