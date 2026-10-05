@@ -7,10 +7,12 @@
       half size, no motion blur → out/<video>/<video>-v<version>-<deliverable>-draft.mp4
   .venv/Scripts/python media/tools/render.py <video> --frames 90,8.5s,c4:link [deliverable]
       stills (tools/stills.mjs: frames, seconds, a line's or a word's start) → out/<video>/frames/
-  --review    after each render: the keyframe sheet (…-sheet.png), the sticker-band check for the Story
-              deliverables (video.json "sticker_band"), and a side-by-side with the previous version
-              (…-vs-v<previous>.mp4, from out/ or the archive). Fails when something enters the band.
-  --strict    refuse (instead of warning) when the material is past its shelf life
+  --review    after each render: Instagram's pre-flight (tools/preflight.py: codec, size, length…; fails on what
+              Instagram would refuse), the keyframe sheet (…-sheet.png), the sticker-band check for the Story
+              deliverables (video.json "sticker_band"), the Reel safe-zone check for the Reel ones (warnings:
+              tools/review.py reel), and a side-by-side with the previous version (…-vs-v<previous>.mp4, from out/ or
+              the archive). Fails when something enters the band.
+  --strict    refuse (instead of warning) when the material is past its shelf life or the bed has no provenance
 
 "version" in video.json names every render: bump it for each cut the owner sees, so the old one stays to compare.
 
@@ -23,6 +25,8 @@ Before rendering it checks the material:
   true; past it, a warning (--strict: an error). Re-capture, or post before then.
 - timing: a video with a voice needs data/timing.json made from the current lines (tools/timing.py stores a key of
   the lines, takes, gaps and recorded audio); if the voice changed since, it refuses: run timing.py and mix.py.
+- music provenance: a video with a bed records how it was made in video.json's "music"."provenance"[<bed>] (model,
+  revision, prompt, seed, reference audio, date); without it, a warning (--strict: an error).
 """
 
 import argparse
@@ -34,7 +38,7 @@ import sys
 from datetime import date, datetime
 from pathlib import Path
 
-from common import MEDIA, Video, bogota_today, shown, version_tuple, video, voice_key
+from common import MEDIA, Video, bogota_today, provenance_problems, shown, version_tuple, video, voice_key
 
 
 def remotion(*args: str) -> None:
@@ -90,15 +94,18 @@ def timing_problem(v: Video) -> str | None:
     return None
 
 
-def preflight(v: Video, strict: bool) -> None:
+def check_material(v: Video, strict: bool) -> None:
     """Refuse to render stale material (see the docstring)."""
     if problem := timing_problem(v):
         raise SystemExit(f"refusing to render: {problem}")
     old = expired(shelf_lives(v.data), bogota_today())
+    messages = []
     if old:
-        message = f"past its shelf life (today is {bogota_today().isoformat()}): {', '.join(old)}"
-        if strict:
-            raise SystemExit(f"refusing to render (--strict): {message}")
+        messages.append(f"past its shelf life (today is {bogota_today().isoformat()}): {', '.join(old)}")
+    messages += provenance_problems(v.settings.get("music", {}))
+    if messages and strict:
+        raise SystemExit(f"refusing to render (--strict): {'; '.join(messages)}")
+    for message in messages:
         print(f"WARNING: {message}", file=sys.stderr)
 
 
@@ -119,15 +126,21 @@ def latest_link(v: Video, deliverable: str, dest: Path) -> None:
 
 
 def review(v: Video, deliverable: str, dest: Path) -> bool:
-    """The keyframe sheet, the sticker band (Story deliverables) and a side-by-side with the previous version."""
+    """Instagram's pre-flight, the keyframe sheet, the sticker band (Story deliverables), the Reel's safe zones (Reel
+    deliverables) and a side-by-side with the previous version."""
+    import preflight
     import review as rv
 
     total = rv.duration_of(dest)
-    rv.sheet(dest, [round(t * 2 + 1, 2) for t in range(int(total / 2))], dest.with_name(f"{dest.stem}-sheet.png"))
-    ok = True
+    is_reel = deliverable in rv.reel_deliverables(v.settings)
+    ok = preflight.check(dest, "reel" if is_reel else "story")
+    at = [round(t * 2 + 1, 2) for t in range(int(total / 2))]
+    rv.sheet(dest, at, dest.with_name(f"{dest.stem}-sheet.png"), reel=is_reel)
     band = v.settings.get("sticker_band", {})
     if deliverable in band.get("deliverables", []):
-        ok = rv.band(dest, rv.allowed_spans(v.name), v.fps)
+        ok = rv.band(dest, rv.allowed_spans(v.name), v.fps) and ok
+    if is_reel:
+        rv.reel(dest, rv.allowed_spans(v.name, "reel_safe"), v.fps)  # warnings only: images may run into the margins
     older = [(ver, path) for ver, path in v.versions(deliverable) if ver < version_tuple(v.version)]
     if older:
         ver, path = older[-1]
@@ -163,7 +176,7 @@ def main() -> None:
     unknown = [n for n in names if n not in renders]
     if unknown:
         raise SystemExit(f"unknown deliverable(s) {unknown}: video.json has {list(renders)}")
-    preflight(v, args.strict)
+    check_material(v, args.strict)
     v.out.mkdir(parents=True, exist_ok=True)
 
     if args.frames:
@@ -184,7 +197,7 @@ def main() -> None:
         if args.review:
             ok = review(v, name, dest) and ok
     if not ok:
-        raise SystemExit("review: something entered the sticker band (above)")
+        raise SystemExit("review: something entered the sticker band, or Instagram would refuse the file (above)")
 
 
 if __name__ == "__main__":

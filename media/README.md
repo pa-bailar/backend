@@ -10,19 +10,20 @@ brand building blocks.
 
 ```
 media/
-├── README.md, MOTION.md, DESIGN.md   this catalog, the motion rules, the design tokens for video
-├── brand.json        the canvas, safe zones, sticker band, default tempo, loudness targets (TS and Python read it)
+├── README.md, MOTION.md, DESIGN.md   this catalog, the motion rules (and the motion vocabulary), the design tokens for video
+├── brand.json        the canvas, safe zones, sticker band, Reel safe zones, default tempo, loudness targets (TS and
+│                     Python read it)
 ├── tools/            the utilities (Python and Node), each takes a video's name
 ├── src/
 │   ├── kit.ts        the library in one import
-│   ├── lib/          tokens, motion, scene clock, motion blur, transitions, voice timing, fonts
-│   ├── brand/        the shell and end card, record, stripes, period titles, kinetic type, phone + thumb, flyers
+│   ├── lib/          tokens, motion, scene clock, motion blur, transitions, voice timing, captions, fonts
+│   ├── brand/        the shell and end card, record, stripes, period titles, kinetic type, phone + thumb, flyers, captions
 │   ├── data/         helpers over a snapshot of the site's events
 │   └── Root.tsx      registers every video's compositions
 ├── projects/<video>/ one folder per video: video.json (settings for the tools), its compositions, its notes,
 │                     data/ (small JSON the composition imports: timing, captures, events; committed)
 ├── fonts/            the site's three faces (committed, bundled with the code)
-└── tests/            the tools' pure functions (pytest) and the weekend rule in JS (node --test)
+└── tests/            the tools' pure functions (pytest) and the weekend rule and the captions in JS (node --test)
 ```
 
 ### The media home
@@ -103,27 +104,30 @@ in the media home unless they start with `projects/`.
 | Tool | Python | Does | Writes |
 |---|---|---|---|
 | `make.py <video> [stage …] [--draft --force --dry-run --strict]` | .venv | runs tts → timing → mix → render → sheet, only the stale ones, each with its Python | what each stage writes |
-| `make.py doctor` | .venv | checks ffmpeg, Chrome, node and the packages, the three Pythons, the fonts, the key (set or not), each music bed, the media home | (prints) |
+| `make.py doctor` | .venv | checks ffmpeg (and its libvmaf), Chrome, node and the packages, the three Pythons, the fonts, the key (set or not), each music bed, the media home | (prints) |
 | `new.py <video> [--title --duration --reel]` | .venv | a new video's folder: brief, `video.json`, a composition on the kit, its line in `src/Root.tsx` | `projects/<video>/`, `src/Root.tsx` |
 | `tts.py <video> [ids]` | .venv | Gemini TTS per line (voice, direction, `take` per line), retries timeouts and busy; stops at once on a refused key, skips a model on its daily quota | `cache/tts/<hash>.wav` |
 | `tts.py --audition "<text>" --voices …` | .venv | one sample per voice | `out/auditions/` |
 | `timing.py <video>` | whisper | trims and joins the lines (`lead`, `gap`, `max_pause`), Whisper word times, and a `voice_key` of what they were made from | `out/<video>/voice-track.wav`, `projects/<video>/data/timing.json` |
 | `timing.py --transcribe <wav>` | whisper | what Whisper hears in a take (QA) | (prints) |
-| `music.py <video>` | ace | ACE-Step beds for every prompt × seed (cached) | `cache/music/<prompt>-s<seed>-<hash>.wav` |
+| `music.py <video>` | ace | ACE-Step beds for every prompt × seed (cached), each with its provenance | `cache/music/<prompt>-s<seed>-<hash>.wav` and `.json` |
 | `analyze.py <wavs>` | whisper | bpm, beats, first hit, loudness, a spectrogram strip | `out/music/music-analysis.{png,json}` |
-| `mix.py <video> [--check]` | .venv | voice-only (−15 LUFS) and with-music (−14, bed ducked by the voice), fades, exact length; no voice: music-only (−16). Fails when a soundtrack's true peak is over −1 dBTP or its loudness 1 LU off (the old one stays); `--check` only measures | `public/<video>/audio/`, `mix.key` |
+| `mix.py <video> [--check] [--strict]` | .venv | voice-only (−15 LUFS) and with-music (−14, bed ducked by the voice), fades, exact length; no voice: music-only (−16). Fails when a soundtrack's true peak is over −1 dBTP or its loudness 1 LU off (the old one stays); `--check` only measures. With music, a **phone-speaker check** too: the voice track and the ducked bed folded to mono and band-limited like a phone (300 Hz–6 kHz), voice over music in the voice band (1–4 kHz) over the spoken words; a warning under +10 dB, or when over 10% of the speech (50 ms windows) is under +3 dB (teaser v2.4: +22.7 dB, 2%) | `public/<video>/audio/`, `mix.key` |
 | `events.py <video> --from --to \| --weekend [date] [--styles] [--limit n] [--checkout] [--allow-empty]` | .venv | the events on those days from the published data (the site checkout with `--checkout` or offline, with its age), sorted by the day the video shows (`day`, `day_start`, `day_end`), + their cover flyers; written whole or not at all | `projects/<video>/data/events.json`, `public/<video>/flyers/` |
 | `node media/tools/capture.mjs <video> <name> [--path --now --theme --full --scroll --click --wait]` | Node | one screen of the live site on a phone, clock frozen (default: the weekend rule's Saturday at 19:00); also the library for scripted walks | `public/<video>/screens/`, `projects/<video>/data/screens.json` |
 | `node media/tools/stills.mjs <video> [deliverable] --at 1.5,f255,c4:link [--scale --no-blur --out]` | Node | stills from one bundle (reused while nothing changed): seconds, frames, a line's or a word's start | `out/<video>/frames/` |
-| `render.py <video> [deliverables] [--draft] [--review] [--strict]` | .venv | Remotion renders of `video.json`'s `renders`; refuses stale timing, warns past the shelf life (`--strict` refuses); `--review`: sheet, band check, side-by-side with the previous version | `out/<video>/<video>-v<version>-<deliverable>[-draft].mp4` |
+| `render.py <video> [deliverables] [--draft] [--review] [--strict]` | .venv | Remotion renders of `video.json`'s `renders`; refuses stale timing, warns past the shelf life (`--strict` refuses); `--review`: Instagram pre-flight, sheet, band check (Stories), Reel safe zones (Reels), side-by-side with the previous version | `out/<video>/<video>-v<version>-<deliverable>[-draft].mp4` |
 | `render.py <video> --frames 90,8.5s,c4:link [deliverable]` | .venv | stills through `stills.mjs` | `out/<video>/frames/` |
+| `preflight.py <mp4 …> [--story \| --reel] [--api]` | .venv | will Instagram take it: MP4/MOV, H.264 or HEVC 4:2:0, 23–60 fps, 9:16, ≤1920 px wide, ≤25 Mbps, a Story clip ≤60 s / a Reel 3 s–15 min, ≤1 GB, AAC (over 128 kbps is a note), the moov atom first; `--api`: a Story ≤8 MB, faststart required. The kind from the name ("reel") unless given; exit 1 on a failure, warnings otherwise | (prints) |
+| `cover.py <video> --at 19.5\|f585\|c4:link [--deliverable reel] [--grid 1080x1440]` | .venv | a Reel's cover: one frame at full size through `stills.mjs` (from the first Reel deliverable by default), the centered 3:4 crop the profile grid shows (1080×1440), and the Reel safe-zone check on it (warnings) | `out/<video>/<video>-v<version>-cover.png`, `…-cover-grid.png` |
 | `review.py sheet <mp4> [--at 1.5,f255,c4:link --timing <video> \| --every 2]` | .venv | a keyframe strip with the safe zones | `<mp4>-sheet.png` |
 | `review.py compare <a> <b>` | .venv | side by side, labeled, for the owner (a draft against a full render works too) | `<a>-vs-<b>.mp4` |
-| `review.py diff <a> <b>` | .venv | PSNR per frame (∞ = identical): a refactor must not change a render | (prints) |
+| `review.py diff <reference> <new> [--no-vmaf]` | .venv | PSNR (∞ = identical), SSIM (1 = identical) and VMAF per frame, worst first: a refactor must not change a render (PSNR ∞); VMAF says whether an encode visibly damaged it (0–100, ~6 points is one just-noticeable difference; identical still frames score ~97, not 100). Stills too; a smaller one is scaled up. VMAF needs ffmpeg's libvmaf (winget's Gyan.FFmpeg full_build has it; without it, PSNR and SSIM and a note) | (prints) |
 | `review.py band <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | nothing but the background above y 252 (the sticker band + 2 px) on any frame; `--video` allows its `sticker_band.allow` spans; exit 1 when something enters | (prints) |
+| `review.py reel <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | the Reel's safe zones (108 top, 320 bottom, 60 left, 120 right): content in those margins is a warning per side, with the frames and how close to the edge it gets (images may run into them, words never); `--video` allows its `reel_safe.allow` spans | (prints) |
 | `clean.py [--yes]` | .venv | lists older versions, drafts, stills, sheets, comparisons and scratch folders in the home's `out/`, the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, the archive and anything git tracks stay | (the Recycle Bin) |
 | `npm run check` (in `media/`) | Node | `tsc`, every composition registers, one still per video | `out/check/` |
-| `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json` | (prints) |
+| `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json`, and the captions' pages | (prints) |
 
 The Python tests (`media/tests`, standard library only) run with the backend's: `.venv/Scripts/python -m pytest -q`.
 CI's `media` job (in `.github/workflows/ci.yml`) runs `npm ci`, `tsc` and `npm test` when `media/` changes.
@@ -136,24 +140,38 @@ CI's `media` job (in `.github/workflows/ci.yml`) runs `npm ci`, `tsc` and `npm t
   "voice": { "name": "Achird", "direction": "(optional; common.py has the owner's chosen one)", "lead": 0.55,
              "max_pause": 0.32, "lines": [{ "id": "a1", "text": "…", "gap": 0.3, "take": 0 }] },
   "music": { "bpm": 98, "duration": 30, "seeds": [7], "prompts": { "name": "…" },
-             "bed": "cache/music/….wav", "bed_source": "which prompt and seed", "first_hit": 0.07 },
+             "bed": "cache/music/….wav", "bed_source": "which prompt and seed", "first_hit": 0.07,
+             "provenance": { "cache/music/….wav": { "model": "…", "revision": "…", "prompt": "…", "seed": 7,
+                             "reference_audio": null, "generated": "2026-10-04" } } },
   "mix": { "fade": 0.3, "voice_only_lufs": -15, "with_music_lufs": -14, "bed_db": -8 },
   "sticker_band": { "deliverables": ["voice-only"], "allow": [[4.2, 4.3, "why: a full-frame transition"]] },
+  "reel_safe": { "deliverables": ["reel"], "allow": [] },   // optional: default, every render named "…reel…"
+  "captions": { "style": "minimal", "emphasis": ["gratis"], "lines": ["c1", "c2"], "deliverables": ["reel"] },  // optional, off without it
   "renders": { "voice-only": "<composition id>", "reel": "…" }   // file name → composition id
 }
 ```
 
 `duration`, `version` and `renders` are required; compositions import `video.json` for their length
 (`vertical(settings)`), so `mix.py` and the picture agree, and `gridOf(settings)` builds the beat grid from
-`music.bpm` (brand.json's 98 without one). `bed` is relative to the media home. `sticker_band` names the Story
+`music.bpm` (brand.json's 98 without one). `bed` is relative to the media home. **`provenance`** records how each
+published bed was made (ACE-Step's rights to generated output are an open question upstream, discussion #1256): the
+model, its revision, the prompt, the seed, the reference audio (`null` for none) and the day; `music.py` writes it
+next to each new bed (`<bed>.json`) to copy in. `mix.py` and `render.py` warn when the bed in use lacks it; `--strict`
+(also `make.py --strict`) refuses. `sticker_band` names the Story
 deliverables the band check applies to, and the spans (seconds) where a full-frame transition sweeps the background
-through it. Composition ids are `<video>-<deliverable>`, inside a `<Folder>` named after the video. Every composition
+through it. `reel_safe` names the Reel deliverables the Reel safe-zone check applies to (default: every render whose
+name contains "reel") and spans to skip. `captions` turns on the voice's captions (`Captions`, below): `style`
+"minimal" (a phrase at a time, the `emphasis` words in marigold) or "kinetic" (the word being said lights up);
+optional `lines` (which voice lines; skip one the picture already writes out), `deliverables`, `maxChars` (24),
+`place` ("low", or "high"). Without it nothing changes: the teaser's renders are pixel-identical. Composition ids are `<video>-<deliverable>`, inside a `<Folder>` named after the video. Every composition
 takes a `blur` prop (motion blur on or off; `render.py --draft` turns it off).
 
 ## The library (`src/kit.ts`)
 
 **`lib/tokens`**: from `brand.json`: `FPS` 30, `WIDTH`×`HEIGHT` 1080×1920, `SAFE` {top 250, bottom 1580, side 80},
-`STICKER_BAND` {top 0, bottom 250, margin 2}, `TITLE_BAND` {280, 520}, `DEFAULT_BPM` 98. Also `sec(s)`, colors `C`
+`STICKER_BAND` {top 0, bottom 250, margin 2}, `REEL_SAFE` {top 108, bottom 320, left 60, right 120} (px from each
+edge), `TEXT_ZONE.story` / `.reel` (where words may go: x 80–1000 / 80–960, y 250–1580), `TITLE_BAND` {280, 520},
+`DEFAULT_BPM` 98. Also `sec(s)`, colors `C`
 (light theme "Fania de día"), `STRIPES`, `FONT` (Shrikhand, Bodoni Moda, Instrument Sans, emoji), and type presets
 `TYPE.display(size, color?, shadow?)`, `TYPE.serif(size, color?)` (small optical size: hairlines survive H.264; never
 digits), `TYPE.sans(size, color?)` (anything with numbers).
@@ -191,6 +209,11 @@ digits), `TYPE.sans(size, color?)` (anything with numbers).
 start). **`lib/fonts`**: loads the faces from `media/fonts/` (`fontsReady` resolves when they're in);
 `assets(video)(path)` is a `staticFile` in the home's `public/<video>/`.
 
+**`lib/captions`**: `captionPages(timing, settings)` turns a timing.json into pages with `@remotion/captions`'
+`createTikTokStyleCaptions()` (a page per phrase: breaks at punctuation, at each line's end, at pauses over 0.3 s,
+and before `maxChars`, without leaving a lone short word); `pageAt`, `currentToken`, `captionsOn`. Pure, tested in
+Node (`tests/captions.test.mjs`).
+
 **`brand/`**:
 
 | Piece | What it is |
@@ -210,6 +233,7 @@ start). **`lib/fonts`**: loads the faces from `media/fonts/` (`fontsReady` resol
 | `Flyer`, `toss()` | a real flyer (whole, the site's border, a shadow that lifts); a throw onto a pile with weight |
 | `Sticker`, `AppIcon` | the round tomato sticker; the app icon's squircle |
 | `Arrow` | a drawn arrow (up, down, left, right) in the brand's ink weight, for calls to action that point at something |
+| `Captions` | the voice's captions from video.json's `captions` (nothing without it): Instrument Sans 54 px, cream on an ink card like the site's selected chips, above the safe zone's bottom inside the format's `TEXT_ZONE`; the card fades in and out over 3 frames per run of phrases, phrases swap in place. `<Captions video={settings} timing={timingJson} format={cta} />` after the scenes (the teaser has it) |
 
 **`data/events`**:
 - `VideoEvent` and `EventsSnapshot` are the shape of `events.json`; show `day`/`day_start`, not `date`/`start_time`.

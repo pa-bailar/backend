@@ -8,10 +8,11 @@
         mix     a soundtrack is older than the voice track or the bed, or video.json's .venv
                 music/mix settings changed (the mix.key mix.py leaves next to them)
         render  a render is older than the code, the data, the public files or brand   .venv (+ node)
-        sheet   the review (keyframe sheet, sticker band, side-by-side with the        .venv
-                previous version) is older than its render
+        sheet   the review (Instagram pre-flight, keyframe sheet, sticker band, Reel   .venv
+                safe zones, side-by-side with the previous version) is older than its render
       --draft renders half size without motion blur; --force runs the named stages anyway; --dry-run only says
-      what would run.
+      what would run; --strict makes mix and render refuse a bed without provenance, and render refuse material
+      past its shelf life.
   .venv/Scripts/python media/tools/make.py doctor
       Checks the machine: ffmpeg, Chrome, node and the packages, the three Pythons, the fonts, the Gemini key (set or
       not, never shown), each video's music bed, and the media home.
@@ -142,7 +143,7 @@ def make(name: str, wanted: list[str], draft: bool, force: bool, dry: bool, stri
     commands: dict[str, Callable[[], None]] = {
         "tts": lambda: run("venv", tool("tts.py"), name),
         "timing": lambda: run("whisper", tool("timing.py"), name),
-        "mix": lambda: run("venv", tool("mix.py"), name),
+        "mix": lambda: run("venv", tool("mix.py"), name, *(["--strict"] if strict else [])),
         "render": lambda: run(
             "venv", tool("render.py"), name, *(["--draft"] if draft else []), *(["--strict"] if strict else [])
         ),
@@ -170,7 +171,7 @@ def review_all(v: Video, draft: bool) -> None:
             raise SystemExit(f"no {shown(dest)}: run the render stage")
         ok = render.review(v, deliverable, dest) and ok
     if not ok:
-        raise SystemExit("review: something entered the sticker band (above)")
+        raise SystemExit("review: something entered the sticker band, or Instagram would refuse the file (above)")
 
 
 # ---------- doctor ----------
@@ -204,6 +205,11 @@ def checks() -> list[tuple[str, bool, str]]:
             out.append(("need", True, f"{exe}: {tool(exe)}"))
         except SystemExit as error:
             out.append(("need", False, str(error)))
+    if all(ok for _, ok, _ in out):
+        import review
+
+        vmaf = review.has_filter("libvmaf")
+        out.append(("nice", vmaf, f"ffmpeg's libvmaf (review.py diff): {'yes' if vmaf else 'no: PSNR and SSIM only'}"))
     found = chrome()
     out.append(("need", bool(found), f"Chrome (captures): {found or 'not found'}"))
     out.append(("need", bool(shutil.which("node")), f"node: {shutil.which('node') or 'not on PATH'}"))

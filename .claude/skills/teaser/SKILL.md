@@ -32,7 +32,9 @@ the tools, the library's building blocks and the workflow, written so you don't 
    project files), as teaser v2.3.
 6. **Keep the format free.** No fixed template: every video can differ in length, structure and pieces. Follow the
    motion rules (springs, irregular staggers, a camera that never stops, accents on downbeats only, motivated
-   transitions, blur on fast moves), and break one only on purpose.
+   transitions, blur on fast moves), and break one only on purpose. Keep to MOTION.md's motion vocabulary: a few
+   kinds of motion, one thing moving at a time per region, nothing moving for its own sake (too many moving parts
+   is what makes AI-made videos look AI-made).
 
 ## Before handing a cut over (the pre-post checklist)
 
@@ -40,10 +42,30 @@ the tools, the library's building blocks and the workflow, written so you don't 
   (`--strict` refuses). Say the date when you hand it over; re-capture or re-run `events.py` if it's close.
 - **Sticker band**: `review.py band` (part of `make.py`'s sheet stage and `render.py --review`) passes on every Story
   deliverable: nothing above y 252 except the full-frame transitions `video.json` lists, each with its reason.
+- **Instagram pre-flight**: `preflight.py` (part of `render.py --review`) passes on every deliverable you hand over
+  (codec, 9:16, fps, bitrate, length, size). A half-size draft only warns; hand over full renders. For the API (a
+  Story through the Graph API must be ≤8 MB), run it with `--api`.
+- **Reel safe zones**: `review.py reel` (part of `render.py --review` for Reel deliverables) lists content in the
+  margins the Reel's UI covers (108 top, 320 bottom, 60 left, 120 right). Images may run into them; check that no
+  word does (the sheet draws them in magenta).
+- **Reel cover**: for a Reel, `cover.py <video> --at <moment>` exports the cover (1080×1920) and the profile grid's
+  centered crop; pick a frame whose words survive the crop and sit outside the Reel's margins, and hand both over.
 - **Loudness**: `mix.py` passed (true peak ≤ −1 dBTP, within 1 LU of −15 voice-only / −14 with music / −16 music
   only); `mix.py <video> --check` measures what's there.
+- **Phone speaker** (a voice with music): `mix.py` prints voice over music as a phone plays it (mono, 300 Hz–6 kHz)
+  in the voice band; no warning means at least +10 dB and under 10% of the speech masked. A warning: lower `bed_db`.
+- **Refactors and encodes**: after a change that shouldn't move a pixel, `review.py diff <old> <new>` must say every
+  frame is identical (PSNR ∞). To judge an encode (Instagram's copy, a smaller file), read its VMAF (~6 points is one
+  just-noticeable difference) and its worst frames.
+- **Music provenance**: a video with a generated bed records it in `video.json`'s `music.provenance` (model,
+  revision, prompt, seed, reference audio, date; `music.py` leaves a `.json` next to each bed to copy in). `mix.py`
+  and `render.py` warn without it; use `make.py <video> --strict` for anything you hand over to post.
 - **Version**: the render's name carries the `version` you'll report, and the previous one is there to compare.
 - **Type**: digits (dates, times, prices, counts) in the sans, never the Bodoni italic (its 4 reads as a 1).
+- **Captions** (when the owner wants them; off by default): `"captions": {"style": "minimal" | "kinetic", …}` in
+  `video.json` and `<Captions video={settings} timing={timingJson} format={cta} />` after the scenes. Look at stills
+  (`stills.mjs --at c2:vale`): no line twice (skip with `lines` the ones the picture writes out), nothing they cover
+  that matters, inside the safe zones of each deliverable.
 
 ## Rules
 

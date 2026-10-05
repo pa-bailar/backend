@@ -22,6 +22,31 @@ export const SAFE = { top: brand.safe.top, bottom: brand.safe.bottom, side: bran
  */
 export const STICKER_BAND = { top: brand.stickerBand.top, bottom: brand.stickerBand.bottom, margin: brand.stickerBand.margin };
 
+/**
+ * Reels: the margins (px from each edge) that Instagram's Reel UI covers: the header, the caption and audio line, the
+ * like/comment/share column on the right. Images may run into them (tools/review.py reel warns); words never do.
+ */
+export const REEL_SAFE = {
+  top: brand.reelSafe.top,
+  bottom: brand.reelSafe.bottom,
+  left: brand.reelSafe.left,
+  right: brand.reelSafe.right,
+};
+
+/**
+ * Where words may go, per format (canvas px): inside `SAFE` for both, and for a Reel also clear of `REEL_SAFE`'s
+ * right-hand column (x ≤ 960). A Story's sticker band (y < 250) is above `SAFE.top` already.
+ */
+export const TEXT_ZONE = {
+  story: { left: SAFE.side, right: WIDTH - SAFE.side, top: SAFE.top, bottom: SAFE.bottom },
+  reel: {
+    left: Math.max(SAFE.side, REEL_SAFE.left),
+    right: WIDTH - Math.max(SAFE.side, REEL_SAFE.right),
+    top: Math.max(SAFE.top, REEL_SAFE.top),
+    bottom: Math.min(SAFE.bottom, HEIGHT - REEL_SAFE.bottom),
+  },
+};
+
 /** Scene titles sit here in every scene, so the eye never hunts. */
 export const TITLE_BAND = { top: brand.titleBand.top, bottom: brand.titleBand.bottom };
 

@@ -15,6 +15,11 @@ Scene numbers below are teaser v2's (`projects/teaser-v2`), as examples.
   so nothing enters it on any frame, image or word (`STICKER_BAND`; `review.py band` allows nothing above y 252,
   except the spans a video.json lists for full-frame transitions). Mind the camera: a 3% push-in at depth 0.6 lifts
   something at y 276 to about y 256, so page heads start at y 276 or lower.
+- **Reel safe zones:** a Reel's UI covers other margins than a Story's: 108 px at the top (the header), 320 at the
+  bottom (the caption, the audio line), 60 on the left and 120 on the right (the like, comment and share column)
+  (`REEL_SAFE`). Words stay inside both: x 80–960, y 250–1580 on a Reel (`TEXT_ZONE.reel`). `review.py reel` warns
+  about content in those margins (images may run into them). The teaser's end card (v2.4) reaches x 1000 with the
+  wordmark and the stripes: inside the right column on the Reel.
 - **Title band:** scene titles sit at y 280–520, the same place in every scene, so the eye never hunts.
 
 ## Colors (v2: "Fania de día", the site's light theme, plus the logo's tomato for the cover)
@@ -53,7 +58,8 @@ v2's rules, with the research behind them, are in `MOTION.md` and in code in `sr
 one entrance ("rise") on a `snap` spring with a little overshoot, exits accelerating out; springs with weight
 for flyers, the record and the sticker; kinetic type word by word with the voice; irregular staggers; a slow
 camera push-in and parallax on every scene; beat accents on downbeats only; motivated transitions (iris,
-whips, a match cut, one continuous phone shot) instead of hard cuts; motion blur on fast moves.
+whips, a match cut, one continuous phone shot) instead of hard cuts; motion blur on fast moves. And a small motion
+vocabulary: one thing moving at a time per region, no motion for its own sake.
 
 ## The record (the motif)
 
@@ -71,6 +77,23 @@ white sheen that doesn't turn) so the turning reads.
   the sticker band (`CTA_TOP` = 276, bobbing `CTA_BOB` = 14 px) for a Story, "Link en mi perfil" for a Reel; the
   stripes at y 500; the app icon and the record around a spot (the video brings its own: a match cut, a pop); the
   wordmark 300 px below it and an optional sign-off 490 px below.
+
+## Captions (opt-in)
+
+Off unless a video's `video.json` has `"captions"` (the kit's `Captions`). For viewers with the sound off, and for
+Reels that autoplay muted. The words are the voice's, timed by Whisper (`data/timing.json`).
+
+- **Type and card:** Instrument Sans 600 at 54 px (it carries digits; the Bodoni's don't read), cream-50 on a flat
+  wine-900 card, 18 px radius, like the site's selected chips. A paper card vanished over the site's own cream screens.
+- **Place:** inside the format's words zone (`TEXT_ZONE`), the card's bottom 40 px above the safe zone's bottom
+  (y 1540), centered: a Story's x 80–1000, a Reel's x 80–960 (clear of the like/share column). `"place": "high"` puts
+  it right under y 250 (below the sticker band), for a scene whose lower half carries the content.
+- **Styles:** "minimal": a phrase at a time (breaks at punctuation, lines and pauses, ≤24 characters), the words in
+  `emphasis` in marigold-400 at 700. "kinetic": the same phrases, the word being said in marigold-400 (it lights over
+  2 frames, ~2 frames before it's said, as the kinetic type does). Nothing bounces, slides or scales.
+- **Motion:** the card fades in over 3 frames when a run of phrases starts and out when it ends; inside a run the
+  phrase swaps in place. Skip a line (`lines`) when the picture already writes those words (the teaser's opening
+  question and its "Nos vemos bailando." sign-off).
 
 ## Texture
 

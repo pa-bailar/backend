@@ -3,6 +3,10 @@
   "version": "1",
   "fps": 30,
   "duration": 12.0,
+  "music": {
+    "provenance": {},
+    "note": "No bed: the owner adds a track from Instagram's music library when posting, so nothing generated to record."
+  },
   "sticker_band": {"deliverables": ["story"], "allow": []},
   "renders": { "story": "este-finde-story" }
 }

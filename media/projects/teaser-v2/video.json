@@ -27,7 +27,21 @@
     },
     "bed": "cache/music/teaser-v2-option-1.wav",
     "bed_source": "option-1 of the original teaser project (pa-bailar-teaser/out/music/option-1.wav, committed there): the first 25 s of the \"fania\" prompt, seed 7, ACE-Step 1.5 turbo (8 steps, shift 3.0, thinking, 5Hz LM 1.7B), 98 bpm, 30 s (identified 5 Oct 2026: correlation 1.0 with pa-bailar-teaser/out/music/candidates/fania-s7.wav, now also cache/music/fania-s7-1b51c940a66911a3.wav in the media home, where tools/music.py finds it as cached)",
-    "first_hit": 0.07
+    "first_hit": 0.07,
+    "provenance": {
+      "cache/music/teaser-v2-option-1.wav": {
+        "model": "ACE-Step 1.5 (acestep-v15-turbo DiT + acestep-5Hz-lm-1.7B, thinking True)",
+        "revision": "ace-step/ACE-Step-1.5@ca1e85f (package 1.5.0, D:\\AI\\ace-step)",
+        "prompt_name": "fania",
+        "prompt": "Instrumental 1970s New York salsa dura, Fania Records sound. Opens with a loud unison brass hit on beat one, then a tight groove: piano montuno, two trombones and trumpet playing short punchy mambo riffs, congas tumbao, timbales with cowbell on the downbeats, bongo bell, deep baby bass tumbao. Warm analog tape, vintage vinyl texture, joyful, confident, danceable. No vocals, no choir.",
+        "seed": 7,
+        "settings": { "bpm": 98, "duration": 30, "steps": 8, "shift": 3.0 },
+        "reference_audio": null,
+        "generated": "2026-10-04",
+        "excerpt": "the first 25 s of fania-s7 (generated 12:18 Bogotá time; pa-bailar-teaser/out/music/candidates/fania-s7.wav, cut to option-1.wav at 12:22; also cache/music/fania-s7-1b51c940a66911a3.wav)",
+        "analysis": "tools/analyze.py on fania-s7: 95.7 bpm detected (98 asked), first hit 0.07 s, -16.6 LUFS (pa-bailar-teaser/out/music/analysis.json)"
+      }
+    }
   },
   "mix": { "fade": 0.3, "voice_only_lufs": -15, "with_music_lufs": -14, "bed_db": -8 },
   "capture": { "styles": ["Salsa", "Bachata"] },
