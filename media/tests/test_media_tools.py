@@ -12,6 +12,7 @@ import common
 import events
 import make
 import mix
+import preflight
 import pytest
 import render
 import review
@@ -175,6 +176,61 @@ def test_reel_deliverables_are_named_or_inferred():
     assert review.reel_deliverables({"renders": renders}) == ["reel"]
     assert review.reel_deliverables({"renders": renders, "reel_safe": {"deliverables": []}}) == []
     assert review.REEL == {"top": 108, "bottom": 320, "left": 60, "right": 120}
+
+
+# ---------- preflight ----------
+
+
+def probed(**video):
+    v = {"codec_type": "video", "codec_name": "h264", "pix_fmt": "yuv420p", "avg_frame_rate": "30/1"}
+    v |= {"width": 1080, "height": 1920, "bit_rate": "15000000"} | video
+    a = {"codec_type": "audio", "codec_name": "aac", "bit_rate": "128000", "sample_rate": "48000", "channels": 2}
+    return {"format": {"format_name": "mov,mp4,m4a,3gp,3g2,mj2", "duration": "21.0"}, "streams": [v, a]}
+
+
+def test_preflight_passes_a_render_and_names_what_instagram_refuses():
+    assert preflight.assess(probed(), 40_000_000, "story", False, True) == ([], [])
+    fail, _ = preflight.assess(
+        probed(codec_name="vp9", avg_frame_rate="120/1", width=1080, height=1080), 1, "reel", False, True
+    )
+    assert any("codec vp9" in f for f in fail)
+    assert any("120.00 fps" in f for f in fail)
+    assert any("isn't 9:16" in f for f in fail)
+    fail, _ = preflight.assess(probed(width=2160, height=3840, bit_rate="40000000"), 1, "story", False, True)
+    assert any("2160 px wide" in f for f in fail) and any("40.0 Mbps" in f for f in fail)
+    assert preflight.rate("30000/1001") == pytest.approx(29.97, abs=0.01)
+
+
+def test_preflight_lengths_sizes_and_the_api():
+    long = probed()
+    long["format"]["duration"] = "75"
+    assert any("Story clip" in f for f in preflight.assess(long, 1, "story", False, True)[0])
+    assert preflight.assess(long, 1, "reel", False, True)[0] == []
+    short = probed()
+    short["format"]["duration"] = "2.5"
+    assert any("a Reel is" in f for f in preflight.assess(short, 1, "reel", False, True)[0])
+    assert preflight.assess(probed(), 40_000_000, "story", True, True)[0] == [
+        "40.0 MB: the API takes a Story video up to 8 MB"
+    ]
+    fail, warn = preflight.assess(probed(), 1, "story", False, False)
+    assert not fail and any("moov" in w for w in warn)
+    assert any("moov" in f for f in preflight.assess(probed(), 1, "story", True, False)[0])
+    fail, warn = preflight.assess(probed(width=540, height=960), 1, "story", False, True)
+    assert not fail and any("under 1080" in w for w in warn)
+
+
+def box(kind: bytes, payload: bytes = b"") -> bytes:
+    return (8 + len(payload)).to_bytes(4, "big") + kind + payload
+
+
+def test_moov_first_walks_the_top_level_boxes(tmp_path):
+    fast, slow = tmp_path / "fast.mp4", tmp_path / "slow.mp4"
+    fast.write_bytes(box(b"ftyp", b"isom") + box(b"moov", b"x" * 20) + box(b"mdat", b"y" * 40))
+    slow.write_bytes(box(b"ftyp", b"isom") + box(b"free") + box(b"mdat", b"y" * 40) + box(b"moov", b"x" * 20))
+    assert preflight.moov_first(fast) is True
+    assert preflight.moov_first(slow) is False
+    (tmp_path / "junk.mp4").write_bytes(b"abc")
+    assert preflight.moov_first(tmp_path / "junk.mp4") is None
 
 
 # ---------- mix ----------

@@ -8,8 +8,8 @@
         mix     a soundtrack is older than the voice track or the bed, or video.json's .venv
                 music/mix settings changed (the mix.key mix.py leaves next to them)
         render  a render is older than the code, the data, the public files or brand   .venv (+ node)
-        sheet   the review (keyframe sheet, sticker band, side-by-side with the        .venv
-                previous version) is older than its render
+        sheet   the review (Instagram pre-flight, keyframe sheet, sticker band, Reel   .venv
+                safe zones, side-by-side with the previous version) is older than its render
       --draft renders half size without motion blur; --force runs the named stages anyway; --dry-run only says
       what would run.
   .venv/Scripts/python media/tools/make.py doctor
@@ -170,7 +170,7 @@ def review_all(v: Video, draft: bool) -> None:
             raise SystemExit(f"no {shown(dest)}: run the render stage")
         ok = render.review(v, deliverable, dest) and ok
     if not ok:
-        raise SystemExit("review: something entered the sticker band (above)")
+        raise SystemExit("review: something entered the sticker band, or Instagram would refuse the file (above)")
 
 
 # ---------- doctor ----------

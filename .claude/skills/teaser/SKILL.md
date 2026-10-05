@@ -40,6 +40,9 @@ the tools, the library's building blocks and the workflow, written so you don't 
   (`--strict` refuses). Say the date when you hand it over; re-capture or re-run `events.py` if it's close.
 - **Sticker band**: `review.py band` (part of `make.py`'s sheet stage and `render.py --review`) passes on every Story
   deliverable: nothing above y 252 except the full-frame transitions `video.json` lists, each with its reason.
+- **Instagram pre-flight**: `preflight.py` (part of `render.py --review`) passes on every deliverable you hand over
+  (codec, 9:16, fps, bitrate, length, size). A half-size draft only warns; hand over full renders. For the API (a
+  Story through the Graph API must be ≤8 MB), run it with `--api`.
 - **Reel safe zones**: `review.py reel` (part of `render.py --review` for Reel deliverables) lists content in the
   margins the Reel's UI covers (108 top, 320 bottom, 60 left, 120 right). Images may run into them; check that no
   word does (the sheet draws them in magenta).

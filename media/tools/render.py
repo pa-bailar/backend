@@ -7,7 +7,8 @@
       half size, no motion blur → out/<video>/<video>-v<version>-<deliverable>-draft.mp4
   .venv/Scripts/python media/tools/render.py <video> --frames 90,8.5s,c4:link [deliverable]
       stills (tools/stills.mjs: frames, seconds, a line's or a word's start) → out/<video>/frames/
-  --review    after each render: the keyframe sheet (…-sheet.png), the sticker-band check for the Story
+  --review    after each render: Instagram's pre-flight (tools/preflight.py: codec, size, length…; fails on what
+              Instagram would refuse), the keyframe sheet (…-sheet.png), the sticker-band check for the Story
               deliverables (video.json "sticker_band"), the Reel safe-zone check for the Reel ones (warnings:
               tools/review.py reel), and a side-by-side with the previous version (…-vs-v<previous>.mp4, from out/ or
               the archive). Fails when something enters the band.
@@ -120,17 +121,19 @@ def latest_link(v: Video, deliverable: str, dest: Path) -> None:
 
 
 def review(v: Video, deliverable: str, dest: Path) -> bool:
-    """The keyframe sheet, the sticker band (Story deliverables) and a side-by-side with the previous version."""
+    """Instagram's pre-flight, the keyframe sheet, the sticker band (Story deliverables), the Reel's safe zones (Reel
+    deliverables) and a side-by-side with the previous version."""
+    import preflight
     import review as rv
 
     total = rv.duration_of(dest)
     is_reel = deliverable in rv.reel_deliverables(v.settings)
+    ok = preflight.check(dest, "reel" if is_reel else "story")
     at = [round(t * 2 + 1, 2) for t in range(int(total / 2))]
     rv.sheet(dest, at, dest.with_name(f"{dest.stem}-sheet.png"), reel=is_reel)
-    ok = True
     band = v.settings.get("sticker_band", {})
     if deliverable in band.get("deliverables", []):
-        ok = rv.band(dest, rv.allowed_spans(v.name), v.fps)
+        ok = rv.band(dest, rv.allowed_spans(v.name), v.fps) and ok
     if is_reel:
         rv.reel(dest, rv.allowed_spans(v.name, "reel_safe"), v.fps)  # warnings only: images may run into the margins
     older = [(ver, path) for ver, path in v.versions(deliverable) if ver < version_tuple(v.version)]
@@ -189,7 +192,7 @@ def main() -> None:
         if args.review:
             ok = review(v, name, dest) and ok
     if not ok:
-        raise SystemExit("review: something entered the sticker band (above)")
+        raise SystemExit("review: something entered the sticker band, or Instagram would refuse the file (above)")
 
 
 if __name__ == "__main__":
