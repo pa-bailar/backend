@@ -87,6 +87,29 @@ def normalize_style(style: str) -> str | None:
     return _STYLE_SYNONYMS.get(key, "otro")
 
 
+# Words that name a style in a caption, for an event that came back without styles (styles_in_text). Not "son"
+# ("they are"), "salsa la", "otro" nor the bare variants' short forms: too common as plain words.
+_TEXT_STYLE_WORDS = sorted(
+    (key for key in _STYLE_SYNONYMS if key not in {"son", "salsa la", "otro", "sensual", "rueda", "la"}),
+    key=len,
+    reverse=True,
+)
+_TEXT_STYLE = re.compile(r"\b(" + "|".join(re.escape(key) for key in _TEXT_STYLE_WORDS) + r")\b")
+
+
+def styles_in_text(text: str | None) -> list[str]:
+    """The styles a text names ("Noche de SALSA y bachata" → salsa, bachata), longest names first, so "salsa en
+    linea" wins over "salsa". For an event that came back without styles: free, no request."""
+    found = [_STYLE_SYNONYMS[m.group(1)] for m in _TEXT_STYLE.finditer(fold(text))]
+    return normalize_styles(found)
+
+
+# A post announcing several events, read only by a lighter model (Flash-Lite as the final reader, or a provisional
+# reading): it mixes up each event's times and prices (one post with workshops at 15:00, 16:00 and 17:00 came back all
+# at 15:00, Oct 2026). Listed for review (health.review_reasons).
+MULTI_DOUBT = "varios eventos en una publicación, leída por un modelo ligero: confirma horas y precios"
+
+
 def normalize_styles(styles: Sequence[str]) -> list[str]:
     """Styles from the list, without duplicates, in their original order.
 
