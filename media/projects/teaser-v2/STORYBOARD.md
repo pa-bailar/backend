@@ -15,14 +15,14 @@ no URL on screen (an Instagram link sticker carries it).
 | 2 | 4.29–6.12 | "Por eso hice Pa' Bailar." | The logo's tomato: the record, "Pa' Bailar" in cream with a wine offset shadow, the tagline. | The record drops in (`weight`) and spins up like a platter; letters land one by one from above on "Pa' Bailar"; tagline rises; the record kicks on the downbeat (4.90). | Whip pan up: leans down 22 px, then the whole cover flies up with blur and the phone scene arrives from below, overshooting a little. |
 | 3 | 6.12–14.69 | "Miras qué hay hoy, este finde, la otra semana… a qué hora, dónde, cuánto vale y cómo llegar." | The live site in a phone, light theme. Above it, a period-heading title: "Salsa + Bachata" → "Hoy" → "Este finde" → "La otra semana" → "¿A qué hora?" → "¿Dónde?" → "¿Cuánto vale?" → "¿Cómo llegar?". | v2.3: a thumb taps the Salsa (6.50) and Bachata (6.82) chips in the bar (each turns dark, the list filters) and flicks to Hoy (7.28), Este fin de semana (8.16), Próxima semana (9.41): each flick glides with blur and settles a hair past, the bar pinned on top with "19 eventos · Salsa, Bachata". Taps "Detalles ›" on the first event of Próxima semana (10.86): the site's details drawer rises to half height (the list nudging so the card stays in view); a tomato frame pops onto the time (11.11); the thumb pulls the drawer up to full height (11.58) and the frame springs to Lugar, Precio, Cómo llegar. Titles build rule–word–rule and kick on downbeats (7.35, 9.80, 12.24). | Whip pan left with blur. |
 | 4 | 14.69–17.14 | "No hay que registrarse, es gratis." | Paper, the stripes. "Sin **registro.**" and "Ni cuentas, ni contraseñas."; the round tomato sticker "Gratis · $0". | Words spring in with the voice; the sticker pops (`pop`) on "gratis" and sways on the beat; the texts fall away. | Match cut: the sticker squashes, launches up spinning, and arrives as the record. |
-| 5 | 17.14–21.00 | "Te dejo el link… y nos vemos bailando." | Same stripes; the app icon (record on the tomato squircle), "Pa' Bailar" in tomato, "Nos vemos bailando.", then **Story:** "Link aquí abajo 👇" (the hand bobs on the beat); **Reel:** "Link en mi perfil". y 1360–1580 left empty for Instagram's link sticker. | The record lands in place; the squircle pops behind it; letters land on "Te dejo…"; the CTA rises on "link" (17.86); sign-off on "nos" (18.6); the arrow bobs on every beat, the icon kicks on the downbeat (19.59); the record keeps spinning. | — (holds) |
+| 5 | 17.14–21.00 | "Te dejo el link… y nos vemos bailando." | v2.3: at the top, under the band where the owner keeps the Story's link sticker, "Link aquí arriba" with a drawn arrow up (Reel: "Link en mi perfil", no arrow); the stripes; the app icon (record on the tomato squircle); "Pa' Bailar" in tomato; "Nos vemos bailando.". | The record lands in place; the squircle pops behind it; letters land on "Te dejo…"; the call to action rises on "link" (17.86) and its arrow bobs up on every beat; sign-off on "nos" (18.6); the icon kicks on the downbeat (19.59); the record keeps spinning. | — (holds) |
 
 ## Deliverables
 
 | File | Audio | End card |
 |---|---|---|
-| `out/teaser-v2/voice-only.mp4` | voice only, −15 LUFS | Story: "Link aquí abajo 👇" |
-| `out/teaser-v2/with-music.mp4` | voice + ACE-Step bed, ducked, −14 LUFS | Story: "Link aquí abajo 👇" |
+| `out/teaser-v2/voice-only.mp4` | voice only, −15 LUFS | Story: "Link aquí arriba" ↑ |
+| `out/teaser-v2/with-music.mp4` | voice + ACE-Step bed, ducked, −14 LUFS | Story: "Link aquí arriba" ↑ |
 | `out/teaser-v2/reel.mp4` (Reel only) | voice + bed | Reel: "Link en mi perfil" |
 
 ## App footage
@@ -40,5 +40,6 @@ flows straight into a re-render.
   over the last 0.3 s; the voice starts at 0.55 s, so nothing of the first word is touched. Also fixed: the
   bed stopped at full level at 19.9 s (the ducking compressor ended with the voice); it now fades out to 21 s.
 - Picture: eases in from the paper over the first 8 frames.
-- Story end card: "Link aquí abajo 👇" pointing down to the empty sticker band (y 1360–1580). The Reel-only
-  file keeps "Link en mi perfil".
+- Story end card (v2.3): "Link aquí arriba" under a drawn arrow pointing up at the link sticker, which the owner
+  keeps at the top for the whole Story (above y 250, empty in every scene); the arrow bobs on the beat. The icon,
+  wordmark and sign-off sit below it. The Reel-only file says "Link en mi perfil" in the same place, no arrow.

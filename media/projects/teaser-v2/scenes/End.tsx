@@ -1,15 +1,17 @@
 // Scene 5 (17.14–21.00): "Te dejo el link… y nos vemos bailando."
 // The "Gratis" sticker arrives as the record (match cut), the app icon's tomato square pops in behind it, the
 // wordmark lands letter by letter, then the sign-off and the call to action. No address on screen (the owner's
-// call): the Story says "Link aquí abajo 👇", the hand bobbing on the beat toward the empty band where the link
-// sticker goes (y 1360–1580); the Reel (its own file) says "Link en mi perfil".
+// call). Instagram keeps a Story's link sticker on screen for the whole clip, so the owner places it at the top,
+// in the band above y 250 that every scene leaves empty (v2.3); the call to action sits right under it:
+// "Link aquí arriba" with a drawn arrow pointing up to it, bobbing on the beat. The Reel (no link stickers there)
+// says "Link en mi perfil" in the same place, without the arrow.
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import {
   AppIcon,
+  Arrow,
   C,
   camera,
-  FONT,
   kick,
   Letters,
   Record,
@@ -25,7 +27,8 @@ import { beats, downbeats, line, SCENES, word } from "../theme";
 import { flight, RECORD_SPOT, STICKER } from "./Free";
 
 export type Cta = "story" | "reel";
-export const STICKER_ZONE = { top: 1360, bottom: 1580 }; // kept empty for Instagram's link sticker
+/** The band the owner keeps for Instagram's link sticker in the Story, all through the video: no element enters it. */
+export const STICKER_BAND = { top: 0, bottom: 250 };
 
 export const End: React.FC<{ cta: Cta }> = ({ cta }) => {
   const { frame, t } = useScene();
@@ -42,7 +45,28 @@ export const End: React.FC<{ cta: Cta }> = ({ cta }) => {
   const ratio = fl.d / STICKER.d;
   return (
     <AbsoluteFill style={{ background: C.paper }}>
-      <Stripes frame={frame} start={-30} top={270} />
+      <AbsoluteFill style={cam(0.6)}>
+        {/* The call to action, right under the sticker's band: the arrow points up at the link. */}
+        <div
+          style={{
+            position: "absolute",
+            left: 80,
+            right: 80,
+            top: 268,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 0,
+            ...rise(frame, link, { distance: 40 }),
+          }}
+        >
+          {cta === "story" ? <Arrow size={132} weight={3.2} style={{ translate: `0px ${-20 * bob}px` }} /> : null}
+          <div style={{ ...TYPE.sans(68), textAlign: "center" }}>
+            {cta === "story" ? "Link aquí arriba" : "Link en mi perfil"}
+          </div>
+        </div>
+      </AbsoluteFill>
+      <Stripes frame={frame} start={-30} top={500} />
       <AbsoluteFill style={cam(1)}>
         <AppIcon
           size={ICON}
@@ -71,7 +95,7 @@ export const End: React.FC<{ cta: Cta }> = ({ cta }) => {
             position: "absolute",
             left: 0,
             right: 0,
-            top: 880,
+            top: RECORD_SPOT.y + 300,
             textAlign: "center",
             ...TYPE.display(168, C.tomato600),
             lineHeight: 1,
@@ -85,33 +109,13 @@ export const End: React.FC<{ cta: Cta }> = ({ cta }) => {
             position: "absolute",
             left: 80,
             right: 80,
-            top: 1060,
+            top: RECORD_SPOT.y + 490,
             textAlign: "center",
             ...TYPE.serif(66),
             ...rise(frame, bye, { distance: 50 }),
           }}
         >
           Nos vemos bailando.
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            left: 80,
-            right: 80,
-            top: 1178,
-            textAlign: "center",
-            ...TYPE.sans(64),
-            ...rise(frame, link, { distance: 50 }),
-          }}
-        >
-          {cta === "story" ? (
-            <>
-              Link aquí abajo{" "}
-              <span style={{ display: "inline-block", fontFamily: FONT.emoji, translate: `0px ${16 * bob}px` }}>👇</span>
-            </>
-          ) : (
-            "Link en mi perfil"
-          )}
         </div>
       </AbsoluteFill>
     </AbsoluteFill>

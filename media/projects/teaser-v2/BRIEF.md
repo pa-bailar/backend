@@ -15,12 +15,14 @@ most likely get licensed music from Instagram's Music sticker, so we deliver two
 
 | File | Audio | Use |
 |---|---|---|
-| `out/teaser-v2/voice-only.mp4` | voice only, −16 to −14 LUFS, no long silences | Story, with Instagram's music under it and the link sticker ("Link aquí abajo 👇" on screen) |
+| `out/teaser-v2/voice-only.mp4` | voice only, −16 to −14 LUFS, no long silences | Story, with Instagram's music under it and the link sticker ("Link aquí arriba" and an arrow up on screen) |
 | `out/teaser-v2/with-music.mp4` | voice + ACE-Step salsa bed, ducked | Story with our own music |
 | `out/teaser-v2/reel.mp4` (Reel only) | voice + bed | Reel (no link stickers there): "Link en mi perfil" on screen |
 
 No URL on screen (the owner's call, v2): the Story's link sticker carries it, with custom text like "Ver los
-eventos"; the end card leaves y 1360–1580 empty for it.
+eventos". Instagram keeps that sticker on for the whole Story, so it goes at the top, in the band above y 250
+that every scene leaves empty (v2.3; v2.2 left a band at the bottom of the end card, which only works if a sticker
+could appear at the end).
 
 **Specs:** 1080×1920, 30 fps, H.264 + AAC. Safe zones: keep text out of the top ~250 px (progress bar, account)
 and the bottom ~340 px (reply bar, link sticker area, Reel caption), and ≥80 px from the sides.

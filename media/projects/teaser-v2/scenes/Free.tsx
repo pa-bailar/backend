@@ -26,7 +26,7 @@ import { beats, line, SCENES, word } from "../theme";
 
 const END = sec(SCENES.end) - sec(SCENES.free); // the cut, in scene frames
 export const STICKER = { x: 540, y: 1090, d: 540 };
-export const RECORD_SPOT = { x: 540, y: 600, d: 400 };
+export const RECORD_SPOT = { x: 540, y: 820, d: 400 }; // the end card's icon, under its call to action (v2.3)
 export const LAUNCH = -5; // frames before the cut when the sticker takes off
 
 /**
