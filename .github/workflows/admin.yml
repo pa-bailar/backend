@@ -106,21 +106,30 @@ jobs:
           git pull -q --rebase origin main
           git push -q origin HEAD:main
 
-      - name: Reply
+      - name: Write the reply if the answer failed
         if: >-
           !cancelled() && steps.answer.outputs.action != 'skip' &&
           (steps.answer.outputs.action != '' || contains(github.event.issue.labels.*.name, 'admin'))
         env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          DONE: ${{ steps.answer.outputs.done }}
+          JOB_STATUS: ${{ job.status }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [ ! -s reply.md ] || [ "${{ job.status }}" != "success" ]; then
+          if [ ! -s reply.md ] || [ "$JOB_STATUS" != "success" ]; then
             echo "❌ Algo falló al responder. Detalles en [la ejecución]($RUN_URL)." > reply.md
           fi
-          gh issue comment "$ISSUE" --body-file reply.md
-          if [ "$DONE" = "true" ]; then gh issue close "$ISSUE" --reason completed; fi
+
+      # Only on an admin issue by the owner (the action checks; labelled above), open or not: a request made by
+      # commenting on an answered (closed) issue is answered too.
+      - name: Reply
+        if: >-
+          !cancelled() && steps.answer.outputs.action != 'skip' &&
+          (steps.answer.outputs.action != '' || contains(github.event.issue.labels.*.name, 'admin'))
+        uses: ./.github/actions/answer-issue
+        with:
+          issue: ${{ github.event.issue.number }}
+          body-file: ${{ github.workspace }}/reply.md
+          close: ${{ steps.answer.outputs.done == 'true' }}
+          require-open: "false"
 
       # GitHub keeps only one waiting run per concurrency group (the sweeps' "data"; a concurrency group here would
       # do the same): a newer one cancels it, and its request would never be answered. So requests take turns
@@ -181,12 +190,19 @@ jobs:
           done
           echo "::warning::The sweep run hasn't appeared yet; the next request may not wait for it."
 
-      - name: Say that it couldn't start
+      - name: Write why it couldn't start
         if: failure() && steps.dispatch.conclusion == 'failure'
         env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [ -s not-started.md ]; then gh issue comment "$ISSUE" --body-file not-started.md; exit 0; fi
-          gh issue comment "$ISSUE" --body "❌ No pude empezar. Detalles en [la ejecución]($RUN_URL)."
+          if [ ! -s not-started.md ]; then
+            printf '%s' "❌ No pude empezar. Detalles en [la ejecución]($RUN_URL)." > not-started.md
+          fi
+
+      - name: Say that it couldn't start
+        if: failure() && steps.dispatch.conclusion == 'failure'
+        uses: ./.github/actions/answer-issue
+        with:
+          issue: ${{ github.event.issue.number }}
+          body-file: ${{ github.workspace }}/not-started.md
+          require-open: "false" # it may not have reopened the issue yet
