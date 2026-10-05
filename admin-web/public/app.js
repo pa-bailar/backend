@@ -5,7 +5,7 @@
 // share menu) fills in the tools and opens Herramientas; story screenshots shared to it (received by sw.js) or
 // picked here go to "Agregar desde una historia".
 
-import { HIDE_STORY_COMMAND, POST_LINK_IN_TEXT, STORY_LINK_IN_TEXT } from "./patterns.js";
+import { HIDE_STORY_COMMAND, MAX_SCREENSHOTS, NOTES_MAX, POST_LINK_IN_TEXT, STORY_LINK_IN_TEXT } from "./patterns.js";
 import { escapeHtml, seriesCard } from "./render.js";
 import { initialTab, TAB_KEY, tabAfterKey, tabFromHash, tabsHtml } from "./tabs.js";
 
@@ -188,14 +188,14 @@ function toolsCard() {
     <form id="story-form" class="tool">
       <h3 class="tool__title">Agregar desde una historia</h3>
       <p class="small muted">Toma captura de pantalla de la historia y compártela con PB Admin, o elígela aquí. Hasta
-        ${STORY_MAX} capturas de la misma historia.</p>
+        ${MAX_SCREENSHOTS} capturas de la misma historia.</p>
       <div class="shots" id="story-shots"></div>
       <label class="button button--outline file-button">Elegir capturas
         <input id="story-files" class="file-button__input" type="file" accept="image/*" multiple /></label>
       <label for="story-account">@cuenta <span class="muted">(opcional: se lee de la imagen)</span></label>
       <input id="story-account" type="text" placeholder="@academia" autocapitalize="none" autocomplete="off" />
       <label for="story-notes">Notas <span class="muted">(opcional, no se publican)</span></label>
-      <textarea id="story-notes" rows="2" maxlength="500" placeholder="sábado 12, Galería Café Libro"></textarea>
+      <textarea id="story-notes" rows="2" maxlength="${NOTES_MAX}" placeholder="sábado 12, Galería Café Libro"></textarea>
       <div class="tool__buttons">
         <button class="button" type="submit" id="story-send">Agregar desde historia</button>
       </div>
@@ -354,7 +354,6 @@ function initTools() {
 // ---------- a story: screenshots shared here (sw.js) or picked, shrunk here, uploaded, then one request ----------
 
 const STORY_CACHE = "shared-images"; // also sw.js's: shared and picked screenshots wait here, even across a sign-in
-const STORY_MAX = 4;
 const STORY_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const STORY_WIDTH = 1080; // Instagram's story width: more only makes the upload bigger
 const STATUS_BAR = 0.06; // of a phone screenshot's width: Android's status bar (24 dp), cut off before uploading
@@ -391,7 +390,7 @@ async function loadShots() {
     loaded.push({ key: request.url, file, url: URL.createObjectURL(file), uploaded: null });
   }
   shots.forEach((shot) => URL.revokeObjectURL(shot.url));
-  shots = loaded.slice(-STORY_MAX);
+  shots = loaded.slice(-MAX_SCREENSHOTS);
 }
 
 /** Picked screenshots join the waiting ones (kept like shared ones, so a sign-in doesn't lose them). */
@@ -413,7 +412,7 @@ async function addShots(files) {
     }
     shots.push({ key, file, url: URL.createObjectURL(file), uploaded: null });
   }
-  while (shots.length > STORY_MAX) await removeShot(0);
+  while (shots.length > MAX_SCREENSHOTS) await removeShot(0);
 }
 
 async function removeShot(index) {

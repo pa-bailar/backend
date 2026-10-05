@@ -44,7 +44,8 @@ jobs:
       - name: Admin page Worker tests
         run: node --test "admin-web/test/*.test.mjs"
 
-  # The video toolkit (media/): type-check the Remotion library and compositions, and the weekend rule in JS. Its Python
+  # The video toolkit (media/): type-check the Remotion library and compositions, and its Node tests (the weekend rule,
+  # words and moments, the captions, the media home's paths: media/README.md). Its Python
   # tests (media/tests) already run in the job above (pytest collects them; standard library only). Skipped when a
   # change doesn't touch media/ or this file. No secrets.
   media:

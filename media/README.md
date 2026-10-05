@@ -156,7 +156,7 @@ in the media home unless they start with `projects/`.
 | `review.py diff <reference> <new> [--no-vmaf]` | .venv | PSNR (∞ = identical), SSIM (1 = identical) and VMAF per frame, worst first: a refactor must not change a render (PSNR ∞); VMAF says whether an encode visibly damaged it (0–100, ~6 points is one just-noticeable difference; identical still frames score ~97, not 100). Stills too; a smaller one is scaled up. VMAF needs ffmpeg's libvmaf (winget's Gyan.FFmpeg full_build has it; without it, PSNR and SSIM and a note) | (prints) |
 | `review.py band <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | nothing but the background above y 252 (the sticker band + 2 px) on any frame; `--video` allows its `sticker_band.allow` spans; exit 1 when something enters | (prints) |
 | `review.py reel <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | the Reel's safe zones (108 top, 320 bottom, 60 left, 120 right): content in those margins is a warning per side, with the frames and how close to the edge it gets (images may run into them, words never); `--video` allows its `reel_safe.allow` spans | (prints) |
-| `publish.py <video> <deliverable> [--story \| --reel] [--caption-file --no-feed --thumb-offset --video-url --dry-run --confirm]` | .venv | **disabled** (below): posts a full render through Meta's Graph API: preflight `--api`, the quota, a container, the resumable upload, polling, `media_publish`, the permalink; once per render (its sha256), resumable after a crash, never twice. Without `PA_BAILAR_PUBLISH_ENABLED=1` and `--confirm` it only prints the requests (token redacted) | `publish_state.json` |
+| `publish.py <video> <deliverable> [--story \| --reel] [--caption-file --no-feed --thumb-offset --video-url --dry-run --confirm]` | .venv | **disabled** (below): posts a full render through Meta's Graph API: preflight `--api`, the quota, a container, the resumable upload, polling, `media_publish`, the permalink; once per render (its sha256), resumable after a crash, never twice. Without `--confirm` (or with `--dry-run`) it only prints the requests (token redacted); `--confirm` without `PA_BAILAR_PUBLISH_ENABLED=1` refuses. The render must pass the pre-flight either way | `publish_state.json` |
 | `clean.py [--yes]` | .venv | (skips what can't go to a Recycle Bin: a drive without one, an item too big for it) lists older versions, drafts, stills, sheets, comparisons and scratch folders in the home's `out/`, the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, the archive and anything git tracks stay | (the Recycle Bin) |
 | `npm run check` (in `media/`) | Node | `tsc`, every composition registers, one still per video | `out/check/` |
 | `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json`, words and moments against `tests/timing-cases.json` (as the Python tests), the captions' pages and fades, the media home's paths | (prints) |
@@ -293,8 +293,10 @@ API](https://developers.facebook.com/docs/instagram-platform/content-publishing)
 Login, graph.facebook.com, the backend's `v26.0`), the flow of Meta's sample
 [fbsamples/reels_publishing_apis](https://github.com/fbsamples/reels_publishing_apis): no instagrapi, no browser, no
 private endpoints. It's built and tested against a fake Graph API, and **off**: it calls Meta only when the
-environment (or the backend's `.env`) has `PA_BAILAR_PUBLISH_ENABLED=1` **and** the command has `--confirm`. Anything
-else is a dry run that prints each request with the token as `***`.
+environment (or the backend's `.env`) has `PA_BAILAR_PUBLISH_ENABLED=1` **and** the command has `--confirm`.
+Without `--confirm` (or with `--dry-run`) it's a dry run that prints each request with the token as `***`; `--confirm`
+without the variable refuses. The pre-flight runs first either way: a render that fails it is refused, dry run or
+not.
 
 What it does, in order, saving `publish_state.json` (media home) before and after every step: `preflight.py --api`
 (refuses on a failure); the render's sha256 + account + kind as the key (a published render is never posted again; a

@@ -25,7 +25,16 @@
 // SESSION_SECRET. Plain settings are in wrangler.jsonc ("vars").
 
 // The shapes a request may take, shared with the page and checked against the inbox's (pa_bailar/patterns.py).
-import { ACCOUNT, EVENT_ID, EVENT_ID_MAX, POST_LINK, STORY_ID, UPLOAD_ID } from "../public/patterns.js";
+import {
+  ACCOUNT,
+  EVENT_ID,
+  EVENT_ID_MAX,
+  MAX_SCREENSHOTS,
+  NOTES_MAX,
+  POST_LINK,
+  STORY_ID,
+  UPLOAD_ID,
+} from "../public/patterns.js";
 
 const SESSION_COOKIE = "session";
 const STATE_COOKIE = "oauth_state";
@@ -37,7 +46,6 @@ const SESSION_DAYS = 30;
 const UPLOAD_PREFIX = "upload:";
 const UPLOAD_TTL_SECONDS = 7 * 24 * 3600;
 const UPLOAD_MAX_BYTES = 8 * 1024 * 1024; // a 1080 px JPEG is well under 1 MB
-const MAX_STORY_IMAGES = 4;
 
 // Security headers on every answer from here (JSON, redirects): none of them is a page, so the policy allows
 // nothing. The static files get theirs, with the page's policy, from public/_headers.
@@ -187,8 +195,7 @@ async function readStatus(session, env) {
 
 // ---------- requests: issues in the admin inbox (.github/workflows/admin.yml answers them) ----------
 
-// A request's link, account, story and event are checked with public/patterns.js (imported above).
-const NOTES_MAX = 500;
+// A request's link, account, story, event and notes are checked with public/patterns.js (imported above).
 const ACTIONS = {
   why: "Revisar",
   "add-post": "Agregar",
@@ -264,8 +271,8 @@ async function createStoryRequest(action, fields, account, session, env) {
   let body;
   if (action === "add-story") {
     const images = Array.isArray(fields.images) ? [...new Set(fields.images.map(String))] : [];
-    if (!images.length || images.length > MAX_STORY_IMAGES || !images.every((id) => UPLOAD_ID.test(id))) {
-      return Response.json({ error: `Elige de 1 a ${MAX_STORY_IMAGES} capturas.` }, { status: 400 });
+    if (!images.length || images.length > MAX_SCREENSHOTS || !images.every((id) => UPLOAD_ID.test(id))) {
+      return Response.json({ error: `Elige de 1 a ${MAX_SCREENSHOTS} capturas.` }, { status: 400 });
     }
     // One line: the inbox reads the issue's fields by their "### " headings.
     const notes = String(fields.notes ?? "").replace(/\s+/g, " ").trim().slice(0, NOTES_MAX);

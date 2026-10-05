@@ -1,5 +1,6 @@
 """The shapes the admin tools accept: an Instagram username, a post link, a story's id, an event's id, an uploaded
-screenshot's id. One source for links.py, inbox.py, stories.py and normalize.py.
+screenshot's id, and their limits (a story's screenshots, the notes' length). One source for links.py, inbox.py,
+stories.py and normalize.py.
 
 admin-web/public/patterns.js mirrors them for the admin page and its Worker, which check a request before it
 becomes an issue. tests/fixtures/patterns.json holds examples that both test suites (pytest and node --test) check
@@ -26,3 +27,9 @@ EVENT_ID_MAX = 120
 
 # A screenshot the admin page uploaded (admin-web/src/index.js): 32 hex digits.
 UPLOAD_ID = r"[0-9a-f]{32}"
+
+# The most screenshots one story request takes (the admin page, its Worker, the inbox, `sweep --story`; the sweep
+# workflow's check of its `story` input spells it as a regex: tests/test_patterns.py keeps it in step).
+MAX_SCREENSHOTS = 4
+# The most characters of a story's notes (they travel as a workflow input, on one line).
+NOTES_MAX = 500

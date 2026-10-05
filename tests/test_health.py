@@ -167,3 +167,15 @@ def test_an_event_maybe_outside_bogota_is_listed_for_review():
     future = (TODAY + timedelta(days=5)).isoformat()
     events = [stored("unknown-city", date=future, doubts=[CITY_DOUBT]), stored("fine", date=future)]
     assert [event.id for event in health.events_to_review(events, TODAY)] == ["unknown-city"]
+
+
+def test_every_date_doubt_normalize_writes_lists_the_event_for_review():
+    """Review finding: "dura más de una semana: revisar fechas" didn't match the date rule ("fecha", not "fechas")."""
+    from pa_bailar.normalize import parse_end_date
+
+    doubts: list[str] = []
+    parse_end_date("2026-11-13", "2026-11-30", doubts)  # longer than a week
+    parse_end_date("2026-11-13", "2026-11-10", doubts)  # ends before it starts
+    assert len(doubts) == 2
+    for doubt in doubts:
+        assert health.review_reasons(stored(doubts=[doubt])) == [doubt]

@@ -91,7 +91,8 @@ In words:
 4. **Every run** reports to **healthchecks.io**, and is checked by rules against the previous runs
    (section 11).
 5. **State** stays in this repository's `sweep-state` branch: which posts were already analyzed, how far
-   each new account's first sweep got, and today's Gemini usage.
+   each new account's first sweep got, today's Gemini usage and the last resort's (`external_usage.json`), and
+   the events hidden by hand (`hidden_events.json`); section 10.1 lists every file.
 
 ---
 
@@ -246,7 +247,7 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 
 | Name | Kind | Where | Used by | Notes |
 |---|---|---|---|---|
-| `GEMINI_API_KEY` | Secret | GitHub Actions secret, local `.env` | Sweep step, `discover` | Google AI Studio API key |
+| `GEMINI_API_KEY` | Secret | GitHub Actions secret, local `.env` | Sweep step, `discover`, `admin bakeoff` | Google AI Studio API key |
 | `META_ACCESS_TOKEN` | Secret | GitHub Actions secret, local `.env` | Sweep step, the status step, the admin workflow's Answer step (`admin why`, `admin add-account`, the status), `discover`, `refresh-token` | Non-expiring Page token (section 3.1) |
 | `IG_USER_ID` | Secret | GitHub Actions secret, local `.env` | The same as `META_ACCESS_TOKEN` | Id of our Instagram professional account |
 | `META_APP_ID`, `META_APP_SECRET` | Secret | Local `.env` only | `refresh-token` | Never on GitHub: only the token command needs them |
@@ -471,8 +472,9 @@ flowchart TD
     so marking or unmarking an account updates its stored events. Its first sweep is a regular one (10 posts, the
     lookback): a bar's older posts are past nights.
   - `solo:<styles>` (salsa, bachata, merengue, kizomba, tango): a general bar, club or cultural space that also
-    holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`: "salsa",
-    "salser", "timba", "bachat"…, accents and case ignored) is recorded as no event before any Gemini request,
+    holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`: the words
+    the safeguards read a style from, `normalize.TEXT_STYLE_WORDS`, plus looser ones such as "salser", "timba",
+    "bachat"…, accents and case ignored) is recorded as no event before any Gemini request,
     for free ("no menciona salsa ni bachata"); the others get `prompts.FOCUS_RULES` too. A caption edited later
     is checked again.
   - A post added by hand (`--post`, PB Admin) gets neither the filter nor the rules: whoever adds it wants it read
@@ -505,7 +507,8 @@ flowchart TD
     TLR -->|"yes: no triage, the<br/>extraction decides"| EX
     TR -->|"event, or triage failed<br/>(busy, timeout)"| EX["Extraction: Flash<br/>every image + caption + this account's known events"]
     EX -->|"Flash out of quota"| PROV["Extraction: Flash-Lite<br/>marked provisional"]
-    EX -->|"rejected by Gemini (4xx),<br/>or its answer blocked"| REJ["Record as rejected<br/>never retried"]
+    EX -->|"rejected by Gemini (4xx), its answer<br/>blocked or cut off (MAX_TOKENS)"| REJ["Record as rejected<br/>never retried"]
+    EX -->|"no valid JSON from any model,<br/>on 3 runs"| REJ
     EX -->|"the API key doesn't work"| STOP["Stop the run (it fails):<br/>nothing recorded, read next run"]
     EX -->|"no model could answer"| PEND
     EX --> ST["Store (6.3)"]
@@ -675,13 +678,15 @@ flowchart TD
     B -->|no| M
     B -->|yes| PACE["Wait for its pace<br/>(60 / RPM + 0.5 s)"] --> CALL["Call (counted as spent)"]
     CALL -->|"valid JSON"| OK["Return answer + model"]
-    CALL -->|"invalid JSON"| RETRY{"Attempt < 3?"}
-    CALL -->|"5xx busy, a timeout or<br/>a dropped connection"| BACK["Back off 5 s × attempt"] --> RETRY
+    CALL -->|"invalid JSON"| RETRY2{"First invalid answer<br/>from this model?"}
+    RETRY2 -->|yes| B
+    RETRY2 -->|no| M
+    CALL -->|"5xx busy, a timeout or<br/>a dropped connection"| BACK["Back off 5 s × attempt"] --> RETRY{"Attempt < 3?"}
     CALL -->|"429 per-minute"| WAIT["Wait 60 s"] --> RETRY
     CALL -->|"429 per-minute again"| BUSY["Next model (counts as a failure;<br/>today's budget untouched)"] --> M
     CALL -->|"429 per-day<br/>(its message or quota id says so)"| EXH["Mark model used up for today"] --> M
     CALL -->|"403 or 404: model not<br/>available to this key"| UNAV["Listed as unavailable<br/>(health warning)"] --> EXH
-    CALL -->|"blocked answer<br/>(safety filter…)"| REJ["RejectedRequestError:<br/>post recorded as rejected"]
+    CALL -->|"blocked answer (safety filter…),<br/>or cut off (MAX_TOKENS)"| REJ["RejectedRequestError:<br/>post recorded as rejected"]
     CALL -->|"key invalid, expired or revoked<br/>(401, or 400/403 naming the API key)"| KEY["GeminiKeyError:<br/>the run stops, no post recorded"]
     CALL -->|"other 4xx"| REJ
     RETRY -->|yes| B
@@ -704,7 +709,13 @@ flowchart TD
   which isn't an `ExtractionError`: the sweep stops and fails (the failed run emails), and no post is
   recorded as rejected, so all of them are read once the key is replaced (section 15).
 - **A blocked answer** (a safety filter: `SAFETY`, `PROHIBITED_CONTENT`…) is rejected at once instead of
-  being retried 3 times per model: it would be blocked every time.
+  being retried 3 times per model: it would be blocked every time. So is an answer cut off at the model's output
+  limit (`MAX_TOKENS`): the post is recorded as rejected, "respuesta demasiado larga".
+- **An answer that isn't valid JSON** is asked again once per model (`INVALID_ANSWER_ATTEMPTS`), then the next
+  model. When the only failures were such answers, the pool raises `UnreadableAnswerError`: the sweep retries the
+  post next run, counting the runs in `accounts.json` (`unreadable`), and on the third (`UNREADABLE_RUNS`) records
+  it as rejected, so a post no model can read stops spending Flash's quota (a provisional post's upgrade keeps its
+  provisional reading instead). A busy model among them makes it a plain failure, retried without counting.
 - **A model the key can't use** (404, or a 403 that doesn't name the key, e.g. if Google took it out of the
   free tier) is skipped for the
   day like a spent one and listed in the run's `models_unavailable`. Repeated over 3 runs, it's a health
@@ -968,7 +979,7 @@ memory between runs; the site never sees it.
 | File | Content | Why it matters |
 |---|---|---|
 | `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha`, `fuera de Bogotá`, `ya pasó` or `cancelado`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined. Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
-| `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post` | Whether the account still gets the deeper first sweep, and when its next turn is |
+| `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post`, and `unreadable` (post id → runs on which no model gave valid JSON for it, section 7.2) | Whether the account still gets the deeper first sweep, and when its next turn is |
 | `gemini_usage.json` | Today's quota day (Pacific) and requests per model | The day's runs share the daily budgets |
 | `external_usage.json` | The last resort's day (UTC) and, per provider, requests, tokens and the answers per model | The day's runs share Groq's and OpenRouter's budgets (section 7.3) |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
@@ -1244,7 +1255,7 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 | Risk | Mitigation |
 |---|---|
 | A compromised dependency reading the repository token during the sweep | No checkout keeps credentials (`persist-credentials: false`). The write token is only handed to the steps that write (the state save, the account commit, issues), and the App token is minted after the sweep |
-| Secrets exposed to steps that don't need them | The Gemini and Meta secrets are only in the sweep step's environment. The Meta app secret isn't on GitHub at all |
+| Secrets exposed to steps that don't need them | The Gemini secrets (and Groq's and OpenRouter's) are only in the sweep step's environment; the Meta token and the Instagram user id, in the sweep step, the status step after it (`admin status --json`) and the admin workflow's Answer step (section 4). The Meta app secret isn't on GitHub at all |
 | A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. Adding a post or a story by hand (`post_url`, `story`) or hiding a story or an event (`hide`) needs an open `admin` issue by `jzamora5` (the `request` job, section 5.2), `story` and `hide` must have their exact shapes, and inputs never reach shell code directly, so the token can't publish or hide anything or run commands |
 | The Meta token in error text | It's sent in the URL; `instagram.redact` removes it (and the app secret and exchanged tokens of `refresh-token`) from every error before logs, `status.json` or admin answers (section 8) |
 | Odd text in a link or a public page reaching files, accounts or issues | Post codes match ASCII letters, digits, `_` and `-` only (`patterns.POST_LINK`, like the site's `check-data.mjs`); a public page's author must be a valid username; the admin page only accepts a value that is one post link and nothing else (`POST_LINK` in `admin-web/public/patterns.js`, which the Worker imports: anchored at both ends, no spaces or new lines) |
@@ -1262,12 +1273,12 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 
 ## 14. Quotas and capacity
 
-With **95 followed accounts** (4 October 2026) and two runs a day (each account read about once a day:
-section 5, "Whose turn it is"):
+With **124 followed accounts** (5 October 2026, `accounts.txt`) and two runs a day (each account read about once a
+day, quiet ones less often: section 5, "Whose turn it is"):
 
 | Resource | Limit | Use per run | Use per day | Headroom |
 |---|---|---|---|---|
-| Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | About 53 (half the accounts, plus up to 5 late ones) | About 100 | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
+| Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | At most 67 (half the accounts, plus up to 5 late ones) | About 124 at most (fewer with quiet and dormant accounts) | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
 | Gemini Flash-Lite | 500 / day (498 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
@@ -1281,7 +1292,8 @@ section 5, "Whose turn it is"):
 itself stops at 35, and the job at 60, leaving room for the state, the PR and the merge. No request starts after
 the budget, not even within a post already started (`EventExtractor`'s deadline, `gemini.OutOfTimeError`: the
 post waits for the next run), so a run ends at most one Gemini request and one pause later (a 120-second timeout
-and a 60-second wait: about 3 minutes). The last resort never starts a request, or a wait for Groq's tokens, that
+and a 60-second wait: about 3 minutes). Nor does it fetch more accounts: those still due wait, first next run. A
+post left waiting keeps its account due, an edited caption too, so a "CANCELADO" edit is read on the next run. The last resort never starts a request, or a wait for Groq's tokens, that
 wouldn't end before the budget, and spends at most 3 minutes on a post.
 
 **Adding accounts:** each new account costs about 1 Instagram call a day, plus a one-time load of up to
@@ -1372,6 +1384,7 @@ flowchart LR
 | `gemini.py` | `ModelPool`: model order, pacing, daily budgets shared across runs, retries, error classes |
 | `prompts.py` | The triage and extraction prompts, and the story prompt |
 | `stories.py` | Stories from screenshots: their id and perceptual hash, when a screenshot was taken, dates (and a workshop series' sessions) worked out from what's printed, the flyer's crop, the account's name |
+| `account_options.py` | What an `accounts.txt` line says besides the name: `bar` (only special nights) and `solo:<styles>` (the caption filter's words, `FOCUS_KEYWORDS`, from `normalize.TEXT_STYLE_WORDS` plus looser ones), parsed strictly (a typo fails) |
 | `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback and the last resort (extraction only), and no request after the run's time budget |
 | `external.py` | `ExternalTier`: the last resort on OpenAI-compatible chat APIs (Groq, OpenRouter): order, budgets, Groq's token pacing, per-run quarantine, JSON checked against the schemas |
 | `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; OpenRouter's free vision models |

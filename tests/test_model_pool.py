@@ -234,3 +234,53 @@ def test_lite_only_extraction_keeps_its_error_instead_of_waiting_for_quota(pool,
         extractor.extract("academia", post, published, [], [])
     assert not isinstance(caught.value, gemini.QuotaExhaustedError)
     assert raised is None or isinstance(caught.value, raised)
+
+
+# ---------- review fixes (2): answers that will never parse ----------
+
+
+def test_an_answer_cut_off_at_its_length_limit_is_rejected_at_once(pool, monkeypatch):
+    """Review finding: an answer cut off (MAX_TOKENS) was retried 3 times on each model, on every run for a week."""
+    fake = with_models(pool, {"gemini-3.8-flash": [Blocked("MAX_TOKENS")], "gemini-3.5-flash": [ANSWER]})
+    monkeypatch.setattr(fake, "generate_content", blocked_or(fake.generate_content))
+    with pytest.raises(gemini.RejectedRequestError, match="demasiado larga"):
+        pool.generate(("gemini-3.8-flash", "gemini-3.5-flash"), [], Triage)
+    assert fake.calls == ["gemini-3.8-flash"]
+
+
+def test_an_answer_that_isnt_json_is_asked_again_once_per_model(pool):
+    bad = "not json"
+    fake = with_models(pool, {"gemini-3.8-flash": [bad, bad, bad], "gemini-3.5-flash": [bad, bad, bad]})
+    with pytest.raises(gemini.UnreadableAnswerError):
+        pool.generate(("gemini-3.8-flash", "gemini-3.5-flash"), [], Triage)
+    assert fake.calls == ["gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash"]
+
+
+def test_a_second_try_that_parses_is_used(pool):
+    fake = with_models(pool, {"gemini-3.8-flash": ["not json", ANSWER]})
+    assert pool.generate(("gemini-3.8-flash",), [], Triage) == (ANSWER, "gemini-3.8-flash")
+    assert fake.calls == ["gemini-3.8-flash", "gemini-3.8-flash"]
+
+
+def test_a_busy_model_among_unreadable_answers_is_a_plain_failure(pool):
+    """Only answers that never parse count toward giving a post up: a busy model may answer next run."""
+    busy = errors.ServerError(503, {"error": {"code": 503, "message": "busy", "status": "UNAVAILABLE"}})
+    with_models(pool, {"gemini-3.8-flash": ["not json", "not json"], "gemini-3.5-flash": [busy, busy, busy]})
+    with pytest.raises(gemini.ExtractionError) as raised:
+        pool.generate(("gemini-3.8-flash", "gemini-3.5-flash"), [], Triage)
+    assert not isinstance(raised.value, gemini.UnreadableAnswerError | gemini.QuotaExhaustedError)
+
+
+def test_unreadable_flash_answers_stay_unreadable_when_flash_lite_is_out(pool, monkeypatch):
+    """Not a quota wait (never counted toward giving the post up, so Flash would be spent on it every run)."""
+    from pa_bailar.extraction import EventExtractor
+
+    monkeypatch.setattr(config, "EXTRACTION_MODELS", ("gemini-3.8-flash",))
+    monkeypatch.setattr(config, "PROVISIONAL_MODELS", ("gemini-3.5-flash-lite",))
+    pool._used["gemini-3.5-flash-lite"] = config.MODEL_LIMITS["gemini-3.5-flash-lite"].requests_per_day
+    with_models(pool, {"gemini-3.8-flash": ["not json", "not json"]})
+    extractor = EventExtractor.__new__(EventExtractor)
+    extractor.pool = pool
+    post = {"id": "p1", "timestamp": "2026-10-01T12:00:00+0000", "permalink": "x", "media_type": "IMAGE"}
+    with pytest.raises(gemini.UnreadableAnswerError):
+        extractor.extract("academia", post, datetime(2026, 10, 1, 12, tzinfo=UTC), [], [])

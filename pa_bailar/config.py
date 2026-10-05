@@ -94,6 +94,9 @@ EXTRACTION_MODELS = ("gemini-3.5-flash-lite",) if LITE_ONLY else ("gemini-3.8-fl
 # When Flash is out: saved, then upgraded on a later run (none in lite-only mode).
 PROVISIONAL_MODELS: tuple[str, ...] = () if LITE_ONLY else ("gemini-3.5-flash-lite",)
 DAILY_BUDGET_MARGIN = 2  # requests kept unused per model, for manual runs and retries
+# A post no model gives valid JSON for (gemini.UnreadableAnswerError) is retried on this many runs, then recorded as
+# rejected: each run spends Flash's small quota on it.
+UNREADABLE_RUNS = 3
 # discover (run on your computer) shares the Gemini key with the sweeps, but its usage isn't in theirs: it
 # reads what the sweeps used today (sweep-state branch) and leaves them at least this many Flash-Lite requests.
 DISCOVERY_LEAVES_FOR_SWEEPS = 250

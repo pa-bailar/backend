@@ -33,8 +33,8 @@ _UPLOAD_ID = re.compile(rf"\b{patterns.UPLOAD_ID}\b")  # a screenshot the admin 
 _STORY_ID = re.compile(rf"\b{patterns.STORY_ID}\b")
 EVENT_ID = re.compile(patterns.EVENT_ID)  # an event's id (ids.py): lowercase words joined by hyphens
 EVENT_ID_MAX = patterns.EVENT_ID_MAX
-MAX_SCREENSHOTS = 4
-NOTES_MAX = 500
+MAX_SCREENSHOTS = patterns.MAX_SCREENSHOTS
+NOTES_MAX = patterns.NOTES_MAX
 # The form's "Acción" values (and the admin page's, which writes the same body).
 _ACTIONS: dict[str, Action] = {
     "revisar": "why",
@@ -145,9 +145,8 @@ def _story_command(text: str) -> Request | None:
                 return Request("help")
             handle = _HANDLE.search(rest)
             notes = _HANDLE.sub(" ", _UPLOAD_ID.sub(" ", rest), count=1)
-            return Request(
-                "add-story", account=handle.group(1).lower() if handle else None, images=images, notes=_one_line(notes)
-            )
+            account = links.account_name(handle.group(1)) if handle else None  # "@academia." ends a sentence
+            return Request("add-story", account=account, images=images, notes=_one_line(notes))
     return None
 
 
@@ -184,7 +183,7 @@ def parse(text: str) -> Request:
         account = links.account_name(fields["cuenta"])
     if account is None:
         handle = _HANDLE.search(_LINK.sub(" ", text))
-        account = handle.group(1).lower() if handle else None
+        account = links.account_name(handle.group(1)) if handle else None  # "@academia." ends a sentence
 
     if "acción" in fields or "accion" in fields:
         return _form_request(fields, post, account)

@@ -499,3 +499,20 @@ def test_a_story_never_goes_to_the_last_resort(sleeps):
     with pytest.raises(gemini.QuotaExhaustedError):
         out.extract_story([make_image()], PUBLISHED, "academia", None, [])
     assert api.bodies == []  # a story is never read again: a last-resort reading would stay
+
+
+@pytest.mark.parametrize(
+    ("model", "is_last_resort"),
+    [
+        ("groq:qwen/qwen3.8-27b", True),
+        ("openrouter:google/gemma-4-31b-it:free", True),
+        ("openrouter:a:free|b:free", True),  # OpenRouter's routing names several
+        ("gemini-3.5-flash-lite", False),
+        ("-", False),  # a post recorded without a model (the triage's filter, a rejection)
+        ("", False),
+        (None, False),
+        ("groqish:model", False),  # a provider's name, then ":"
+    ],
+)
+def test_a_model_is_the_last_resorts_when_its_name_starts_with_a_provider(model, is_last_resort):
+    assert external.is_external(model) is is_last_resort

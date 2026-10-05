@@ -30,7 +30,7 @@ from pydantic import BaseModel
 
 from . import config
 from .external import ExternalReport, ExternalTier
-from .gemini import ExtractionError, ModelPool, OutOfTimeError, QuotaExhaustedError
+from .gemini import ExtractionError, ModelPool, OutOfTimeError, QuotaExhaustedError, UnreadableAnswerError
 from .instagram import Post
 from .models import PostAnalysis, StoredEvent, StoryAnalysis, Triage
 from .prompts import EXTRACTION_PROMPT, STORY_PROMPT, TRIAGE_PROMPT
@@ -183,6 +183,8 @@ class EventExtractor:
         try:
             analysis, model = self.pool.generate(config.PROVISIONAL_MODELS, contents, schema)
         except QuotaExhaustedError as out:
+            if isinstance(flash_error, UnreadableAnswerError):
+                raise flash_error from out  # counted as one more unreadable run (pipeline/sweep.py), not a wait
             # The last resort stands in for Gemini's quota only: a busy Flash, or one that refused the post (a safety
             # block), leaves it waiting for Gemini, as before the last resort existed.
             if not last_resort or not isinstance(flash_error, QuotaExhaustedError):

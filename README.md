@@ -18,6 +18,8 @@ pa_bailar/            the collector (one Python package; every module in docs/AR
   public_post.py      one post from its public page, when the API can't give it (admin tools)
   stories.py          a story's event from screenshots shared to the admin page: dates, crop, account
   extraction.py       triage then extraction; prompts.py has the prompts, gemini.py the models and quotas
+  external.py         the last resort when Gemini runs out (Groq, OpenRouter); bakeoff.py re-checks its models
+  account_options.py  what an accounts.txt line says besides the name (`bar`, `solo:<styles>`)
   merging.py, ids.py, normalize.py, clips.py, storage.py, models.py, config.py
   health.py, status.py, why.py, inbox.py, links.py, patterns.py, sweep_state.py, discovery.py, text.py, logs.py
 tests/                unit and end-to-end tests (no network); fixtures/patterns.json is shared with admin-web/test
@@ -127,7 +129,8 @@ Settings → Secrets and variables → Actions:
 - Secrets: `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `APP_PRIVATE_KEY` (the pa-bailar-bot
   App's private key), and optionally `HEALTHCHECK_URL`, `GROQ_API_KEY` and `OPENROUTER_API_KEY` (the last
   resort when Gemini runs out: without them it's never used).
-- Variables: `APP_ID` (the pa-bailar-bot App's id).
+- Variables: `APP_ID` (the pa-bailar-bot App's id), and optionally `GEMINI_LITE_ONLY` (`1`: Flash-Lite also
+  extracts, as final results, for when Flash isn't available to the key).
 
 ### What starts the sweep
 

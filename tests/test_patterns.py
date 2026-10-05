@@ -41,3 +41,27 @@ def test_the_inbox_refuses(kind, text):
 
 def test_every_kind_has_examples_of_both():
     assert all(EXAMPLES[kind]["good"] and EXAMPLES[kind]["bad"] for kind in ACCEPTS)
+
+
+# ---------- limits: one number for the inbox, the sweep, the admin page and the sweep workflow ----------
+
+ROOT = Path(__file__).parents[1]
+
+
+def test_the_limits_are_the_ones_the_admin_pages_tests_check():
+    assert EXAMPLES["limits"] == {"max_screenshots": patterns.MAX_SCREENSHOTS, "notes_max": patterns.NOTES_MAX}
+    assert inbox.MAX_SCREENSHOTS == stories.MAX_SCREENSHOTS == patterns.MAX_SCREENSHOTS
+    assert inbox.NOTES_MAX == patterns.NOTES_MAX
+
+
+def test_the_sweep_workflow_checks_its_inputs_with_the_same_limits():
+    """The workflow's shell can't import patterns.py: its regex for the `story` input and its event id length must
+    say the same."""
+    workflow = (ROOT / ".github" / "workflows" / "daily-sweep.yml").read_text(encoding="utf-8")
+    story = re.compile(re.search(r'\[\[ "\$STORY" =~ (.+?) \]\]', workflow).group(1))
+    upload = "0123456789abcdef0123456789abcdef"
+    assert re.fullmatch(patterns.UPLOAD_ID, upload)
+    assert story.fullmatch(" ".join([upload] * patterns.MAX_SCREENSHOTS))
+    assert not story.fullmatch(" ".join([upload] * (patterns.MAX_SCREENSHOTS + 1)))
+    assert f"story must be 1 to {patterns.MAX_SCREENSHOTS} upload ids" in workflow
+    assert f'"${{#HIDE}}" -le {patterns.EVENT_ID_MAX}' in workflow

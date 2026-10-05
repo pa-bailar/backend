@@ -149,3 +149,31 @@ def test_fancy_font_captions_still_name_their_styles():
     assert mentions_focus("𝐍𝐎𝐂𝐇𝐄 𝐃𝐄 𝐒𝐀𝐋𝐒𝐀 🔥", ("salsa",))
     assert mentions_focus("𝗕𝗔𝗖𝗛𝗔𝗧𝗔 sensual", ("bachata",))
     assert mentions_focus("𝓢𝓪𝓵𝓼𝓪 en vivo", ("salsa",))
+
+
+# ---------- review fixes (2): the real accounts.txt, one source for the style words ----------
+
+
+def test_the_real_accounts_file_parses(monkeypatch):
+    """A typo in a `bar` or `solo:` line fails here, in CI, instead of stopping the sweep."""
+    from pathlib import Path
+
+    monkeypatch.setattr(config, "ACCOUNTS_FILE", Path(__file__).parents[1] / "accounts.txt")
+    options = storage.read_account_options()
+    assert len(options) > 50 and any(option.bar for option in options.values())
+    assert len(storage.read_accounts()) == len(set(storage.read_accounts()))  # no account twice
+
+
+def test_every_word_that_names_a_focus_style_passes_its_filter():
+    """The filter and the safeguards (normalize.styles_in_text) share their words: a caption that names a style for one
+    names it for the other, so a `solo:salsa` account never drops a post the safeguards would read as salsa."""
+    from pa_bailar.account_options import FOCUS_KEYWORDS
+    from pa_bailar.normalize import TEXT_STYLE_WORDS, style_family
+
+    for word, style in TEXT_STYLE_WORDS.items():
+        if (family := style_family(style)) in FOCUS_KEYWORDS:
+            assert mentions_focus(f"Esta noche {word} en vivo", (family,)), word
+    old_words = {"salsa": ("salser", "timba", "casino", "son cubano", "pachanga", "boogaloo", "mambo")}
+    old_words |= {"bachata": ("bachatero",), "kizomba": ("semba", "urban kiz"), "tango": ("milonga",)}
+    for style, words in old_words.items():  # the hand-written list before: still found
+        assert all(mentions_focus(word, (style,)) for word in words), style

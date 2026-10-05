@@ -4,6 +4,7 @@ workflow comments them on the admin issue (docs/ADMIN.md)."""
 from urllib.parse import quote
 
 from pa_bailar import config, links
+from pa_bailar.external import is_external, model_label
 from pa_bailar.models import StoredEvent
 from pa_bailar.pipeline import AddedPost, AddedStory, HiddenFromSite, HiddenStory
 from pa_bailar.status import moment_label
@@ -40,8 +41,12 @@ def added_post_markdown(added: AddedPost) -> str:
             f"{config.BACKFILL_DAYS} días se leen en el próximo barrido)."
         )
     # Provisional reads are upgraded to Flash by the sweeps, which only see accounts the API can read.
-    upgrade = "provisional: se relee con Flash" if added.readable and not added.public else "Flash no tenía cuota"
-    light = f" Flash-Lite ({upgrade})" if added.provisional else f" {added.model}"
+    # The last resort reads when Gemini is out of quota: re-read with Gemini (Flash) later, as Flash-Lite's reads are.
+    better = "Gemini" if is_external(added.model) else "Flash"
+    upgrade = (
+        f"provisional: se relee con {better}" if added.readable and not added.public else f"{better} no tenía cuota"
+    )
+    light = f" {model_label(added.model or '')} ({upgrade})" if added.provisional else f" {added.model}"
     if added.unchanged:
         lines.append(
             "ℹ️ Ya la había leído y no ha cambiado: no la leí de nuevo (no gasté cuota de Gemini). Para leerla "
