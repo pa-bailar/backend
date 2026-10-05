@@ -38,3 +38,9 @@ def test_prices_in_another_currency_are_never_zero_pesos():
     for prompt in (EXTRACTION_PROMPT, STORY_PROMPT):
         assert "amount_cop is only for Colombian pesos, and 0 only when it's free" in prompt
         assert "is never written as 0 nor converted" in prompt
+
+
+def test_the_extraction_says_where_each_event_is():
+    # Review finding: a tour post's concerts in CDMX and Veracruz were published; in_bogota is checked in code.
+    assert "- in_bogota, for every event:" in EXTRACTION_PROMPT
+    assert '"no" when the post places it' in EXTRACTION_PROMPT

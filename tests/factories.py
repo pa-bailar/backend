@@ -42,8 +42,10 @@ def make_image() -> bytes:
     return buffer.getvalue()
 
 
-def extracted(image_index: int | None = 0, same_as: str | None = None, **details) -> ExtractedEvent:
-    return ExtractedEvent(**(DETAILS | details), image_index=image_index, same_as=same_as)
+def extracted(
+    image_index: int | None = 0, same_as: str | None = None, in_bogota: str = "yes", **details
+) -> ExtractedEvent:
+    return ExtractedEvent(**(DETAILS | details), image_index=image_index, same_as=same_as, in_bogota=in_bogota)
 
 
 def media(post_id: str = "p1", media_type: str = "IMAGE", published: str = "2026-10-01T12:00:00+0000") -> EventMedia:

@@ -636,3 +636,67 @@ def test_a_same_as_link_to_another_day_never_moves_the_event_and_is_flagged():
     assert [m["post_id"] for m in events["Concierto de salsa"]["media"]] == ["flyer"]
     assert events["Lanzamiento"]["date"] == EVENT_DATE
     assert any("cambio de fecha" in doubt for doubt in events["Lanzamiento"]["doubts"])
+
+
+# ---------- only upcoming events in Bogotá (review finding) ----------
+
+
+def test_an_orchestras_tour_post_read_in_a_new_accounts_first_sweep_publishes_nothing():
+    """4 Oct: a new account's 30-day first sweep read a tour post of 17 Sep, and two past concerts abroad (CDMX on
+    18 Sep, Veracruz on 19 Sep) came out as events."""
+    tour = PostAnalysis(
+        is_event_post=True,
+        reason="gira por México",
+        events=[
+            extracted(title="Concierto en CDMX", event_type="concert", date=days_ago_date(16), in_bogota="no"),
+            extracted(title="Concierto en Veracruz", event_type="concert", date=days_ago_date(15), in_bogota="no"),
+        ],
+    )
+    stats = run(FakeInstagram({"academia": [post("tour", days_ago=17)], "otra": []}), FakeExtractor({"tour": tour}))
+    assert read(config.EVENTS_FILE) == [] and stats.events_discarded == 2
+    record = storage.load_processed_posts()["tour"]
+    assert (record.outcome, record.detail) == ("discarded", "fuera de Bogotá, ya pasó")
+
+
+def test_a_new_event_whose_last_day_has_passed_isnt_published():
+    passed = event_post("p1", title="Social de ayer", date=days_ago_date(1))
+    stats = run(FakeInstagram({"academia": [post("p1", days_ago=3)], "otra": []}), FakeExtractor({"p1": passed}))
+    assert read(config.EVENTS_FILE) == [] and stats.events_discarded == 1
+    assert storage.load_processed_posts()["p1"].detail == "ya pasó"
+
+
+def test_an_event_under_way_is_still_published():
+    days = {"date": days_ago_date(1), "end_date": days_ago_date(-1)}
+    congress = event_post("p1", title="Congreso", event_type="congress", **days)
+    run(FakeInstagram({"academia": [post("p1", days_ago=3)], "otra": []}), FakeExtractor({"p1": congress}))
+    assert [event["title"] for event in read(config.EVENTS_FILE)] == ["Congreso"]
+
+
+def test_a_past_event_already_stored_still_takes_its_later_posts_and_rereads():
+    yesterday = days_ago_date(1)
+    storage.save_events([stored("social-ayer", title="Social", date=yesterday, posts=[media("flyer")])])
+    video = event_post("video", title="Social", same_as="social-ayer", date=yesterday)
+    run(FakeInstagram({"academia": [post("video", days_ago=2)], "otra": []}), FakeExtractor({"video": video}))
+    [event] = read(config.EVENTS_FILE)
+    assert sorted(m["post_id"] for m in event["media"]) == ["flyer", "video"]
+
+    # Its own post read again (an edited caption): it keeps its event.
+    edited = {**post("video", days_ago=2), "caption": "editado"}
+    run(FakeInstagram({"academia": [edited], "otra": []}), FakeExtractor({"video": video}))
+    assert sorted(m["post_id"] for m in read(config.EVENTS_FILE)[0]["media"]) == ["flyer", "video"]
+
+
+def test_an_event_in_another_city_isnt_published_and_an_unknown_city_is_flagged():
+    analysis = PostAnalysis(
+        is_event_post=True,
+        reason="",
+        events=[
+            extracted(title="Taller en Medellín", in_bogota="no"),
+            extracted(title="Social sin ciudad", start_time="21:00", in_bogota="unknown"),
+        ],
+    )
+    stats = run(FakeInstagram({"academia": [post("p1")], "otra": []}), FakeExtractor({"p1": analysis}))
+    [event] = read(config.EVENTS_FILE)
+    assert event["title"] == "Social sin ciudad" and stats.events_discarded == 1
+    assert any("Bogotá" in doubt for doubt in event["doubts"])
+    assert "in_bogota" not in event  # internal: the stored shape doesn't change

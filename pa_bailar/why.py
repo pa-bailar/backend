@@ -26,6 +26,8 @@ REMOVED_BY_HAND = "Quitado a mano"  # the reason recorded on a post whose event 
 DISCARD_DETAIL = {
     "recurrente": "es una clase o noche que se repite, y el sitio solo publica eventos únicos",
     "sin fecha": "no tiene una fecha clara",
+    "fuera de Bogotá": "es en otra ciudad o país, y el sitio solo publica eventos en Bogotá",
+    "ya pasó": "su fecha ya había pasado cuando se leyó",
 }
 
 

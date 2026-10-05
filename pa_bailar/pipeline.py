@@ -42,7 +42,7 @@ from .instagram import (
     slide_count,
     video_url,
 )
-from .merging import detach_post, find_existing, matches_hidden, merge_into, refused_link
+from .merging import already_stored, detach_post, find_existing, matches_hidden, merge_into, refused_link
 from .models import (
     AccountState,
     EventDetails,
@@ -163,9 +163,22 @@ def _caption_hash(post: Post) -> str:
     return hashlib.sha256((post.get("caption") or "").encode()).hexdigest()[:16]
 
 
-def _is_publishable(event: ExtractedEvent) -> bool:
-    """Only one-time events with a title and a valid date make it to the website (run normalize_event first)."""
-    return not event.is_recurring and bool(event.date) and bool(event.title)
+def _has_ended(event: EventDetails, today: date) -> bool:
+    """Whether the event's last day (its end_date, a series' last session, else its date) is before today."""
+    return bool(event.last_day) and (event.last_day or "") < today.isoformat()
+
+
+def _unpublishable(event: ExtractedEvent) -> list[str]:
+    """Why an extracted event can't be published whatever else is stored (run normalize_event first), in Spanish,
+    for the post's record: recurring, without a title or valid date, or placed in another city or country."""
+    reasons = []
+    if event.is_recurring:
+        reasons.append("recurrente")
+    elif not event.date or not event.title:
+        reasons.append("sin fecha")
+    if event.in_bogota == "no":
+        reasons.append("fuera de Bogotá")
+    return reasons
 
 
 def _no_quota_message() -> str:
@@ -242,6 +255,7 @@ class AddedPost:
     public: bool = False  # read from its public page (public_post.py): the API couldn't give it
     readable: bool = True  # the API can read the account (so it's swept); False: personal or private
     unchanged: bool = False  # analyzed before and unchanged: not read again (no Gemini request; `again` forces it)
+    detail: str | None = None  # ProcessedPost.detail: why it was discarded ("ya pasó", "fuera de Bogotá"...)
 
 
 @dataclass
@@ -357,6 +371,7 @@ def _story_event(
         doubts=doubts,
         image_index=image_index,
         same_as=item.same_as,
+        in_bogota="yes",  # shared by hand by the admin, who saw where it is (the prompt still leaves out other cities)
     )
 
 
@@ -561,6 +576,7 @@ class Sweep:
             public=from_public,
             readable=readable,
             unchanged=unchanged,
+            detail=record.detail,
         )
 
     # ---------- a story, from the admin tools: its screenshots (stories.py) ----------
@@ -623,13 +639,13 @@ class Sweep:
         past: list[str] = []
         for item in analysis.events:
             resolved = stories.resolve_date(item, taken.date(), today)
-            last_day = resolved.end or resolved.start
-            if last_day and last_day < today:
-                past.append(item.title)
-                continue
             index = item.image_index
             image_index = index if index is not None and 0 <= index < len(crops) else best
-            extracted.append(_story_event(item, resolved, analysis.location_sticker, image_index))
+            event = _story_event(item, resolved, analysis.location_sticker, image_index)
+            if _has_ended(event, today):
+                past.append(item.title)
+                continue
+            extracted.append(event)
             date_notes[" ".join(item.title.split())] = resolved.notes
 
         age = stories.story_age(analysis.story_age)
@@ -1065,7 +1081,13 @@ class Sweep:
     ) -> bool:
         """Store the post's events. False when it must be retried next run (a flyer couldn't be saved)."""
         cleaned = [normalize_event(event) for event in analysis.events]
-        publishable = [event for event in cleaned if _is_publishable(event)] if analysis.is_event_post else []
+        publishable: list[ExtractedEvent] = []
+        reasons: set[str] = set()  # why the others weren't published, for the post's record
+        for event in cleaned if analysis.is_event_post else []:
+            why = self._discard_reasons(account, post["id"], event)
+            reasons.update(why)
+            if not why:
+                publishable.append(event)
         try:
             flyers = _save_flyers(post["id"], publishable, images)
         except OSError as error:
@@ -1096,12 +1118,24 @@ class Sweep:
         elif added:  # every event it announces was hidden by hand
             self._set_outcome(post, "hidden", detail="oculto a mano")
         elif analysis.is_event_post and analysis.events:
-            reasons = sorted({"recurrente" if event.is_recurring else "sin fecha" for event in cleaned})
-            self._set_outcome(post, "discarded", detail=", ".join(reasons))
+            self._set_outcome(post, "discarded", detail=", ".join(sorted(reasons)))
         else:
             self._set_outcome(post, "not_event")
         self._save()
         return True
+
+    def _discard_reasons(self, account: str, post_id: str, event: ExtractedEvent) -> list[str]:
+        """Why an extracted event isn't published (empty: it is), in Spanish: _unpublishable, or "ya pasó" when its
+        last day is before today in Bogotá and it isn't an event already stored (a new account's first sweep reads
+        posts a month old; an event already on the site still takes its later posts and re-reads)."""
+        reasons = _unpublishable(event)
+        if "fuera de Bogotá" in reasons:
+            log.info("     not in Bogotá (Gemini), left out: %s %s", _days(event), event.title)
+        ended = bool(event.date) and _has_ended(event, config.now_bogota().date())
+        if ended and not already_stored(self.events, account, event, post_id):
+            log.info("     already over, left out: %s %s", _days(event), event.title)
+            reasons.append("ya pasó")
+        return reasons
 
     def _retry_later(self, account: str, reason: str) -> bool:
         log.warning("     left for the next run: %s", reason)
@@ -1162,7 +1196,7 @@ class Sweep:
         if previous:
             reusable.remove(previous)
             return previous.id
-        assert candidate.date, "only events with a date are stored (_is_publishable)"
+        assert candidate.date, "only events with a date are stored (_unpublishable)"
         return new_event_id(candidate.title, candidate.date, taken)
 
     def _record_processed(

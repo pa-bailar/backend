@@ -188,6 +188,12 @@ class ExtractedEvent(EventDetails):
         description="If this post announces again one of the KNOWN EVENTS listed in the prompt (a video, reminder "
         "or second flyer of the same event), that event's id. Null for a new event."
     )
+    # Internal: read by the sweep (pipeline._discard_reasons), never stored (StoredEvent has no such field).
+    in_bogota: Literal["yes", "no", "unknown"] = Field(
+        description="Is THIS event in Bogotá, Colombia? 'no' when the post places it in another city or country (a "
+        "tour date in México, 'taller en Medellín', a venue abroad); 'yes' when it's in Bogotá or no city is stated; "
+        "'unknown' when the post hints at another place without saying where this event is."
+    )
 
 
 class Triage(BaseModel):

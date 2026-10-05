@@ -152,6 +152,10 @@ Rules:
   'WhatsApp 3001234567'; the site then opens a chat. Otherwise just the number.
 - Write extracted text (title, activities, doubts) in Spanish as it appears.
 - Never invent data. Leave unknown fields empty.
+- in_bogota, for every event: "yes" when it's in Bogotá or the post states no city; "no" when the post places it
+  in another city or country (a tour date in México, "taller en Medellín"); "unknown" when the post hints at
+  another place without saying where this event is (a tour across several cities). Events elsewhere don't count
+  (above): "no" is a safety net, never a reason to include one.
 - confidence: high when the date (and time, if any) are written explicitly; medium when you had to infer
   something (e.g. the date from "este sábado"); low when the date itself is uncertain or contradictory.
   The website asks visitors to confirm in the post when it's low.

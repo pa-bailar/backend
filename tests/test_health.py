@@ -159,3 +159,11 @@ def test_a_congress_or_festival_on_a_single_day_is_reviewed():
     assert [event.id for event in health.events_to_review(events, TODAY)] == ["one-day"]
     report = health.report_markdown([], health.events_to_review(events, TODAY))
     assert f"{future} · [Level Up Congress]" in report and health.SINGLE_DAY_DOUBT in report
+
+
+def test_an_event_maybe_outside_bogota_is_listed_for_review():
+    from pa_bailar.normalize import CITY_DOUBT
+
+    future = (TODAY + timedelta(days=5)).isoformat()
+    events = [stored("unknown-city", date=future, doubts=[CITY_DOUBT]), stored("fine", date=future)]
+    assert [event.id for event in health.events_to_review(events, TODAY)] == ["unknown-city"]

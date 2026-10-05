@@ -140,6 +140,8 @@ def parse_end_date(start: str | None, end: str | None, doubts: list[str]) -> str
     return end
 
 
+# Gemini couldn't tell whether the event is in Bogotá (ExtractedEvent.in_bogota "unknown"; "no" isn't published).
+CITY_DOUBT = "ciudad sin confirmar: ¿es en Bogotá?"
 COURSE_DOUBT = f"más de {config.MAX_SERIES_SESSIONS} sesiones o más de 4 meses: es un curso"
 
 
@@ -245,6 +247,8 @@ def normalize_event(event: ExtractedEvent) -> ExtractedEvent:
     }
     fit_sessions(days, sessions, doubts)
     prices = clean_prices(event.prices, doubts)
+    if event.in_bogota == "unknown" and CITY_DOUBT not in doubts:
+        doubts.append(CITY_DOUBT)  # published, and listed for review (health.review_reasons)
     return event.model_copy(
         update={
             "title": " ".join(event.title.split()),

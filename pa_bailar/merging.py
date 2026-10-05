@@ -235,6 +235,13 @@ def refused_link(
     return linked if linked and not _overlap(linked, candidate) else None
 
 
+def already_stored(events: list[StoredEvent], account: str, candidate: ExtractedEvent, post_id: str) -> bool:
+    """Whether an extracted event is one already stored: one this post announced before (read again, a day in
+    common) or another post's (find_existing). A past event is published only then (pipeline._discard_reasons)."""
+    own = any(any(m.post_id == post_id for m in e.media) and _overlap(e, candidate) for e in events)
+    return own or find_existing(events, account, candidate, post_id) is not None
+
+
 def matches_hidden(hidden: StoredEvent, account: str, candidate: ExtractedEvent, post_id: str) -> bool:
     """Whether an extracted event is one taken off the site by hand (models.HiddenEvent): read again from one of
     its posts (the same event by the same-account rules: a post can announce several events on one day, a workshop
