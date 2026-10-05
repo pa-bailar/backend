@@ -170,19 +170,19 @@
   "reyesdelasalsa.col": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:01:52-05:00",
+    "last_swept_at": "2026-10-04T21:01:45-05:00",
     "latest_post": "2026-09-22"
   },
   "bachatamania_bogota": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:02:02-05:00",
+    "last_swept_at": "2026-10-04T21:01:48-05:00",
     "latest_post": "2026-09-27"
   },
   "germanbaila": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:03:08-05:00",
+    "last_swept_at": "2026-10-04T21:03:13-05:00",
     "latest_post": "2026-10-01"
   },
   "_olorumcongress": {
@@ -242,20 +242,20 @@
   "lacoartadacentrocultural": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T09:05:00-05:00",
-    "latest_post": null
+    "last_swept_at": "2026-10-04T21:00:45-05:00",
+    "latest_post": "2026-09-27"
   },
   "herencialatinad.c": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:01:30-05:00",
-    "latest_post": "2026-09-21"
+    "last_swept_at": "2026-10-04T21:01:42-05:00",
+    "latest_post": "2026-10-03"
   },
   "ebi_dancecompany": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:01:35-05:00",
-    "latest_post": "2026-09-14"
+    "last_swept_at": "2026-10-04T21:01:44-05:00",
+    "latest_post": "2026-09-13"
   },
   "bailalo_improsocial": {
     "first_seen": "2026-10-02",
@@ -266,25 +266,25 @@
   "cordillerafestival": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:05:31-05:00",
+    "last_swept_at": "2026-10-04T21:03:15-05:00",
     "latest_post": "2026-09-24"
   },
   "latrinidaddelasalsa": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:05:46-05:00",
+    "last_swept_at": "2026-10-04T21:03:17-05:00",
     "latest_post": "2026-09-15"
   },
   "danzaenlaciudad": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:07:07-05:00",
+    "last_swept_at": "2026-10-04T21:03:58-05:00",
     "latest_post": "2026-10-01"
   },
   "salsaculto": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:07:39-05:00",
+    "last_swept_at": "2026-10-04T21:04:31-05:00",
     "latest_post": "2026-10-01"
   },
   "paramopresenta": {
@@ -296,14 +296,14 @@
   "latinproductioncolombia": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:11:59-05:00",
-    "latest_post": "2026-09-26"
+    "last_swept_at": "2026-10-04T21:05:18-05:00",
+    "latest_post": "2026-10-04"
   },
   "bachatasocialcongresss": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:02:29-05:00",
-    "latest_post": "2026-10-04"
+    "last_swept_at": "2026-10-04T21:01:51-05:00",
+    "latest_post": "2026-10-03"
   },
   "bailarito": {
     "first_seen": "2026-10-02",
@@ -314,25 +314,145 @@
   "elparche.se": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:12:11-05:00",
-    "latest_post": "2026-09-30"
+    "last_swept_at": "2026-10-04T21:05:19-05:00",
+    "latest_post": "2026-09-29"
   },
   "iledanza": {
     "first_seen": "2026-10-03",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:02:35-05:00",
+    "last_swept_at": "2026-10-04T21:01:52-05:00",
     "latest_post": "2026-09-07"
   },
   "bogotadanceclub": {
     "first_seen": "2026-10-03",
     "backfill_done": true,
-    "last_swept_at": "2026-10-03T21:14:07-05:00",
-    "latest_post": "2026-10-03"
+    "last_swept_at": "2026-10-04T21:07:32-05:00",
+    "latest_post": "2026-10-02"
   },
   "casineafest": {
     "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:08:39-05:00",
+    "latest_post": "2026-09-22"
+  },
+  "sondehabana": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:07:53-05:00",
+    "latest_post": "2026-09-29"
+  },
+  "soywiwioficial": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:11:26-05:00",
+    "latest_post": "2026-10-03"
+  },
+  "arrollando.dc": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:12:07-05:00",
+    "latest_post": "2026-09-25"
+  },
+  "dreamcupco": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:12:09-05:00",
+    "latest_post": "2026-06-08"
+  },
+  "jackandjilloficial": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:13:14-05:00",
+    "latest_post": "2026-10-03"
+  },
+  "frank.de.latorre": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:15:37-05:00",
+    "latest_post": "2026-10-04"
+  },
+  "angie__cuesta": {
+    "first_seen": "2026-10-04",
     "backfill_done": false,
     "last_swept_at": null,
-    "latest_post": null
+    "latest_post": "2026-09-30"
+  },
+  "and1erita": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:17:36-05:00",
+    "latest_post": "2026-10-03"
+  },
+  "andonybaron": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:17:38-05:00",
+    "latest_post": "2026-08-20"
+  },
+  "danitello22": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:18:04-05:00",
+    "latest_post": "2026-10-01"
+  },
+  "juancho__salsita": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:18:15-05:00",
+    "latest_post": "2026-09-27"
+  },
+  "mariavasquezdancer": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:18:19-05:00",
+    "latest_post": "2026-09-29"
+  },
+  "oswaldgil2": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:18:21-05:00",
+    "latest_post": "2026-05-29"
+  },
+  "sarasandoval.oficial": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:18:24-05:00",
+    "latest_post": "2026-08-26"
+  },
+  "teffa_mg": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:19:02-05:00",
+    "latest_post": "2026-10-03"
+  },
+  "zaimora24": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:19:42-05:00",
+    "latest_post": "2026-09-28"
+  },
+  "la33orquesta": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:22:03-05:00",
+    "latest_post": "2026-10-02"
+  },
+  "fernandoespanadj": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:24:57-05:00",
+    "latest_post": "2026-09-26"
+  },
+  "jaleocompetencia_": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:25:08-05:00",
+    "latest_post": "2026-09-22"
+  },
+  "dlivingstudio": {
+    "first_seen": "2026-10-04",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-04T21:25:49-05:00",
+    "latest_post": "2026-10-04"
   }
 }

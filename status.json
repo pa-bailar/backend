@@ -1,7 +1,68 @@
 {
-  "generated_at": "2026-10-04T18:37:58-05:00",
+  "generated_at": "2026-10-04T21:25:50-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-10-04T21:25:49-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37253619237",
+        "accounts": 36,
+        "failed_accounts": [],
+        "read_accounts": [
+          "and1erita",
+          "andonybaron",
+          "angie__cuesta",
+          "arrollando.dc",
+          "bachatamania_bogota",
+          "bachatasocialcongresss",
+          "bogotadanceclub",
+          "casineafest",
+          "cordillerafestival",
+          "danitello22",
+          "danzaenlaciudad",
+          "dlivingstudio",
+          "dreamcupco",
+          "ebi_dancecompany",
+          "elparche.se",
+          "fernandoespanadj",
+          "frank.de.latorre",
+          "germanbaila",
+          "herencialatinad.c",
+          "iledanza",
+          "jackandjilloficial",
+          "jaleocompetencia_",
+          "juancho__salsita",
+          "la33orquesta",
+          "lacoartadacentrocultural",
+          "latinproductioncolombia",
+          "latrinidaddelasalsa",
+          "mariavasquezdancer",
+          "oswaldgil2",
+          "reyesdelasalsa.col",
+          "salsaculto",
+          "sarasandoval.oficial",
+          "sondehabana",
+          "soywiwioficial",
+          "teffa_mg",
+          "zaimora24"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 132,
+        "events_new": 14,
+        "events_merged": 16,
+        "pending": 1,
+        "post_errors": 1,
+        "provisional": 35,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 169,
+          "gemini-3.8-flash": 7,
+          "gemini-3.5-flash": 17
+        },
+        "models_unavailable": [],
+        "instagram_usage": 56,
+        "warnings": []
+      },
       {
         "finished_at": "2026-10-04T09:03:25-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/37207634002",
@@ -168,69 +229,11 @@
         "models_unavailable": [],
         "instagram_usage": null,
         "warnings": []
-      },
-      {
-        "finished_at": "2026-10-02T13:31:23-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37046081524",
-        "accounts": 1,
-        "failed_accounts": [
-          "zafradance"
-        ],
-        "read_accounts": [],
-        "skipped_accounts": [
-          "bembeacademiadebaile",
-          "esferalatinaoficial",
-          "madyumdance",
-          "academiadebailepasolatino",
-          "bureodancestudio",
-          "ludancestudios",
-          "ritmosacademiadebaile",
-          "rpdancestudio",
-          "salsalatina.villaluz",
-          "salsalatina.alsacia",
-          "foururbandanc",
-          "bailabo_studio",
-          "studio110dance",
-          "bogotadanceclub.academy",
-          "academyfeel",
-          "soondanz_company",
-          "imperiolatino",
-          "ikubambayadanza",
-          "mambo_y_control",
-          "distritosocialbog",
-          "danceinmotionclub",
-          "tubailecom",
-          "mambolei_",
-          "mover__se",
-          "showstarscol",
-          "festivalsalsaalparque",
-          "salsabravadancehallpicante",
-          "reyesdelasalsa.col",
-          "bachatamania_bogota",
-          "germanbaila",
-          "_olorumcongress",
-          "tributo.salsayjazz",
-          "ritmomoderno",
-          "terrazasalsera",
-          "discojaguar.bta"
-        ],
-        "posts_analyzed": 0,
-        "events_new": 0,
-        "events_merged": 0,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 0,
-        "rate_limited": true,
-        "out_of_time": false,
-        "gemini_requests": {},
-        "models_unavailable": [],
-        "instagram_usage": null,
-        "warnings": []
       }
     ],
     "next": [
-      "2026-10-04T21:00-05:00",
-      "2026-10-05T09:00-05:00"
+      "2026-10-05T09:00-05:00",
+      "2026-10-05T21:00-05:00"
     ]
   },
   "gemini": {
@@ -240,19 +243,19 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 11,
+        "used": 18,
         "budget": 18
       },
       {
         "model": "gemini-3.5-flash",
         "role": "extraction",
-        "used": 1,
+        "used": 18,
         "budget": 18
       },
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 4,
+        "used": 173,
         "budget": 498
       }
     ]
@@ -265,39 +268,112 @@
   "accounts": {
     "followed": 72,
     "first_sweep_pending": [
-      "sondehabana",
-      "casineafest",
-      "soywiwioficial",
-      "arrollando.dc",
-      "dreamcupco",
-      "jackandjilloficial",
-      "frank.de.latorre",
-      "angie__cuesta",
-      "and1erita",
-      "andonybaron",
-      "danitello22",
-      "juancho__salsita",
-      "mariavasquezdancer",
-      "oswaldgil2",
-      "sarasandoval.oficial",
-      "teffa_mg",
-      "zaimora24",
-      "la33orquesta",
-      "fernandoespanadj",
-      "jaleocompetencia_",
-      "dlivingstudio"
+      "angie__cuesta"
     ],
-    "waiting": [
-      "lacoartadacentrocultural"
-    ]
+    "waiting": []
   },
   "posts": {
-    "recorded": 293,
-    "provisional": 90
+    "recorded": 425,
+    "provisional": 119
   },
   "events": {
-    "upcoming": 35,
+    "upcoming": 43,
     "low_confidence": 1
   },
+  "new_series": [
+    {
+      "id": "iniciacion-a-la-salsa-en-linea-3-oct",
+      "title": "Iniciación a la Salsa en Línea",
+      "account": "frank.de.latorre",
+      "sessions": "4 sesiones: 3, 10, 17 y 24 oct",
+      "dates": [
+        "2026-10-03",
+        "2026-10-10",
+        "2026-10-17",
+        "2026-10-24"
+      ],
+      "url": "https://pa-bailar.github.io/evento/iniciacion-a-la-salsa-en-linea-3-oct/",
+      "first_published": "2026-10-04T21:13-05:00",
+      "sources": [
+        {
+          "kind": "post",
+          "link": "https://www.instagram.com/reel/DdIYEktxrHo/"
+        }
+      ]
+    },
+    {
+      "id": "taller-habitar-nos-un-recorrido-de-conexion-de-7-oct",
+      "title": "Taller Habitar (nos), un recorrido de conexión de adentro hacia afuera",
+      "account": "danzaenlaciudad",
+      "sessions": "2 sesiones: 7 y 9 oct",
+      "dates": [
+        "2026-10-07",
+        "2026-10-09"
+      ],
+      "url": "https://pa-bailar.github.io/evento/taller-habitar-nos-un-recorrido-de-conexion-de-7-oct/",
+      "first_published": "2026-10-04T21:03-05:00",
+      "sources": [
+        {
+          "kind": "post",
+          "link": "https://www.instagram.com/p/Dd92TeoCUUO/"
+        }
+      ]
+    },
+    {
+      "id": "taller-breakin-con-rudolf-laban-14-oct",
+      "title": "Taller Breakin, con Rudolf Laban",
+      "account": "danzaenlaciudad",
+      "sessions": "2 sesiones: 14 y 21 oct",
+      "dates": [
+        "2026-10-14",
+        "2026-10-21"
+      ],
+      "url": "https://pa-bailar.github.io/evento/taller-breakin-con-rudolf-laban-14-oct/",
+      "first_published": "2026-10-04T21:03-05:00",
+      "sources": [
+        {
+          "kind": "post",
+          "link": "https://www.instagram.com/p/Dd92TeoCUUO/"
+        }
+      ]
+    },
+    {
+      "id": "taller-fenomenologia-sueno-y-luego-produzco-20-oct",
+      "title": "Taller Acrobalance desde el acroyoga",
+      "account": "danzaenlaciudad",
+      "sessions": "2 sesiones: 20 y 22 oct",
+      "dates": [
+        "2026-10-20",
+        "2026-10-22"
+      ],
+      "url": "https://pa-bailar.github.io/evento/taller-fenomenologia-sueno-y-luego-produzco-20-oct/",
+      "first_published": "2026-10-04T21:03-05:00",
+      "sources": [
+        {
+          "kind": "post",
+          "link": "https://www.instagram.com/p/Dd92TeoCUUO/"
+        }
+      ]
+    },
+    {
+      "id": "taller-acrobalance-desde-el-acroyoga-20-oct",
+      "title": "Taller Fenomenología: Sueño y luego produzco movimiento",
+      "account": "danzaenlaciudad",
+      "sessions": "3 sesiones: 20, 22 y 24 oct",
+      "dates": [
+        "2026-10-20",
+        "2026-10-22",
+        "2026-10-24"
+      ],
+      "url": "https://pa-bailar.github.io/evento/taller-acrobalance-desde-el-acroyoga-20-oct/",
+      "first_published": "2026-10-04T21:03-05:00",
+      "sources": [
+        {
+          "kind": "post",
+          "link": "https://www.instagram.com/p/Dd92TeoCUUO/"
+        }
+      ]
+    }
+  ],
   "discovery": null
 }
