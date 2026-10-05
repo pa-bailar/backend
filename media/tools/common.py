@@ -20,12 +20,13 @@ MEDIA = Path(__file__).resolve().parent.parent
 BACKEND = MEDIA.parent
 # The canvas, safe zones, sticker band, default tempo and loudness targets, shared with src/lib/tokens.ts.
 BRAND: dict = json.loads((MEDIA / "brand.json").read_text(encoding="utf-8"))
-# Generated files (the TTS and music cache, each video's public/ binaries, renders and working files) live in the
-# media home, outside any checkout.
-HOME = MEDIA
+# The media home: everything generated (the TTS and music cache, each video's public/ binaries, renders and working
+# files, the archive of posted versions) lives outside any checkout, so every worktree shares it and removing a
+# worktree can't delete it. PA_BAILAR_MEDIA_HOME overrides it (tools/paths.mjs and remotion.config.ts read the same).
+HOME = Path(os.environ.get("PA_BAILAR_MEDIA_HOME") or r"D:\AI\pa-bailar-media")
 CACHE = HOME / "cache"
-# The site's three faces (OFL), committed.
-FONTS = MEDIA / "public" / "fonts"
+# The site's three faces (OFL), committed; src/lib/fonts.ts imports them.
+FONTS = MEDIA / "fonts"
 # winget's Gyan.FFmpeg package (D:\AI\README.md), any version: <package>\ffmpeg-<version>-full_build\bin
 WINGET_PACKAGES = Path.home() / "AppData" / "Local" / "Microsoft" / "WinGet" / "Packages"
 TTS_RATE = 24000  # Gemini TTS: 24 kHz 16-bit mono PCM
@@ -156,9 +157,10 @@ class Video:
 
 
 def mix_key(v: "Video") -> str:
-    """A key of what the soundtracks are made from in video.json (music, mix, length): tools/mix.py writes it next to
-    them, tools/make.py re-mixes when it changes."""
-    return key(v.settings.get("music", {}), v.settings.get("mix", {}), v.duration, v.settings.get("voice"))
+    """A key of what the soundtracks are made from in video.json (the bed, its first hit, "mix", the length):
+    tools/mix.py writes it next to them, tools/make.py re-mixes when it changes."""
+    music = v.settings.get("music", {})
+    return key(music.get("bed"), music.get("first_hit", 0), v.settings.get("mix", {}), v.duration)
 
 
 def version_tuple(text: str) -> tuple[int, ...]:

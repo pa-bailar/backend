@@ -2,7 +2,7 @@
 //
 //   node media/tools/capture.mjs <video> <name> [--path /evento/<id>/] [--now 2026-10-10T19:00:00-05:00]
 //        [--theme light|dark] [--full] [--scroll <css px>] [--click <selector>] [--wait <ms>]
-//   → public/<video>/screens/<name>.png (1080×1920, or the whole page with --full) and its entry in
+//   → the media home's public/<video>/screens/<name>.png (1080×1920, or the whole page with --full) and its entry in
 //     projects/<video>/data/screens.json (path, clock, theme, page height)
 //
 // The phone: 360×640 CSS px at device scale 3 (= 1080×1920), es-CO, Bogotá time, the install banner and the swipe
@@ -18,10 +18,11 @@
 // playwright-core (a dev dependency here) drives the installed Chrome (its "chrome" channel: no path to keep).
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 import { chromium } from "playwright-core";
+import { HOME, MEDIA, PUBLIC } from "./paths.mjs";
 
-export const MEDIA = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+export { HOME, MEDIA, PUBLIC };
 export const SITE = "https://pa-bailar.github.io/";
 
 /** `--name value` from the command line, or `fallback`. */
@@ -125,7 +126,7 @@ export async function shot(page, file, options = {}) {
   await wait(page, 450);
   await mkdir(path.dirname(file), { recursive: true });
   await page.screenshot({ path: file, ...options });
-  console.log("  ", path.relative(MEDIA, file).replaceAll("\\", "/"));
+  console.log("  ", path.relative(HOME, file).replaceAll("\\", "/"));
 }
 
 // ---------- the CLI: one screen ----------
@@ -151,7 +152,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     await wait(page, 700);
   }
   await wait(page, Number(arg("wait", 0)));
-  const file = path.join(MEDIA, "public", video, "screens", `${name}.png`);
+  const file = path.join(PUBLIC, video, "screens", `${name}.png`);
   await shot(page, file, { fullPage: flag("full") });
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
   await browser.close();

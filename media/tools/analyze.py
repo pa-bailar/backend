@@ -16,7 +16,7 @@ import librosa
 import librosa.display
 import matplotlib
 import numpy as np
-from common import MEDIA, ffmpeg
+from common import HOME, ffmpeg, shown
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402  (after choosing the backend)
@@ -68,12 +68,12 @@ def main(paths: list[str], out: Path) -> None:
     fig.tight_layout()
     fig.savefig(out / "music-analysis.png", dpi=60)
     (out / "music-analysis.json").write_text(json.dumps(results, indent=1))
-    print(f"→ {(out / 'music-analysis.png').relative_to(MEDIA).as_posix()}")
+    print(f"→ {shown(out / 'music-analysis.png')}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("files", nargs="+")
-    parser.add_argument("--out", type=Path, default=MEDIA / "out" / "music")
+    parser.add_argument("--out", type=Path, default=HOME / "out" / "music")
     args = parser.parse_args()
     main(args.files, args.out.resolve())

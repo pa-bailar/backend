@@ -3,26 +3,36 @@
   .venv/Scripts/python media/tools/clean.py            lists what it would remove, and how much space it frees
   .venv/Scripts/python media/tools/clean.py --yes      moves those files to the Recycle Bin (restorable, never deleted)
 
-Looks in two places:
-- media/out/ (all generated, never committed): each video's stills (`frames/`), drafts (`*-draft.mp4`), keyframe
+Looks in three places:
+- the media home's out/ (D:\\AI\\pa-bailar-media\\out, all generated): each video's older versions
+  (`<video>-v2.3-reel.mp4` once `<video>-v2.4-reel.mp4` exists), stills (`frames/`), drafts (`*-draft.mp4`), keyframe
   sheets (`*-sheet.png`), side-by-sides (`*-vs-*.mp4`), the scratch folders tools and checks leave (`review/`,
-  `rt/`, `auditions/`, `music/`), and logs. Each video's latest full renders (`<deliverable>.mp4`) stay.
-- the original teaser project's out/ (C:\\Users\\Jhoan\\Code\\pa-bailar-teaser, the archive): older versions of each
-  deliverable (`teaser-v2.2-reel.mp4` once `teaser-v2.3-reel.mp4` exists), comparisons, drafts, frames, logs. Files
-  that project's git tracks (its voice lines, music options, overview sheets) are never touched.
+  `rt/`, `auditions/`, `music/`, the stills bundle `.bundle/`), and logs. Each deliverable's latest version and its
+  `<deliverable>.mp4` link stay. The home's archive/ (posted versions) is never touched.
+- the checkout's media/cache, media/public/<video> and media/out/<video> from before the media home: a file is
+  listed only when the home holds an identical copy (a render of a posted version: in the archive). The site checks
+  that live in media/out/ (`*.mjs`, `site-bugs/`, `site-quality/`, `admin-tabs/`) are skipped, by name; new checks
+  belong in a scratch folder, not in media/out/.
+- the original teaser project's out/ (C:\\Users\\Jhoan\\Code\\pa-bailar-teaser, the first archive): older versions of
+  each deliverable (`teaser-v2.2-reel.mp4` once `teaser-v2.3-reel.mp4` exists), comparisons, drafts, frames, logs.
+  Files that project's git tracks (its voice lines, music options, overview sheets) are never touched.
 
 Standard library + PowerShell (the Recycle Bin): any Python on Windows runs it.
 """
 
 import argparse
+import filecmp
+import os
 import re
 import subprocess
 from pathlib import Path
 
-from common import MEDIA, parse_render_name
+from common import HOME, MEDIA, parse_render_name
 
 ARCHIVE = MEDIA.parent.parent / "pa-bailar-teaser"
-SCRATCH_DIRS = {"frames", "review", "rt", "auditions", "music", "draft", "inspect", "probe", "keyframes"}
+SCRATCH_DIRS = {"frames", "review", "rt", "auditions", "music", "draft", "inspect", "probe", "keyframes", ".bundle"}
+# Site checks kept in the checkout's media/out/ (not video output): never listed. New ones go in a scratch folder.
+SITE_CHECKS = {"site-bugs", "site-quality", "admin-tabs"}
 VERSIONED = re.compile(r"^(?P<name>.+?)-v(?P<version>\d+(?:\.\d+)*)-(?P<deliverable>[\w-]+)\.mp4$")
 
 
@@ -82,18 +92,61 @@ def archive_leftover(path: Path) -> bool:
     return path.name.startswith("compare-") or path.suffix == ".log"
 
 
-def candidates() -> list[Path]:
-    out = MEDIA / "out"
+def site_check(path: Path) -> bool:
+    """A site check left in the checkout's media/out/ (a script or its folder), not a video's output."""
+    return path.name in SITE_CHECKS or (path.is_file() and path.suffix in {".mjs", ".json"})
+
+
+def home_out(out: Path) -> list[Path]:
     picks: list[Path] = []
-    if out.exists():
-        for item in out.iterdir():
-            if item.is_dir() and item.name in SCRATCH_DIRS:
-                picks.append(item)
-            elif item.is_file() and item.suffix in {".log", ".png", ".mp4"}:
-                picks.append(item)  # loose checks and stills at out/'s top level
-            elif item.is_dir():  # a video's folder: its latest renders stay; older versions and the rest go
-                picks += [sub for sub in item.iterdir() if working_file(sub)]
-                picks += old_versions(item, item.name)
+    for item in out.iterdir() if out.exists() else []:
+        if item.is_dir() and item.name in SCRATCH_DIRS:
+            picks.append(item)
+        elif item.is_file() and item.suffix in {".log", ".png", ".mp4"}:
+            picks.append(item)  # loose checks and stills at out/'s top level
+        elif item.is_dir() and not site_check(item):  # a video: its latest renders stay; older ones and the rest go
+            picks += [sub for sub in item.iterdir() if working_file(sub)]
+            picks += old_versions(item, item.name)
+    return picks
+
+
+def home_copies(path: Path) -> list[Path]:
+    """Where the media home may hold a copy of a file from the checkout's media/ (same place; a render of a posted
+    version: in the archive)."""
+    rel = path.relative_to(MEDIA)
+    out = [HOME / rel]
+    if rel.parts[0] == "out" and len(rel.parts) == 3 and path.suffix == ".mp4":
+        video = rel.parts[1]
+        out += sorted((HOME / "archive" / video).glob(f"*/{video}-v*-{path.name}"))
+    return out
+
+
+def copied(path: Path) -> bool:
+    return any(c.exists() and filecmp.cmp(path, c, shallow=False) for c in home_copies(path))
+
+
+def legacy() -> list[Path]:
+    """The checkout's generated folders from before the media home: what the home holds an identical copy of (a whole
+    folder when every file in it is copied)."""
+    if HOME.resolve() == MEDIA.resolve():
+        return []
+    roots = [MEDIA / "cache"]
+    roots += [d for top in ("public", "out") if (MEDIA / top).exists() for d in (MEDIA / top).iterdir()]
+    picks: list[Path] = []
+    for root in roots:
+        if not root.exists() or site_check(root) or root.name == "fonts":
+            continue
+        if root.name in SCRATCH_DIRS:  # e.g. the stills bundle, made again in seconds
+            picks.append(root)
+            continue
+        files = [f for f in root.rglob("*") if f.is_file()] if root.is_dir() else [root]
+        done = [f for f in files if copied(f)]
+        picks += [root] if root.is_dir() and files and len(done) == len(files) else done
+    return picks
+
+
+def candidates() -> list[Path]:
+    picks = home_out(HOME / "out") + legacy()
     archive_out = ARCHIVE / "out"
     if archive_out.exists():
         keep = tracked(ARCHIVE)
@@ -116,7 +169,7 @@ def recycle(path: Path) -> None:
         "Add-Type -AssemblyName Microsoft.VisualBasic; "
         f"[Microsoft.VisualBasic.FileIO.FileSystem]::{kind}($env:TARGET, 'OnlyErrorDialogs', 'SendToRecycleBin')"
     )
-    env = {**__import__("os").environ, "TARGET": str(path)}
+    env = {**os.environ, "TARGET": str(path)}
     subprocess.run(["powershell", "-NoProfile", "-Command", script], check=True, env=env)
 
 

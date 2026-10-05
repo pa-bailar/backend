@@ -39,6 +39,7 @@ async function sourceKey() {
     ...(await files(PUBLIC)),
     path.join(MEDIA, "package-lock.json"),
     path.join(MEDIA, "brand.json"),
+    ...(await files(path.join(MEDIA, "fonts"))),
   ];
   for (const f of all.sort()) {
     const s = await stat(f).catch(() => null);
@@ -97,13 +98,16 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const id = settings.renders[deliverable];
   if (!id) throw new Error(`no deliverable "${deliverable}": video.json has ${Object.keys(settings.renders).join(", ")}`);
   const timing = JSON.parse(await readFile(path.join(folder, "data", "timing.json"), "utf8").catch(() => "null"));
+  const outDir = arg("out") ? path.resolve(arg("out")) : path.join(OUT, video, "frames");
+  // From media/: Remotion keeps its browser in the working folder's node_modules/.remotion.
+  process.chdir(MEDIA);
   const { openBrowser, renderStill, selectComposition } = await import("@remotion/renderer");
   const serveUrl = await bundled();
   const browser = await openBrowser("chrome");
   try {
     const inputProps = flag("no-blur") ? { blur: false } : {};
     const composition = await selectComposition({ serveUrl, id, inputProps, puppeteerInstance: browser });
-    const dest = arg("out") ? path.resolve(arg("out")) : path.join(OUT, video, "frames");
+    const dest = outDir;
     await mkdir(dest, { recursive: true });
     for (const spec of at.split(",")) {
       const frame = Math.min(frameAt(spec.trim(), composition.fps, timing), composition.durationInFrames - 1);

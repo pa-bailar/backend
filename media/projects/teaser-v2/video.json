@@ -26,7 +26,7 @@
       "boogaloo": "Instrumental Latin boogaloo and salsa groove, relaxed and feel-good, like a late-60s Nuyorican record. Starts on a hand-clap and horn hit, then piano montuno with a soul feel, muted trumpets, warm trombone, congas, güiro, cowbell marking every beat, walking bass tumbao. Laid-back, smiling, warm vintage analog texture, tape saturation. No vocals, no chanting."
     },
     "bed": "cache/music/teaser-v2-option-1.wav",
-    "bed_source": "option-1 of the original teaser project (pa-bailar-teaser/out/music/option-1.wav, committed there): a 25 s trim of one of these prompts' ACE-Step candidates; which prompt and seed wasn't recorded",
+    "bed_source": "option-1 of the original teaser project (pa-bailar-teaser/out/music/option-1.wav, committed there): the first 25 s of the \"fania\" prompt, seed 7, ACE-Step 1.5 turbo (8 steps, shift 3.0, thinking, 5Hz LM 1.7B), 98 bpm, 30 s (identified 5 Oct 2026: correlation 1.0 with pa-bailar-teaser/out/music/candidates/fania-s7.wav, now also cache/music/fania-s7-1b51c940a66911a3.wav in the media home, where tools/music.py finds it as cached)",
     "first_hit": 0.07
   },
   "mix": { "fade": 0.3, "voice_only_lufs": -15, "with_music_lufs": -14, "bed_db": -8 },

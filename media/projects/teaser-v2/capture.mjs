@@ -18,9 +18,9 @@
 // them here and the matching beats in scenes/App.tsx (the README lists the last such change).
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { arg, comingSaturday, loadAll, MEDIA, openPhone, openSite, periodsOnPage, rectOf, shot, SITE, wait } from "../../tools/capture.mjs";
+import { arg, comingSaturday, loadAll, MEDIA, openPhone, openSite, periodsOnPage, PUBLIC, rectOf, shot, SITE, wait } from "../../tools/capture.mjs";
 
-const OUT = path.join(MEDIA, "public", "teaser-v2", "app");
+const OUT = path.join(PUBLIC, "teaser-v2", "app"); // in the media home
 const DATA = path.join(MEDIA, "projects", "teaser-v2", "data", "app.json");
 const NOW_ISO = arg("now", comingSaturday());
 const NOW = new Date(NOW_ISO);

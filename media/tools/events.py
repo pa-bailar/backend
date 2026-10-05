@@ -21,7 +21,7 @@ import urllib.request
 from datetime import date, timedelta
 from pathlib import Path
 
-from common import BACKEND, MEDIA, bogota_today, probe, video
+from common import BACKEND, bogota_today, probe, shown, video
 
 SITE_DATA = BACKEND.parent / "pa-bailar-web" / "data"
 RAW = "https://raw.githubusercontent.com/pa-bailar/pa-bailar.github.io/main/data/"
@@ -147,7 +147,7 @@ def main() -> None:
     )
     for item in out:
         print(f"{item['day']} {item['day_start'] or '--:--'} {item['title']} (@{item['account']})")
-    print(f"{len(out)} events → {(v.data / 'events.json').relative_to(MEDIA).as_posix()}")
+    print(f"{len(out)} events → {shown(v.data / 'events.json')}")
 
 
 if __name__ == "__main__":

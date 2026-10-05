@@ -81,7 +81,10 @@ def soundtracks(v: Video) -> list[Path]:
 
 
 def render_inputs(v: Video) -> list[Path]:
-    return files(MEDIA / "src", v.folder, v.public) + [MEDIA / "brand.json", MEDIA / "package-lock.json"]
+    return files(MEDIA / "src", MEDIA / "fonts", v.folder, v.public) + [
+        MEDIA / "brand.json",
+        MEDIA / "package-lock.json",
+    ]
 
 
 def timing_reason(v: Video) -> str | None:

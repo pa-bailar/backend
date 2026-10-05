@@ -14,7 +14,7 @@ import argparse
 import os
 import time
 
-from common import CACHE, DIRECTION, MEDIA, key, load_env, tts_path, video, write_wav
+from common import CACHE, DIRECTION, HOME, key, load_env, shown, tts_path, video, write_wav
 
 # 2.5 answers reliably on the free tier; both time out at times (90 s timeout, retries with backoff).
 MODELS = ("gemini-2.5-flash-preview-tts", "gemini-3.8-flash-tts")
@@ -68,13 +68,13 @@ def lines(name: str, wanted: list[str]) -> None:
 
 
 def audition(text: str, voices: list[str], direction: str) -> None:
-    out = MEDIA / "out" / "auditions"
+    out = HOME / "out" / "auditions"
     for voice in voices:
         path = out / f"{voice}-{key(text, direction)}.wav"
         if not path.exists():
             pcm, _ = say(text, voice, direction)
             write_wav(path, pcm)
-        print(path.relative_to(MEDIA).as_posix())
+        print(shown(path))
 
 
 if __name__ == "__main__":

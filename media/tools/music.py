@@ -14,7 +14,7 @@ import sys
 import time
 from pathlib import Path
 
-from common import CACHE, MEDIA, key, video
+from common import CACHE, key, shown, video
 
 ACE = Path(r"D:\AI\ace-step")
 
@@ -37,7 +37,7 @@ def main(name: str) -> None:
     ]
     for *_, path in todo:
         if path.exists():
-            print(f"cached: {path.relative_to(MEDIA).as_posix()}")
+            print(f"cached: {shown(path)}")
     todo = [t for t in todo if not t[3].exists()]
     if not todo:
         return
@@ -82,7 +82,7 @@ def main(name: str) -> None:
             continue
         path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(res.audios[0]["path"], path)
-        print(f"{path.relative_to(MEDIA).as_posix()}: {time.time() - t1:.0f} s", flush=True)
+        print(f"{shown(path)}: {time.time() - t1:.0f} s", flush=True)
 
 
 if __name__ == "__main__":
