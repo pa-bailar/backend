@@ -9,6 +9,7 @@ from pathlib import Path
 
 import clean
 import common
+import cover
 import events
 import make
 import mix
@@ -231,6 +232,23 @@ def test_moov_first_walks_the_top_level_boxes(tmp_path):
     assert preflight.moov_first(slow) is False
     (tmp_path / "junk.mp4").write_bytes(b"abc")
     assert preflight.moov_first(tmp_path / "junk.mp4") is None
+
+
+# ---------- cover ----------
+
+
+def test_cover_grid_crop_is_centered_and_named_by_version(tmp_path, monkeypatch):
+    assert cover.grid_crop(1080, 1920) == (1080, 1350, 0, 285)
+    assert cover.grid_crop(1080, 1920, (1080, 1440)) == (1080, 1440, 0, 240)
+    assert cover.grid_crop(540, 960) == (540, 675, 0, 142)
+    monkeypatch.setattr(common, "HOME", tmp_path)
+    v = common.Video("teaser-v2", {"version": "2.4", "renders": {"voice-only": "a", "reel": "b"}})
+    full, grid = cover.cover_paths(v)
+    assert (full.name, grid.name) == ("teaser-v2-v2.4-cover.png", "teaser-v2-v2.4-cover-grid.png")
+    assert cover.pick_deliverable(v, None) == "reel"
+    assert cover.pick_deliverable(v, "voice-only") == "voice-only"
+    with pytest.raises(SystemExit):
+        cover.pick_deliverable(v, "story")
 
 
 # ---------- mix ----------

@@ -46,6 +46,8 @@ the tools, the library's building blocks and the workflow, written so you don't 
 - **Reel safe zones**: `review.py reel` (part of `render.py --review` for Reel deliverables) lists content in the
   margins the Reel's UI covers (108 top, 320 bottom, 60 left, 120 right). Images may run into them; check that no
   word does (the sheet draws them in magenta).
+- **Reel cover**: for a Reel, `cover.py <video> --at <moment>` exports the cover (1080×1920) and the profile grid's
+  centered crop; pick a frame whose words survive the crop and sit outside the Reel's margins, and hand both over.
 - **Loudness**: `mix.py` passed (true peak ≤ −1 dBTP, within 1 LU of −15 voice-only / −14 with music / −16 music
   only); `mix.py <video> --check` measures what's there.
 - **Version**: the render's name carries the `version` you'll report, and the previous one is there to compare.
