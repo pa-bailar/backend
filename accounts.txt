@@ -39,12 +39,20 @@ iledanza
 sondehabana
 # Son Rumbero: academy in Bogotá (salsa, bachata, merengue) (discovery, 4 Oct 2026).
 sonrumbero
+# Rechecked 4 Oct 2026 (marked personal before, readable now): Bogotá academies that announce workshops and events.
+bailaderia
+bailo.formacion
+efadanza
+originalstepdance
+fogal_arte
 
 # Dance companies
 herencialatinad.c
 ebi_dancecompany
 # Osupa Project: Bogotá dance company and directors (salsa, bachata, afro-Cuban) (discovery, 4 Oct 2026).
 osupaproject
+# Zafiro Project: Bogotá bachata training and competition team; also organizes socials (rechecked 4 Oct 2026).
+zafiro_project_team
 
 # Event organizers
 festivalsalsaalparque
@@ -80,6 +88,10 @@ ashe_impro
 salseros_clandestinos
 # Val Kandela: urban dance parties (Los Kandelazos Bailables).
 valkandela
+# Rechecked 4 Oct 2026: Clan Disfrute (dance experiences and parties) and LaFem Congress (yearly salsa and
+# bachata congress in Bogotá, with parties and bootcamps).
+clandisfrute
+lafemcongress
 # Competitions: one-time dated events with workshops and socials around them (events placed in another
 # city are left out by the prompts' city rule). Discovery, 4 Oct 2026.
 dreamcupco
@@ -113,6 +125,8 @@ alejochacon.co
 jen.ssy
 tibaduiza__
 lauuurin__
+# David y Laura: bachata teachers in Bogotá; workshops and shows (rechecked 4 Oct 2026).
+davidylauradancers
 # La-33: Bogotá salsa and boogaloo orchestra; announces concerts.
 la33orquesta
 # Fernando España: salsa DJ; announces his sets at dance venues in Bogotá.
@@ -188,6 +202,14 @@ dlivingstudio
 #   Bar with live music, food and occasional dance classes and events. (discovery, 4 Oct 2026)
 # cacaoblunt
 #   Night club with dancehall and afro parties. (discovery, 4 Oct 2026)
+# oronegroclub
+#   Salsa bar and club (Modelia) with frequent parties. (discovery, 4 Oct 2026)
+# salsacamaraoficial
+#   Salsa restaurant-bar with live music and rumba. (discovery, 4 Oct 2026)
+# quemaquequema
+#   Restaurant-bar with live music and salsa. (discovery, 4 Oct 2026)
+# sonorasocialclub_
+#   Night club with reggaeton and dancehall parties. (discovery, 4 Oct 2026)
 
 # ---------------------------------------------------------------------------------------------------
 # Candidates: NOT swept (every line below is a comment). Teachers and dancers who announce workshops,
@@ -197,3 +219,5 @@ dlivingstudio
 # angie_restrepoo, bailarita, dannyydayana, henrii.pinzon, jesusuztariz_, jonathanpino__, josephqfaces,
 # juanchopr_, judygarzon_, kta_pe, natalygonzalez.oficial, oswaldyluisa_cubandance, paulapopayancortes,
 # xicalactica
+# Also not swept for now: pinochoconciertos (says it organizes salsa events and festivals, but the name points
+# to concerts: check its posts first); karenyricardo (world-class couple touring with workshops).
