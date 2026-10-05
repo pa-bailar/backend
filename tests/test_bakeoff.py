@@ -2,12 +2,15 @@
 
 from datetime import datetime
 
-from pa_bailar import bakeoff, config, health, status, why
-from pa_bailar.external import ExternalReport
+import httpx
+
+from pa_bailar import bakeoff, config, external, health, status, why
+from pa_bailar.external import ExternalReport, ExternalTier
 from pa_bailar.models import PostAnalysis
 from pa_bailar.pipeline import RunStats
 from tests.factories import DETAILS, make_image
 from tests.test_admin_tools import LINK, record, state
+from tests.test_external import ANALYSIS, GROQ, FakeAPI, chat
 from tests.test_health import TODAY, recent, stats_with
 from tests.test_health import check as health_check
 from tests.test_health import record as run_record
@@ -96,6 +99,44 @@ def test_running_a_model_caches_answers_and_retries_only_failures(tmp_path):
     bakeoff.run_model("m", [item], answering, tmp_path, cache_dir=tmp_path, say=lambda text: None)  # cached
     assert asked == ["m", "m"]
     assert bakeoff.load_cache(bakeoff.cache_file("m", tmp_path))["a"]["answer"]["reason"] == "ok"
+
+
+def test_groq_answers_every_post_waiting_for_its_tokens_and_a_skip_isnt_cached(tmp_path, monkeypatch):
+    """Review finding: the second post was refused "tokens for this minute are used" and cached as an error."""
+    now = [1000.0]
+    pauses: list[float] = []
+
+    def sleep(seconds: float) -> None:
+        pauses.append(seconds)
+        now[0] += seconds
+
+    monkeypatch.setattr(external.time, "monotonic", lambda: now[0])
+    monkeypatch.setattr(external.time, "sleep", sleep)
+    tpm = httpx.Response(429, json={"error": {"message": "Rate limit reached on tokens per minute (TPM)"}})
+    answers = [chat(ANALYSIS, GROQ) for _ in range(3)] + [tpm]
+    api = FakeAPI({GROQ: answers})
+    tier = ExternalTier(keys={"groq": "k"}, http=httpx.Client(transport=httpx.MockTransport(api)))
+    (tmp_path / "flyers").mkdir()
+    (tmp_path / "flyers" / "f-0.webp").write_bytes(make_image())
+    picks = [
+        {
+            "post_id": f"p{n}",
+            "account": "academia",
+            "caption": "Social de salsa",
+            "flyer": "flyers/f-0.webp",
+            "published": "2026-10-01T12:00:00+0000",
+            "processed_at": "2026-10-01T10:00:00-05:00",
+            "events": [],
+        }
+        for n in range(4)
+    ]
+    said: list[str] = []
+    model = f"groq:{GROQ}"
+    bakeoff.run_model(model, picks, bakeoff.asker(lambda: "x", external=tier), tmp_path, tmp_path, said.append)
+    cache = bakeoff.load_cache(bakeoff.cache_file(model, tmp_path))
+    assert all("answer" in cache[f"p{n}"] for n in range(3))
+    assert "p3" not in cache and "not asked" in said[-1]  # Groq's own token 429: tried again on the next run
+    assert sum(pause > 30 for pause in pauses) == 3  # each post waited for the one before to leave the minute
 
 
 def test_discover_lists_free_models_with_image_input_and_text_answers():

@@ -100,10 +100,11 @@ _TYPES_AND_STYLES = f"""Event type, by the main purpose of the event:
 - other: anything else.
 
 Dance styles: only from this list: {", ".join(STYLES)}.
-- Salsa: "salsa cubana" for casino, rueda or timba; "salsa en línea" for on1, on2, mambo or
-  New York / Los Angeles style; "salsa caleña" for estilo caleño. Plain "salsa" when the variant isn't said.
+- Salsa: "salsa cubana" for casino, rueda, timba or cubano / estilo cubano; "salsa en línea" for on1, on2, mambo
+  or New York / Los Angeles style; "salsa caleña" for estilo caleño. Pachanga, boogaloo (bugalú), salsa brava,
+  salsa dura and salsa choke are plain "salsa", as is salsa when the variant isn't said.
 - Bachata: "bachata sensual" or "bachata dominicana" (tradicional) when said; otherwise plain "bachata".
-- Other styles stay general (reguetón and hip hop are "urbano"; rumba and afrobeat are "afro").
+- Other styles stay general (reguetón and hip hop are "urbano"; rumba, guaguancó and afrobeat are "afro").
 - Use the flyer, the caption and the hashtags. Don't guess styles that aren't mentioned or shown."""
 
 TRIAGE_PROMPT = f"""You screen Instagram posts of dance academies, organizers and artists in Bogotá, Colombia.

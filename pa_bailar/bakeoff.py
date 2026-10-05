@@ -10,7 +10,8 @@ a Gemini model ("gemini-3.5-flash-lite") or "<provider>:<model>" ("groq:qwen/qwe
      them, when there are, are workshop series or events over several days, the hardest dates.
   2. run: each model reads each post's caption and its stored flyer (one image) with the sweep's own extraction
      prompt. Answers are cached in state/bakeoff/ (never committed), so a rerun spends nothing on posts already
-     answered and retries only the ones that failed.
+     answered and retries only the ones that failed. Groq waits for its tokens per minute between posts (about one
+     a minute); a request its limits keep from being sent isn't cached as an error.
   3. score: each model's events against Flash's, field by field. Agreement with Flash measures similarity, not
      truth, and every model misses what's only on slides it wasn't given (a test limit).
 `--discover` lists OpenRouter's free models now, with image input, and whether they take structured output: the
@@ -32,7 +33,7 @@ from google.genai import types
 from PIL import Image
 
 from . import config, storage, sweep_state
-from .external import ExternalTier, recorded_name
+from .external import ExternalTier, SkippedError, recorded_name
 from .gemini import ExtractionError, ModelPool, QuotaExhaustedError
 from .models import PostAnalysis
 from .prompts import EXTRACTION_PROMPT
@@ -161,6 +162,9 @@ def run_model(
         except QuotaExhaustedError as error:
             say(f"  no quota left today: {error}. The rest waits for another day.")
             break
+        except SkippedError as error:  # its limits kept it from being asked: not an answer, nor a failure
+            say(f"  {item['post_id']}: not asked ({str(error)[:120]}): tried again on the next run")
+            continue
         except (ExtractionError, OSError) as error:
             cache[item["post_id"]] = {"error": str(error)[:300]}
             say(f"  {item['post_id']}: error: {str(error)[:120]}")

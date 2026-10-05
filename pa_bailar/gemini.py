@@ -4,7 +4,8 @@
 model when its daily budget is spent, and persists the day's usage so several runs on the same day share
 it. Errors: `ExtractionError` (no model could answer now: retry later), `QuotaExhaustedError` (its kind for
 when every model is out of today's quota or not offered to this key: nothing failed, the post just waits) and
-`RejectedRequestError` (Gemini refused the request itself, or blocked its answer: retrying won't help).
+`RejectedRequestError` (Gemini refused the request itself, or blocked its answer: retrying won't help). With a
+`deadline` (the run's time budget), no request starts after it: `OutOfTimeError`, a kind of `QuotaExhaustedError`.
 `GeminiKeyError` is apart: the API key itself doesn't work (invalid, expired, revoked), so nothing can be
 read until it's replaced. It isn't an `ExtractionError`, so no post is marked as rejected because of it.
 
@@ -43,6 +44,10 @@ class ExtractionError(RuntimeError):
 class QuotaExhaustedError(ExtractionError):
     """Every model asked for is out of today's quota or not available to this key: nothing failed, the work
     waits for a later run."""
+
+
+class OutOfTimeError(QuotaExhaustedError):
+    """The run's time budget is used (ModelPool.deadline): no request starts, the work waits for the next run."""
 
 
 class RejectedRequestError(ExtractionError):
@@ -116,6 +121,8 @@ class ModelPool:
         self._last_call: dict[str, float] = {}
         self.requests_this_run: Counter[str] = Counter()
         self.unavailable: set[str] = set()  # models Gemini said this key can't use (this run)
+        # time.monotonic() after which no request starts (OutOfTimeError): the run's time budget, set by EventExtractor.
+        self.deadline: float | None = None
 
     def used(self, model: str) -> int:
         """Requests to `model` counted today (this pool's usage file)."""
@@ -139,6 +146,11 @@ class ModelPool:
     def _persist(self) -> None:
         """Save today's usage, so later runs on the same quota day share the budget."""
         storage.save_gemini_usage({"day": self._day, "requests": dict(self._used)})
+
+    def _check_time(self) -> None:
+        """OutOfTimeError once the deadline has passed: no request starts after it."""
+        if self.deadline is not None and time.monotonic() >= self.deadline:
+            raise OutOfTimeError("the run's time budget is used")
 
     def _pace(self, model: str) -> None:
         interval = 60 / config.MODEL_LIMITS[model].requests_per_minute + config.PACING_MARGIN_SECONDS
@@ -200,6 +212,7 @@ class ModelPool:
         failed = False  # a model was tried and failed (busy, bad answer), as opposed to all out of quota
         for model in models:
             for attempt in range(1, ATTEMPTS_PER_MODEL + 1):
+                self._check_time()
                 if not self.has_budget(model):
                     log.info("    %s: daily budget used up, skipping", model)
                     break

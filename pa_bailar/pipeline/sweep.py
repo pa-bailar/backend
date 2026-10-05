@@ -8,7 +8,8 @@ from datetime import UTC, date, datetime, timedelta
 
 from .. import config, links, storage
 from ..account_options import AccountOptions, mentions_focus
-from ..gemini import GeminiKeyError, QuotaExhaustedError, RejectedRequestError
+from ..external import is_external
+from ..gemini import GeminiKeyError, OutOfTimeError, QuotaExhaustedError, RejectedRequestError
 from ..instagram import InstagramError, Post, is_rate_limited, published_at, slide_count
 from ..models import AccountState, ProcessedPost
 from . import common
@@ -272,9 +273,13 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
                     account, post, published, images, rules=self._rules(account, post["id"])
                 )
             except QuotaExhaustedError as error:
-                # Flash-Lite out of today's quota: wait for it rather than spend Flash's small one on every post.
-                log.info("     waits for the next run (triage): %s", error)
-                return False
+                if isinstance(error, OutOfTimeError) or self.extractor.can_extract_with_flash():
+                    # Flash-Lite out of today's quota: wait for it rather than spend Flash's small one on every post.
+                    log.info("     waits for the next run (triage): %s", error)
+                    return False
+                # Flash is out too, so the extraction is the last resort's: it decides alone. Never a last-resort
+                # triage: its "no" would be final, and Groq's tokens a minute don't fit a triage and an extraction.
+                log.info("     Flash-Lite and Flash out of quota: extracting directly (the last resort)")
             except RETRYABLE_ERRORS as error:
                 # Triage unavailable: let the extraction decide on its own.
                 log.info("     triage unavailable (%s), extracting directly", error)
@@ -317,9 +322,23 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         return True
 
     def _upgrade_post(self, account: str, post: Post, published: datetime) -> None:
-        """Re-extract a provisional post with Flash; keep the provisional result if that fails."""
+        """Re-extract a provisional post with Flash; keep the provisional result if that fails. A post the last
+        resort read without a triage (Flash-Lite was out) and found no event in goes through the triage first, as a
+        new post would: Flash is spent on it only if Flash-Lite says it's an event."""
+        record = self.processed[post["id"]]
         try:
             images = common.download_images(post)
+            if record.outcome == "not_event" and is_external(record.model):
+                verdict, triage_model = self.extractor.triage(
+                    account, post, published, images, rules=self._rules(account, post["id"])
+                )
+                if not verdict.is_event_post:
+                    self._record_processed(account, post, False, verdict.reason, triage_model, provisional=False)
+                    self._set_outcome(post, "not_event")
+                    self._save()
+                    self.stats.upgraded += 1
+                    log.info("     not an event (triage): %s", verdict.reason)
+                    return
             known = self._known_events(account, published)
             analysis, model, _ = self.extractor.extract(
                 account, post, published, images, known, allow_provisional=False, rules=self._rules(account, post["id"])

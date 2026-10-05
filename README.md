@@ -49,7 +49,7 @@ Secrets live in `.env` (repository root, git-ignored, never commit it): copy `.e
 with what each is for (`GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `META_APP_ID`, `META_APP_SECRET`,
 `MEDIA_GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `GROQ_API_KEY`), and below them, commented out, the optional settings
 that only change a default. `GROQ_API_KEY` and `OPENROUTER_API_KEY` are optional: they're the sweep's last resort
-when Gemini runs out of quota (Groq first, then OpenRouter's free models), and without them the posts wait for
+for extraction when Gemini runs out of quota (Groq first, then OpenRouter's free models), and without them the posts wait for
 Gemini's next quota day, as before. The admin page's secrets for local development go in `admin-web/.dev.vars` (copy
 `admin-web/.dev.vars.example`).
 
@@ -170,8 +170,9 @@ compared with the previous runs, kept in `run_history.json` on the `sweep-state`
   - the last resort (Groq, OpenRouter) used because Gemini ran out, with what each model did;
   - accounts with no posts in 45 days.
 - **Events to review** are upcoming events Gemini wasn't confident about, or whose date it doubted, events it
-  couldn't place in Bogotá or another account's post called cancelled, and congresses or festivals dated on a
-  single day (their other days may be missing).
+  couldn't place in Bogotá or another account's post called cancelled, several events of one post read only by a
+  lighter model (their times and prices may be mixed up), and congresses or festivals dated on a single day (their
+  other days may be missing).
 
 Where to see it:
 - **The run's page** on GitHub Actions has the health report at the top of its summary, warnings as

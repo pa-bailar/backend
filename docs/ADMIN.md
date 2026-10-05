@@ -170,7 +170,7 @@ use the page or the inbox, which do it.
 
 ### Re-checking the last resort's models (`admin bakeoff`)
 
-When Gemini runs out of quota, the sweep reads with Groq and then OpenRouter's free models (docs/ARCHITECTURE.md,
+When Gemini runs out of quota, the sweep extracts with Groq and then OpenRouter's free models (docs/ARCHITECTURE.md,
 section 7.3). Free models change, slow down or disappear without notice, so every so often (or when the health
 report shows them failing) check them against Gemini Flash:
 
@@ -191,7 +191,8 @@ report shows them failing) check them against Gemini Flash:
   `openrouter:google/gemma-4-31b-it:free`. A provider's model needs its key in `.env` (`GROQ_API_KEY`,
   `OPENROUTER_API_KEY`).
 - Answers are cached in `state/bakeoff/` (git-ignored): a second run spends nothing on what was answered and
-  retries only the failures.
+  retries only the failures. Groq waits for its 8,000 tokens a minute between posts (about a post a minute), and a
+  request its limits kept from being sent isn't cached: the next run asks it again.
 - The score, per model: events found, missed and extra against Flash's, errors, average seconds, and each field's
   agreement (date, end date, start time, type, title, styles, prices, venue, sessions), with the first
   differences. Agreement with Flash measures similarity, not truth.

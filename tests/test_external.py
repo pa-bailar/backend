@@ -11,8 +11,11 @@ from pa_bailar import config, external, gemini, storage
 from pa_bailar.external import ExternalTier, parse_answer, request_parts
 from pa_bailar.extraction import EventExtractor
 from pa_bailar.models import PostAnalysis, Triage
+from pa_bailar.pipeline import Sweep
+from pa_bailar.prompts import EXTRACTION_PROMPT
 from tests.factories import make_image
 from tests.test_model_pool import FakeClient, client_error
+from tests.test_sweep import FakeInstagram, post
 
 GROQ = "qwen/qwen3.8-27b"
 QWEN = "qwen/qwen3.8-27b:free"
@@ -196,18 +199,69 @@ def test_groq_sends_only_the_images_that_fit_in_a_minutes_tokens():
     assert caught.value.kind == "skipped"
 
 
-def test_groqs_minute_of_tokens_full_skips_it_for_the_post_instead_of_waiting(sleeps, monkeypatch):
-    clock = [1000.0]
-    monkeypatch.setattr(external.time, "monotonic", lambda: clock[0])
+@pytest.fixture
+def clock(sleeps, monkeypatch):
+    """A fake time.monotonic() that the tier's pauses move forward (for every module: they share `time`)."""
+    now = [1000.0]
+
+    def sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+        now[0] += seconds
+
+    monkeypatch.setattr(external.time, "monotonic", lambda: now[0])
+    monkeypatch.setattr(external.time, "sleep", sleep)
+    return now
+
+
+def test_groq_waits_for_its_minute_of_tokens_when_the_post_has_time_for_it(clock, sleeps):
     api = FakeAPI({GROQ: [chat(TRIAGE, GROQ, tokens=7_000), TRIAGE], QWEN: [TRIAGE]})
     pool = tier(api)
     assert pool.generate(contents(), Triage)[1] == f"groq:{GROQ}"
-    clock[0] += 5  # 7,000 of Groq's 8,000 tokens used 5 s ago: the next request doesn't fit for ~55 s
-    assert pool.generate(contents(), Triage)[1] == f"openrouter:{QWEN}"
-    assert all(pause < 3 for pause in sleeps)  # only the per-minute pacing, never the minute's tokens
-    assert pool.outcomes[f"groq:{GROQ}"] == {"answered": 1, "skipped": 1}
-    clock[0] += 60  # a minute later: Groq again
+    clock[0] += 5  # 7,000 of Groq's 8,000 tokens used 5 s ago: the next request fits in 55 s
     assert pool.generate(contents(), Triage)[1] == f"groq:{GROQ}"
+    assert sleeps == [55.0] and api.models == [GROQ, GROQ]
+
+
+def test_no_request_or_wait_that_wouldnt_end_before_the_deadline(clock, sleeps):
+    api = FakeAPI({GROQ: [chat(TRIAGE, GROQ, tokens=7_000)], QWEN: [TRIAGE]})
+    pool = tier(api)
+    pool.generate(contents(), Triage)
+    clock[0] += 5
+    # 55 s for Groq's tokens and a whole timeout (60 s) don't fit in 100 s: OpenRouter, which needs no wait.
+    assert pool.generate(contents(), Triage, deadline=clock[0] + 100)[1] == f"openrouter:{QWEN}"
+    assert pool.outcomes[f"groq:{GROQ}"] == {"answered": 1, "skipped": 1} and sleeps == []
+    with pytest.raises(gemini.QuotaExhaustedError):  # not even OpenRouter's timeout fits: nothing is asked
+        pool.generate(contents(), Triage, deadline=clock[0] + 30)
+    assert api.models == [GROQ, QWEN]
+
+
+def test_one_post_spends_at_most_its_share_of_time_on_the_last_resort(clock, sleeps, monkeypatch):
+    monkeypatch.setattr(config, "EXTERNAL_MAX_SECONDS_PER_POST", 100)
+    api = FakeAPI({GROQ: [chat(TRIAGE, GROQ, tokens=7_000)], QWEN: [TRIAGE]})
+    pool = tier(api)
+    pool.generate(contents(), Triage)
+    clock[0] += 5
+    assert pool.generate(contents(), Triage)[1] == f"openrouter:{QWEN}"  # Groq's 55 + 60 s are over the 100
+
+
+def test_a_provider_without_tokens_for_a_request_today_isnt_available(sleeps):
+    groq = config.EXTERNAL_PROVIDERS[0]
+    assert groq.daily_tokens is not None
+    nearly = groq.daily_tokens - config.EXTERNAL_MIN_REQUEST_TOKENS + 1
+    storage.save_external_usage({"day": external.usage_day(), "providers": {"groq": {"tokens": nearly}}})
+    pool = tier(FakeAPI({}), {"groq": "k", "openrouter": None})
+    assert not pool.has_budget(groq) and not pool.available()  # no download for a post it would skip
+
+
+def test_the_minimum_request_is_below_any_extraction_the_sweep_sends():
+    """EXTERNAL_MIN_REQUEST_TOKENS stays a floor: an extraction without images and with an empty caption."""
+    prompt = EXTRACTION_PROMPT.format(
+        account="a", published="2026-10-01", today="2026-10-01", caption="", account_rules="", known_events="(none)"
+    )
+    for provider in config.EXTERNAL_PROVIDERS:
+        for model in provider.models if provider.daily_tokens is not None else ():
+            _, estimate = request_parts([prompt], PostAnalysis, model.structured, provider)
+            assert estimate >= config.EXTERNAL_MIN_REQUEST_TOKENS
 
 
 def test_a_429_for_groqs_tokens_skips_without_counting_as_a_failure(sleeps, monkeypatch):
@@ -301,9 +355,9 @@ PUBLISHED = datetime(2026, 10, 1, 12, tzinfo=UTC)
 def extractor(gemini_answers: dict[str, list], api: FakeAPI, keys=BOTH_KEYS) -> EventExtractor:
     client = FakeClient()
     client.models.behaviour = gemini_answers
-    made = EventExtractor.__new__(EventExtractor)
+    made = EventExtractor("unused-key", external=tier(api, keys))
     made.pool = gemini.ModelPool("unused-key", client=client)
-    made.external = tier(api, keys)
+    made.pool.deadline = made.deadline
     return made
 
 
@@ -346,19 +400,89 @@ def test_without_keys_gemini_running_out_is_as_before(sleeps):
     assert api.bodies == [] and not out.can_analyze()
 
 
-def test_triage_falls_to_the_last_resort_only_when_lite_is_out_of_quota(sleeps):
-    api = FakeAPI({GROQ: [TRIAGE]})
+def test_the_triage_never_goes_to_the_last_resort(sleeps):
+    """A Groq triage and a Groq extraction of the same post don't fit in Groq's 8,000 tokens a minute, and a weaker
+    model's "no" would be final: with Flash-Lite out, the sweep sends the post to the extraction (test_sweep.py)."""
+    api = FakeAPI({})
     out = extractor({"gemini-3.5-flash-lite": [QUOTA]}, api)
-    verdict, model = out.triage("academia", POST, PUBLISHED, [make_image()])
-    assert verdict.is_event_post and model == f"groq:{GROQ}"
+    with pytest.raises(gemini.QuotaExhaustedError):
+        out.triage("academia", POST, PUBLISHED, [make_image()])
+    assert api.bodies == []
 
-    storage.save_gemini_usage({})  # a new day: Flash-Lite has quota, but it's busy
-    busy = gemini.errors.ServerError(503, {"error": {"code": 503, "message": "busy", "status": "UNAVAILABLE"}})
-    nothing = FakeAPI({})
-    failing = extractor({"gemini-3.5-flash-lite": [busy] * gemini.ATTEMPTS_PER_MODEL}, nothing)
-    with pytest.raises(gemini.ExtractionError):  # busy, not out: the sweep extracts directly, as before
-        failing.triage("academia", POST, PUBLISHED, [make_image()])
-    assert nothing.bodies == []
+
+BUSY = gemini.errors.ServerError(503, {"error": {"code": 503, "message": "busy", "status": "UNAVAILABLE"}})
+
+
+@pytest.mark.parametrize(
+    "flash_error",
+    [BUSY, client_error(400, "Request contains an invalid argument")],
+    ids=["busy", "rejected"],
+)
+def test_only_flash_out_of_quota_reaches_the_last_resort(sleeps, flash_error):
+    api = FakeAPI({GROQ: [ANALYSIS]})
+    failing = [flash_error] * gemini.ATTEMPTS_PER_MODEL
+    out = extractor(
+        {"gemini-3.8-flash": list(failing), "gemini-3.5-flash": list(failing), "gemini-3.5-flash-lite": [QUOTA]}, api
+    )
+    with pytest.raises(gemini.QuotaExhaustedError):  # Flash-Lite out: the post waits for Gemini, as before
+        out.extract("academia", POST, PUBLISHED, [make_image()], [])
+    assert api.bodies == []
+
+
+def test_no_request_starts_after_the_runs_time_budget(clock, sleeps):
+    api = FakeAPI({GROQ: [ANALYSIS]})
+    out = extractor(flash_out() | {"gemini-3.5-flash-lite": [QUOTA]}, api)
+    assert out.deadline == clock[0] + config.MAX_RUN_MINUTES * 60
+    clock[0] = out.deadline
+    with pytest.raises(gemini.OutOfTimeError):  # a kind of QuotaExhaustedError: the post waits, not an error
+        out.extract("academia", POST, PUBLISHED, [make_image()], [])
+    assert out.pool._client.models.calls == [] and api.bodies == []
+
+
+def test_the_last_resort_doesnt_start_past_the_deadline_either(clock, sleeps):
+    api = FakeAPI({GROQ: [ANALYSIS]})
+    out = extractor(flash_out() | {"gemini-3.5-flash-lite": [QUOTA]}, api)
+    out.deadline = out.pool.deadline = clock[0] + 30  # Gemini may start, a last-resort request wouldn't end in time
+    with pytest.raises(gemini.QuotaExhaustedError):
+        out.extract("academia", POST, PUBLISHED, [make_image()], [])
+    assert api.bodies == [] and out.external.outcomes[f"groq:{GROQ}"] == {"skipped": 1}
+
+
+def test_with_gemini_out_the_sweep_extracts_with_groq_one_post_a_minute_and_flash_lite_screens_its_no_later(
+    clock, sleeps, monkeypatch
+):
+    """Review finding: Groq's triage (~4,100 tokens) and extraction (~7,250) of the same post didn't fit in its
+    8,000 tokens a minute, so nothing was ever extracted. Now the extraction alone, waiting for the minute's tokens;
+    its "no" is provisional, and Flash-Lite's triage screens it before Flash is spent on it."""
+    config.ACCOUNTS_FILE.write_text("academia\n", encoding="utf-8")
+    monkeypatch.setattr("pa_bailar.pipeline.common.download_image", lambda url: make_image())
+    posts = [{**post("p1", days_ago=2), "caption": "Social de salsa"}, {**post("p2", days_ago=1), "caption": "Hoy"}]
+    instagram = FakeInstagram({"academia": posts})
+    no_event = {"is_event_post": False, "reason": "un meme", "events": []}
+    api = FakeAPI({GROQ: [no_event, no_event]})
+    spent = {model: limit.requests_per_day for model, limit in config.MODEL_LIMITS.items()}
+    storage.save_gemini_usage({"day": gemini.quota_day(), "requests": spent})  # today's Gemini quotas are used
+    out = extractor({}, api, keys={"groq": "k", "openrouter": None})
+    Sweep(lookback_days=7, instagram=instagram, extractor=out, all_accounts=True).run()
+
+    records = storage.load_processed_posts()
+    assert [(records[p].model, records[p].provisional) for p in ("p1", "p2")] == [(f"groq:{GROQ}", True)] * 2
+    assert len(api.bodies) == 2 and all("Image 0:" in str(body) for body in api.bodies)  # extractions, no triage
+    assert any(pause > 50 for pause in sleeps)  # the second waited for the first to leave Groq's minute
+
+    storage.save_gemini_usage({})  # the next quota day: Flash-Lite screens Groq's "no" first
+    lite = gemini.ModelPool("unused-key", client=FakeClient())
+    lite._client.models.behaviour = {
+        "gemini-3.5-flash-lite": [Triage(is_event_post=True, reason="social"), Triage(is_event_post=False, reason="x")],
+        "gemini-3.8-flash": [PostAnalysis.model_validate(ANALYSIS)],
+    }
+    again = extractor({}, FakeAPI({}))
+    again.pool = lite
+    Sweep(lookback_days=7, instagram=instagram, extractor=again, all_accounts=True).run()
+    records = storage.load_processed_posts()
+    assert (records["p1"].model, records["p1"].provisional) == ("gemini-3.8-flash", False)
+    assert (records["p2"].model, records["p2"].provisional) == ("gemini-3.5-flash-lite", False)
+    assert lite._client.models.calls.count("gemini-3.8-flash") == 1  # Flash only for the post Flash-Lite let through
 
 
 def test_lite_only_mode_keeps_the_last_resort_after_flash_lite(sleeps, monkeypatch):

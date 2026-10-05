@@ -231,14 +231,14 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 
 | | |
 |---|---|
-| **What for** | Reading posts when Gemini can't: every Gemini model for the step is out of today's quota or not available to the key. Triage when Flash-Lite is out; extraction when Flash and Flash-Lite are. Never before Gemini, and never for stories or upgrades (section 7.3) |
+| **What for** | Extracting posts when Gemini can't: Flash and Flash-Lite are both out of today's quota or not available to the key (only quota: a busy or refusing Gemini never reaches it). Never the triage, never before Gemini, and never for stories or upgrades (section 7.3) |
 | **API** | Both are OpenAI-compatible: `POST …/chat/completions` with the prompt's text and the images as base64 data URLs (`pa_bailar/external.py`, `config.EXTERNAL_PROVIDERS`). Plain `httpx`, no SDK |
 | **Keys** | `GROQ_API_KEY` (console.groq.com) and `OPENROUTER_API_KEY` (openrouter.ai). Both optional: a provider without its key is skipped, so without either the sweep works as before |
 | **Models** | Groq: `qwen/qwen3.8-27b`, its only vision model, in JSON mode with the schema in the prompt. OpenRouter: `google/gemma-4-31b-it:free` and `google/gemma-4-26b-a4b-it:free` (JSON mode, the schema in the prompt; one request with its `models` list), then `openrouter/free`, a router to a random free model that takes the schema (structured output: the schema as `response_format`, strict, with `provider.require_parameters`). Every answer is checked against the same Pydantic schemas as Gemini's |
 | **Free limits** | Groq (2026-10-05): 30 requests/minute and 1,000/day, but 8,000 tokens/minute and 200,000/day; each image counts as 2,048 input tokens, at most 3 images per request. OpenRouter without credit: 20 requests/minute and 50/day for all free models together. Daily limits reset at midnight UTC (7:00 p.m. Bogotá) |
 | **Our budgets** | Groq: 900 requests and 180,000 tokens a day. OpenRouter: 40 requests a day. Kept under the free limits, for manual runs and the bake-off |
 | **Cost** | Free. Free models get pulled or paywalled without notice: `admin bakeoff` re-checks them (section 12.3) |
-| **If it fails** | One request per model and post, a 60-second timeout, no retries: a busy model (a 429 from the model's provider, a 5xx, a timeout) or an answer that isn't the schema's JSON moves on to the next model, and when none answers, the post waits for the next run as it would without them. A model that fails twice in a run is set aside for the rest of it, and one answering 404 (gone, or no longer free) at once. A key refused (401), credit needed (402) or a blocked request (403) turns that provider off for the run (a notice; a warning after 3 runs) |
+| **If it fails** | One request per model and post, a 60-second timeout, no retries, at most 3 minutes per post and nothing started that wouldn't end within the run's time budget: a busy model (a 429 from the model's provider, a 5xx, a timeout) or an answer that isn't the schema's JSON moves on to the next model, and when none answers, the post waits for the next run as it would without them. A model that fails twice in a run is set aside for the rest of it, and one answering 404 (gone, or no longer free) at once. A key refused (401), credit needed (402) or a blocked request (403) turns that provider off for the run (a notice; a warning after 3 runs) |
 
 ---
 
@@ -500,10 +500,9 @@ flowchart TD
     IMG -->|fails| PEND
     IMG --> TR["Triage: Flash-Lite<br/>caption + first image (512 px)"]
     TR -->|"not an event"| REC["Record as analyzed"]
-    TR -->|"Flash-Lite out of<br/>today's quota"| TLR["Triage: Groq, then OpenRouter<br/>(the last resort, if their keys are set)"]
-    TLR -->|"not an event"| REC
-    TLR -->|"event"| EX
-    TLR -->|"none could answer"| PEND
+    TR -->|"Flash-Lite out of<br/>today's quota"| TLR{"Flash out<br/>of quota too?"}
+    TLR -->|"no: keep Flash for<br/>screened posts"| PEND
+    TLR -->|"yes: no triage, the<br/>extraction decides"| EX
     TR -->|"event, or triage failed<br/>(busy, timeout)"| EX["Extraction: Flash<br/>every image + caption + this account's known events"]
     EX -->|"Flash out of quota"| PROV["Extraction: Flash-Lite<br/>marked provisional"]
     EX -->|"rejected by Gemini (4xx),<br/>or its answer blocked"| REJ["Record as rejected<br/>never retried"]
@@ -511,7 +510,7 @@ flowchart TD
     EX -->|"no model could answer"| PEND
     EX --> ST["Store (6.3)"]
     PROV --> ST
-    PROV -->|"Flash-Lite out of quota too"| LAST["Extraction: Groq, then OpenRouter<br/>marked provisional (if their keys are set)"]
+    PROV -->|"Flash-Lite out of quota too<br/>(and Flash was out, not busy)"| LAST["Extraction: Groq, then OpenRouter<br/>marked provisional (if their keys are set)"]
     LAST --> ST
     LAST -->|"none could answer"| PEND
     UP --> ST
@@ -523,10 +522,15 @@ its caption or Gemini's reason says they're cancelled or postponed ("CANCELADO",
 `pipeline/base.py`, `_says_cancelled`), its events leave the site even when other posts announce them too, if they're its
 own account's (the account that announced them first); another account's event stays, with low confidence and
 a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for review (section 11.1)
-(`Sweep._take_down_cancelled`). When Flash-Lite is out of today's quota, the triage goes to the last resort
-(section 7.3), and if it can't answer either (or has no keys), new posts wait for the next run instead of going
-straight to Flash: skipping the filter would spend Flash's 20 requests on posts that mostly aren't events. A triage that fails for another reason (busy, a timeout) lets
-the extraction decide.
+(`Sweep._take_down_cancelled`). When Flash-Lite is out of today's quota and Flash isn't, new posts wait for the
+next run instead of going straight to Flash: skipping the filter would spend Flash's 20 requests on posts that
+mostly aren't events. When Flash is out too, the extraction would be the last resort's anyway (section 7.3), so
+the post goes straight to it, without a triage: the extraction decides alone whether it's an event. The triage
+never goes to the last resort: Groq's 8,000 tokens a minute don't fit a triage (about 4,100 tokens) and an
+extraction (about 7,250) of the same post, and a weaker model's "no" would lose the event for good. The last
+resort's "no" is provisional like all its readings, and its upgrade goes through Flash-Lite's triage first
+(`Sweep._upgrade_post`): Flash is spent only if the triage says it's an event. A triage that fails for another
+reason (busy, a timeout) lets the extraction decide.
 
 Triage exists to save the scarce Flash quota (20 a day per model). Most posts aren't events, and a
 512-pixel image plus the caption are enough to tell. When unsure, the triage prompt answers "yes": a
@@ -535,7 +539,10 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 ### 6.3 Storing what Gemini found
 
 1. **Normalize** (`normalize.py`):
-   - styles mapped to the fixed list, so "mambo" and "on2" become "salsa en línea";
+   - styles mapped to the fixed list, so "mambo" and "on2" become "salsa en línea"; salsa's other names stay in
+     its family (the owner, 5 October 2026): pachanga, boogaloo (bugalú), salsa brava, salsa dura and salsa choke
+     are "salsa", "cubano" and "estilo cubano" are "salsa cubana" ("son cubano" stays "son"; guaguancó is "afro",
+     like rumba cubana), and the prompt says so too;
    - dates and times checked. An `end_date` (the last day of an event over several consecutive days) must
      come after `date` and make at most `MAX_EVENT_DAYS` (7) days in all; otherwise it's dropped and the
      event keeps its first day, with a doubt when the range was reversed ("fecha final anterior a la
@@ -564,13 +571,24 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
      every post Flash had read (20 posts, 35 events), Flash-Lite matched Flash on dates (26/26) but got styles
      wrong or missing on 7 of 26 events and mixed up times and prices in a post with three workshops. So:
      - an event that comes back with no styles gets the ones its title or caption names
-       (`normalize.styles_in_text`: the style list and its synonyms, longest first; not "son" or "la", plain
-       words), else its account's usual ones (`_usual_styles`: styles on at least 80% of its 3+ stored events).
-       Styles the model gave are never changed. The dance filters would miss the event otherwise;
+       (`normalize.styles_in_text`: the style list and its synonyms, longest first), else its account's usual
+       ones (`_usual_styles`: styles a model read on at least 80% of its 3+ stored events). The text leaves out
+       synonyms captions use as plain words or names, which gave wrong styles: "son", "salsa la", "otro",
+       "sensual", "rueda", "rumba" ("la mejor rumba salsera"), "street" and "urbano" ("street food", "transporte
+       urbano": only "baile urbano", "danza urbana", hip hop, reggaeton count), "casino" ("Casino Royal"), "mambo"
+       ("Mambo Cafe"), "calena" ("la caleña"), "swing" ("Swing Latino"), "timba", "cubano" and "pachanga"; the
+       model's own styles keep every synonym. One of several events in a post looks at its own title first, and
+       takes the caption's styles only when they're all one family (salsa and its variants, say): a caption
+       naming salsa and bachata doesn't say which event is which. The dance filters would miss the event
+       otherwise. Styles the model gave are never changed; guessed ones carry the doubt "estilos deducidos del
+       texto o de la cuenta, no leídos en el post" (`normalize.GUESSED_STYLES_DOUBT`), so a later post whose
+       reading gives styles replaces them when merged (`merging.merge_into`), and they never make an account's
+       usual style;
      - a post with several events read only by a lighter model (a provisional reading, or Flash-Lite in lite-only
        mode) gets the doubt "varios eventos en una publicación, leída por un modelo ligero: confirma horas y
        precios" (`normalize.MULTI_DOUBT`) on each, which lists them for review (`health.review_reasons`, section
-       11.1). Flash re-reading the post rebuilds its events without it.
+       11.1). Flash re-reading the post rebuilds its events without it, and a Flash reading merged into one of
+       them (a reminder, or the post re-read while a reminder keeps the event) takes it off (`Sweep._add_event`).
 
    The site relies on these formats.
 2. **Keep only publishable events** (`Sweep._discard_reasons`): one-time (`is_recurring` false; a workshop
@@ -712,16 +730,16 @@ flowchart TD
 
 | Step | In order | Provisional? |
 |---|---|---|
-| Triage | Flash-Lite → Groq → OpenRouter | (a yes/no) |
+| Triage | Flash-Lite only: when it's out, the post waits, or goes straight to the extraction when Flash is out too (section 6.2) | (a yes/no) |
 | Extraction | Flash (two models) → Flash-Lite → Groq → OpenRouter | Flash-Lite's and the last resort's, always |
 | Lite-only mode | Flash-Lite → Groq → OpenRouter | The last resort's (re-read with Flash-Lite) |
-| Upgrade of a provisional post | Flash only | No |
+| Upgrade of a provisional post | Flash only (a last-resort "no event": Flash-Lite's triage first) | No |
 | Story (admin tools) | Flash → Flash-Lite | Never the last resort: a story isn't read again, so its reading would stay |
 
-- **Only when Gemini is out:** the last resort is asked only when the Gemini models for the step raised
-  `QuotaExhaustedError` (all out of today's quota or not available to the key). A busy Gemini (5xx, timeouts)
-  or a rejected request keeps today's behavior: retried next run, or recorded as rejected. A triage that falls
-  through to the last resort and still gets no answer leaves the post waiting, as when Flash-Lite is out today.
+- **Only when Gemini is out:** the last resort is asked only when both Flash and Flash-Lite raised
+  `QuotaExhaustedError` (all out of today's quota or not available to the key; `EventExtractor._extract`). A busy
+  Flash (5xx, timeouts) or one that refused the post (a safety block) with Flash-Lite out leaves the post waiting
+  for Gemini, as before the last resort existed.
 - **Off without keys:** each provider needs its key (`GROQ_API_KEY`, `OPENROUTER_API_KEY`); without both, nothing
   changes. Lite-only mode keeps them as the last resort after Flash-Lite.
 - **Always provisional:** an extraction from the last resort is stored like Flash-Lite's provisional ones, and
@@ -730,11 +748,17 @@ flowchart TD
 - **Fail fast:** one request per model and post, a 60-second timeout (`EXTERNAL_TIMEOUT_SECONDS`), no retries and no
   waiting on a busy model. On OpenRouter one request names the models of the same output mode (`models`), and
   OpenRouter itself tries the next one when a model is rate-limited or down; the answer says which one replied.
+- **Time:** a post spends at most 3 minutes on the last resort (`EXTERNAL_MAX_SECONDS_PER_POST`), and a request
+  starts only if its wait and a whole timeout fit before that and before the run's time budget ends (section 14):
+  Groq's wait and request (60 + 60 s), then OpenRouter only if a request still fits. Otherwise the post waits.
 - **Groq's tokens:** each request's tokens are estimated before it's sent (its text / 4, 2,048 per image, 800 for
-  the answer; the real count from the answer replaces it) and kept in a one-minute window. When the window is full
-  for longer than 15 seconds (`EXTERNAL_MAX_WAIT_SECONDS`), Groq is skipped for that post. It gets the first images,
-  at most 3 and as many as fit in a minute's tokens: with the extraction prompt and its schema, usually one. A 413
-  or a 429 about tokens skips it too, without counting as a failure.
+  the answer; the real count from the answer replaces it) and kept in a one-minute window. An extraction is about
+  7,250 tokens (4,200 of prompt and schema, one image, the answer) of Groq's 8,000 a minute, so each one waits for
+  the one before to leave the minute: up to 60 seconds (`EXTERNAL_MAX_WAIT_SECONDS`), about one extraction a
+  minute. It gets the first images, at most 3 and as many as fit in a minute's tokens: with the extraction prompt
+  and its schema, usually one. A 413 or a 429 about tokens skips it for the post, without counting as a failure,
+  and with less than a request (`EXTERNAL_MIN_REQUEST_TOKENS`, 5,000) of its daily tokens left Groq isn't
+  available, so no post downloads its images just to be skipped.
 - **Per run:** a model that fails twice (busy, a timeout, invalid JSON: `EXTERNAL_FAILURES_TO_QUARANTINE`) is set
   aside for the rest of the run, with one warning in the log; a model answering 404 (gone, or no longer free) at
   once. A provider answering 401, 402 or 403 is turned off for the run. What each model did (answered, busy,
@@ -745,6 +769,8 @@ flowchart TD
 - **Re-checking the models:** `admin bakeoff` compares Flash-Lite and every model of the last resort with what Flash
   read on recent posts, and `admin bakeoff --discover` lists OpenRouter's free models with image input now
   ([`docs/ADMIN.md`](ADMIN.md)). The list in `config.EXTERNAL_PROVIDERS` stays explicit: nothing switches by itself.
+  The bake-off waits for Groq's tokens between posts like the sweep (about a post a minute), and a request its
+  limits kept from being sent isn't cached as an error: the next run asks it again.
   On 5 October 2026, on 15 posts, OpenRouter's free qwen read about as well as Flash-Lite but failed or was
   rate-limited upstream often, and gemma never answered: why OpenRouter comes last. The same day OpenRouter
   answered 404 for `qwen/qwen3.8-27b:free` ("unavailable for free"): it went paid-only, so it left the list
@@ -1017,7 +1043,7 @@ They run after every sweep. No AI, no quota.
 | The last resort was used | Notice | Gemini ran out: requests per provider, what each model did (answered, busy, invalid, skipped…) and the ones set aside after failing twice |
 | A provider of the last resort turned off | Notice, then **warning** after 3 runs in a row | Groq or OpenRouter answered 401, 402 or 403: check its key secret and the account, or delete the secret to stop using it |
 | Account inactive | Notice | No post in 45 days (or none at all) |
-| Events to review | Listed | Upcoming events (until their last day) with medium or low confidence, or whose doubts mention the date (`fecha`, `día`; a refused `same_as` link too), Bogotá (a city Gemini couldn't confirm) or a cancellation (`cancelado`, `aplazado`: another account's post said so), and congresses or festivals with a single day ("un solo día: ¿faltan fechas?": their other days may be missing) |
+| Events to review | Listed | Upcoming events (until their last day) with medium or low confidence, or whose doubts mention the date (`fecha`, `día`; a refused `same_as` link too), Bogotá (a city Gemini couldn't confirm) or a cancellation (`cancelado`, `aplazado`: another account's post said so), or several events in one post read only by a lighter model ("varios eventos en una publicación…": times and prices may be mixed up), and congresses or festivals with a single day ("un solo día: ¿faltan fechas?": their other days may be missing) |
 
 ### 11.2 Where it shows
 
@@ -1243,7 +1269,7 @@ section 5, "Whose turn it is"):
 |---|---|---|---|---|
 | Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | About 53 (half the accounts, plus up to 5 late ones) | About 100 | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
 | Gemini Flash-Lite | 500 / day (498 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
-| Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Gemini is out: about 7,000 tokens per extraction, 3,000 per triage | 0 on a normal day | About 25 extractions a day; the minute's tokens allow one extraction a minute or so |
+| Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
 | Gemini Flash (two models) | 20 / day each (36 usable) | 1 per post that announces events, plus upgrades of provisional posts | Usually all of it while there's a backlog of provisional posts (98 on 4 October 2026), under 20 once it's gone | Tight while new accounts load (provisional fallback, upgraded on later runs); fine afterwards |
 | GitHub Actions minutes (private repository) | 2,000 / month | 3–5 min normally; about 15 on nights new accounts load (up to ~35) | ~10 normally | ~300 a month normally; heavy loading weeks stay under the limit. Admin requests add 1–2 min each, plus the wait for a running sweep. Set an Actions spending limit of $0 so runs stop instead of being charged |
@@ -1252,7 +1278,11 @@ section 5, "Whose turn it is"):
 | healthchecks.io | Free plan | 1 ping | 2 | |
 
 **The time budget:** a run stops starting Gemini work after 30 minutes (`MAX_RUN_MINUTES`). The step
-itself stops at 35, and the job at 60, leaving room for the state, the PR and the merge.
+itself stops at 35, and the job at 60, leaving room for the state, the PR and the merge. No request starts after
+the budget, not even within a post already started (`EventExtractor`'s deadline, `gemini.OutOfTimeError`: the
+post waits for the next run), so a run ends at most one Gemini request and one pause later (a 120-second timeout
+and a 60-second wait: about 3 minutes). The last resort never starts a request, or a wait for Groq's tokens, that
+wouldn't end before the budget, and spends at most 3 minutes on a post.
 
 **Adding accounts:** each new account costs about 1 Instagram call a day, plus a one-time load of up to
 30 older posts. Regular accounts always go first, so new ones never crowd out today's posts. Artists post
@@ -1342,7 +1372,7 @@ flowchart LR
 | `gemini.py` | `ModelPool`: model order, pacing, daily budgets shared across runs, retries, error classes |
 | `prompts.py` | The triage and extraction prompts, and the story prompt |
 | `stories.py` | Stories from screenshots: their id and perceptual hash, when a screenshot was taken, dates (and a workshop series' sessions) worked out from what's printed, the flyer's crop, the account's name |
-| `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback and the last resort |
+| `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback and the last resort (extraction only), and no request after the run's time budget |
 | `external.py` | `ExternalTier`: the last resort on OpenAI-compatible chat APIs (Groq, OpenRouter): order, budgets, Groq's token pacing, per-run quarantine, JSON checked against the schemas |
 | `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; OpenRouter's free vision models |
 | `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions; prices in another currency never shown as free |

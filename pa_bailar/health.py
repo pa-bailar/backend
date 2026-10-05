@@ -25,6 +25,7 @@ from pydantic import BaseModel, TypeAdapter
 
 from . import config, storage
 from .models import StoredEvent
+from .normalize import MULTI_DOUBT
 from .pipeline import RunStats
 from .text import event_dates_label, fold
 
@@ -38,7 +39,7 @@ DATE_DOUBT = re.compile(r"\b(fecha|dias?)\b")  # doubts about the date (folded t
 # Doubts about whether it takes place at all, or in Bogotá (folded text): as costly (normalize.CITY_DOUBT).
 PLACE_DOUBT = re.compile(r"\b(bogota|cancelad[oa]s?|aplazad[oa]s?)\b")
 # Several events in one post read by a lighter model (normalize.MULTI_DOUBT): times and prices may be mixed up.
-MULTI_DOUBT_RULE = re.compile(r"\bvarios eventos en una publicacion\b")
+MULTI_DOUBT_RULE = re.compile(re.escape(fold(MULTI_DOUBT)))
 # "@name" in an issue mentions (and notifies) the GitHub user of that name. Instagram handles, and titles or
 # doubts quoting them, get an invisible word joiner after the "@": they read the same but ping no one.
 MENTION = re.compile(r"@(?=[\w-])")
@@ -151,7 +152,7 @@ def _repeated(
 
 def _model_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
     """What the run says about the AI models: Gemini models the key can't use, Flash out of quota (provisional
-    reads), and OpenRouter, the last resort: used (Gemini ran out) or refused."""
+    reads), and the last resort (Groq, OpenRouter): used (Gemini ran out) or refused."""
     findings: list[Finding] = []
     unavailable = ", ".join(run.models_unavailable)
     findings += _repeated(
@@ -172,7 +173,7 @@ def _model_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
                 "notice",
                 "provisional",
                 f"Flash's daily quota ran out: {run.provisional} posts were extracted with the light model "
-                "or OpenRouter (upgraded on later runs).",
+                "or the last resort, Groq and OpenRouter (upgraded on later runs).",
             )
         )
     return findings
@@ -211,7 +212,8 @@ def _external_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
                 "Gemini's quotas ran out: the last resort took "
                 + ", ".join(f"{count} {name} requests" for name, count in requests.items())
                 + (f" ({outcomes})" if outcomes else "")
-                + f".{aside} Its reads are provisional (read again with Gemini later); `admin why` shows the model.",
+                + f".{aside} It only extracts, and its reads are provisional (read again with Gemini later: Flash, "
+                "or Flash-Lite's triage first for a post it found no event in); `admin why` shows the model.",
             )
         )
     return findings
@@ -353,7 +355,8 @@ def report_markdown(findings: list[Finding], review: list[StoredEvent], run_url:
         lines += [
             "### Events to review",
             "",
-            "Gemini wasn't confident about them or doubted the date, or a congress or festival has a single day:",
+            "Gemini wasn't confident about them or doubted the date or the city, a lighter model read several events "
+            "in one post, or a congress or festival has a single day:",
             "",
         ]
         for event in review:

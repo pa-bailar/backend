@@ -9,6 +9,7 @@ from datetime import date
 
 from . import config
 from .models import EventDetails, EventMedia, ExtractedEvent, StoredEvent, series_problems
+from .normalize import GUESSED_STYLES_DOUBT
 from .text import fold
 
 _DETAIL_FIELDS = list(EventDetails.model_fields)
@@ -265,7 +266,8 @@ def merge_into(stored: StoredEvent, candidate: EventDetails, media: EventMedia) 
     days and times as they are.
 
     The first and last day go together: the newest post's days replace both (one day, as posted, drops the
-    old last day), and an older post only gives a missing last day to an event that starts the same day."""
+    old last day), and an older post only gives a missing last day to an event that starts the same day. Styles the
+    safeguards guessed are replaced by the ones a model read (_styles_and_doubts)."""
     others = [m for m in stored.media if m.post_id != media.post_id]
     is_newest = all(media.published >= other.published for other in others)
     one_of_its_days = _multi_day(stored) and not _multi_day(candidate) and _overlap(stored, candidate)
@@ -288,11 +290,26 @@ def merge_into(stored: StoredEvent, candidate: EventDetails, media: EventMedia) 
             }
         elif not stored.end_date and candidate.end_date and not candidate.sessions and candidate.date == stored.date:
             updates["end_date"] = candidate.end_date
+    updates |= _styles_and_doubts(stored, candidate, updates)
     updates["media"] = ordered_media([*others, media])
     merged = stored.model_copy(update=updates)
     if not _valid_range(merged):  # a new date the old last day doesn't fit (rescheduled): one day, as posted
         merged.end_date, merged.sessions = None, None
     return merged
+
+
+def _styles_and_doubts(stored: EventDetails, candidate: EventDetails, updates: dict[str, object]) -> dict[str, object]:
+    """Styles the safeguards guessed (GUESSED_STYLES_DOUBT) give way to styles a model read in the new post; the
+    doubt stays only while the event's styles are guessed ones."""
+    stored_guessed = GUESSED_STYLES_DOUBT in stored.doubts
+    candidate_guessed = GUESSED_STYLES_DOUBT in candidate.doubts
+    styles: dict[str, object] = {}
+    if stored_guessed and candidate.styles and not candidate_guessed:
+        styles["styles"] = candidate.styles
+    guessed = candidate_guessed if "styles" in updates or styles else stored_guessed
+    current = updates.get("doubts", stored.doubts)
+    doubts = [doubt for doubt in current if doubt != GUESSED_STYLES_DOUBT] if isinstance(current, list) else []
+    return styles | {"doubts": [*doubts, GUESSED_STYLES_DOUBT] if guessed else doubts}
 
 
 def _completes_series(stored: EventDetails, candidate: EventDetails) -> bool:
