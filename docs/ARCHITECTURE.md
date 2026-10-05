@@ -1139,14 +1139,14 @@ flowchart LR
 | Module | Responsibility |
 |---|---|
 | `config.py` | Paths, secrets from the environment, quotas, windows, retention, sweep times, Bogotá's time zone |
-| `models.py` | Pydantic models: what Gemini returns (`Triage`, `PostAnalysis`, `ExtractedEvent`, `StoryAnalysis`, `AccountClassification`) and what is stored (`StoredEvent`, `EventMedia`, `ProcessedPost`, `AccountState`). The source of truth for the data contract |
+| `models.py` | Pydantic models: what Gemini returns (`Triage`, `PostAnalysis`, `ExtractedEvent`, `StoryAnalysis`, `AccountClassification`) and what is stored (`StoredEvent`, `EventMedia`, `Session`, `ProcessedPost`, `AccountState`), with a workshop series' rules (`series_problems`). The source of truth for the data contract |
 | `instagram.py` | Graph API client: token check, posts, profiles, images, error classification, app usage |
 | `public_post.py` | One post from its public embed page, for the admin tools when the API can't give it (section 3.7) |
 | `gemini.py` | `ModelPool`: model order, pacing, daily budgets shared across runs, retries, error classes |
 | `prompts.py` | The triage and extraction prompts, and the story prompt |
-| `stories.py` | Stories from screenshots: their id and perceptual hash, when a screenshot was taken, dates worked out from what's printed, the flyer's crop, the account's name |
+| `stories.py` | Stories from screenshots: their id and perceptual hash, when a screenshot was taken, dates (and a workshop series' sessions) worked out from what's printed, the flyer's crop, the account's name |
 | `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback |
-| `normalize.py` | Cleans Gemini's output into the formats the site relies on |
+| `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions |
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |
 | `ids.py` | Readable, stable event ids (the event's URL) |
 | `pipeline.py` | `Sweep`: accounts, posts, storing, retention, run statistics |
@@ -1159,5 +1159,5 @@ flowchart LR
 | `inbox.py` | The admin inbox: what an issue or comment asks for |
 | `links.py` | Instagram post links (code, account) and links to the site's events |
 | `discovery.py` | Parsing the Instagram export, dance hints, the classification prompt, the report, quiet windows around sweeps |
-| `text.py`, `logs.py` | Accent-insensitive comparison, dates and times for the admin answers ("13–15 nov 2026", "9:00 p. m."), logging setup |
+| `text.py`, `logs.py` | Accent-insensitive comparison, dates and times for the admin answers ("13–15 nov 2026", "4 sesiones: 8, 22, 29 nov y 6 dic", "9:00 p. m."), Spanish weekdays, logging setup |
 | `commands/*.py` | The commands (sweep, discover, refresh-token, admin): arguments, wiring, exit codes, GitHub outputs |

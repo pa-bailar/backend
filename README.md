@@ -1,7 +1,7 @@
 # Pa' Bailar · backend (private)
 
-Collects one-time dance events (socials, workshops, festivals, congresses, competitions, shows and
-concerts for dancing) from the Instagram accounts of Bogotá's
+Collects one-time dance events (socials, workshops and dated workshop series, festivals, congresses,
+competitions, shows and concerts for dancing) from the Instagram accounts of Bogotá's
 dance academies, organizers and artists (teachers, dancers, orchestras, DJs) (Instagram → Gemini) and
 publishes them to the site,
 [pa-bailar/pa-bailar.github.io](https://github.com/pa-bailar/pa-bailar.github.io) (public), with a
