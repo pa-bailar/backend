@@ -15,6 +15,11 @@ Scene numbers below are teaser v2's (`projects/teaser-v2`), as examples.
   so nothing enters it on any frame, image or word (`STICKER_BAND`; `review.py band` allows nothing above y 252,
   except the spans a video.json lists for full-frame transitions). Mind the camera: a 3% push-in at depth 0.6 lifts
   something at y 276 to about y 256, so page heads start at y 276 or lower.
+- **Reel safe zones:** a Reel's UI covers other margins than a Story's: 108 px at the top (the header), 320 at the
+  bottom (the caption, the audio line), 60 on the left and 120 on the right (the like, comment and share column)
+  (`REEL_SAFE`). Words stay inside both: x 80–960, y 250–1580 on a Reel (`TEXT_ZONE.reel`). `review.py reel` warns
+  about content in those margins (images may run into them). The teaser's end card (v2.4) reaches x 1000 with the
+  wordmark and the stripes: inside the right column on the Reel.
 - **Title band:** scene titles sit at y 280–520, the same place in every scene, so the eye never hunts.
 
 ## Colors (v2: "Fania de día", the site's light theme, plus the logo's tomato for the cover)

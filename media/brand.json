@@ -13,6 +13,13 @@
     "bottom": 250,
     "margin": 2
   },
+  "reelSafe": {
+    "$comment": "Reels: the margins Instagram's Reel UI covers at 1080x1920 (top: the header; bottom: the caption, the audio line and the buttons' base; right: the like, comment and share column; left: a little). review.py reel warns when content enters them. Text keeps to both these and safe: x 80-960, y 250-1580.",
+    "top": 108,
+    "bottom": 320,
+    "left": 60,
+    "right": 120
+  },
   "titleBand": { "top": 280, "bottom": 520 },
   "margins": { "left": 80, "right": 80, "top": 250 },
   "beat": { "$comment": "The default tempo for a video's grid when its video.json has no music.bpm.", "bpm": 98 },

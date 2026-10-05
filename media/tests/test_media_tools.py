@@ -151,6 +151,32 @@ def test_band_runs_and_spans():
     assert common.BRAND["stickerBand"]["bottom"] + common.BRAND["stickerBand"]["margin"] == review.LIMIT
 
 
+def test_edge_strips_read_from_each_edge_inward():
+    # A 4×3 frame: values are 10·row + column.
+    frame = bytes(10 * r + c for r in range(3) for c in range(4))
+    assert review.edge_strip(frame, 4, 3, "top", 2) == (bytes([0, 1, 2, 3, 10, 11, 12, 13]), 4)
+    assert review.edge_strip(frame, 4, 3, "bottom", 1) == (bytes([20, 21, 22, 23]), 4)
+    assert review.edge_strip(frame, 4, 3, "left", 2) == (bytes([0, 10, 20, 1, 11, 21]), 3)
+    assert review.edge_strip(frame, 4, 3, "right", 1) == (bytes([3, 13, 23]), 3)
+
+
+def test_reel_margin_content_is_found_by_its_distance_from_the_edge():
+    paper = [[220] * 8 for _ in range(6)]
+    paper[2][7] = paper[3][7] = paper[4][7] = 30  # ink 0 px from the right edge, rows 2-4
+    frame = strip(paper)
+    right, width = review.edge_strip(frame, 8, 6, "right", 2)
+    assert review.content_top(right, width, min_px=2) == 0
+    left, width = review.edge_strip(frame, 8, 6, "left", 2)
+    assert review.content_top(left, width, min_px=2) is None
+
+
+def test_reel_deliverables_are_named_or_inferred():
+    renders = {"voice-only": "a", "with-music": "b", "reel": "c"}
+    assert review.reel_deliverables({"renders": renders}) == ["reel"]
+    assert review.reel_deliverables({"renders": renders, "reel_safe": {"deliverables": []}}) == []
+    assert review.REEL == {"top": 108, "bottom": 320, "left": 60, "right": 120}
+
+
 # ---------- mix ----------
 
 EBUR128 = """[Parsed_ebur128_0 @ 000] Summary:

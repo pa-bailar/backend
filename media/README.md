@@ -11,7 +11,8 @@ brand building blocks.
 ```
 media/
 ├── README.md, MOTION.md, DESIGN.md   this catalog, the motion rules, the design tokens for video
-├── brand.json        the canvas, safe zones, sticker band, default tempo, loudness targets (TS and Python read it)
+├── brand.json        the canvas, safe zones, sticker band, Reel safe zones, default tempo, loudness targets (TS and
+│                     Python read it)
 ├── tools/            the utilities (Python and Node), each takes a video's name
 ├── src/
 │   ├── kit.ts        the library in one import
@@ -121,6 +122,7 @@ in the media home unless they start with `projects/`.
 | `review.py compare <a> <b>` | .venv | side by side, labeled, for the owner (a draft against a full render works too) | `<a>-vs-<b>.mp4` |
 | `review.py diff <a> <b>` | .venv | PSNR per frame (∞ = identical): a refactor must not change a render | (prints) |
 | `review.py band <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | nothing but the background above y 252 (the sticker band + 2 px) on any frame; `--video` allows its `sticker_band.allow` spans; exit 1 when something enters | (prints) |
+| `review.py reel <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | the Reel's safe zones (108 top, 320 bottom, 60 left, 120 right): content in those margins is a warning per side, with the frames and how close to the edge it gets (images may run into them, words never); `--video` allows its `reel_safe.allow` spans | (prints) |
 | `clean.py [--yes]` | .venv | lists older versions, drafts, stills, sheets, comparisons and scratch folders in the home's `out/`, the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, the archive and anything git tracks stay | (the Recycle Bin) |
 | `npm run check` (in `media/`) | Node | `tsc`, every composition registers, one still per video | `out/check/` |
 | `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json` | (prints) |
@@ -139,6 +141,7 @@ CI's `media` job (in `.github/workflows/ci.yml`) runs `npm ci`, `tsc` and `npm t
              "bed": "cache/music/….wav", "bed_source": "which prompt and seed", "first_hit": 0.07 },
   "mix": { "fade": 0.3, "voice_only_lufs": -15, "with_music_lufs": -14, "bed_db": -8 },
   "sticker_band": { "deliverables": ["voice-only"], "allow": [[4.2, 4.3, "why: a full-frame transition"]] },
+  "reel_safe": { "deliverables": ["reel"], "allow": [] },   // optional: default, every render named "…reel…"
   "renders": { "voice-only": "<composition id>", "reel": "…" }   // file name → composition id
 }
 ```
@@ -147,13 +150,16 @@ CI's `media` job (in `.github/workflows/ci.yml`) runs `npm ci`, `tsc` and `npm t
 (`vertical(settings)`), so `mix.py` and the picture agree, and `gridOf(settings)` builds the beat grid from
 `music.bpm` (brand.json's 98 without one). `bed` is relative to the media home. `sticker_band` names the Story
 deliverables the band check applies to, and the spans (seconds) where a full-frame transition sweeps the background
-through it. Composition ids are `<video>-<deliverable>`, inside a `<Folder>` named after the video. Every composition
+through it. `reel_safe` names the Reel deliverables the Reel safe-zone check applies to (default: every render whose
+name contains "reel") and spans to skip. Composition ids are `<video>-<deliverable>`, inside a `<Folder>` named after the video. Every composition
 takes a `blur` prop (motion blur on or off; `render.py --draft` turns it off).
 
 ## The library (`src/kit.ts`)
 
 **`lib/tokens`**: from `brand.json`: `FPS` 30, `WIDTH`×`HEIGHT` 1080×1920, `SAFE` {top 250, bottom 1580, side 80},
-`STICKER_BAND` {top 0, bottom 250, margin 2}, `TITLE_BAND` {280, 520}, `DEFAULT_BPM` 98. Also `sec(s)`, colors `C`
+`STICKER_BAND` {top 0, bottom 250, margin 2}, `REEL_SAFE` {top 108, bottom 320, left 60, right 120} (px from each
+edge), `TEXT_ZONE.story` / `.reel` (where words may go: x 80–1000 / 80–960, y 250–1580), `TITLE_BAND` {280, 520},
+`DEFAULT_BPM` 98. Also `sec(s)`, colors `C`
 (light theme "Fania de día"), `STRIPES`, `FONT` (Shrikhand, Bodoni Moda, Instrument Sans, emoji), and type presets
 `TYPE.display(size, color?, shadow?)`, `TYPE.serif(size, color?)` (small optical size: hairlines survive H.264; never
 digits), `TYPE.sans(size, color?)` (anything with numbers).

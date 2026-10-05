@@ -40,6 +40,9 @@ the tools, the library's building blocks and the workflow, written so you don't 
   (`--strict` refuses). Say the date when you hand it over; re-capture or re-run `events.py` if it's close.
 - **Sticker band**: `review.py band` (part of `make.py`'s sheet stage and `render.py --review`) passes on every Story
   deliverable: nothing above y 252 except the full-frame transitions `video.json` lists, each with its reason.
+- **Reel safe zones**: `review.py reel` (part of `render.py --review` for Reel deliverables) lists content in the
+  margins the Reel's UI covers (108 top, 320 bottom, 60 left, 120 right). Images may run into them; check that no
+  word does (the sheet draws them in magenta).
 - **Loudness**: `mix.py` passed (true peak ≤ −1 dBTP, within 1 LU of −15 voice-only / −14 with music / −16 music
   only); `mix.py <video> --check` measures what's there.
 - **Version**: the render's name carries the `version` you'll report, and the previous one is there to compare.

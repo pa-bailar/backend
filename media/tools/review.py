@@ -13,6 +13,11 @@
       high it reached. Prints how close content comes. --video takes the allowed spans from video.json's
       "sticker_band"."allow" (full-frame transitions, where the background itself sweeps through the band).
       Any size works (a half-size draft too). Exit code 1 when something enters.
+  python media/tools/review.py reel <reel.mp4 | cover.png …> [--video <name>] [--allow 4.2-4.3]
+      The Reel's safe zones (brand.json "reelSafe": 108 px at the top, 320 at the bottom, 60 left, 120 right at
+      1080×1920, where Instagram's Reel UI sits): content in those margins is a WARNING (images may run into them,
+      words never do), listed per side with the frames and how close to the edge it gets. --video takes the spans
+      from video.json's "reel_safe"."allow". Exit code 0 either way.
 
 Standard library + ffmpeg: any Python runs it.
 """
@@ -31,7 +36,9 @@ from common import BRAND, at_seconds, ffmpeg, probe, tool, video
 
 FONT = "C\\:/Windows/Fonts/arial.ttf"
 HEIGHT = BRAND["canvas"]["height"]
+WIDTH = BRAND["canvas"]["width"]
 SAFE = (BRAND["safe"]["top"], BRAND["safe"]["bottom"])  # px at the canvas's height
+REEL = {side: BRAND["reelSafe"][side] for side in ("top", "bottom", "left", "right")}  # px from each edge
 BAND = BRAND["stickerBand"]
 LIMIT = BAND["bottom"] + BAND["margin"]  # nothing above this y (canvas px)
 LOOK = LIMIT + 60  # how far down the band check looks, to say how close content comes
@@ -42,18 +49,19 @@ def duration_of(path: Path) -> float:
     return float(probe(path)["format"]["duration"])
 
 
-def sheet(path: Path, at: list[float], out: Path) -> None:
+def sheet(path: Path, at: list[float], out: Path, reel: bool = False) -> None:
+    """`reel`: also draw the Reel's safe zones (brand.json "reelSafe") in magenta."""
     if not at:
         raise SystemExit("no times to take frames at: the video is shorter than --every, give --at")
     tmp = Path(tempfile.mkdtemp(prefix="sheet-"))
     try:
-        _sheet(path, at, out, tmp)
+        _sheet(path, at, out, tmp, reel)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print(out.as_posix())
 
 
-def _sheet(path: Path, at: list[float], out: Path, tmp: Path) -> None:
+def _sheet(path: Path, at: list[float], out: Path, tmp: Path, reel: bool) -> None:
     files = []
     for i, t in enumerate(at):
         f = tmp / f"{i:02d}.png"
@@ -64,6 +72,13 @@ def _sheet(path: Path, at: list[float], out: Path, tmp: Path) -> None:
         f"drawbox=y=ih*{SAFE[0] / HEIGHT:.4f}:w=iw:h=1:color=cyan@0.8:t=fill,"
         f"drawbox=y=ih*{SAFE[1] / HEIGHT:.4f}:w=iw:h=1:color=cyan@0.8:t=fill"
     )
+    if reel:
+        lines += (
+            f",drawbox=y=ih*{REEL['top'] / HEIGHT:.4f}:w=iw:h=1:color=magenta@0.8:t=fill"
+            f",drawbox=y=ih*{1 - REEL['bottom'] / HEIGHT:.4f}:w=iw:h=1:color=magenta@0.8:t=fill"
+            f",drawbox=x=iw*{REEL['left'] / WIDTH:.4f}:w=1:h=ih:color=magenta@0.8:t=fill"
+            f",drawbox=x=iw*{1 - REEL['right'] / WIDTH:.4f}:w=1:h=ih:color=magenta@0.8:t=fill"
+        )
     label = f"drawtext=fontfile='{FONT}':fontsize=22:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=6:x=8:y=8"
     graph = ";".join(f"[{i}]scale=360:-1,{lines},{label}:text='{t:.2f} s'[p{i}]" for i, t in enumerate(at))
     if len(at) > 1:  # hstack needs two inputs at least
@@ -200,10 +215,81 @@ def band(path: Path, allow: list[tuple[float, float]], fps: int) -> bool:
     return True
 
 
-def allowed_spans(name: str) -> list[tuple[float, float]]:
-    """video.json's "sticker_band"."allow": [[from, to, "why"], …] (seconds)."""
-    spans = video(name).settings.get("sticker_band", {}).get("allow", [])
+def allowed_spans(name: str, key: str = "sticker_band") -> list[tuple[float, float]]:
+    """video.json's "sticker_band"."allow" (or "reel_safe"."allow"): [[from, to, "why"], …] (seconds)."""
+    spans = video(name).settings.get(key, {}).get("allow", [])
     return [(float(s[0]), float(s[1])) for s in spans]
+
+
+# ---------- the Reel's safe zones ----------
+
+
+def edge_strip(frame: bytes, w: int, h: int, side: str, depth: int) -> tuple[bytes, int]:
+    """The `depth` rows (top, bottom) or columns (left, right) of a gray w×h frame nearest one edge, as rows ordered
+    from that edge inward (a column becomes a row), and the strip's width: content_top() then gives how close to the
+    edge content gets."""
+    if side == "top":
+        return frame[: depth * w], w
+    if side == "bottom":
+        return b"".join(frame[(h - 1 - r) * w : (h - r) * w] for r in range(depth)), w
+    if side == "left":
+        return b"".join(frame[c::w] for c in range(depth)), h
+    return b"".join(frame[w - 1 - c :: w] for c in range(depth)), h
+
+
+def reel_depths(path: Path) -> Iterator[dict[str, int | None]]:
+    """For each frame of a video or image: per side, how close to the edge content gets inside the Reel's margins
+    (canvas px from the edge), or None when that margin is all background. Read at half size or smaller (2 px steps)."""
+    stream = next(s for s in probe(path)["streams"] if s["codec_type"] == "video")
+    w, h = int(stream["width"]), int(stream["height"])
+    if h > HEIGHT // 2:
+        w, h = round(w * (HEIGHT // 2) / h / 2) * 2, HEIGHT // 2
+    scale = HEIGHT / h  # canvas px per analyzed px (the canvas is 9:16, as is every deliverable)
+    depth = {side: max(1, round(px / scale)) for side, px in REEL.items()}
+    min_px = max(2, round(3 * w / WIDTH))
+    cmd = [tool("ffmpeg"), "-v", "error", "-i", str(path), "-fps_mode", "passthrough"]
+    cmd += ["-vf", f"scale={w}:{h}:flags=area,format=gray", "-f", "rawvideo", "-"]
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE) as proc:
+        assert proc.stdout
+        while len(buf := proc.stdout.read(w * h)) == w * h:
+            out: dict[str, int | None] = {}
+            for side, d in depth.items():
+                strip, width = edge_strip(buf, w, h, side, d)
+                top = content_top(strip, width, min_px=min_px)
+                out[side] = None if top is None else round(top * scale)
+            yield out
+
+
+def reel_deliverables(settings: dict) -> list[str]:
+    """The Reel deliverables of a video: video.json's "reel_safe"."deliverables", else every render named "…reel…"."""
+    named = settings.get("reel_safe", {}).get("deliverables")
+    return list(named) if named is not None else [d for d in settings.get("renders", {}) if "reel" in d]
+
+
+def reel(path: Path, allow: list[tuple[float, float]], fps: int) -> list[str]:
+    """Check one Reel render or still against the Reel's safe zones; prints and returns the warnings (one per side)."""
+    frames = list(reel_depths(path))
+    allowed = lambda f: any(a <= f / fps <= b for a, b in allow)  # noqa: E731
+    warnings = []
+    for side in REEL:
+        hits = [(f, d[side]) for f, d in enumerate(frames) if d[side] is not None and not allowed(f)]
+        if not hits:
+            continue
+        spans = runs([(f, y) for f, y in hits if y is not None])
+        where = ", ".join(
+            (f"{a / fps:.2f}–{b / fps:.2f} s" if a != b else f"{a / fps:.2f} s") + f" (to {edge} px from the edge)"
+            for a, b, edge in spans[:8]
+        )
+        more = f" and {len(spans) - 8} more" if len(spans) > 8 else ""
+        warnings.append(f"{side} {REEL[side]} px: content in {len(hits)} of {len(frames)} frames: {where}{more}")
+    name = path.name
+    if warnings:
+        print(f"{name}: WARNING, content where the Reel's UI sits (fine for images, never for words):")
+        for w in warnings:
+            print(f"  {w}")
+    else:
+        print(f"{name}: Reel margins clear in {len(frames)} frames")
+    return warnings
 
 
 def main() -> None:
@@ -230,12 +316,22 @@ def main() -> None:
     b.add_argument("--video")
     b.add_argument("--allow", default="")
     b.add_argument("--fps", type=int, default=BRAND["canvas"]["fps"])
+    r = sub.add_parser("reel")
+    r.add_argument("files", type=Path, nargs="+")
+    r.add_argument("--video")
+    r.add_argument("--allow", default="")
+    r.add_argument("--fps", type=int, default=BRAND["canvas"]["fps"])
     args = parser.parse_args()
 
     if args.cmd == "band":
         allow = parse_spans(args.allow) + (allowed_spans(args.video) if args.video else [])
         ok = [band(f, allow, args.fps) for f in args.files]
         raise SystemExit(0 if all(ok) else 1)
+    if args.cmd == "reel":
+        allow = parse_spans(args.allow) + (allowed_spans(args.video, "reel_safe") if args.video else [])
+        for f in args.files:
+            reel(f, allow, args.fps)
+        return
     if args.cmd == "sheet":
         if args.at:
             timing = json.loads((video(args.timing).data / "timing.json").read_text("utf-8")) if args.timing else None

@@ -8,8 +8,9 @@
   .venv/Scripts/python media/tools/render.py <video> --frames 90,8.5s,c4:link [deliverable]
       stills (tools/stills.mjs: frames, seconds, a line's or a word's start) → out/<video>/frames/
   --review    after each render: the keyframe sheet (…-sheet.png), the sticker-band check for the Story
-              deliverables (video.json "sticker_band"), and a side-by-side with the previous version
-              (…-vs-v<previous>.mp4, from out/ or the archive). Fails when something enters the band.
+              deliverables (video.json "sticker_band"), the Reel safe-zone check for the Reel ones (warnings:
+              tools/review.py reel), and a side-by-side with the previous version (…-vs-v<previous>.mp4, from out/ or
+              the archive). Fails when something enters the band.
   --strict    refuse (instead of warning) when the material is past its shelf life
 
 "version" in video.json names every render: bump it for each cut the owner sees, so the old one stays to compare.
@@ -123,11 +124,15 @@ def review(v: Video, deliverable: str, dest: Path) -> bool:
     import review as rv
 
     total = rv.duration_of(dest)
-    rv.sheet(dest, [round(t * 2 + 1, 2) for t in range(int(total / 2))], dest.with_name(f"{dest.stem}-sheet.png"))
+    is_reel = deliverable in rv.reel_deliverables(v.settings)
+    at = [round(t * 2 + 1, 2) for t in range(int(total / 2))]
+    rv.sheet(dest, at, dest.with_name(f"{dest.stem}-sheet.png"), reel=is_reel)
     ok = True
     band = v.settings.get("sticker_band", {})
     if deliverable in band.get("deliverables", []):
         ok = rv.band(dest, rv.allowed_spans(v.name), v.fps)
+    if is_reel:
+        rv.reel(dest, rv.allowed_spans(v.name, "reel_safe"), v.fps)  # warnings only: images may run into the margins
     older = [(ver, path) for ver, path in v.versions(deliverable) if ver < version_tuple(v.version)]
     if older:
         ver, path = older[-1]
