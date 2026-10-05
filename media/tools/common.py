@@ -7,6 +7,7 @@ venv, the ACE-Step venv).
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -123,6 +124,50 @@ class Video:
     @property
     def duration(self) -> float:
         return float(self.settings["duration"])
+
+    @property
+    def version(self) -> str:
+        """video.json's "version" ("2.4"): part of every render's name. Bump it for each cut the owner sees."""
+        text = str(self.settings.get("version", ""))
+        if not re.fullmatch(r"\d+(\.\d+)*", text):
+            raise SystemExit(f'video.json of {self.name} needs a "version" like "1" or "2.4" (got {text!r})')
+        return text
+
+    @property
+    def archive(self) -> Path:
+        """Posted versions, kept whole: archive/<video>/v<version>/ (renders, and public/ as it was)."""
+        return HOME / "archive" / self.name
+
+    def render(self, deliverable: str, draft: bool = False) -> Path:
+        """out/<video>/<video>-v<version>-<deliverable>[-draft].mp4"""
+        return self.out / render_name(self.name, self.version, deliverable, draft)
+
+    def versions(self, deliverable: str) -> list[tuple[tuple[int, ...], Path]]:
+        """Every full render of a deliverable (out/ and the archive), oldest version first."""
+        found: dict[tuple[int, ...], Path] = {}
+        for folder in (self.archive, self.out):
+            for path in sorted(folder.rglob("*.mp4")) if folder.exists() else []:
+                parsed = parse_render_name(self.name, path.name)
+                if parsed and parsed[1] == deliverable:
+                    found.setdefault(parsed[0], path)
+        return sorted(found.items())
+
+
+def version_tuple(text: str) -> tuple[int, ...]:
+    return tuple(int(p) for p in text.split("."))
+
+
+def render_name(name: str, version: str, deliverable: str, draft: bool = False) -> str:
+    return f"{name}-v{version}-{deliverable}{'-draft' if draft else ''}.mp4"
+
+
+def parse_render_name(name: str, filename: str) -> tuple[tuple[int, ...], str] | None:
+    """(version, deliverable) of a full render named by render_name() for video `name`; None for anything else
+    (drafts included)."""
+    m = re.fullmatch(rf"{re.escape(name)}-v(\d+(?:\.\d+)*)-([\w-]+)\.mp4", filename)
+    if not m or m.group(2).endswith("-draft"):
+        return None
+    return version_tuple(m.group(1)), m.group(2)
 
 
 def shown(path: Path) -> str:

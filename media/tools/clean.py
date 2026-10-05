@@ -19,7 +19,7 @@ import re
 import subprocess
 from pathlib import Path
 
-from common import MEDIA
+from common import MEDIA, parse_render_name
 
 ARCHIVE = MEDIA.parent.parent / "pa-bailar-teaser"
 SCRATCH_DIRS = {"frames", "review", "rt", "auditions", "music", "draft", "inspect", "probe", "keyframes"}
@@ -40,16 +40,23 @@ def size(path: Path) -> int:
     return sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
 
 
-def old_versions(folder: Path) -> list[Path]:
-    """`<name>-v<version>-<deliverable>.mp4` files that aren't the latest version of their deliverable."""
+def old_versions(folder: Path, name: str | None = None) -> list[Path]:
+    """`<name>-v<version>-<deliverable>.mp4` files that aren't the latest version of their deliverable. With `name` (a
+    video's out/ folder) the name is known, so "teaser-v2-v2.4-reel.mp4" parses right; without it, any name."""
     latest: dict[tuple[str, str], tuple[tuple[int, ...], Path]] = {}
     found: list[tuple[tuple[str, str], tuple[int, ...], Path]] = []
     for f in folder.glob("*.mp4"):
-        m = VERSIONED.match(f.name)
-        if not m:
-            continue
-        key = (m["name"], m["deliverable"])
-        version = tuple(int(p) for p in m["version"].split("."))
+        if name is not None:
+            parsed = parse_render_name(name, f.name)
+            if not parsed:
+                continue
+            key, version = (name, parsed[1]), parsed[0]
+        else:
+            m = VERSIONED.match(f.name)
+            if not m:
+                continue
+            key = (m["name"], m["deliverable"])
+            version = tuple(int(p) for p in m["version"].split("."))
         found.append((key, version, f))
         if key not in latest or version > latest[key][0]:
             latest[key] = (version, f)
@@ -84,8 +91,9 @@ def candidates() -> list[Path]:
                 picks.append(item)
             elif item.is_file() and item.suffix in {".log", ".png", ".mp4"}:
                 picks.append(item)  # loose checks and stills at out/'s top level
-            elif item.is_dir():  # a video's folder: its renders stay, the rest goes
+            elif item.is_dir():  # a video's folder: its latest renders stay; older versions and the rest go
                 picks += [sub for sub in item.iterdir() if working_file(sub)]
+                picks += old_versions(item, item.name)
     archive_out = ARCHIVE / "out"
     if archive_out.exists():
         keep = tracked(ARCHIVE)
