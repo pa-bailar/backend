@@ -240,8 +240,10 @@ start). **`lib/fonts`**: loads the faces from `media/fonts/` (`fontsReady` resol
 
 **`lib/captions`**: `captionPages(timing, settings)` turns a timing.json into pages with `@remotion/captions`'
 `createTikTokStyleCaptions()` (a page per phrase: breaks at punctuation, at each line's end, at pauses over 0.3 s,
-and before `maxChars`, without leaving a lone short word); `pageAt`, `currentToken`, `captionsOn`. Pure, tested in
-Node (`tests/captions.test.mjs`).
+and before `maxChars`, without leaving a lone short word); `captionAt` (the page and the card's opacity: it fades in
+and out over 3 frames per run of pages, keeping the first or last page on the card while it fades), `pageAt`,
+`currentToken`, `captionsOn`, `formatOf` (a composition id ending in "-reel" is a Reel). Pure, tested in Node
+(`tests/captions.test.mjs`).
 
 **`brand/`**:
 

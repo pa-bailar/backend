@@ -130,9 +130,53 @@ export function captionPages(timing: TimingJson, settings: CaptionsSettings): Ca
   });
 }
 
-/** The page on screen at `ms` (shown from `leadMs` before its first word), or null. */
-export function pageAt(pages: CaptionPage[], ms: number, leadMs = 70): CaptionPage | null {
-  return pages.find((p) => ms >= p.startMs - leadMs && ms < p.endMs) ?? null;
+/** A page shows from this long before its first word (and a word lights this long before it's said, ~2 frames, as
+ * the kit's kinetic type arrives). */
+export const CAPTION_LEAD_MS = 70;
+/** Pages closer than this share the card: no fade between them, the earlier one stays up through the gap. */
+export const CAPTION_RUN_GAP_MS = 250;
+
+/** The page on screen at `ms` (shown from `CAPTION_LEAD_MS` before its first word), or null. */
+export function pageAt(pages: CaptionPage[], ms: number): CaptionPage | null {
+  return pages.find((p) => ms >= p.startMs - CAPTION_LEAD_MS && ms < p.endMs) ?? null;
+}
+
+export type CaptionRun = { startMs: number; endMs: number; pages: CaptionPage[] };
+
+/** Pages grouped into runs that share one card (gaps under `CAPTION_RUN_GAP_MS`). */
+export function captionRuns(pages: CaptionPage[]): CaptionRun[] {
+  const runs: CaptionRun[] = [];
+  for (const p of pages) {
+    const last = runs[runs.length - 1];
+    if (last && p.startMs - last.endMs < CAPTION_RUN_GAP_MS) {
+      last.endMs = p.endMs;
+      last.pages.push(p);
+    } else runs.push({ startMs: p.startMs, endMs: p.endMs, pages: [p] });
+  }
+  return runs;
+}
+
+const unit = (x: number) => Math.min(1, Math.max(0, x));
+
+/**
+ * What the card shows at `ms`: a page and the card's opacity, or null. The card fades in over `fadeMs`, ending when the
+ * run's first page shows (`CAPTION_LEAD_MS` before its first word), and out over `fadeMs` after the run's last page
+ * ends. While it fades, and in the short gaps inside a run, it keeps the nearest page: the first one fading in, the
+ * last one shown after that.
+ */
+export function captionAt(
+  pages: CaptionPage[],
+  ms: number,
+  fadeMs: number,
+): { page: CaptionPage; opacity: number } | null {
+  const run = captionRuns(pages).find((r) => ms >= r.startMs - CAPTION_LEAD_MS - fadeMs && ms < r.endMs + fadeMs);
+  if (!run) return null;
+  const fadeIn = fadeMs > 0 ? unit((ms - (run.startMs - CAPTION_LEAD_MS - fadeMs)) / fadeMs) : 1;
+  const fadeOut = fadeMs > 0 ? unit((run.endMs + fadeMs - ms) / fadeMs) : 1;
+  const opacity = Math.min(fadeIn, fadeOut);
+  if (opacity <= 0) return null;
+  const shown = run.pages.filter((p) => ms >= p.startMs - CAPTION_LEAD_MS);
+  return { page: shown[shown.length - 1] ?? run.pages[0], opacity };
 }
 
 /** The token being said at `ms` ("kinetic"): from its start until the next token starts (or the page ends). */
@@ -143,6 +187,10 @@ export function currentToken(page: CaptionPage, ms: number): number {
   });
   return current;
 }
+
+/** A composition's format when the video doesn't say: a Reel when its id ends with "-reel" ("teaser-v2-reel"). */
+export const formatOf = (compositionId: string): "story" | "reel" =>
+  compositionId.endsWith("-reel") ? "reel" : "story";
 
 /** Whether a deliverable (a composition id ends with it: "teaser-v2-reel") shows captions. */
 export function captionsOn(settings: CaptionsSettings | undefined, compositionId: string): boolean {
