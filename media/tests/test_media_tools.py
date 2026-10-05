@@ -286,6 +286,29 @@ def test_mix_problems_catch_true_peak_and_loudness():
     assert any("LU off" in p for p in mix.problems(-16.2, -3.0, -14.0))
 
 
+def test_speech_spans_join_words_across_short_gaps():
+    timing = {
+        "lines": [{"words": [{"start": 0.5, "end": 0.9}, {"start": 1.0, "end": 1.4}, {"start": 2.0, "end": 2.3}]}]
+    }
+    assert mix.speech_spans(timing) == [(0.5, 1.4), (2.0, 2.3)]
+
+
+def test_energies_and_windows_inside_the_spans():
+    from array import array
+
+    samples = array("h", [1] * 800 + [2] * 800 + [0] * 100)
+    assert mix.energies(samples) == [800.0, 3200.0]
+    assert mix.in_spans(6, [(0.05, 0.2)]) == [1, 2, 3]
+
+
+def test_masking_measures_voice_over_music_where_the_voice_speaks():
+    voice = [100.0, 100.0, 100.0, 0.001]
+    assert mix.masking(voice, [1.0, 1.0, 1.0, 50.0], [0, 1, 2, 3])[:2] == (20.0, 0.0)
+    ratio, share, masked = mix.masking(voice, [1.0, 80.0, 1.0, 1.0], [0, 1, 2])
+    assert round(ratio, 1) == 5.6 and share == pytest.approx(1 / 3) and masked == [1]
+    assert mix.masking(voice, voice, []) == (float("inf"), 0.0, [])
+
+
 def test_last_json_takes_loudnorms_report():
     assert mix.last_json('x {"a": 1} y {"normalization_type": "dynamic"} z') == {"normalization_type": "dynamic"}
 

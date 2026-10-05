@@ -50,6 +50,8 @@ the tools, the library's building blocks and the workflow, written so you don't 
   centered crop; pick a frame whose words survive the crop and sit outside the Reel's margins, and hand both over.
 - **Loudness**: `mix.py` passed (true peak ≤ −1 dBTP, within 1 LU of −15 voice-only / −14 with music / −16 music
   only); `mix.py <video> --check` measures what's there.
+- **Phone speaker** (a voice with music): `mix.py` prints voice over music as a phone plays it (mono, 300 Hz–6 kHz)
+  in the voice band; no warning means at least +10 dB and under 10% of the speech masked. A warning: lower `bed_db`.
 - **Refactors and encodes**: after a change that shouldn't move a pixel, `review.py diff <old> <new>` must say every
   frame is identical (PSNR ∞). To judge an encode (Instagram's copy, a smaller file), read its VMAF (~6 points is one
   just-noticeable difference) and its worst frames.

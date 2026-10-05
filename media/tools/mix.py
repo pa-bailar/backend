@@ -18,17 +18,38 @@ Every soundtrack is measured after normalizing (EBU R128 integrated loudness and
 back to dynamic mode when it can't reach the target linearly, so the mix fails loudly instead: a true peak over
 brand.json's true_peak_max (−1 dBTP) or a loudness more than "tolerance" (1 LU) off target exits with an error, keeps
 the previous soundtrack, and leaves the rejected one in out/<video>/rejected-<name>.wav to listen to.
+
+With a voice and a bed, mixing (and --check) also runs the phone-speaker check: loudness alone doesn't say the voice
+is understood. The voice track and the ducked bed are folded to mono and band-limited like a phone's speaker
+(300 Hz–6 kHz); voice over music is measured in the voice band (1–4 kHz) over the spoken words (timing.json), in 50 ms
+windows. A warning (not a failure) when it's under +10 dB, or when over 10% of the speech windows are under +3 dB.
 """
 
 import json
+import math
 import os
+import subprocess
 import sys
+from array import array
 from pathlib import Path
 
-from common import BRAND, HOME, Video, ffmpeg, mix_key, shown, video
+from common import BRAND, HOME, Video, ffmpeg, mix_key, probe, shown, tool, video
 
 LOUD = BRAND["loudness"]
 TP = LOUD["true_peak_target"]
+
+# The phone-speaker check (see phone_check()). A phone's speaker plays roughly 300 Hz–6 kHz, in mono; speech is
+# understood mostly from 1–4 kHz (the consonants), where a salsa bed's brass and piano sit too.
+PHONE_BAND = (300, 6000)
+VOICE_BAND = (1000, 4000)
+RATE = 16000  # analysis sample rate (the bands end at 6 kHz)
+WINDOW = 0.05  # seconds per measurement window
+# Thresholds: the voice should beat the music by 10 dB in the voice band over the spoken parts (broadcast guidance
+# for speech over music is about +10 dB; less is hard for older listeners and on a phone in a noisy street), and a
+# 50 ms window of speech with under +3 dB is counted as masked; more than 10% of them masked is a warning too.
+PHONE_MIN_DB = 10.0
+MASKED_DB = 3.0
+MASKED_MAX = 0.10
 
 
 def loudnorm(src: Path, dest: Path, target: float, duration: float, fade: float) -> str:
@@ -125,6 +146,8 @@ def check(v: Video) -> list[str]:
         integrated, peak = measure(path)
         print(f"{shown(path)}: {integrated:.1f} LUFS (target {target}), true peak {peak:+.1f} dBTP")
         wrong += [f"{name}.wav: {p}" for p in problems(integrated, peak, target)]
+    if "with-music" in targets(v):
+        phone_check(v)
     return wrong
 
 
@@ -148,6 +171,97 @@ def mix_music(v: Video, voice: Path, bed: Path, raw: Path, ducked: Path) -> None
         *("-map", "[mix]", "-t", str(duration), str(raw)),
         *("-map", "[duck2]", "-t", str(duration), str(ducked)),
     )
+
+
+# ---------- the phone-speaker check ----------
+
+
+def speech_spans(timing: dict, merge: float = 0.15) -> list[tuple[float, float]]:
+    """The spoken parts (seconds): every word's span from timing.json, joined across gaps shorter than `merge`."""
+    words = sorted((float(w["start"]), float(w["end"])) for line in timing["lines"] for w in line["words"])
+    out: list[tuple[float, float]] = []
+    for start, end in words:
+        if out and start - out[-1][1] < merge:
+            out[-1] = (out[-1][0], max(out[-1][1], end))
+        else:
+            out.append((start, end))
+    return out
+
+
+def energies(samples: array, rate: int = RATE, window: float = WINDOW) -> list[float]:
+    """Sum of squares per window."""
+    n = round(rate * window)
+    return [float(sum(x * x for x in samples[i : i + n])) for i in range(0, len(samples) - n + 1, n)]
+
+
+def in_spans(count: int, spans: list[tuple[float, float]], window: float = WINDOW) -> list[int]:
+    """The windows (of `count`) that lie wholly inside the spans."""
+    return [i for i in range(count) if any(a <= i * window and (i + 1) * window <= b for a, b in spans)]
+
+
+def db(a: float, b: float) -> float:
+    return 10 * math.log10(max(a, 1e-9) / max(b, 1e-9))
+
+
+def masking(voice: list[float], music: list[float], speech: list[int]) -> tuple[float, float, list[int]]:
+    """Voice over music (dB) across the speech windows where the voice is active (within 10 dB of the median), the
+    share of those windows under MASKED_DB, and the masked windows."""
+    active = sorted(voice[i] for i in speech)
+    if not active:
+        return float("inf"), 0.0, []
+    floor = active[len(active) // 2] / 10
+    windows = [i for i in speech if voice[i] >= floor]
+    ratio = db(sum(voice[i] for i in windows), sum(music[i] for i in windows))
+    masked = [i for i in windows if db(voice[i], music[i]) < MASKED_DB]
+    return ratio, len(masked) / len(windows), masked
+
+
+def band(path: Path, low: int, high: int) -> array:
+    """A soundtrack as a phone plays it: mono (a stereo file is averaged, as a phone's single speaker does), band-
+    limited to low–high Hz (two 12 dB/octave stages each side), at RATE, as 16-bit samples."""
+    stereo = int(next(s for s in probe(path)["streams"] if s["codec_type"] == "audio")["channels"]) > 1
+    chain = ["aresample=48000"] + (["pan=mono|c0=0.5*c0+0.5*c1"] if stereo else [])
+    chain += [f"highpass=f={low}", f"highpass=f={low}", f"lowpass=f={high}", f"lowpass=f={high}", f"aresample={RATE}"]
+    cmd = [tool("ffmpeg"), "-v", "error", "-i", str(path), "-af", ",".join(chain), "-f", "s16le", "-ac", "1", "-"]
+    raw = subprocess.run(cmd, capture_output=True, check=True).stdout
+    samples = array("h")
+    samples.frombytes(raw[: len(raw) // 2 * 2])
+    if sys.byteorder == "big":
+        samples.byteswap()
+    return samples
+
+
+def phone_check(v: Video) -> list[str]:
+    """Will the voice be understood over the music on a phone's speaker? The voice track and the ducked bed (what
+    with-music.wav sums before its loudness gain, which scales both alike) are each folded to mono and band-limited
+    like a phone's speaker; then voice over music is measured in the voice band (1–4 kHz) over the spoken parts
+    (timing.json's words). Prints the numbers; returns warnings (never fails the mix)."""
+    voice, music, timing = v.out / "voice-track.wav", v.out / "music-ducked.wav", v.data / "timing.json"
+    missing = [shown(p) for p in (voice, music, timing) if not p.exists()]
+    if missing:
+        return [f"phone check skipped: no {', '.join(missing)} (run tools/mix.py {v.name})"]
+    spans = speech_spans(json.loads(timing.read_text(encoding="utf-8")))
+    warnings = []
+    results = {}
+    for name, (low, high) in (("voice band", VOICE_BAND), ("phone band", PHONE_BAND)):
+        ev, em = energies(band(voice, low, high)), energies(band(music, low, high))
+        count = min(len(ev), len(em))
+        results[name] = masking(ev[:count], em[:count], in_spans(count, spans))
+    ratio, share, masked = results["voice band"]
+    print(
+        f"phone speaker (mono, {PHONE_BAND[0]}–{PHONE_BAND[1]} Hz): voice over music {ratio:+.1f} dB in the voice band "
+        f"({VOICE_BAND[0] // 1000}–{VOICE_BAND[1] // 1000} kHz, target ≥ +{PHONE_MIN_DB:.0f}), "
+        f"{results['phone band'][0]:+.1f} dB across the phone's band; {share:.0%} of speech windows under "
+        f"+{MASKED_DB:.0f} dB (at most {MASKED_MAX:.0%})"
+    )
+    if ratio < PHONE_MIN_DB:
+        warnings.append(f"the voice is only {ratio:+.1f} dB over the music in 1–4 kHz on a phone: lower bed_db")
+    if share > MASKED_MAX:
+        at = ", ".join(f"{i * WINDOW:.2f}" for i in masked[:12])
+        warnings.append(f"{share:.0%} of the speech is masked on a phone (under +{MASKED_DB:.0f} dB), at {at} s")
+    for w in warnings:
+        print(f"WARNING: {w}")
+    return warnings
 
 
 def main(name: str) -> None:
@@ -181,6 +295,7 @@ def main(name: str) -> None:
             mix_music(v, voice, HOME / music["bed"], raw, ducked)
             wrong.append(normalize(v, raw, "with-music", goals["with-music"], fade))
             print(f"{shown(ducked)}: the bed alone after ducking (not normalized)")
+            phone_check(v)
     failed = [w for w in wrong if w]
     if failed:
         raise SystemExit("mix failed (the previous soundtracks stay):\n  " + "\n  ".join(failed))
