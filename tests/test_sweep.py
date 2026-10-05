@@ -9,7 +9,7 @@ import pytest
 from pa_bailar import config, storage
 from pa_bailar.commands.sweep import summary_markdown
 from pa_bailar.external import ExternalReport
-from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError
+from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError, UnreadableAnswerError
 from pa_bailar.ids import new_event_id
 from pa_bailar.instagram import InstagramError
 from pa_bailar.models import PostAnalysis, ProcessedPost, Triage
@@ -65,6 +65,7 @@ class FakeExtractor:
         rejected: frozenset[str] = frozenset(),
         failing: frozenset[str] = frozenset(),
         unavailable: tuple[str, ...] = (),
+        unreadable: frozenset[str] = frozenset(),
     ):
         self.analyses = analyses
         self.not_events = not_events
@@ -73,6 +74,8 @@ class FakeExtractor:
         self.rejected = rejected  # post ids Gemini refuses (e.g. an image it can't read)
         self.failing = failing  # post ids where every model fails (busy, bad answers): an error, retried
         self.unavailable = unavailable  # models Gemini says this key can't use
+        self.unreadable = unreadable  # post ids no model gives valid JSON for
+        self.attempts: list[str] = []  # every extraction asked for, answered or not
         self.known_seen: dict[str, list[str]] = {}
         self.extracted_posts: list[str] = []
         self.rules_seen: dict[str, str] = {}  # post id → the account's extra prompt rules (prompts.account_rules)
@@ -101,6 +104,9 @@ class FakeExtractor:
     def extract(self, account, post, published, images, known_events, allow_provisional=True, rules=""):
         if self.out_of_quota:
             raise QuotaExhaustedError("no quota")
+        self.attempts.append(post["id"])
+        if post["id"] in self.unreadable:
+            raise UnreadableAnswerError("no valid JSON")
         if post["id"] in self.failing:
             raise ExtractionError("every model failed")
         if post["id"] in self.rejected:
@@ -342,12 +348,35 @@ def test_posts_analyzed_before_fingerprints_get_one_without_a_new_analysis():
     assert extractor.extracted_posts == [] and read(config.PROCESSED_POSTS_FILE)["p1"]["caption_hash"]
 
 
+class TimeRunsOutOnFetch(FakeInstagram):
+    """The run's time budget runs out while the first account's posts are fetched."""
+
+    def __init__(self, posts_by_account, monkeypatch):
+        super().__init__(posts_by_account)
+        self.monkeypatch = monkeypatch
+
+    def fetch_recent_posts(self, account, limit=config.POSTS_PER_ACCOUNT):
+        self.monkeypatch.setattr(config, "MAX_RUN_MINUTES", 0)
+        return super().fetch_recent_posts(account, limit)
+
+
 def test_no_new_gemini_work_starts_after_the_time_budget(monkeypatch):
-    monkeypatch.setattr(config, "MAX_RUN_MINUTES", 0)
     extractor = FakeExtractor({"p1": event_post("p1")})
-    stats = run(FakeInstagram({"academia": [post("p1")], "otra": []}), extractor)
+    stats = run(TimeRunsOutOnFetch({"academia": [post("p1")], "otra": []}, monkeypatch), extractor)
     assert extractor.extracted_posts == [] and stats.pending == 1
     assert "p1" not in storage.load_processed_posts()  # analyzed on the next run
+
+
+def test_no_more_accounts_are_fetched_after_the_time_budget(monkeypatch):
+    """Review finding: once the time is up, fetching the other due accounts only spends Instagram calls and clip
+    downloads (and risks the step's timeout). They stay due, first next run."""
+    config.ACCOUNTS_FILE.write_text("academia\notra\n", encoding="utf-8")
+    storage.write_json(config.ACCOUNT_STATE_FILE, {"academia": swept(40), "otra": swept(30)})
+    instagram = TimeRunsOutOnFetch({"academia": [], "otra": [post("p1")]}, monkeypatch)
+    stats = run(instagram, FakeExtractor({"p1": event_post("p1")}), all_accounts=False)
+    assert list(instagram.limits) == ["academia"] and stats.accounts == 1 and stats.out_of_time
+    monkeypatch.setattr(config, "MAX_RUN_MINUTES", 30)
+    assert turn(storage.read_json(config.ACCOUNT_STATE_FILE, {})) == ["otra"]  # still due; academia was read
 
 
 def test_a_rate_limit_stops_the_sweep_instead_of_spending_more_calls():
@@ -770,3 +799,71 @@ def test_a_post_read_again_without_events_for_another_reason_leaves_the_others_e
     run(FakeInstagram({"academia": [edited, reminder], "otra": []}), FakeExtractor({"flyer": recap}))
     [event] = read(config.EVENTS_FILE)
     assert [m["post_id"] for m in event["media"]] == ["reminder"]
+
+
+# ---------- review fixes (2): posts no model can read, edited captions that must wait ----------
+
+
+def test_a_post_no_model_can_read_is_given_up_after_a_few_runs():
+    """Review finding: a post Gemini never answers with valid JSON was retried on every run for a week, spending
+    Flash's small quota each time. After UNREADABLE_RUNS runs it's recorded as rejected and never asked again."""
+    instagram = FakeInstagram({"academia": [post("long")], "otra": []})
+    for runs in range(1, config.UNREADABLE_RUNS):
+        stats = run(instagram, FakeExtractor({}, unreadable=frozenset({"long"})))
+        assert stats.pending == 1 and "long" not in storage.load_processed_posts()
+        assert read(config.ACCOUNT_STATE_FILE)["academia"]["unreadable"] == {"long": runs}
+
+    stats = run(instagram, FakeExtractor({}, unreadable=frozenset({"long"})))
+    record = storage.load_processed_posts()["long"]
+    assert record.outcome == "rejected" and "respuesta válida" in record.reason
+    assert stats.pending == 0 and stats.errors == 1
+    assert read(config.ACCOUNT_STATE_FILE)["academia"]["unreadable"] == {}
+    again = FakeExtractor({}, unreadable=frozenset({"long"}))
+    run(instagram, again)
+    assert again.attempts == []
+
+
+def test_a_post_read_at_last_forgets_its_unreadable_runs():
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    run(instagram, FakeExtractor({}, unreadable=frozenset({"p1"})))
+    assert read(config.ACCOUNT_STATE_FILE)["academia"]["unreadable"] == {"p1": 1}
+    run(instagram, FakeExtractor({"p1": event_post("p1")}))
+    assert read(config.ACCOUNT_STATE_FILE)["academia"]["unreadable"] == {} and len(read(config.EVENTS_FILE)) == 1
+
+
+def test_an_unreadable_post_no_longer_fetched_is_forgotten():
+    run(FakeInstagram({"academia": [post("p1")], "otra": []}), FakeExtractor({}, unreadable=frozenset({"p1"})))
+    run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}))
+    assert read(config.ACCOUNT_STATE_FILE)["academia"]["unreadable"] == {}
+
+
+def test_an_unreadable_upgrade_keeps_the_provisional_reading_after_a_few_runs():
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    run(instagram, FakeExtractor({"p1": event_post("p1")}, flash_available=False))
+    assert storage.load_processed_posts()["p1"].provisional
+    for _ in range(config.UNREADABLE_RUNS):
+        run(instagram, FakeExtractor({}, unreadable=frozenset({"p1"})))
+    assert not storage.load_processed_posts()["p1"].provisional and len(read(config.EVENTS_FILE)) == 1
+    again = FakeExtractor({}, unreadable=frozenset({"p1"}))
+    run(instagram, again)
+    assert again.attempts == []  # Flash's quota isn't spent on it any more
+
+
+@pytest.mark.parametrize("why", ["no quota", "no time"])
+def test_an_edited_caption_that_cant_be_read_now_keeps_the_account_due(monkeypatch, why):
+    """Review finding: a "CANCELADO" edit that couldn't be read (no quota, no time) wasn't pending, so the account
+    was marked read and the edit waited a whole turn (20 h, or days for a quiet account)."""
+    first = post("p1")
+    run(FakeInstagram({"academia": [first], "otra": []}), FakeExtractor({"p1": event_post("p1")}))
+    states = read(config.ACCOUNT_STATE_FILE)
+    before = states["academia"]["last_swept_at"] = swept(30)["last_swept_at"]
+    storage.write_json(config.ACCOUNT_STATE_FILE, states)
+
+    edited = {**first, "caption": "CANCELADO"}
+    if why == "no quota":
+        instagram, extractor = FakeInstagram({"academia": [edited], "otra": []}), FakeExtractor({}, out_of_quota=True)
+    else:
+        instagram, extractor = TimeRunsOutOnFetch({"academia": [edited], "otra": []}, monkeypatch), FakeExtractor({})
+    stats = run(instagram, extractor)
+    assert stats.pending == 1 and stats.reanalyzed == 0
+    assert read(config.ACCOUNT_STATE_FILE)["academia"]["last_swept_at"] == before  # still due: read next run

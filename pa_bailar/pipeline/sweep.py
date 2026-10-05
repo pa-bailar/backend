@@ -9,7 +9,7 @@ from datetime import UTC, date, datetime, timedelta
 from .. import config, links, storage
 from ..account_options import AccountOptions, mentions_focus
 from ..external import is_external
-from ..gemini import GeminiKeyError, OutOfTimeError, QuotaExhaustedError, RejectedRequestError
+from ..gemini import GeminiKeyError, OutOfTimeError, QuotaExhaustedError, RejectedRequestError, UnreadableAnswerError
 from ..instagram import InstagramError, Post, is_rate_limited, published_at, slide_count
 from ..models import AccountState, ProcessedPost
 from . import common
@@ -62,6 +62,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
                 break
             if self.rate_limited:
                 log.warning("Instagram rate limit reached: the remaining accounts wait for the next run")
+                break
+            if self._out_of_time():  # no Gemini work would start: they wait, first next run (_due_accounts)
                 break
             self.stats.accounts += 1
             try:
@@ -160,6 +162,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             published = published_at(post)
             if published >= cutoff:
                 self._read_post(account, post, published)
+        fetched = {post["id"] for post in posts}  # a post no longer fetched is never read again
+        state.unreadable = {post_id: runs for post_id, runs in state.unreadable.items() if post_id in fetched}
 
         self._complete_media(posts)
         # Read: its turn is over, unless posts wait (Gemini's quota, time): then it's due again next run.
@@ -199,7 +203,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             self._save()
         elif record.caption_hash != post_hash:
             if self._out_of_time():
-                return  # still edited next run: analyzed then
+                self.stats.count(account, "pending")  # still edited next run: the account stays due, read then
+                return
             log.info("   %s caption edited, analyzing again %s", f"{published:%Y-%m-%d}", post["permalink"])
             # A post that had events skips the filter: the extraction decides again, and takes its old
             # events off the site if it no longer announces them ("CANCELADO"). Others go through the
@@ -208,6 +213,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             had_events = record.outcome in ("event", "merged") or (record.outcome is None and record.is_event_post)
             if self._analyze_new_post(account, post, published, triage=not had_events):
                 self.stats.reanalyzed += 1
+            else:  # no quota or time left, or an error: the account stays due, so the edit ("CANCELADO") is read soon
+                self.stats.count(account, "pending")
         elif record.provisional and self.extractor.can_extract_with_flash() and not self._out_of_time():
             log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
             self._upgrade_post(account, post, published)
@@ -287,28 +294,50 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         if verdict is not None and not verdict.is_event_post:
             self._record_not_event(account, post, verdict.reason, triage_model or "-")
             return True
+        return self._extract_and_store(account, post, published, images)
 
+    def _extract_and_store(self, account: str, post: Post, published: datetime, images: list[bytes]) -> bool:
+        """Extract a post's events and store them. False when it must be retried next run."""
         try:
             known = self._known_events(account, published)
             analysis, model, provisional = self.extractor.extract(
                 account, post, published, images, known, rules=self._rules(account, post["id"])
             )
         except RejectedRequestError as error:
-            # Gemini refuses this post itself (e.g. an image it can't read): retrying would spend quota on
-            # every run and keep a new account's first sweep from ever finishing. Record it and move on.
+            # Gemini refuses this post itself (e.g. an image it can't read, an answer too long): retrying would spend
+            # quota on every run and keep a new account's first sweep from ever finishing. Record it and move on.
             log.warning("     Gemini rejected the post, skipping it: %s", error)
-            self.stats.count(account, "errors")
-            self._record_processed(account, post, False, f"rechazado por Gemini: {error}", "-", provisional=False)
-            self._set_outcome(post, "rejected")
-            self._save()
-            return True
+            return self._record_rejected(account, post, f"rechazado por Gemini: {error}")
         except QuotaExhaustedError as error:
             log.info("     waits for the next run: %s", error)
             return False
+        except UnreadableAnswerError as error:
+            runs = self._unreadable_run(account, post["id"])
+            if runs < config.UNREADABLE_RUNS:
+                return self._retry_later(account, f"{error} (run {runs} of {config.UNREADABLE_RUNS})")
+            log.warning("     no valid answer on %s runs, giving the post up: %s", runs, error)
+            reason = f"rechazado: Gemini no dio una respuesta válida en {runs} corridas"
+            return self._record_rejected(account, post, reason)
         except RETRYABLE_ERRORS as error:
             return self._retry_later(account, str(error))
 
         return self._store_analysis(account, post, images, analysis, model, provisional)
+
+    def _record_rejected(self, account: str, post: Post, reason: str) -> bool:
+        """A post Gemini can't read, recorded so it isn't retried (an error of the run, not pending)."""
+        self.stats.count(account, "errors")
+        self._record_processed(account, post, False, reason, "-", provisional=False)
+        self._set_outcome(post, "rejected")
+        self._save()
+        return True
+
+    def _unreadable_run(self, account: str, post_id: str) -> int:
+        """Count one more run on which no model gave valid JSON for this post: how many so far (config.UNREADABLE_RUNS
+        gives it up). Kept in the account's state (AccountState.unreadable), cleared once the post is recorded."""
+        state = self.accounts.setdefault(account, AccountState(first_seen=config.now_bogota().date().isoformat()))
+        state.unreadable[post_id] = state.unreadable.get(post_id, 0) + 1
+        storage.save_account_state(self.accounts)
+        return state.unreadable[post_id]
 
     def _outside_focus(self, account: str, post: Post) -> bool:
         """An account limited to some styles (accounts.txt `solo:`, account_options): a post whose caption names
@@ -346,6 +375,15 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         except RejectedRequestError as error:
             log.warning("     Gemini rejected the upgrade, keeping the provisional analysis: %s", error)
             self.processed[post["id"]].provisional = False  # stop retrying it
+            self._save()
+            return
+        except UnreadableAnswerError as error:
+            if (runs := self._unreadable_run(account, post["id"])) < config.UNREADABLE_RUNS:
+                log.info("     upgrade postponed (run %s of %s): %s", runs, config.UNREADABLE_RUNS, error)
+                return
+            log.warning("     no valid answer on %s runs, keeping the provisional analysis: %s", runs, error)
+            self.processed[post["id"]].provisional = False  # stop spending Flash's quota on it
+            self.accounts[account].unreadable.pop(post["id"], None)
             self._save()
             return
         except RETRYABLE_ERRORS as error:

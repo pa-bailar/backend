@@ -505,7 +505,8 @@ flowchart TD
     TLR -->|"yes: no triage, the<br/>extraction decides"| EX
     TR -->|"event, or triage failed<br/>(busy, timeout)"| EX["Extraction: Flash<br/>every image + caption + this account's known events"]
     EX -->|"Flash out of quota"| PROV["Extraction: Flash-Lite<br/>marked provisional"]
-    EX -->|"rejected by Gemini (4xx),<br/>or its answer blocked"| REJ["Record as rejected<br/>never retried"]
+    EX -->|"rejected by Gemini (4xx), its answer<br/>blocked or cut off (MAX_TOKENS)"| REJ["Record as rejected<br/>never retried"]
+    EX -->|"no valid JSON from any model,<br/>on 3 runs"| REJ
     EX -->|"the API key doesn't work"| STOP["Stop the run (it fails):<br/>nothing recorded, read next run"]
     EX -->|"no model could answer"| PEND
     EX --> ST["Store (6.3)"]
@@ -675,13 +676,15 @@ flowchart TD
     B -->|no| M
     B -->|yes| PACE["Wait for its pace<br/>(60 / RPM + 0.5 s)"] --> CALL["Call (counted as spent)"]
     CALL -->|"valid JSON"| OK["Return answer + model"]
-    CALL -->|"invalid JSON"| RETRY{"Attempt < 3?"}
-    CALL -->|"5xx busy, a timeout or<br/>a dropped connection"| BACK["Back off 5 s × attempt"] --> RETRY
+    CALL -->|"invalid JSON"| RETRY2{"First invalid answer<br/>from this model?"}
+    RETRY2 -->|yes| B
+    RETRY2 -->|no| M
+    CALL -->|"5xx busy, a timeout or<br/>a dropped connection"| BACK["Back off 5 s × attempt"] --> RETRY{"Attempt < 3?"}
     CALL -->|"429 per-minute"| WAIT["Wait 60 s"] --> RETRY
     CALL -->|"429 per-minute again"| BUSY["Next model (counts as a failure;<br/>today's budget untouched)"] --> M
     CALL -->|"429 per-day<br/>(its message or quota id says so)"| EXH["Mark model used up for today"] --> M
     CALL -->|"403 or 404: model not<br/>available to this key"| UNAV["Listed as unavailable<br/>(health warning)"] --> EXH
-    CALL -->|"blocked answer<br/>(safety filter…)"| REJ["RejectedRequestError:<br/>post recorded as rejected"]
+    CALL -->|"blocked answer (safety filter…),<br/>or cut off (MAX_TOKENS)"| REJ["RejectedRequestError:<br/>post recorded as rejected"]
     CALL -->|"key invalid, expired or revoked<br/>(401, or 400/403 naming the API key)"| KEY["GeminiKeyError:<br/>the run stops, no post recorded"]
     CALL -->|"other 4xx"| REJ
     RETRY -->|yes| B
@@ -704,7 +707,13 @@ flowchart TD
   which isn't an `ExtractionError`: the sweep stops and fails (the failed run emails), and no post is
   recorded as rejected, so all of them are read once the key is replaced (section 15).
 - **A blocked answer** (a safety filter: `SAFETY`, `PROHIBITED_CONTENT`…) is rejected at once instead of
-  being retried 3 times per model: it would be blocked every time.
+  being retried 3 times per model: it would be blocked every time. So is an answer cut off at the model's output
+  limit (`MAX_TOKENS`): the post is recorded as rejected, "respuesta demasiado larga".
+- **An answer that isn't valid JSON** is asked again once per model (`INVALID_ANSWER_ATTEMPTS`), then the next
+  model. When the only failures were such answers, the pool raises `UnreadableAnswerError`: the sweep retries the
+  post next run, counting the runs in `accounts.json` (`unreadable`), and on the third (`UNREADABLE_RUNS`) records
+  it as rejected, so a post no model can read stops spending Flash's quota (a provisional post's upgrade keeps its
+  provisional reading instead). A busy model among them makes it a plain failure, retried without counting.
 - **A model the key can't use** (404, or a 403 that doesn't name the key, e.g. if Google took it out of the
   free tier) is skipped for the
   day like a spent one and listed in the run's `models_unavailable`. Repeated over 3 runs, it's a health
@@ -968,7 +977,7 @@ memory between runs; the site never sees it.
 | File | Content | Why it matters |
 |---|---|---|
 | `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha`, `fuera de Bogotá`, `ya pasó` or `cancelado`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined. Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
-| `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post` | Whether the account still gets the deeper first sweep, and when its next turn is |
+| `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post`, and `unreadable` (post id → runs on which no model gave valid JSON for it, section 7.2) | Whether the account still gets the deeper first sweep, and when its next turn is |
 | `gemini_usage.json` | Today's quota day (Pacific) and requests per model | The day's runs share the daily budgets |
 | `external_usage.json` | The last resort's day (UTC) and, per provider, requests, tokens and the answers per model | The day's runs share Groq's and OpenRouter's budgets (section 7.3) |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
@@ -1281,7 +1290,8 @@ section 5, "Whose turn it is"):
 itself stops at 35, and the job at 60, leaving room for the state, the PR and the merge. No request starts after
 the budget, not even within a post already started (`EventExtractor`'s deadline, `gemini.OutOfTimeError`: the
 post waits for the next run), so a run ends at most one Gemini request and one pause later (a 120-second timeout
-and a 60-second wait: about 3 minutes). The last resort never starts a request, or a wait for Groq's tokens, that
+and a 60-second wait: about 3 minutes). Nor does it fetch more accounts: those still due wait, first next run. A
+post left waiting keeps its account due, an edited caption too, so a "CANCELADO" edit is read on the next run. The last resort never starts a request, or a wait for Groq's tokens, that
 wouldn't end before the budget, and spends at most 3 minutes on a post.
 
 **Adding accounts:** each new account costs about 1 Instagram call a day, plus a one-time load of up to

@@ -384,6 +384,8 @@ class SweepBase:
     def _record_processed(
         self, account: str, post: Post, is_event_post: bool, reason: str, model: str, provisional: bool
     ) -> None:
+        if state := self.accounts.get(account):
+            state.unreadable.pop(post["id"], None)  # read at last (or given up): no run to count any more
         self.processed[post["id"]] = ProcessedPost(
             by_hand=self._by_hand(post["id"]),
             account=account,
