@@ -156,6 +156,24 @@ def _commands(text: str) -> set[str]:
     return {match.group("name").lower() for match in _COMMAND.finditer(text)}
 
 
+def _form_request(fields: dict[str, str], post: str | None, account: str | None) -> Request:
+    """A request from the form's fields (the issue form, the admin page): its Acción, and the fields it needs.
+    `post` and `account` are what the whole text names, when the fields don't."""
+    chosen = (fields.get("acción") or fields.get("accion") or "").lower()
+    action = _ACTIONS.get(chosen, "help")
+    if action in ("add-story", "hide-story"):
+        return _story_request(fields, chosen)
+    if action == "hide-event":
+        return _hide_event(fields.get("evento") or "")
+    field_link = _first_link(fields.get("enlace") or "")
+    post = field_link or post  # the link alone, never what follows it
+    if action in ("why", "add-post") and not (post and links.post_code(post)):
+        return Request("help")
+    if action == "add-account" and not account:
+        return Request("help")
+    return Request(action, post if action in ("why", "add-post") else None, account, chosen == "volver a leer")
+
+
 def parse(text: str) -> Request:
     fields = {m.group("name").strip().lower(): _clean(m.group("value")) for m in _FIELD.finditer(text)}
     link = _first_link(text)
@@ -169,19 +187,7 @@ def parse(text: str) -> Request:
         account = handle.group(1).lower() if handle else None
 
     if "acción" in fields or "accion" in fields:
-        chosen = (fields.get("acción") or fields.get("accion") or "").lower()
-        action = _ACTIONS.get(chosen, "help")
-        if action in ("add-story", "hide-story"):
-            return _story_request(fields, chosen)
-        if action == "hide-event":
-            return _hide_event(fields.get("evento") or "")
-        field_link = _first_link(fields.get("enlace") or "")
-        post = field_link or post  # the link alone, never what follows it
-        if action in ("why", "add-post") and not (post and links.post_code(post)):
-            return Request("help")
-        if action == "add-account" and not account:
-            return Request("help")
-        return Request(action, post if action in ("why", "add-post") else None, account, chosen == "volver a leer")
+        return _form_request(fields, post, account)
 
     story = _story_command(text)
     if story:

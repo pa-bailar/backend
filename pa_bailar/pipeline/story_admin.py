@@ -3,7 +3,7 @@ neither Gemini nor Instagram (dates, crops, ids, the account's name) is in stori
 
 import logging
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import cast
 
 from .. import config, links, storage, stories
@@ -87,6 +87,28 @@ def _story_event(
     )
 
 
+def _story_events(
+    analysis: StoryAnalysis, crops: list[stories.Crop], taken: datetime, today: date
+) -> tuple[list[ExtractedEvent], dict[str, list[str]], list[str]]:
+    """The story's events to store (each on the screenshot Gemini says shows it, else the best crop), how each one's
+    date was worked out (by title), and the titles of those whose date has passed (not published)."""
+    best = max(range(len(crops)), key=lambda index: (crops[index].from_gemini, crops[index].area))
+    extracted: list[ExtractedEvent] = []
+    date_notes: dict[str, list[str]] = {}
+    past: list[str] = []
+    for item in analysis.events:
+        resolved = stories.resolve_date(item, taken.date(), today)
+        index = item.image_index
+        image_index = index if index is not None and 0 <= index < len(crops) else best
+        event = _story_event(item, resolved, analysis.location_sticker, image_index)
+        if has_ended(event, today):
+            past.append(item.title)
+            continue
+        extracted.append(event)
+        date_notes[" ".join(item.title.split())] = resolved.notes
+    return extracted, date_notes, past
+
+
 class StoryAdmin(SweepBase):
     def add_story(
         self, shots: list[stories.Screenshot], account: str | None = None, notes: str | None = None
@@ -140,20 +162,7 @@ class StoryAdmin(SweepBase):
         owner, source, checked = self._story_account(account, analysis)
         today = now.date()
         crops = [stories.crop(image, self._content_box(analysis, index)) for index, image in enumerate(images)]
-        best = max(range(len(crops)), key=lambda index: (crops[index].from_gemini, crops[index].area))
-        extracted: list[ExtractedEvent] = []
-        date_notes: dict[str, list[str]] = {}
-        past: list[str] = []
-        for item in analysis.events:
-            resolved = stories.resolve_date(item, taken.date(), today)
-            index = item.image_index
-            image_index = index if index is not None and 0 <= index < len(crops) else best
-            event = _story_event(item, resolved, analysis.location_sticker, image_index)
-            if has_ended(event, today):
-                past.append(item.title)
-                continue
-            extracted.append(event)
-            date_notes[" ".join(item.title.split())] = resolved.notes
+        extracted, date_notes, past = _story_events(analysis, crops, taken, today)
 
         age = stories.story_age(analysis.story_age)
         published = (taken - age) if age else taken

@@ -82,6 +82,45 @@ def _story_event_line(event: StoredEvent) -> str:
     return f"- [{event.title}]({links.event_url(event.id)}) · {' · '.join(parts)}"
 
 
+def _story_receipt(added: AddedStory) -> list[str]:
+    """What was read from a story just published, and where each part came from (inferred parts flagged)."""
+    checked = "" if added.account_checked else " ⚠️"
+    lines = ["", "**Lo que leí:**", f"- Cuenta: @{added.account} ({added.account_source}){checked}"]
+    for event in added.events:
+        notes = added.date_notes.get(event.title)
+        if notes:
+            lines.append(f"- Fecha de “{event.title}”: {_day(event)} ({'; '.join(notes)})")
+    if added.location:
+        lines.append(f"- Lugar: {added.location} (del sticker de ubicación)")
+    if added.mentions:
+        mentions = ", ".join(f"@{name}" for name in added.mentions)
+        lines.append(f"- Menciones: {mentions} (no son la cuenta del evento)")
+    lines.append(f"- Captura: {moment_label(added.taken.isoformat(), config.now_bogota())} ({added.taken_source})")
+    if not added.gemini_crop:
+        lines.append("- Recorte: fijo (Gemini no marcó bien el flyer): revisa que se vea completo")
+    if added.past:
+        lines.append(f"- No publiqué, porque ya pasaron: {', '.join(added.past)}")
+    return lines
+
+
+def _story_published_footer(added: AddedStory, again: bool) -> list[str]:
+    """After a published story's answer: its flyer's crop, when it shows on the site, and how to undo it."""
+    flyers = [
+        media.flyer
+        for event in added.events
+        for media in event.media
+        if media.post_id == added.story_id and media.flyer
+    ]
+    lines = ["", f"![Recorte publicado]({config.SITE_URL}/{flyers[0]})"] if flyers else []
+    if not again:
+        lines += ["", "Aparece en el sitio cuando termina de publicarse (unos minutos)."]
+    lines.append(
+        f"¿Algo está mal? Ocultar: `/ocultar {added.story_id}` (o el botón en la página). Después puedes "
+        "compartirla otra vez con la @cuenta o una nota."
+    )
+    return lines
+
+
 def added_story_markdown(added: AddedStory) -> str:
     """The answer to "Agregar historia": what was published and a receipt of what was read and where each part
     came from (inferred parts flagged), the flyer's crop, and how to undo it (/ocultar)."""
@@ -103,23 +142,7 @@ def added_story_markdown(added: AddedStory) -> str:
         light = " Flash-Lite (Flash no tenía cuota)" if added.provisional else f" {added.model}"
         lines.append(f"✅ **{verb} {len(added.events)} evento(s)** desde la historia, leída con{light}:")
         lines += [_story_event_line(event) for event in added.events]
-        lines += ["", "**Lo que leí:**"]
-        checked = "" if added.account_checked else " ⚠️"
-        lines.append(f"- Cuenta: @{added.account} ({added.account_source}){checked}")
-        for event in added.events:
-            notes = added.date_notes.get(event.title)
-            if notes:
-                lines.append(f"- Fecha de “{event.title}”: {_day(event)} ({'; '.join(notes)})")
-        if added.location:
-            lines.append(f"- Lugar: {added.location} (del sticker de ubicación)")
-        if added.mentions:
-            mentions = ", ".join(f"@{name}" for name in added.mentions)
-            lines.append(f"- Menciones: {mentions} (no son la cuenta del evento)")
-        lines.append(f"- Captura: {moment_label(added.taken.isoformat(), config.now_bogota())} ({added.taken_source})")
-        if not added.gemini_crop:
-            lines.append("- Recorte: fijo (Gemini no marcó bien el flyer): revisa que se vea completo")
-        if added.past:
-            lines.append(f"- No publiqué, porque ya pasaron: {', '.join(added.past)}")
+        lines += _story_receipt(added)
     elif added.past:
         lines.append(f"❌ Su fecha ya pasó: {', '.join(added.past)}. No publiqué nada.")
     elif added.outcome == "discarded":
@@ -132,20 +155,7 @@ def added_story_markdown(added: AddedStory) -> str:
             f"{config.BACKFILL_DAYS} días se leen en el próximo barrido)."
         )
     if published:
-        flyers = [
-            media.flyer
-            for event in added.events
-            for media in event.media
-            if media.post_id == added.story_id and media.flyer
-        ]
-        if flyers:
-            lines += ["", f"![Recorte publicado]({config.SITE_URL}/{flyers[0]})"]
-        if not again:
-            lines += ["", "Aparece en el sitio cuando termina de publicarse (unos minutos)."]
-        lines.append(
-            f"¿Algo está mal? Ocultar: `/ocultar {added.story_id}` (o el botón en la página). Después puedes "
-            "compartirla otra vez con la @cuenta o una nota."
-        )
+        lines += _story_published_footer(added, again=bool(again))
     else:
         lines.append(
             "Para intentarlo de nuevo, comparte las capturas otra vez (con la @cuenta o una nota si ayuda): las que "

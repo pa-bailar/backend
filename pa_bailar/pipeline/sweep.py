@@ -140,18 +140,9 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         account_stats.backfill = backfill
         log.info("== @%s%s", account, " (new account: deeper first sweep)" if backfill else "")
 
-        try:
-            limit = config.BACKFILL_POSTS if backfill else config.POSTS_PER_ACCOUNT
-            posts = self.instagram.fetch_recent_posts(account, limit=limit)
-        except InstagramError as error:
-            log.error("   could not fetch posts: %s", error)
-            self.rate_limited = is_rate_limited(error)
-            if not self.rate_limited:
-                state.last_swept_at = config.now_bogota().isoformat(timespec="seconds")  # tried: its turn is over
-            self.stats.count(account, "errors")
-            account_stats.fetch_failed = True
+        posts = self._fetch_posts(account, state, backfill)
+        if posts is None:
             return
-
         if posts:
             account_stats.latest_post = config.bogota_date(max(published_at(p) for p in posts)).isoformat()
             state.latest_post = account_stats.latest_post
@@ -160,31 +151,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         # Oldest first, so a flyer is usually stored before the video or reminder that follows it.
         for post in sorted(posts, key=lambda p: p["timestamp"]):
             published = published_at(post)
-            if published < cutoff:
-                continue
-            record = self.processed.get(post["id"]) or self._adopt_public_record(post)
-            post_hash = caption_hash(post)
-            if record is None:
-                log.info("   %s %-14s %s", f"{published:%Y-%m-%d}", post["media_type"], post["permalink"])
-                if self._out_of_time() or not self._analyze_new_post(account, post, published):
-                    self.stats.count(account, "pending")
-            elif record.caption_hash is None:
-                record.caption_hash = post_hash  # analyzed before captions were fingerprinted
-                self._save()
-            elif record.caption_hash != post_hash:
-                if self._out_of_time():
-                    continue  # still edited next run: analyzed then
-                log.info("   %s caption edited, analyzing again %s", f"{published:%Y-%m-%d}", post["permalink"])
-                # A post that had events skips the filter: the extraction decides again, and takes its old
-                # events off the site if it no longer announces them ("CANCELADO"). Others go through the
-                # filter as usual (Flash-Lite), keeping Flash's small quota for events.
-                # Records from before outcomes were kept (outcome None) had events if Gemini said so.
-                had_events = record.outcome in ("event", "merged") or (record.outcome is None and record.is_event_post)
-                if self._analyze_new_post(account, post, published, triage=not had_events):
-                    self.stats.reanalyzed += 1
-            elif record.provisional and self.extractor.can_extract_with_flash() and not self._out_of_time():
-                log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
-                self._upgrade_post(account, post, published)
+            if published >= cutoff:
+                self._read_post(account, post, published)
 
         self._complete_media(posts)
         # Read: its turn is over, unless posts wait (Gemini's quota, time): then it's due again next run.
@@ -194,6 +162,48 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             state.backfill_done = True
             log.info("   first sweep complete: from now on, regular sweep")
         storage.save_account_state(self.accounts)
+
+    def _fetch_posts(self, account: str, state: AccountState, backfill: bool) -> list[Post] | None:
+        """The account's latest posts (more for its first, deeper sweep). None when Instagram couldn't give them:
+        its turn is over, unless Instagram's rate limit stopped it."""
+        try:
+            limit = config.BACKFILL_POSTS if backfill else config.POSTS_PER_ACCOUNT
+            return self.instagram.fetch_recent_posts(account, limit=limit)
+        except InstagramError as error:
+            log.error("   could not fetch posts: %s", error)
+            self.rate_limited = is_rate_limited(error)
+            if not self.rate_limited:
+                state.last_swept_at = config.now_bogota().isoformat(timespec="seconds")  # tried: its turn is over
+            self.stats.count(account, "errors")
+            self.stats.account(account).fetch_failed = True
+            return None
+
+    def _read_post(self, account: str, post: Post, published: datetime) -> None:
+        """One post within the window: analyzed if it's new, again if its caption was edited, with Flash if it was
+        read provisionally; nothing if it's known and unchanged."""
+        record = self.processed.get(post["id"]) or self._adopt_public_record(post)
+        post_hash = caption_hash(post)
+        if record is None:
+            log.info("   %s %-14s %s", f"{published:%Y-%m-%d}", post["media_type"], post["permalink"])
+            if self._out_of_time() or not self._analyze_new_post(account, post, published):
+                self.stats.count(account, "pending")
+        elif record.caption_hash is None:
+            record.caption_hash = post_hash  # analyzed before captions were fingerprinted
+            self._save()
+        elif record.caption_hash != post_hash:
+            if self._out_of_time():
+                return  # still edited next run: analyzed then
+            log.info("   %s caption edited, analyzing again %s", f"{published:%Y-%m-%d}", post["permalink"])
+            # A post that had events skips the filter: the extraction decides again, and takes its old
+            # events off the site if it no longer announces them ("CANCELADO"). Others go through the
+            # filter as usual (Flash-Lite), keeping Flash's small quota for events.
+            # Records from before outcomes were kept (outcome None) had events if Gemini said so.
+            had_events = record.outcome in ("event", "merged") or (record.outcome is None and record.is_event_post)
+            if self._analyze_new_post(account, post, published, triage=not had_events):
+                self.stats.reanalyzed += 1
+        elif record.provisional and self.extractor.can_extract_with_flash() and not self._out_of_time():
+            log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
+            self._upgrade_post(account, post, published)
 
     def _adopt_public_record(self, post: Post) -> ProcessedPost | None:
         """A post added by hand from its public page, now among the account's posts: the same post, not a new
