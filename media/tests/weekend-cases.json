@@ -1,0 +1,14 @@
+{
+  "$comment": "The weekend rule, one table for tools/events.py weekend(), src/data/events.ts weekend() and tools/capture.mjs weekendClock(): Monday to Thursday the coming weekend, Friday to Sunday the one under way (on Sunday, the weekend ending today); the capture clock is its Saturday at 19:00, or today when that's later.",
+  "cases": [
+    { "today": "2026-10-05", "from": "2026-10-09", "to": "2026-10-11", "clock": "2026-10-10" },
+    { "today": "2026-10-08", "from": "2026-10-09", "to": "2026-10-11", "clock": "2026-10-10" },
+    { "today": "2026-10-09", "from": "2026-10-09", "to": "2026-10-11", "clock": "2026-10-10" },
+    { "today": "2026-10-10", "from": "2026-10-09", "to": "2026-10-11", "clock": "2026-10-10" },
+    { "today": "2026-10-11", "from": "2026-10-09", "to": "2026-10-11", "clock": "2026-10-11" },
+    { "today": "2026-10-12", "from": "2026-10-16", "to": "2026-10-18", "clock": "2026-10-17" },
+    { "today": "2026-10-29", "from": "2026-10-30", "to": "2026-11-01", "clock": "2026-10-31" },
+    { "today": "2026-11-01", "from": "2026-10-30", "to": "2026-11-01", "clock": "2026-11-01" },
+    { "today": "2026-12-30", "from": "2027-01-01", "to": "2027-01-03", "clock": "2027-01-02" }
+  ]
+}
