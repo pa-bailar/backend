@@ -455,7 +455,7 @@ def test_a_post_read_through_the_api_keeps_its_id_when_read_from_its_public_page
 
 
 def test_the_answer_says_an_unchanged_post_wasnt_read_again():
-    from pa_bailar.commands.sweep import added_post_markdown
+    from pa_bailar.commands.answers import added_post_markdown
 
     sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK, "academia")
     answer = added_post_markdown(sweep({"academia": [post("p1")]}, {}).add_post(LINK, "academia"))
@@ -463,7 +463,7 @@ def test_the_answer_says_an_unchanged_post_wasnt_read_again():
 
 
 def test_the_answer_says_why_an_event_post_wasnt_published():
-    from pa_bailar.commands.sweep import added_post_markdown
+    from pa_bailar.commands.answers import added_post_markdown
 
     abroad = event_post("p1", title="Taller en Medellín", in_bogota="no")
     answer = added_post_markdown(sweep({"academia": [post("p1")]}, {"p1": abroad}).add_post(LINK, "academia"))
@@ -554,7 +554,7 @@ def test_the_inbox_answers_only_admin_issues_and_requests(text, labelled, answer
 
 
 def test_reading_a_post_again_spends_one_gemini_request_even_if_it_hasnt_changed():
-    from pa_bailar.commands.sweep import added_post_markdown
+    from pa_bailar.commands.answers import added_post_markdown
 
     sweep({"academia": [post("p1")]}, {"p1": event_post("p1", event_type="congress")}).add_post(LINK, "academia")
     [first] = storage.load_events()
@@ -568,7 +568,7 @@ def test_reading_a_post_again_spends_one_gemini_request_even_if_it_hasnt_changed
 
 
 def test_the_answer_for_an_unchanged_post_offers_to_read_it_again():
-    from pa_bailar.commands.sweep import added_post_markdown
+    from pa_bailar.commands.answers import added_post_markdown
 
     sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK, "academia")
     assert "Volver a leer" in added_post_markdown(sweep({"academia": [post("p1")]}, {}).add_post(LINK, "academia"))

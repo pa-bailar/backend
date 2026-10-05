@@ -121,3 +121,26 @@ def test_times_read_on_a_twelve_hour_clock(hour, minute, label):
     from pa_bailar.text import clock
 
     assert clock(datetime(2026, 10, 4, hour, minute, tzinfo=config.BOGOTA_TZ)) == label
+
+
+@pytest.mark.parametrize(
+    ("hhmm", "label"), [("00:05", "12:05 a. m."), ("09:00", "9:00 a. m."), ("21:30", "9:30 p. m.")]
+)
+def test_stored_times_read_on_the_same_clock(hhmm, label):
+    from pa_bailar.text import clock, parse_hhmm
+
+    assert clock(parse_hhmm(hhmm)) == label
+
+
+@pytest.mark.parametrize("bad", ["9", "9:00:00", "25:00", "nueve"])
+def test_a_time_that_isnt_hh_mm_is_refused(bad):
+    from pa_bailar.text import parse_hhmm
+
+    with pytest.raises(ValueError):
+        parse_hhmm(bad)
+
+
+def test_one_day_reads_with_its_weekday():
+    from pa_bailar.text import day_label
+
+    assert day_label("2026-10-10") == "sábado 10 oct 2026"

@@ -9,7 +9,8 @@ import pytest
 from PIL import Image, ImageDraw
 
 from pa_bailar import config, storage, stories
-from pa_bailar.commands.sweep import added_story_markdown, hidden_story_markdown, load_screenshots
+from pa_bailar.commands.answers import added_story_markdown, hidden_story_markdown
+from pa_bailar.commands.sweep import load_screenshots
 from pa_bailar.gemini import QuotaExhaustedError
 from pa_bailar.instagram import InstagramError
 from pa_bailar.merging import ordered_media

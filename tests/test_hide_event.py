@@ -7,7 +7,7 @@ import pytest
 
 from pa_bailar import config, inbox, status, storage, why
 from pa_bailar.commands.admin import answer
-from pa_bailar.commands.sweep import hidden_event_markdown
+from pa_bailar.commands.answers import hidden_event_markdown
 from pa_bailar.models import PostAnalysis
 from pa_bailar.pipeline import AddPostError, Sweep
 from tests.factories import EVENT_DATE, event_id, extracted, make_image
