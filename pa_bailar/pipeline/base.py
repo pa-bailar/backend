@@ -85,6 +85,11 @@ class SweepBase:
             (item for item in self.hidden.values() if matches_hidden(item.event, account, candidate, post_id)), None
         )
 
+    def _announced_hidden(self, post_id: str) -> bool:
+        """Whether an event hidden by hand came from this post or story: adding it by hand reads it again (even
+        unchanged, even when its other events are still published), so the hidden event can come back."""
+        return any(media.post_id == post_id for item in self.hidden.values() for media in item.event.media)
+
     # ---------- one post, one identity: the API's id, or public-<id> when read from its public page ----------
 
     def _record_id(self, code: str, public_only: bool = False) -> str | None:

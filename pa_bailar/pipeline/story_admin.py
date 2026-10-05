@@ -137,7 +137,7 @@ class StoryAdmin(SweepBase):
         hashes = [stories.image_hash(image) for image in images]
 
         record = self.processed.get(story_id)
-        if record and record.outcome in ("event", "merged"):
+        if record and record.outcome in ("event", "merged") and not self._announced_hidden(story_id):
             log.info("   %s: the same screenshots, published before", story_id)
             return self._story_answer(story_id, taken, taken_source, unchanged=True)
         twin = None if notes else self._same_story(hashes, now)
@@ -232,7 +232,8 @@ class StoryAdmin(SweepBase):
         )
 
     def _same_story(self, hashes: list[str], now: datetime) -> str | None:
-        """A published story these screenshots are of (another screenshot of it), shared recently."""
+        """A published story these screenshots are of (another screenshot of it), shared recently. Not one an event
+        was hidden from: sharing it again is undoing that "Ocultar", so it's read again."""
         since = now - timedelta(hours=stories.SAME_STORY_HOURS)
         return next(
             (
@@ -242,6 +243,7 @@ class StoryAdmin(SweepBase):
                 and record.outcome in ("event", "merged")
                 and datetime.fromisoformat(record.processed_at) >= since
                 and stories.same_story(hashes, record.image_hashes)
+                and not self._announced_hidden(story_id)
             ),
             None,
         )

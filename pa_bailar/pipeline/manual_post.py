@@ -87,7 +87,13 @@ class ManualPosts(SweepBase):
             self.accounts.setdefault(account, AccountState(first_seen=config.now_bogota().date().isoformat()))
             log.info("@%s added to accounts.txt", account)
         record = self.processed.get(post["id"])
-        unchanged = not again and record is not None and record.outcome in SETTLED_OUTCOMES and self._same_caption(post)
+        unchanged = (
+            not again
+            and record is not None
+            and record.outcome in SETTLED_OUTCOMES
+            and self._same_caption(post)
+            and not self._announced_hidden(post["id"])  # undoing an "Ocultar": read it again
+        )
         if unchanged:
             log.info("   analyzed before and unchanged: not read again %s", post["permalink"])
         else:

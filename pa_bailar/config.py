@@ -40,6 +40,8 @@ POSTS_PER_ACCOUNT = 10  # regular sweep; one API call per account regardless of 
 # The admin tools look for a post among this many of the account's latest (one API call): `admin why`, add-post.
 ADMIN_POST_SEARCH = 50
 SITE_URL = "https://pa-bailar.github.io"  # the public site, for links to events in the admin tools' answers
+# The admin page (admin-web/): "Ocultar"'s answer links to it with a post filled in, to publish it again in one tap.
+ADMIN_URL = "https://pa-bailar-admin.jzamorac-9.workers.dev"
 # Instagram's quota for our app, as a share used (0-100, from its usage headers): the sweep stops reading
 # accounts at this level instead of running into the limit, and discover pauses earlier (its own setting).
 INSTAGRAM_USAGE_STOP = 90

@@ -288,8 +288,13 @@ the last part of the event's link on the site (`/evento/<id>/`).
   (another date, another title or time), is published as usual, even from the same account.
 - If the run that hid it couldn't get its data PR merged, the next sweep takes it off anyway (events in
   `hidden_events.json` are never loaded).
-- **To publish it again:** Agregar or Volver a leer one of its posts (by hand, whoever asks wants it): it comes
-  back with its old link. Its id isn't given to another event meanwhile.
+- **To publish it again** (hidden by mistake): Agregar or Volver a leer one of its posts, or share its story's
+  screenshots again (by hand, whoever asks wants it): it comes back with its old link. Its id isn't given to
+  another event meanwhile. A post or story a hidden event came from is always read again when added by hand, even
+  unchanged and even when its other events are still published (`_announced_hidden`). The answer to "Ocultar"
+  lists its posts, each with a **Volver a publicarla** link: the admin page with that post filled in
+  (`ADMIN_URL/?url=<post>`, the same address its share target uses), where Agregar publishes it again; for a
+  story it says to share the screenshots again.
 - Forgotten 60 days after its last day, like the events themselves.
 
 ## How it works
