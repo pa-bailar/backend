@@ -131,7 +131,10 @@ def build(name: str) -> None:
         "word times are Whisper medium (es).",
     }
     v.data.mkdir(parents=True, exist_ok=True)
-    (v.data / "timing.json").write_text(json.dumps(timing, ensure_ascii=False, indent=1), encoding="utf-8")
+    # "\n" endings on Windows too: a committed file that doesn't flip line endings with each run.
+    (v.data / "timing.json").write_text(
+        json.dumps(timing, ensure_ascii=False, indent=1), encoding="utf-8", newline="\n"
+    )
     for line in lines:
         print(f"{line['start']:6.2f}–{line['end']:6.2f} {line['id']}: " + " ".join(w["word"] for w in line["words"]))
 

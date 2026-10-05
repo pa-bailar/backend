@@ -296,14 +296,18 @@ def voice_key(settings: dict) -> str | None:
 
 
 def _norm(word: str) -> str:
-    """A word as makeTiming() compares it (src/lib/timing.ts): no accents, no punctuation, lower case."""
-    plain = "".join(c for c in unicodedata.normalize("NFD", word.lower()) if not unicodedata.combining(c))
+    """A word as the Node side compares it (src/lib/words.ts plain()): no accents (any combining mark), no punctuation,
+    lower case. tests/timing-cases.json holds the cases both pass."""
+    plain = "".join(
+        c for c in unicodedata.normalize("NFD", word.lower()) if not unicodedata.category(c).startswith("M")
+    )
     return re.sub(r"[^a-z']", "", plain)
 
 
 def at_seconds(spec: str, timing: dict | None, fps: int = 30) -> float:
-    """A moment as tools/stills.mjs takes it: seconds ("8.5" or "8.5s"), a frame ("f255"), a line's start ("c4") or a
-    word's start ("c4:link", the nth with "c4:link:1"), from a video's data/timing.json."""
+    """A moment as tools/stills.mjs takes it (src/lib/words.ts secondsAt(), the same cases in tests/timing-cases.json):
+    seconds ("8.5" or "8.5s"), a frame ("f255"), a line's start ("c4") or a word's start ("c4:link", the nth with
+    "c4:link:1"), from a video's data/timing.json."""
     spec = spec.strip()
     if re.fullmatch(r"f\d+", spec):
         return int(spec[1:]) / fps

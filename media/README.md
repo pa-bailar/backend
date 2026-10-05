@@ -159,7 +159,7 @@ in the media home unless they start with `projects/`.
 | `publish.py <video> <deliverable> [--story \| --reel] [--caption-file --no-feed --thumb-offset --video-url --dry-run --confirm]` | .venv | **disabled** (below): posts a full render through Meta's Graph API: preflight `--api`, the quota, a container, the resumable upload, polling, `media_publish`, the permalink; once per render (its sha256), resumable after a crash, never twice. Without `PA_BAILAR_PUBLISH_ENABLED=1` and `--confirm` it only prints the requests (token redacted) | `publish_state.json` |
 | `clean.py [--yes]` | .venv | (skips what can't go to a Recycle Bin: a drive without one, an item too big for it) lists older versions, drafts, stills, sheets, comparisons and scratch folders in the home's `out/`, the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, the archive and anything git tracks stay | (the Recycle Bin) |
 | `npm run check` (in `media/`) | Node | `tsc`, every composition registers, one still per video | `out/check/` |
-| `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json`, and the captions' pages | (prints) |
+| `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json`, words and moments against `tests/timing-cases.json` (as the Python tests), the captions' pages and fades, the media home's paths | (prints) |
 
 The Python tests (`media/tests`, standard library only) run with the backend's: `.venv/Scripts/python -m pytest -q`.
 CI's `media` job (in `.github/workflows/ci.yml`) runs `npm ci`, `tsc` and `npm test` when `media/` changes.
@@ -238,7 +238,9 @@ digits), `TYPE.sans(size, color?)` (anything with numbers).
 - Match cuts: share one function between the two scenes (the teaser's `flight`).
 
 **`lib/timing`**: `makeTiming(timingJson)` gives `line(id)` (start/end) and `word(id, "dónde", nth)` (a word's
-start). **`lib/fonts`**: loads the faces from `media/fonts/` (`fontsReady` resolves when they're in);
+start). **`lib/words`**: the one word normalizer (`plain`) and time parser (`secondsAt`: "1.5", "1.5s", "f45", "c4",
+"c4:link:1") of the Node side, `stills.mjs` included; `tools/common.py` has the Python twins, and both pass the same
+table (`tests/timing-cases.json`). **`lib/fonts`**: loads the faces from `media/fonts/` (`fontsReady` resolves when they're in);
 `assets(video)(path)` is a `staticFile` in the home's `public/<video>/`.
 
 **`lib/captions`**: `captionPages(timing, settings)` turns a timing.json into pages with `@remotion/captions`'

@@ -408,6 +408,20 @@ def test_stale_when_missing_or_older_than_an_input(tmp_path):
     assert make.stale([], [src])
 
 
+TIMES = json.loads((Path(__file__).parent / "timing-cases.json").read_text(encoding="utf-8"))
+
+
+def test_words_and_moments_read_as_the_node_side_reads_them():
+    """The same table as tests/words.test.mjs (src/lib/words.ts)."""
+    for word, expected in TIMES["words"]:
+        assert common._norm(word) == expected, word
+    for spec, seconds in TIMES["times"]:
+        assert common.at_seconds(spec, TIMES["timing"], TIMES["fps"]) == pytest.approx(seconds), spec
+    for spec in TIMES["errors"]:
+        with pytest.raises(SystemExit):
+            common.at_seconds(spec, TIMES["timing"], TIMES["fps"])
+
+
 def test_a_stage_that_runs_makes_every_later_one_run():
     fresh = dict.fromkeys(make.STAGES)
     assert make.schedule(fresh, [], False) == [(s, None) for s in make.STAGES]

@@ -15,6 +15,7 @@ import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/p
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { arg, flag, positionals } from "./capture.mjs";
+import { secondsAt } from "../src/lib/words.ts";
 import { bundleDir, MEDIA, OUT, PUBLIC } from "./paths.mjs";
 
 /** Every file under `dir` (recursively), skipping node_modules. */
@@ -76,24 +77,10 @@ export async function bundled() {
   return dir;
 }
 
-const norm = (s) =>
-  s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z']/g, "");
-
-/** "1.5" → seconds, "f300" → frame, "c4" → a line's start, "c4:link[:n]" → a word's start; returns the frame. */
+/** "1.5" or "1.5s" → seconds, "f300" → frame, "c4" → a line's start, "c4:link[:n]" → a word's start (src/lib/words.ts,
+ * as tools/common.py at_seconds); returns the frame. */
 export function frameAt(spec, fps, timing) {
-  if (/^f\d+$/.test(spec)) return Number(spec.slice(1));
-  if (/^\d+(\.\d+)?$/.test(spec)) return Math.round(Number(spec) * fps);
-  const [id, word, nth = "0"] = spec.split(":");
-  const line = timing?.lines.find((l) => l.id === id);
-  if (!line) throw new Error(`no line "${id}" in data/timing.json (times are seconds, f<frame>, <line> or <line>:<word>)`);
-  if (!word) return Math.round(line.start * fps);
-  const hit = line.words.filter((w) => norm(w.word) === norm(word))[Number(nth)];
-  if (!hit) throw new Error(`no word "${word}" (#${nth}) in ${id}`);
-  return Math.round(hit.start * fps);
+  return Math.round(secondsAt(spec, timing, fps) * fps);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -6,6 +6,7 @@ export * from "./lib/scene";
 export * from "./lib/blur";
 export * from "./lib/transitions";
 export * from "./lib/timing";
+export * from "./lib/words";
 export * from "./lib/captions";
 export * from "./lib/fonts";
 export * from "./brand/record";

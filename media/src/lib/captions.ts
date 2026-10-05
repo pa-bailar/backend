@@ -3,6 +3,7 @@
 // logic, no React: tests/captions.test.mjs runs it in Node. The component that draws them is src/brand/captions.tsx.
 import { type Caption, createTikTokStyleCaptions } from "@remotion/captions";
 import type { TimingJson } from "./timing";
+import { plain } from "./words.ts";
 
 /** "minimal": a phrase at a time, chosen words emphasized. "kinetic": the phrase, with the word being said marked. */
 export type CaptionStyle = "minimal" | "kinetic";
@@ -24,14 +25,6 @@ export type CaptionsSettings = {
 
 export type CaptionToken = { text: string; fromMs: number; toMs: number; emphasis: boolean };
 export type CaptionPage = { text: string; startMs: number; endMs: number; tokens: CaptionToken[] };
-
-/** A word as makeTiming() compares it (src/lib/timing.ts, tools/stills.mjs): no accents, punctuation or case. */
-export const plain = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z']/g, "");
 
 /** A pause in the voice longer than this starts a new page. */
 const SILENCE_MS = 300;
