@@ -101,7 +101,7 @@ function externalCard(external) {
     })
     .join("");
   return `<section class="card"><h2>Último recurso hoy</h2>
-    <p class="small"><span class="warn">⚠️</span> Gemini se quedó sin cuota: estos modelos leyeron en su lugar. Sus lecturas son provisionales.</p>
+    <p class="small"><span class="warn">⚠️</span> Gemini se quedó sin cuota: estos modelos extrajeron en su lugar. Sus lecturas son provisionales: Gemini las relee después.</p>
     ${rows}<p class="small muted">Se reinicia ${when(external.resets_at)}</p></section>`;
 }
 

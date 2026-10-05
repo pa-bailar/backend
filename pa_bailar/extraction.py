@@ -5,18 +5,23 @@ Two steps, each on the model that fits it:
   2. extract  (Flash, small quota, best quality): every detail of the events. If every Flash model is
               out of quota, Flash-Lite extracts instead and the result is marked provisional, to be
               re-extracted with Flash on a later run.
-The last resort (external.py): when every Gemini model for a step is out of today's quota or not available to
-the key, models outside Gemini do it instead (Groq, then OpenRouter: each only with its key set). Their
-extractions are always provisional. If none can answer either, Gemini's error stands: the post waits for the
-next run.
+The last resort (external.py): when Flash and Flash-Lite are both out of today's quota (or not available to the
+key), models outside Gemini extract instead (Groq, then OpenRouter: each only with its key set). Their extractions
+are always provisional. If none can answer either, Gemini's error stands: the post waits for the next run. Only for
+the extraction: a Flash failure that isn't its quota (busy, a rejected request) never reaches it, and the triage
+never does (with Flash-Lite out, the sweep sends the post straight to the extraction when Flash is out too: see
+pipeline/sweep.py).
 A story (screenshots shared to the admin page, stories.py) skips the triage: one extraction request for all
 its screenshots (`extract_story`), with Flash-Lite's fallback but not the last resort (a story is never read
 again, so a last-resort reading would stay).
+No request starts after the extractor's `deadline` (the run's time budget, MAX_RUN_MINUTES after it's made: one
+extractor per run): the work waits for the next run (gemini.OutOfTimeError).
 The prompts are in prompts.py; quotas and retries in gemini.py.
 """
 
 import io
 import logging
+import time
 from datetime import datetime
 
 from google.genai import types
@@ -25,7 +30,7 @@ from pydantic import BaseModel
 
 from . import config
 from .external import ExternalReport, ExternalTier
-from .gemini import ExtractionError, ModelPool, QuotaExhaustedError
+from .gemini import ExtractionError, ModelPool, OutOfTimeError, QuotaExhaustedError
 from .instagram import Post
 from .models import PostAnalysis, StoredEvent, StoryAnalysis, Triage
 from .prompts import EXTRACTION_PROMPT, STORY_PROMPT, TRIAGE_PROMPT
@@ -67,9 +72,12 @@ def _small_jpeg(image: bytes) -> bytes:
 
 
 class EventExtractor:
-    def __init__(self, api_key: str, external: ExternalTier | None = None):
-        """`external`: the last resort (by default its providers' keys come from the environment)."""
+    def __init__(self, api_key: str, external: ExternalTier | None = None, deadline: float | None = None):
+        """`external`: the last resort (by default its providers' keys come from the environment). `deadline`
+        (time.monotonic()): no request starts after it; by default the run's time budget from now."""
+        self.deadline = deadline if deadline is not None else time.monotonic() + config.MAX_RUN_MINUTES * 60
         self.pool = ModelPool(api_key)
+        self.pool.deadline = self.deadline
         self.external = external or ExternalTier()
 
     def can_extract_with_flash(self) -> bool:
@@ -96,17 +104,15 @@ class EventExtractor:
     def triage(
         self, account: str, post: Post, published: datetime, images: list[bytes], rules: str = ""
     ) -> tuple[Triage, str]:
-        """Cheap yes/no on the caption and one small image. `rules`: the account's own (prompts.account_rules)."""
+        """Cheap yes/no on the caption and one small image, by Flash-Lite only: QuotaExhaustedError when it's out
+        (never the last resort, whose "no" would be final and whose tokens a triage would take from the extraction).
+        `rules`: the account's own (prompts.account_rules)."""
         context = _format_context(account, post, published, rules)
         contents: list[types.PartUnionDict] = [TRIAGE_PROMPT.format(**context)]
         if images:
             contents.insert(0, types.Part.from_bytes(data=_small_jpeg(images[0]), mime_type="image/jpeg"))
         # A yes/no on one small image: little reasoning needed (extraction keeps the default).
-        try:
-            return self.pool.generate(config.TRIAGE_MODELS, contents, Triage, thinking=types.ThinkingLevel.LOW)
-        except QuotaExhaustedError as out:
-            # Flash-Lite out of quota or not available: the last resort, else the post waits (Gemini's error stands).
-            return self._last_resort(contents, Triage, out)
+        return self.pool.generate(config.TRIAGE_MODELS, contents, Triage, thinking=types.ThinkingLevel.LOW)
 
     def extract(
         self,
@@ -158,14 +164,15 @@ class EventExtractor:
     def _extract[T: BaseModel](
         self, contents: list[types.PartUnionDict], schema: type[T], allow_provisional: bool, last_resort: bool = True
     ) -> tuple[T, str, bool]:
-        """Flash, else (when allowed) Flash-Lite as a provisional read, else (`last_resort`, and only when Gemini is
-        out of quota) the external providers, provisional too: (answer, model, provisional)."""
+        """Flash, else (when allowed) Flash-Lite as a provisional read, else (`last_resort`, and only when Flash and
+        Flash-Lite are both out of quota) the external providers, provisional too: (answer, model, provisional)."""
         try:
             analysis, model = self.pool.generate(config.EXTRACTION_MODELS, contents, schema)
             return analysis, model, False
         except ExtractionError as error:
             if not allow_provisional:
                 raise
+            flash_error = error
             if not config.PROVISIONAL_MODELS:
                 # Lite-only mode (Flash-Lite already extracts): only running out of quota goes on to the last resort.
                 # Any other error stands as it is, so a rejected post is recorded as rejected and a busy model is
@@ -176,7 +183,9 @@ class EventExtractor:
         try:
             analysis, model = self.pool.generate(config.PROVISIONAL_MODELS, contents, schema)
         except QuotaExhaustedError as out:
-            if not last_resort:
+            # The last resort stands in for Gemini's quota only: a busy Flash, or one that refused the post (a safety
+            # block), leaves it waiting for Gemini, as before the last resort existed.
+            if not last_resort or not isinstance(flash_error, QuotaExhaustedError):
                 raise
             return (*self._last_resort(contents, schema, out), True)
         return analysis, model, True
@@ -185,11 +194,13 @@ class EventExtractor:
         self, contents: list[types.PartUnionDict], schema: type[T], gemini_error: QuotaExhaustedError
     ) -> tuple[T, str]:
         """The external providers, when Gemini is out of quota for this step: an answer and its model, or else
-        Gemini's error (the post waits for the next run, as without them)."""
+        Gemini's error (the post waits for the next run, as without them). Nothing starts after the deadline."""
+        if time.monotonic() >= self.deadline:
+            raise OutOfTimeError("the run's time budget is used") from gemini_error
         if not self.external.available():
             raise gemini_error
         try:
-            analysis, model = self.external.generate(contents, schema)
+            analysis, model = self.external.generate(contents, schema, deadline=self.deadline)
         except ExtractionError as error:
             log.info("     the last resort couldn't answer either: %s", error)
             raise gemini_error from error

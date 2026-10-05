@@ -1,9 +1,11 @@
 """The last resort: models outside Gemini, on OpenAI-compatible chat APIs (config.EXTERNAL_PROVIDERS: Groq, then
-OpenRouter), used only when Gemini is out of quota for a step (extraction.py).
+OpenRouter), used only when Gemini is out of quota for an extraction (extraction.py).
 
-`ExternalTier.generate(contents, schema)` takes what `gemini.ModelPool.generate` takes (the prompt's text and images,
-a Pydantic schema) and returns the same: the parsed answer and the model that gave it, recorded as
-"<provider>:<model>" ("groq:qwen/qwen3.8-27b"). It fails fast, so a run never waits on it:
+`ExternalTier.generate(contents, schema, deadline)` takes what `gemini.ModelPool.generate` takes (the prompt's text
+and images, a Pydantic schema) and returns the same: the parsed answer and the model that gave it, recorded as
+"<provider>:<model>" ("groq:qwen/qwen3.8-27b"). It fails fast, and spends at most EXTERNAL_MAX_SECONDS_PER_POST on
+a post, never past the `deadline` (the run's time budget): a request, with its wait, starts only if it would end
+in time (its timeout counted in full):
   - providers in order, each only with its key set; within one, its models in order. One request per model and
     post, a short timeout, no retries: a busy answer (a provider's 429, a 5xx, a timeout) or one that isn't the
     schema's JSON goes on to the next model, and when none answers, the post waits for the next run;
@@ -14,9 +16,11 @@ a Pydantic schema) and returns the same: the parsed answer and the model that ga
   - each provider's limits: requests per minute (short pauses), a daily budget of requests (and of tokens, for
     Groq) under the free limits, shared by the day's runs (state/external_usage.json, saved with the sweep state; the
     day is UTC's), and for Groq its tokens per minute: each request's tokens are estimated (its text / 4, 2,048 per
-    image, an answer) and kept in a one-minute window. When the window is full for longer than
-    EXTERNAL_MAX_WAIT_SECONDS, the provider is skipped for that post. Groq takes at most 3 images: the first ones,
-    as many as its per-minute tokens allow;
+    image, an answer) and kept in a one-minute window. A request waits for room in the window, up to
+    EXTERNAL_MAX_WAIT_SECONDS (a minute: an extraction fills most of Groq's, so the next one waits for it to leave);
+    longer, or past the post's time, and the provider is skipped for that post. A provider with less than a request
+    (EXTERNAL_MIN_REQUEST_TOKENS) of its daily tokens left isn't available. Groq takes at most 3 images: the first
+    ones, as many as its per-minute tokens allow;
   - per run: a model that fails twice (busy, a timeout, invalid JSON) is set aside for the rest of the run, and a
     provider that refuses the key (401), wants credit (402) or blocks the request (403) is turned off for the run,
     each with one warning. `outcomes` counts what each model did, for the run's statistics and the health checks.
@@ -99,12 +103,17 @@ def units(provider: ExternalProvider) -> list[Unit]:
 
 class NoAnswerError(Exception):
     """A request gave no answer. `kind`: busy, invalid (not the schema's JSON), unavailable (404: the model is gone or
-    no longer free), skipped (its limits: not tried), refused (401, 402, 403: the provider is off for the run) or
-    spent (its daily limit)."""
+    no longer free), skipped (its limits or the post's time: not tried), refused (401, 402, 403: the provider is off
+    for the run) or spent (its daily limit)."""
 
     def __init__(self, kind: str, message: str):
         super().__init__(message)
         self.kind = kind
+
+
+class SkippedError(ExtractionError):
+    """`generate_with` didn't send the request: the provider's limits (its tokens per minute, a request too large).
+    Nothing failed: worth asking again later."""
 
 
 def parse_answer[T: BaseModel](text: str | None, schema: type[T]) -> T:
@@ -189,8 +198,9 @@ def _classify(reply: httpx.Response, provider: ExternalProvider) -> str:
 
 @dataclass
 class ExternalReport:
-    """The last resort in a run: what each request unit did (`outcomes`: answered, busy, invalid, skipped, refused,
-    spent), the ones set aside (`quarantined`) and the providers turned off (`problems`: why). Empty when unused."""
+    """The last resort in a run: what each request unit did (`outcomes`: answered, busy, invalid, unavailable,
+    skipped, refused, spent), the ones set aside (`quarantined`) and the providers turned off (`problems`: why).
+    Empty when unused."""
 
     outcomes: dict[str, dict[str, int]] = field(default_factory=dict)
     quarantined: list[str] = field(default_factory=list)
@@ -241,8 +251,11 @@ class ExternalTier:
         return self._usage.setdefault(provider, _Usage())
 
     def has_budget(self, provider: ExternalProvider) -> bool:
+        """Requests left today and, for a token-limited provider, tokens for at least the smallest request."""
         usage = self.usage(provider.name)
-        tokens_left = provider.daily_tokens is None or usage.tokens < provider.daily_tokens
+        tokens_left = (
+            provider.daily_tokens is None or usage.tokens + config.EXTERNAL_MIN_REQUEST_TOKENS <= provider.daily_tokens
+        )
         return usage.requests < provider.daily_requests and tokens_left
 
     def usable(self, provider: ExternalProvider) -> bool:
@@ -265,10 +278,14 @@ class ExternalTier:
 
     # ---------- asking ----------
 
-    def generate[T: BaseModel](self, contents: list[types.PartUnionDict], schema: type[T]) -> tuple[T, str]:
-        """The first answer from the providers and models in order, and its model ("<provider>:<model>"). Raises
-        ExtractionError when they failed, QuotaExhaustedError when none could be asked (no key, no budget, set
-        aside, its limits)."""
+    def generate[T: BaseModel](
+        self, contents: list[types.PartUnionDict], schema: type[T], deadline: float | None = None
+    ) -> tuple[T, str]:
+        """The first answer from the providers and models in order, and its model ("<provider>:<model>"), within
+        EXTERNAL_MAX_SECONDS_PER_POST and before `deadline` (time.monotonic()). Raises ExtractionError when they
+        failed, QuotaExhaustedError when none could be asked (no key, no budget, set aside, its limits, no time)."""
+        limit = time.monotonic() + config.EXTERNAL_MAX_SECONDS_PER_POST
+        limit = limit if deadline is None else min(limit, deadline)
         failed = False
         for provider in self.providers:
             for unit in units(provider):
@@ -277,7 +294,7 @@ class ExternalTier:
                 if unit.label in self.quarantined:
                     continue
                 try:
-                    return self._ask(unit, contents, schema, quarantine=True)
+                    return self._ask(unit, contents, schema, quarantine=True, limit=limit)
                 except NoAnswerError as miss:
                     log.info("    %s: no answer (%s: %s)", unit.label, miss.kind, miss)
                     failed = failed or miss.kind in FAILURES
@@ -288,9 +305,10 @@ class ExternalTier:
     def generate_with[T: BaseModel](
         self, provider_name: str, model_name: str, contents: list[types.PartUnionDict], schema: type[T]
     ) -> tuple[T, str]:
-        """One model of one provider, whatever happened before in the run (the bake-off). Its output mode comes
-        from the config; a model not listed there gets JSON mode. Raises ExtractionError (QuotaExhaustedError when
-        it couldn't be asked)."""
+        """One model of one provider, whatever happened before in the run (the bake-off): it waits for the
+        provider's tokens per minute like the sweep, with no time limit per post. Its output mode comes from the
+        config; a model not listed there gets JSON mode. Raises ExtractionError (QuotaExhaustedError when it couldn't
+        be asked, SkippedError when its limits kept the request from being sent)."""
         provider = next((p for p in self.providers if p.name == provider_name), None)
         if provider is None:
             raise ValueError(f"unknown provider {provider_name!r}")
@@ -298,18 +316,23 @@ class ExternalTier:
         if not self.usable(provider):
             raise QuotaExhaustedError(f"{provider_name}: no key, turned off or no budget left today")
         try:
-            return self._ask(Unit(provider, (model,)), contents, schema, quarantine=False)
+            return self._ask(Unit(provider, (model,)), contents, schema, quarantine=False, limit=None)
         except NoAnswerError as miss:
-            error = QuotaExhaustedError if miss.kind in ("spent", "refused") else ExtractionError
-            raise error(f"{miss.kind}: {miss}") from miss
+            errors = {"spent": QuotaExhaustedError, "refused": QuotaExhaustedError, "skipped": SkippedError}
+            raise errors.get(miss.kind, ExtractionError)(f"{miss.kind}: {miss}") from miss
 
     def _ask[T: BaseModel](
-        self, unit: Unit, contents: list[types.PartUnionDict], schema: type[T], quarantine: bool
+        self,
+        unit: Unit,
+        contents: list[types.PartUnionDict],
+        schema: type[T],
+        quarantine: bool,
+        limit: float | None,
     ) -> tuple[T, str]:
         """One request, its outcome counted; what its failure means for the provider or the model."""
         outcomes = self.outcomes.setdefault(unit.label, Counter())
         try:
-            answer, model = self._request(unit, contents, schema)
+            answer, model = self._request(unit, contents, schema, limit)
         except NoAnswerError as miss:
             outcomes[miss.kind] += 1
             if miss.kind == "refused":
@@ -336,14 +359,22 @@ class ExternalTier:
         outcomes["answered"] += 1
         return answer, recorded_name(unit.provider.name, model)
 
-    def _request[T: BaseModel](self, unit: Unit, contents: list[types.PartUnionDict], schema: type[T]) -> tuple[T, str]:
+    def _request[T: BaseModel](
+        self, unit: Unit, contents: list[types.PartUnionDict], schema: type[T], limit: float | None
+    ) -> tuple[T, str]:
+        """Sent only when it fits: today's tokens, the minute's (waiting for them) and, with a `limit`
+        (time.monotonic()), its wait plus a whole timeout before it."""
         provider = unit.provider
         parts, estimate = request_parts(contents, schema, unit.structured, provider)
         usage = self.usage(provider.name)
         if provider.daily_tokens is not None and usage.tokens + estimate > provider.daily_tokens:
             raise NoAnswerError("skipped", f"{provider.name}'s daily tokens are used")
-        self._wait_for_tokens(provider, estimate)
-        self._pace(provider)
+        wait = max(self._token_wait(provider, estimate), self._pace_wait(provider))
+        if limit is not None and time.monotonic() + wait + config.EXTERNAL_TIMEOUT_SECONDS > limit:
+            raise NoAnswerError("skipped", f"no time left for {provider.name} (this post's or the run's)")
+        if wait > 0:
+            time.sleep(wait)
+        self._last_call[provider.name] = time.monotonic()
         self._spend(provider, estimate)
         try:
             reply = self._http.post(provider.url, json=self._body(unit, parts, schema), headers=self._headers(provider))
@@ -392,24 +423,23 @@ class ExternalTier:
 
     # ---------- limits ----------
 
-    def _pace(self, provider: ExternalProvider) -> None:
-        """Requests spaced to the per-minute limit: a pause of a few seconds at most."""
+    def _pace_wait(self, provider: ExternalProvider) -> float:
+        """The pause that spaces requests to the per-minute limit: a few seconds at most."""
         interval = 60 / provider.requests_per_minute + config.PACING_MARGIN_SECONDS
         last = self._last_call.get(provider.name)
-        if last is not None and (wait := interval - (time.monotonic() - last)) > 0:
-            time.sleep(wait)
-        self._last_call[provider.name] = time.monotonic()
+        return 0.0 if last is None else max(0.0, interval - (time.monotonic() - last))
 
-    def _wait_for_tokens(self, provider: ExternalProvider, estimate: int) -> None:
-        """Room in the minute's tokens: waits for it if it comes soon, else NoAnswerError("skipped")."""
+    def _token_wait(self, provider: ExternalProvider, estimate: int) -> float:
+        """How long until the minute's tokens have room for this request (0: now). NoAnswerError("skipped") when
+        that's longer than EXTERNAL_MAX_WAIT_SECONDS."""
         if provider.tokens_per_minute is None:
-            return
+            return 0.0
         now = time.monotonic()
         window = [entry for entry in self._window.get(provider.name, []) if now - entry[0] < 60]
         self._window[provider.name] = window
         excess = sum(entry[1] for entry in window) + estimate - provider.tokens_per_minute
         if excess <= 0:
-            return
+            return 0.0
         freed = 0.0
         for moment, tokens in window:  # oldest first: when enough of them leave the minute
             freed += tokens
@@ -420,7 +450,7 @@ class ExternalTier:
             wait = 60.0
         if wait > config.EXTERNAL_MAX_WAIT_SECONDS:
             raise NoAnswerError("skipped", f"{provider.name}'s tokens for this minute are used")
-        time.sleep(wait)
+        return wait
 
     def _spend(self, provider: ExternalProvider, estimate: int) -> None:
         usage = self.usage(provider.name)

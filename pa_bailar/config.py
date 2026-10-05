@@ -102,9 +102,11 @@ GEMINI_TIMEOUT_SECONDS = 120  # one request; a stuck call fails instead of hangi
 QUOTA_TIMEZONE = "America/Los_Angeles"  # Gemini daily quotas reset at midnight Pacific time
 
 # ---------- External providers (the last resort) ----------
-# Models outside Gemini, on OpenAI-compatible chat APIs (external.py), used only when every Gemini model for a step
-# is out of today's quota or not available to the key: triage when Flash-Lite is out, extraction when Flash and
-# Flash-Lite are. Their answers are always provisional (re-read with Gemini on a later run, as Flash-Lite's are).
+# Models outside Gemini, on OpenAI-compatible chat APIs (external.py), used only for the extraction, when Flash and
+# Flash-Lite are both out of today's quota or not available to the key. Never for the triage: with Flash-Lite out
+# and Flash out too, the post goes straight to the extraction, which decides alone (Groq's tokens per minute don't
+# fit a triage and an extraction of the same post). Their answers are always provisional (re-read with Gemini on a
+# later run, as Flash-Lite's are).
 # Providers are tried in this order, each only if its key is set. Lite-only mode keeps them as the last resort
 # (their reads are then re-read by Flash-Lite). `admin bakeoff` compares the models with Flash, to re-check them
 # from time to time: free models come and go without notice. The list stays explicit: nothing switches by itself.
@@ -171,8 +173,17 @@ EXTERNAL_PROVIDERS = (
 EXTERNAL_TIMEOUT_SECONDS = 60  # one request, then the next model: no retries
 EXTERNAL_IMAGE_TOKENS = 2_048  # an image's input tokens, for the token estimate (Groq's count)
 EXTERNAL_ANSWER_TOKENS = 800  # an answer's tokens, estimated before the request (the real count replaces it)
-# When a provider's per-minute tokens are used, wait at most this long; longer, and the post goes on without it.
-EXTERNAL_MAX_WAIT_SECONDS = 15
+# The smallest request the sweep sends to a token-limited provider (an extraction without images: its prompt and
+# schema, about 4,200 tokens, and the answer; a test keeps it a floor): a provider with fewer of its daily tokens
+# left can't be asked today (ExternalTier.has_budget), so no post downloads its images just to be skipped.
+EXTERNAL_MIN_REQUEST_TOKENS = 5_000
+# When a provider's per-minute tokens are used, wait for them at most this long; longer, and the post goes on without
+# it. A minute: Groq's 8,000 tokens a minute fit one extraction (about 7,250 tokens with one image), so each
+# extraction waits for the one before to leave the minute.
+EXTERNAL_MAX_WAIT_SECONDS = 60
+# The most one post may spend on the last resort, waits included (also never past the run's time budget): Groq's
+# wait and request (60 + 60 s), then OpenRouter only if a request (60 s) still fits.
+EXTERNAL_MAX_SECONDS_PER_POST = 180
 # A model that fails this many times in a run (busy upstream, a 5xx, a timeout, an answer that isn't the schema's
 # JSON) is set aside for the rest of the run.
 EXTERNAL_FAILURES_TO_QUARANTINE = 2
@@ -197,7 +208,9 @@ BACKFILL_POSTS = 30
 BACKFILL_DAYS = 30
 
 # A run stops starting new Gemini work after this long and leaves the rest for the next run, inside the
-# sweep step's 35-minute timeout (the job's is 60): the steps after it still save the state and the data.
+# sweep step's 35-minute timeout (the job's is 60): the steps after it still save the state and the data. No request
+# starts after it (EventExtractor's deadline), so a run ends at most one Gemini request and one pause later (120 s +
+# 60 s), and the last resort never starts a request (or a wait) that wouldn't end before it.
 MAX_RUN_MINUTES = 30
 
 # Events over several consecutive days (a congress, a festival weekend) have an end_date: at most this many
