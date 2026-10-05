@@ -1013,8 +1013,9 @@ flowchart TD
 - **Adding an account** means adding a line to `accounts.txt` through a PR, in its section (academies, dance
   companies, event organizers, teachers and artists). The next sweep treats it as new and loads its older
   posts.
-- **Salsa bars and restaurants** are kept in `accounts.txt` as commented-out notes, with what discovery
-  found about each. They're not swept for now.
+- **Salsa bars and restaurants** are swept with `bar` after the name in `accounts.txt` (general bars and clubs
+  with `bar solo:salsa,bachata`), so only their special nights count (section 6.1). The ones not swept stay at
+  the end of the file as commented-out notes, with what discovery found about each.
 
 ### 12.2 `refresh-token`: a Meta token that doesn't expire
 
