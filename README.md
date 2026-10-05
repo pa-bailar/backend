@@ -47,8 +47,10 @@ sweep writes into `..\pa-bailar-web\data`; set `DATA_DIR` to change it).
 
 Secrets live in `.env` (repository root, git-ignored, never commit it): copy `.env.example`, which lists the keys
 with what each is for (`GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `META_APP_ID`, `META_APP_SECRET`,
-`MEDIA_GEMINI_API_KEY`, `OPENROUTER_API_KEY`), and below them, commented out, the optional settings that only change
-a default. The admin page's secrets for local development go in `admin-web/.dev.vars` (copy
+`MEDIA_GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `GROQ_API_KEY`), and below them, commented out, the optional settings
+that only change a default. `GROQ_API_KEY` and `OPENROUTER_API_KEY` are optional: they're the sweep's last resort
+when Gemini runs out of quota (Groq first, then OpenRouter's free models), and without them the posts wait for
+Gemini's next quota day, as before. The admin page's secrets for local development go in `admin-web/.dev.vars` (copy
 `admin-web/.dev.vars.example`).
 
 First time (from the repository root):
@@ -81,7 +83,8 @@ node --test "admin-web/test/*.test.mjs"       # the admin page's tests
   event organizers, teachers and artists, salsa bars). A bar's line says `bar` after the name, and a general bar
   or club `bar solo:salsa,bachata` (only those nights count): docs/ARCHITECTURE.md, section 6.1. Add as many as you like at once:
   a new account's first sweep reads its last 30 posts (30 days), and when the free Gemini quota runs
-  out the rest waits for the next day. Accounts already in their regular sweep always go first, so a
+  out the rest waits for the next day (or, with their keys set, Groq and OpenRouter read some of it
+  provisionally, docs/ARCHITECTURE.md section 7.3). Accounts already in their regular sweep always go first, so a
   backlog never delays today's events.
 - Already-analyzed posts are remembered in `state/processed_posts.json`, so re-runs only
   spend Gemini quota on new posts. On GitHub the state lives in the `sweep-state` branch (local runs
@@ -122,7 +125,8 @@ nothing enforces it. The site repository, which is public, does enforce it (`pro
 
 Settings → Secrets and variables → Actions:
 - Secrets: `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `APP_PRIVATE_KEY` (the pa-bailar-bot
-  App's private key), and optionally `HEALTHCHECK_URL`.
+  App's private key), and optionally `HEALTHCHECK_URL`, `GROQ_API_KEY` and `OPENROUTER_API_KEY` (the last
+  resort when Gemini runs out: without them it's never used).
 - Variables: `APP_ID` (the pa-bailar-bot App's id).
 
 ### What starts the sweep
@@ -156,12 +160,14 @@ compared with the previous runs, kept in `run_history.json` on the `sweep-state`
 - **Warnings** need a fix or a decision:
   - an account that couldn't be read in 3 tries in a row (each account is tried about once a day);
   - a Gemini model the key can't use, in 3 runs in a row;
+  - Groq or OpenRouter refusing their key or asking for credit, in 3 runs in a row;
   - Instagram's rate limit, the time budget or post errors in 3 runs in a row;
   - a backlog of pending posts that doesn't go down over 4 runs;
   - a week of posts without a single event.
 - **Notices** are worth knowing but need nothing yet:
   - one-off failures;
   - Flash's quota running out;
+  - the last resort (Groq, OpenRouter) used because Gemini ran out, with what each model did;
   - accounts with no posts in 45 days.
 - **Events to review** are upcoming events Gemini wasn't confident about, or whose date it doubted, events it
   couldn't place in Bogotá or another account's post called cancelled, and congresses or festivals dated on a
