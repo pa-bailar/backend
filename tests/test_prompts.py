@@ -24,3 +24,10 @@ def test_only_concerts_and_festivals_for_partner_dancing_count():
         assert "electronic (EDM, techno, house)" in prompt
         assert "A concert or festival counts only when it's for social or partner dancing" in prompt
         assert "a salsa orchestra's concert, or a dance festival with socials and" in prompt  # these still count
+
+
+def test_a_post_that_only_mentions_an_event_in_passing_doesnt_announce_it():
+    # Review finding: a song release mentioning a concert was linked to it (same_as) and moved its date.
+    for prompt in (TRIAGE_PROMPT, EXTRACTION_PROMPT):
+        assert "only mentions an event in passing" in prompt
+    assert "never link (same_as) a post that only" in EXTRACTION_PROMPT

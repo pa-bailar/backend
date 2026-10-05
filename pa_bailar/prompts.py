@@ -49,6 +49,8 @@ What does NOT count:
   events, results;
 - student showcases, wedding choreographies ("coreografía de boda"), tutorials, challenges, motivational
   posts, merchandise, and ads without a specific date;
+- a post about something else (a song or video release, a teacher's profile, a thank-you, a sponsor) that
+  only mentions an event in passing ("nos vemos el 21 en el concierto"): it doesn't announce that event;
 - posts announcing that an event is cancelled or postponed without a new date (a postponed event with
   its new date does count, with the new date);
 - events in another city or country, when the post says so (teachers and artists travel: "taller en
@@ -109,7 +111,8 @@ flyer. If an event in this post is one of the known events (same occasion, even 
 differs, e.g. "este sábado" vs the date), set same_as to that event's id and still fill in every detail
 you can see. A post presenting a teacher, an artist or one night of a congress or festival announces that
 same congress or festival: one event with its dates, linked by same_as when it's known. Otherwise set same_as
-to null.
+to null. Link only a post that announces the event itself, on its date: never link (same_as) a post that only
+mentions it in passing (a song release, a profile) or that gives it another date.
 
 {_EVENT_DEFINITION}
 (Mark is_recurring=true for any regular or weekly event you include.)

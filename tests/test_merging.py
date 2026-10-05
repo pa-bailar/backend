@@ -10,6 +10,7 @@ from pa_bailar.merging import (
     looks_like_shared_event,
     merge_into,
     ordered_media,
+    refused_link,
 )
 from tests.factories import EVENT_DATE, extracted, media, stored
 
@@ -20,8 +21,35 @@ OTHER_DATE = (date.fromisoformat(EVENT_DATE) + timedelta(days=1)).isoformat()  #
 
 def test_gemini_link_wins_even_when_details_differ():
     event = stored("flyer-0", title="Social Espacio Seguro", start_time="20:00")
-    candidate = extracted(same_as="flyer-0", title="Ven y baila este sábado", start_time=None, date="2026-10-11")
+    candidate = extracted(same_as="flyer-0", title="Ven y baila este sábado", start_time=None)
     assert find_existing([event], "academia", candidate, "new-post") is event
+
+
+def test_gemini_link_without_a_day_in_common_is_refused():
+    """A newer post linked to the 21 Nov event but dated 2 Oct (a song release mentioning the concert, or a
+    reschedule) never moves the event: it's a new event, flagged (review finding)."""
+    concert = stored("concierto-21-nov", title="Concierto", date="2026-11-21")
+    candidate = extracted(same_as="concierto-21-nov", title="Concierto", date="2026-10-02")
+    assert find_existing([concert], "academia", candidate, "new-post") is None
+    assert refused_link([concert], "academia", candidate, "new-post") is concert
+    on_its_day = extracted(same_as="concierto-21-nov", title="Lanzamiento", date="2026-11-21")
+    assert find_existing([concert], "academia", on_its_day, "new-post") is concert
+    assert refused_link([concert], "academia", on_its_day, "new-post") is None
+
+
+def test_gemini_link_to_a_series_needs_one_of_its_session_days():
+    days = ["2026-11-08", "2026-11-22", "2026-11-29"]
+    series = stored(
+        "intensivo-8-nov",
+        title="Intensivo",
+        date=days[0],
+        end_date=days[-1],
+        sessions=[{"date": day, "start_time": "14:00", "end_time": "17:00"} for day in days],
+    )
+    between = extracted(same_as="intensivo-8-nov", date="2026-11-15")  # between two sessions: not the series'
+    assert find_existing([series], "academia", between, "new-post") is None
+    session = extracted(same_as="intensivo-8-nov", date="2026-11-22")
+    assert find_existing([series], "academia", session, "new-post") is series
 
 
 def test_gemini_link_to_another_account_is_ignored():

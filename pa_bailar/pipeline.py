@@ -42,7 +42,7 @@ from .instagram import (
     slide_count,
     video_url,
 )
-from .merging import detach_post, find_existing, matches_hidden, merge_into
+from .merging import detach_post, find_existing, matches_hidden, merge_into, refused_link
 from .models import (
     AccountState,
     EventDetails,
@@ -1134,6 +1134,10 @@ class Sweep:
         if hidden:  # added by hand: published again (with its old id, when it's stored as new)
             del self.hidden[hidden.event.id]
             log.info("     hidden by hand before, published again (added by hand): %s", hidden.event.title)
+        if refused := refused_link(self.events, account, candidate, post["id"]):
+            log.info("     Gemini linked it to %s, which isn't on its day: not merged", refused.id)
+            doubt = f"posible cambio de fecha: Gemini lo une a {refused.id}"
+            candidate = candidate.model_copy(update={"doubts": [*candidate.doubts, doubt]})
         existing = find_existing(self.events, account, candidate, post["id"])
         if existing:
             self.events[self.events.index(existing)] = merge_into(existing, candidate, media)

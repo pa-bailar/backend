@@ -9,6 +9,7 @@ import pytest
 from pa_bailar import config, storage
 from pa_bailar.commands.sweep import summary_markdown
 from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError
+from pa_bailar.ids import new_event_id
 from pa_bailar.instagram import InstagramError
 from pa_bailar.models import PostAnalysis, ProcessedPost, Triage
 from pa_bailar.pipeline import Sweep
@@ -617,3 +618,21 @@ def test_an_accounts_latest_post_is_dated_in_bogota():
     stats = run(FakeInstagram({"academia": [late], "otra": []}), FakeExtractor({"p1": event_post("p1")}))
     assert stats.by_account["academia"].latest_post == evening.date().isoformat()
     assert storage.load_account_state()["academia"].latest_post == evening.date().isoformat()
+
+
+# ---------- Gemini's same_as link needs a day in common (review finding) ----------
+
+
+def test_a_same_as_link_to_another_day_never_moves_the_event_and_is_flagged():
+    later = (datetime.fromisoformat(EVENT_DATE) + timedelta(days=20)).date().isoformat()
+    concert = event_post("flyer", title="Concierto de salsa", date=later, start_time="21:00")
+    # A newer post (a song release that mentions the concert) linked to it, dated this week.
+    release = event_post("song", title="Lanzamiento", same_as=new_event_id("Concierto de salsa", later, set()))
+    instagram = FakeInstagram({"academia": [post("song", days_ago=1), post("flyer", days_ago=3)], "otra": []})
+    run(instagram, FakeExtractor({"flyer": concert, "song": release}))
+
+    events = {event["title"]: event for event in read(config.EVENTS_FILE)}
+    assert events["Concierto de salsa"]["date"] == later  # not moved to the newer post's date
+    assert [m["post_id"] for m in events["Concierto de salsa"]["media"]] == ["flyer"]
+    assert events["Lanzamiento"]["date"] == EVENT_DATE
+    assert any("cambio de fecha" in doubt for doubt in events["Lanzamiento"]["doubts"])
