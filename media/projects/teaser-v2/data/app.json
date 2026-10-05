@@ -1,0 +1,278 @@
+{
+ "url": "https://pa-bailar.github.io/",
+ "now": "2026-10-10T19:00:00-05:00",
+ "capturedAt": "2026-10-04T18:13:10.824Z",
+ "viewport": "360x640@3",
+ "styles": [
+  "Salsa",
+  "Bachata"
+ ],
+ "top": {
+  "bar": {
+   "x": 0,
+   "y": 259,
+   "w": 360,
+   "h": 57
+  },
+  "styleButton": {
+   "x": 256,
+   "y": 267,
+   "w": 88,
+   "h": 40
+  }
+ },
+ "pile": [
+  {
+   "file": "pile-0.webp",
+   "id": "primer-aniversario-ludance-fiesta-crossover-10-oct",
+   "ratio": 0.8,
+   "account": "ludancestudios",
+   "styles": "salsa · bachata · otro",
+   "chosen": true
+  },
+  {
+   "file": "pile-1.webp",
+   "id": "tour-de-la-salsa-capitulo-001-11-oct",
+   "ratio": 0.8,
+   "account": "salsaculto",
+   "styles": "salsa",
+   "chosen": true
+  },
+  {
+   "file": "pile-2.webp",
+   "id": "taller-de-salsa-estilo-caleno-17-oct",
+   "ratio": 1,
+   "account": "danceinmotionclub",
+   "styles": "salsa caleña",
+   "chosen": true
+  },
+  {
+   "file": "pile-3.webp",
+   "id": "bachatamania-social-17-oct",
+   "ratio": 1,
+   "account": "bachatamania_bogota",
+   "styles": "bachata",
+   "chosen": true
+  },
+  {
+   "file": "pile-4.webp",
+   "id": "edc-colombia-2026-10-oct",
+   "ratio": 0.8,
+   "account": "paramopresenta",
+   "styles": "urbano",
+   "chosen": false
+  }
+ ],
+ "menu": {
+  "rect": {
+   "x": 107.359375,
+   "y": 311,
+   "w": 236.640625,
+   "h": 321
+  },
+  "items": {
+   "Salsa": {
+    "x": 108.359375,
+    "y": 364,
+    "w": 234.640625,
+    "h": 44
+   },
+   "Bachata": {
+    "x": 108.359375,
+    "y": 408,
+    "w": 234.640625,
+    "h": 44
+   }
+  },
+  "frames": [
+   {
+    "file": "menu-0.png",
+    "chosen": []
+   },
+   {
+    "file": "menu-1.png",
+    "chosen": [
+     "Salsa"
+    ]
+   },
+   {
+    "file": "menu-2.png",
+    "chosen": [
+     "Salsa",
+     "Bachata"
+    ]
+   }
+  ],
+  "done": {
+   "x": 263.09375,
+   "y": 579,
+   "w": 63.90625,
+   "h": 44
+  }
+ },
+ "styleLabel": "2 ritmos",
+ "periods": [
+  {
+   "key": "hoy",
+   "label": "Hoy",
+   "top": 340,
+   "events": [
+    "primer-aniversario-ludance-fiesta-crossover-10-oct"
+   ]
+  },
+  {
+   "key": "fin-de-semana",
+   "label": "Este fin de semana",
+   "top": 1173.578125,
+   "events": [
+    "tour-de-la-salsa-capitulo-001-11-oct"
+   ]
+  },
+  {
+   "key": "proxima-semana",
+   "label": "Próxima semana",
+   "top": 2035.046875,
+   "events": [
+    "taller-de-salsa-estilo-caleno-17-oct",
+    "bachatamania-social-17-oct"
+   ]
+  },
+  {
+   "key": "resto-del-mes",
+   "label": "Más adelante en octubre",
+   "top": 3408.015625,
+   "events": []
+  },
+  {
+   "key": "2026-11",
+   "label": "Noviembre",
+   "top": 3675.296875,
+   "events": []
+  },
+  {
+   "key": "2026-12",
+   "label": "Diciembre",
+   "top": 3912.6875,
+   "events": []
+  },
+  {
+   "key": "2027-02",
+   "label": "Febrero de 2027",
+   "top": 4150.078125,
+   "events": []
+  },
+  {
+   "key": "2027-03",
+   "label": "Marzo de 2027",
+   "top": 4387.46875,
+   "events": []
+  }
+ ],
+ "list": {
+  "cssHeight": 5097,
+  "file": "list-full.png"
+ },
+ "bars": {
+  "hoy": {
+   "file": "bar-hoy.png",
+   "h": 57,
+   "label": "Hoy"
+  },
+  "fin-de-semana": {
+   "file": "bar-fin-de-semana.png",
+   "h": 57,
+   "label": "Finde"
+  },
+  "proxima-semana": {
+   "file": "bar-proxima-semana.png",
+   "h": 57,
+   "label": "Próx. semana"
+  }
+ },
+ "detail": {
+  "event": "taller-de-salsa-estilo-caleno-17-oct",
+  "scrollTop": 1971.046875,
+  "card": {
+   "x": 0,
+   "y": 2142.828125,
+   "w": 360,
+   "h": 592.59375
+  },
+  "tap": {
+   "x": 16,
+   "y": 2510.828125,
+   "w": 108.15625,
+   "h": 44
+  },
+  "tapIsDetailsButton": true,
+  "sheet": {
+   "file": "detail-sheet.png",
+   "x": 0,
+   "y": 268.796875,
+   "w": 360,
+   "h": 371.203125,
+   "hasPanel": true,
+   "fullScreen": false
+  },
+  "half": {
+   "when": {
+    "x": 84,
+    "y": 358.796875,
+    "w": 167.28125,
+    "h": 19.5
+   },
+   "quickHow": {
+    "x": 16,
+    "y": 468.578125,
+    "w": 104,
+    "h": 64
+   },
+   "cuando": {
+    "x": 16,
+    "y": 577.578125,
+    "w": 328,
+    "h": 45
+   }
+  },
+  "rows": {
+   "cuando": {
+    "x": 16,
+    "y": 86.578125,
+    "w": 328,
+    "h": 45
+   },
+   "lugar": {
+    "x": 16,
+    "y": 139.578125,
+    "w": 328,
+    "h": 23.71875
+   },
+   "precio": {
+    "x": 16,
+    "y": 171.296875,
+    "w": 328,
+    "h": 22.5
+   },
+   "comoLlegar": {
+    "x": 213.46875,
+    "y": 139.578125,
+    "w": 93.53125,
+    "h": 19.5
+   },
+   "precios": {
+    "x": 16,
+    "y": 431.203125,
+    "w": 328,
+    "h": 80
+   },
+   "preciosHeading": {
+    "x": 16,
+    "y": 400.515625,
+    "w": 328,
+    "h": 18.6875
+   },
+   "panelTop": -222.203125
+  }
+ },
+ "shelfLife": "2026-10-10 (the screens' \"Hoy\"; post before it's over)"
+}

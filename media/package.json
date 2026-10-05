@@ -1,0 +1,27 @@
+{
+  "name": "pa-bailar-media",
+  "version": "1.0.0",
+  "description": "Pa' Bailar's video toolkit: a Remotion motion and brand library, one folder per video, and the tools that feed them",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "typecheck": "tsc --noEmit",
+    "compositions": "remotion compositions"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.532",
+    "@remotion/fonts": "4.0.532",
+    "@remotion/media": "4.0.532",
+    "@remotion/media-utils": "4.0.532",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.532"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "playwright-core": "1.63.0",
+    "typescript": "7.0.2"
+  }
+}

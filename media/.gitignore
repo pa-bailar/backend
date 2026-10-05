@@ -1,0 +1,9 @@
+# Generated or downloaded, never committed: rebuild them with the tools (README.md)
+node_modules/
+out/
+cache/
+# Each video's binaries (screens, flyers, audio) are written here by the tools; only the fonts are kept
+public/*
+!public/fonts/
+# The Remotion agent skills: installed locally (npx skills add remotion-dev/skills), versions pinned in skills-lock.json
+.claude/skills/remotion-*/
