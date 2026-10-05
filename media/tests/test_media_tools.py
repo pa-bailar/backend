@@ -507,7 +507,8 @@ def test_preflight_reads_the_picture_as_displayed():
 def test_a_relative_media_home_is_relative_to_the_backend():
     assert common.media_home(None) == Path(r"D:\AI\pa-bailar-media")
     assert common.media_home("../media-home") == (common.BACKEND.parent / "media-home").resolve()
-    assert common.media_home(r"E:\elsewhere") == Path(r"E:\elsewhere")
+    elsewhere = Path(__file__).resolve().parent  # an absolute path stays as it is
+    assert common.media_home(str(elsewhere)) == elsewhere
 
 
 def test_new_registers_a_video_once(tmp_path):
