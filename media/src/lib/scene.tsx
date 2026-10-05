@@ -62,3 +62,18 @@ export const FadeIn: React.FC<{ frames?: number; color?: string }> = ({ frames =
     />
   );
 };
+
+/** Fades out to the paper over the last `frames` (no hard last frame); put it above the scenes. */
+export const FadeOut: React.FC<{ frames?: number; color?: string }> = ({ frames = 8, color = C.paper }) => {
+  const frame = useCurrentFrame();
+  const { durationInFrames } = useVideoConfig();
+  return (
+    <AbsoluteFill
+      style={{
+        background: color,
+        opacity: interpolate(frame, [durationInFrames - frames, durationInFrames - 1], [0, 1], clamp),
+        pointerEvents: "none",
+      }}
+    />
+  );
+};

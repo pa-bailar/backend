@@ -22,6 +22,13 @@ export type VideoEvent = {
   /** Added by tools/events.py: the cover flyer, relative to public/<video>/ ("flyers/<file>.webp"), and its ratio. */
   flyer: string | null;
   ratio: number | null;
+  /**
+   * Added by tools/events.py: the occurrence a video shows, the event's first day inside the snapshot's range and that
+   * day's times (a run of days or a workshop series has its own per session). Show these, not date/start_time.
+   */
+  day: string;
+  day_start: string | null;
+  day_end: string | null;
 };
 
 /** projects/<video>/data/events.json: `import snapshot from "./data/events.json"; const events = snapshot.events as VideoEvent[]`. */
@@ -69,6 +76,15 @@ export function dateLabel(iso: string, withWeekday = true): string {
   return withWeekday ? `${DAYS[d.getUTCDay()]} ${text}` : text;
 }
 
+/** A range as the site says it (format.ts spanLabel): "sáb 10", "9–11 oct", "30 oct – 1 nov". */
+export function spanLabel(from: string, to: string): string {
+  const a = day(from);
+  const b = day(to);
+  if (from === to) return `${DAYS[a.getUTCDay()].slice(0, 3)} ${a.getUTCDate()}`;
+  if (from.slice(0, 7) === to.slice(0, 7)) return `${a.getUTCDate()}–${b.getUTCDate()} ${MONTHS[b.getUTCMonth()]}`;
+  return `${a.getUTCDate()} ${MONTHS[a.getUTCMonth()]} – ${b.getUTCDate()} ${MONTHS[b.getUTCMonth()]}`;
+}
+
 /** "7:00 p. m." (es-CO). */
 export function timeLabel(hhmm: string | null): string | null {
   if (!hhmm) return null;
@@ -76,12 +92,15 @@ export function timeLabel(hhmm: string | null): string | null {
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h < 12 ? "a. m." : "p. m."}`;
 }
 
-/** "Gratis", "$25.000", or "Desde $20.000" when there are several prices. */
+const MONEY = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
+
+/**
+ * The price as the site says it (format.ts priceSummary): the lowest, "Gratis" when it's 0, "Desde $ 20.000" when
+ * there are several and the lowest isn't free.
+ */
 export function priceLabel(prices: Price[]): string | null {
   if (!prices.length) return null;
-  const amounts = prices.map((p) => p.amount_cop);
-  const low = Math.min(...amounts);
-  if (low === 0 && amounts.every((a) => a === 0)) return "Gratis";
-  const cop = (n: number) => `$${n.toLocaleString("es-CO")}`;
-  return amounts.length > 1 && Math.max(...amounts) !== low ? `Desde ${cop(low)}` : cop(low);
+  const low = Math.min(...prices.map((p) => p.amount_cop));
+  const amount = low === 0 ? "Gratis" : MONEY.format(low);
+  return prices.length > 1 && low > 0 ? `Desde ${amount}` : amount;
 }

@@ -72,9 +72,9 @@ ace = `D:/AI/ace-step/.venv/Scripts/python`. Each tool's docstring has the detai
 | `timing.py --transcribe <wav>` | whisper | what Whisper hears in a take (QA) | (prints) |
 | `music.py <video>` | ace | ACE-Step beds for every prompt × seed (cached) | `cache/music/<prompt>-s<seed>-<hash>.wav` |
 | `analyze.py <wavs>` | whisper | bpm, beats, first hit, loudness, a spectrogram strip | `out/music/music-analysis.{png,json}` |
-| `mix.py <video>` | .venv | voice-only (−15 LUFS) and with-music (−14, bed ducked by the voice), fades, exact length | `public/<video>/audio/` |
-| `events.py <video> --from --to [--styles] [--live]` | .venv | the events on those days + their cover flyers | `data/events.json`, `public/<video>/flyers/` |
-| `node tools/capture.mjs <video> <name> [--path --now --theme --full --scroll --click]` | Node | one screen of the live site on a phone, clock frozen (also a library for scripted walks) | `public/<video>/screens/`, `data/screens.json` |
+| `mix.py <video>` | .venv | voice-only (−15 LUFS) and with-music (−14, bed ducked by the voice), fades, exact length; a video with no voice: music-only (−16) | `public/<video>/audio/` |
+| `events.py <video> --from --to \| --weekend [date] [--styles] [--limit n] [--live] [--allow-empty]` | .venv | the events on those days (sorted by the day the video shows, with that day's times: `day`, `day_start`, `day_end`) + their cover flyers; an empty result writes nothing | `data/events.json`, `public/<video>/flyers/` |
+| `node media/tools/capture.mjs <video> <name> [--path --now --theme --full --scroll --click --wait]` | Node | one screen of the live site on a phone, clock frozen (also a library for scripted walks) | `public/<video>/screens/`, `data/screens.json` |
 | `render.py <video> [--draft] [--frames 90,240]` | .venv | Remotion renders of `video.json`'s `renders` | `out/<video>/*.mp4`, `frames/` |
 | `review.py sheet <mp4> [--at …]` | .venv | a keyframe strip with the safe zones | `<mp4>-sheet.png` |
 | `review.py compare <a> <b>` | .venv | side by side, labeled, for the owner | `<a>-vs-<b>.mp4` |
@@ -94,8 +94,9 @@ ace = `D:/AI/ace-step/.venv/Scripts/python`. Each tool's docstring has the detai
 }
 ```
 
-Only `duration` and `renders` are required. Composition ids are `<video>-<deliverable>`, inside a `<Folder>` named
-after the video. Every composition takes a `blur` prop (motion blur on or off; `render.py --draft` turns it off).
+Only `duration` and `renders` are required; compositions import `video.json` for their length, so `mix.py` and the
+picture agree. The frame rate is the kit's (30 fps, `FPS`). Composition ids are `<video>-<deliverable>`, inside a
+`<Folder>` named after the video. Every composition takes a `blur` prop (motion blur on or off; `render.py --draft` turns it off).
 
 ## The library (`src/kit.ts`)
 
@@ -118,20 +119,23 @@ H.264), `TYPE.sans(size, color?)`.
 **`lib/scene`**:
 - `<Scene start end pre post move name>` is a scene that overlaps its neighbors for transitions.
 - `useScene()` gives `{frame, abs, t}`.
-- `<FadeIn frames>` eases in from the paper.
+- `<FadeIn frames>` eases in from the paper; `<FadeOut frames>` fades out to it at the end (the owner's rule: fade in
+  and out).
 
 **`lib/blur`**:
 - `<Shutter samples>` is exact-color motion blur over everything; `samplesFor(frame, ranges, fastRanges)` picks
-  the samples per frame.
+  the samples per frame; `inRanges(frame, ranges)` tests one.
 - `smear(frame, speed, render)` is cheap blur inside one layer (a scrolling screenshot).
 
 **`lib/transitions`**:
-- `whip(abs, cut)` gives `{p, dip}`, a whip pan with anticipation; `whipBlur(cut)` is its blur window.
+- `whip(abs, cut, lead = WHIP_LEAD)` gives `{p, dip}`, a whip pan with anticipation starting `lead` (5) frames
+  before the cut; `whipBlur(cut)` is its blur window.
 - `iris(frame, at)` is a clip-path circle opening from a point.
 - Match cuts: share one function between the two scenes (the teaser's `flight`).
 
 **`lib/timing`**: `makeTiming(timingJson)` gives `line(id)` (start/end) and `word(id, "dónde", nth)` (a word's
-start). **`lib/fonts`**: loads the faces; `assets(video)(path)` is a `staticFile` in `public/<video>/`.
+start). **`lib/fonts`**: loads the faces (`fontsReady` resolves when they're in); `assets(video)(path)` is a `staticFile` in
+`public/<video>/`.
 
 **`brand/`**:
 
@@ -151,17 +155,17 @@ start). **`lib/fonts`**: loads the faces; `assets(video)(path)` is a `staticFile
 | `Sticker`, `AppIcon` | the round tomato sticker; the app icon's squircle |
 
 **`data/events`**:
-- `VideoEvent` and `EventsSnapshot` are the shape of `events.json`.
+- `VideoEvent` and `EventsSnapshot` are the shape of `events.json`; show `day`/`day_start`, not `date`/`start_time`.
 - `daysOf`, `between(events, from, to, styles)` and `weekend(today)` select events.
-- `dateLabel`, `timeLabel` and `priceLabel` give the site's wording ("sábado 10 oct", "8:00 p. m.", "Desde
+- `dateLabel`, `spanLabel`, `timeLabel` and `priceLabel` give the site's wording ("sábado 10 oct", "8:00 p. m.", "Desde
   $25.000").
 
 ## Videos
 
 | Folder | What | Notes |
 |---|---|---|
-| [`teaser-v2`](projects/teaser-v2/) | The 21 s teaser of the site: voice, beat-cut scenes, a thumb driving the live site, three deliverables (Story ×2, Reel) | The worked example of everything; renders pixel-identical to the original project (`pa-bailar-teaser`, kept as the archive). Its `capture.mjs` predates the Oct 4 filter bar: update it before re-capturing |
-| [`este-finde`](projects/este-finde/) | A 12 s weekly Story of the coming weekend's events, from data only, no voice | `events.py este-finde --from <fri> --to <sun> --live`, then render. Example, not yet reviewed by the owner |
+| [`teaser-v2`](projects/teaser-v2/) | The 21 s teaser of the site: voice, beat-cut scenes, a thumb driving the live site, three deliverables (Story ×2, Reel) | The worked example of everything; renders pixel-identical to the original project (`pa-bailar-teaser`, kept as the archive). Its `capture.mjs` predates the Oct 4 site (filter bar, drawer, no account filter): rewrite it before re-capturing (its README lists what changed) |
+| [`este-finde`](projects/este-finde/) | A 12 s weekly Story of the coming weekend's events, from data only, no voice | `events.py este-finde --weekend --live`, then render (`este-finde-story`). Example, not yet reviewed by the owner |
 
 ## Rules that bite
 

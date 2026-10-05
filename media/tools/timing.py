@@ -107,8 +107,15 @@ def build(name: str) -> None:
                     "p": round(w.probability, 2),
                 }
             )
-    for line in lines:  # which words fall in each line
-        line["words"] = [w for w in words if line["start"] - 0.15 <= (w["start"] + w["end"]) / 2 <= line["end"] + 0.15]
+    for line in lines:
+        line["words"] = []
+    for w in words:  # each word to the one line it falls in (or the nearest, within 0.15 s), never to two
+        mid = (w["start"] + w["end"]) / 2
+        gap = [max(line["start"] - mid, mid - line["end"], 0) for line in lines]
+        nearest = min(range(len(lines)), key=gap.__getitem__)
+        if gap[nearest] <= 0.15:
+            lines[nearest]["words"].append(dict(w))
+    for line in lines:
         for w in line["words"]:  # Whisper stretches a first word over the silence before it
             w["start"] = max(w["start"], line["start"])
             w["end"] = min(max(w["end"], w["start"] + 0.05), line["end"] + 0.1)

@@ -10,7 +10,8 @@ import {
   C,
   camera,
   dateLabel,
-  daysOf,
+  FadeIn,
+  FadeOut,
   FONT,
   FPS,
   Flyer,
@@ -26,6 +27,7 @@ import {
   Record,
   rise,
   sec,
+  spanLabel,
   sp,
   spinAngle,
   SPRING,
@@ -38,9 +40,10 @@ import {
   WIDTH,
 } from "../../src/kit";
 import snapshot from "./data/events.json";
+import settings from "./video.json";
 
 const file = assets("este-finde");
-const DURATION_S = 12;
+const DURATION_S = settings.duration;
 const { BEAT, beats, downbeats } = grid(98);
 const data = snapshot as EventsSnapshot;
 const MAX = 4; // cards that fit above the safe zone's bottom; the subtitle gives the total
@@ -53,15 +56,12 @@ const CARDS_TOP = 600;
 
 const capital = (s: string) => s[0].toUpperCase() + s.slice(1);
 
-/** The weekend day the event is on (a run of days or a series can start before it). */
-const dayIn = (e: VideoEvent) => daysOf(e).find((d) => d >= data.from && d <= data.to) ?? e.date;
-
 const Card: React.FC<{ e: VideoEvent; i: number; frame: number }> = ({ e, i, frame }) => {
   const start = sec(CARDS_AT + i * BEAT) + jit(`card${i}`, 1);
   const out = leave(frame, OUT + i * 2, 8);
   const ratio = e.ratio ?? 0.8;
   const w = Math.min(176, (CARD_H - 24) * ratio);
-  const facts = [timeLabel(e.start_time), priceLabel(e.prices)].filter(Boolean).join(" · ");
+  const facts = [timeLabel(e.day_start), priceLabel(e.prices)].filter(Boolean).join(" · ");
   return (
     <div
       style={{
@@ -88,10 +88,10 @@ const Card: React.FC<{ e: VideoEvent; i: number; frame: number }> = ({ e, i, fra
         ) : null}
       </div>
       <div style={{ minWidth: 0 }}>
-        <div style={TYPE.sans(34, C.tomato600)}>{capital(dateLabel(dayIn(e)))}</div>
+        <div style={TYPE.sans(34, C.tomato600)}>{capital(dateLabel(e.day))}</div>
         <div
           style={{
-            ...TYPE.sans(44, C.wine900),
+            ...TYPE.sans(40, C.wine900),
             lineHeight: 1.1,
             margin: "6px 0 8px",
             display: "-webkit-box",
@@ -102,9 +102,11 @@ const Card: React.FC<{ e: VideoEvent; i: number; frame: number }> = ({ e, i, fra
         >
           {e.title}
         </div>
-        <div style={{ ...TYPE.serif(34), whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {[facts, e.area ?? e.venue, `@${e.account}`].filter(Boolean).join(" · ")}
+        {/* Times and prices in the sans: Bodoni's italic 4 loses its hairline at video size and reads as a 1. */}
+        <div style={{ ...TYPE.sans(30, C.wine500), whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {facts}
         </div>
+        <div style={{ ...TYPE.sans(28, C.cocoa500), marginTop: 2 }}>@{e.account}</div>
       </div>
     </div>
   );
@@ -118,7 +120,7 @@ export const EsteFinde: React.FC<{ blur?: boolean }> = () => {
   const endAt = OUT + 6;
   const icon = sp(frame, endAt, SPRING.pop);
   const rec = sp(frame, endAt + 2, SPRING.weight);
-  const range = `${dateLabel(data.from, false).split(" ")[0]}–${dateLabel(data.to, false)}`;
+  const range = spanLabel(data.from, data.to);
   return (
     <AbsoluteFill style={{ background: C.paper }}>
       <AbsoluteFill style={cam(0.6)}>
@@ -182,6 +184,8 @@ export const EsteFinde: React.FC<{ blur?: boolean }> = () => {
           </div>
         </AbsoluteFill>
       ) : null}
+      <FadeIn />
+      <FadeOut frames={10} />
       <Grain />
     </AbsoluteFill>
   );
@@ -190,7 +194,7 @@ export const EsteFinde: React.FC<{ blur?: boolean }> = () => {
 export const EsteFindeVideo: React.FC = () => (
   <Folder name="este-finde">
     <Composition
-      id="este-finde"
+      id="este-finde-story"
       component={EsteFinde}
       durationInFrames={DURATION_S * FPS}
       fps={FPS}
