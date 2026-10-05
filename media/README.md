@@ -29,8 +29,8 @@ media/
 ### The media home
 
 Everything generated lives outside the checkout, in **`D:\AI\pa-bailar-media`** (`PA_BAILAR_MEDIA_HOME` overrides
-it; `tools/common.py`, `tools/paths.mjs` and `remotion.config.ts` read it), so every worktree shares it and removing a
-worktree can't delete it:
+it; `tools/common.py`, `tools/paths.mjs` and `remotion.config.ts` read it, and a relative one is relative to the
+backend's root in all three), so every worktree shares it and removing a worktree can't delete it:
 
 ```
 D:\AI\pa-bailar-media\
@@ -149,7 +149,7 @@ in the media home unless they start with `projects/`.
 | `node media/tools/stills.mjs <video> [deliverable] --at 1.5,f255,c4:link [--scale --no-blur --out]` | Node | stills from one bundle (reused while nothing changed): seconds, frames, a line's or a word's start | `out/<video>/frames/` |
 | `render.py <video> [deliverables] [--draft] [--review] [--strict]` | .venv | Remotion renders of `video.json`'s `renders`; refuses stale timing, warns past the shelf life (`--strict` refuses); `--review`: Instagram pre-flight, sheet, band check (Stories), Reel safe zones (Reels), side-by-side with the previous version | `out/<video>/<video>-v<version>-<deliverable>[-draft].mp4` |
 | `render.py <video> --frames 90,8.5s,c4:link [deliverable]` | .venv | stills through `stills.mjs` | `out/<video>/frames/` |
-| `preflight.py <mp4 …> [--story \| --reel] [--api]` | .venv | will Instagram take it: MP4/MOV, H.264 or HEVC 4:2:0, 23–60 fps, 9:16, ≤1920 px wide, ≤25 Mbps, a Story clip ≤60 s / a Reel 3 s–15 min (a warning past 3 min: not recommended in Explore or the Reels tab), ≤1 GB, AAC (over 128 kbps is a note), the moov atom first; `--api` (the Graph API's spec): a Reel ≤300 MB, a Story ≤100 MB and 3–60 s, faststart required, an edit list warned. The kind from the name ("reel") unless given; exit 1 on a failure, warnings otherwise | (prints) |
+| `preflight.py <mp4 …> [--story \| --reel] [--api]` | .venv | will Instagram take it: MP4/MOV, H.264 or HEVC 4:2:0, 23–60 fps, 9:16 and ≤1920 px wide as displayed (rotation metadata honored), ≤25 Mbps, a Story clip ≤60 s / a Reel 3 s–15 min (a warning past 3 min: not recommended in Explore or the Reels tab), ≤1 GB, AAC (over 128 kbps is a note), the moov atom first; `--api` (the Graph API's spec): a Reel ≤300 MB, a Story ≤100 MB and 3–60 s, faststart required, an edit list warned. The kind from the name ("reel") unless given; exit 1 on a failure, warnings otherwise | (prints) |
 | `cover.py <video> --at 19.5\|f585\|c4:link [--deliverable reel] [--grid 1080x1440]` | .venv | a Reel's cover: one frame at full size through `stills.mjs` (from the first Reel deliverable by default), the centered 3:4 crop the profile grid shows (1080×1440), and the Reel safe-zone check on it (warnings) | `out/<video>/<video>-v<version>-cover.png`, `…-cover-grid.png` |
 | `review.py sheet <mp4> [--at 1.5,f255,c4:link --timing <video> \| --every 2]` | .venv | a keyframe strip with the safe zones | `<mp4>-sheet.png` |
 | `review.py compare <a> <b>` | .venv | side by side, labeled, for the owner (a draft against a full render works too) | `<a>-vs-<b>.mp4` |
@@ -157,7 +157,7 @@ in the media home unless they start with `projects/`.
 | `review.py band <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | nothing but the background above y 252 (the sticker band + 2 px) on any frame; `--video` allows its `sticker_band.allow` spans; exit 1 when something enters | (prints) |
 | `review.py reel <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | the Reel's safe zones (108 top, 320 bottom, 60 left, 120 right): content in those margins is a warning per side, with the frames and how close to the edge it gets (images may run into them, words never); `--video` allows its `reel_safe.allow` spans | (prints) |
 | `publish.py <video> <deliverable> [--story \| --reel] [--caption-file --no-feed --thumb-offset --video-url --dry-run --confirm]` | .venv | **disabled** (below): posts a full render through Meta's Graph API: preflight `--api`, the quota, a container, the resumable upload, polling, `media_publish`, the permalink; once per render (its sha256), resumable after a crash, never twice. Without `PA_BAILAR_PUBLISH_ENABLED=1` and `--confirm` it only prints the requests (token redacted) | `publish_state.json` |
-| `clean.py [--yes]` | .venv | lists older versions, drafts, stills, sheets, comparisons and scratch folders in the home's `out/`, the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, the archive and anything git tracks stay | (the Recycle Bin) |
+| `clean.py [--yes]` | .venv | (skips what can't go to a Recycle Bin: a drive without one, an item too big for it) lists older versions, drafts, stills, sheets, comparisons and scratch folders in the home's `out/`, the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, the archive and anything git tracks stay | (the Recycle Bin) |
 | `npm run check` (in `media/`) | Node | `tsc`, every composition registers, one still per video | `out/check/` |
 | `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json`, and the captions' pages | (prints) |
 

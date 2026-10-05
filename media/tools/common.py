@@ -24,7 +24,16 @@ BRAND: dict = json.loads((MEDIA / "brand.json").read_text(encoding="utf-8"))
 # The media home: everything generated (the TTS and music cache, each video's public/ binaries, renders and working
 # files, the archive of posted versions) lives outside any checkout, so every worktree shares it and removing a
 # worktree can't delete it. PA_BAILAR_MEDIA_HOME overrides it (tools/paths.mjs and remotion.config.ts read the same).
-HOME = Path(os.environ.get("PA_BAILAR_MEDIA_HOME") or r"D:\AI\pa-bailar-media")
+DEFAULT_HOME = r"D:\AI\pa-bailar-media"
+
+
+def media_home(raw: str | None) -> Path:
+    """PA_BAILAR_MEDIA_HOME as a path: a relative one is relative to the backend's root, whatever the working folder
+    (tools/paths.mjs mediaHome() and remotion.config.ts resolve it the same way)."""
+    return (BACKEND / raw).resolve() if raw else Path(DEFAULT_HOME)
+
+
+HOME = media_home(os.environ.get("PA_BAILAR_MEDIA_HOME"))
 CACHE = HOME / "cache"
 # The site's three faces (OFL), committed; src/lib/fonts.ts imports them.
 FONTS = MEDIA / "fonts"

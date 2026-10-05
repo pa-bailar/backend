@@ -14,8 +14,12 @@ Looks in three places:
   that live in media/out/ (`*.mjs`, `site-bugs/`, `site-quality/`, `admin-tabs/`) are skipped, by name; new checks
   belong in a scratch folder, not in media/out/.
 - the original teaser project's out/ (C:\\Users\\Jhoan\\Code\\pa-bailar-teaser, the first archive): older versions of
-  each deliverable (`teaser-v2.2-reel.mp4` once `teaser-v2.3-reel.mp4` exists), comparisons, drafts, frames, logs.
-  Files that project's git tracks (its voice lines, music options, overview sheets) are never touched.
+  each deliverable (`teaser-v2.2-reel.mp4` once `teaser-v2.3-reel.mp4` exists) that the home's archive/ holds an
+  identical copy of, comparisons, drafts, frames, logs. Files that project's git tracks (its voice lines, music
+  options, overview sheets) are never touched.
+
+With --yes, an item on a drive without a Recycle Bin, or larger than the bin holds (Windows would delete it for good),
+is skipped with a message.
 
 Standard library + PowerShell (the Recycle Bin): any Python on Windows runs it.
 """
@@ -24,6 +28,7 @@ import argparse
 import filecmp
 import os
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -145,12 +150,22 @@ def legacy() -> list[Path]:
     return picks
 
 
+def in_home_archive(path: Path) -> bool:
+    """Whether the media home's archive/ holds an identical copy of a file (same size, same bytes)."""
+    size = path.stat().st_size
+    return any(
+        c.stat().st_size == size and filecmp.cmp(path, c, shallow=False)
+        for c in (HOME / "archive").rglob(f"*{path.suffix}")
+    )
+
+
 def candidates() -> list[Path]:
     picks = home_out(HOME / "out") + legacy()
     archive_out = ARCHIVE / "out"
     if archive_out.exists():
         keep = tracked(ARCHIVE)
-        loose = [*old_versions(archive_out)]
+        # The teaser project's older versions go only when the home's archive keeps a copy (as legacy() does).
+        loose = [p for p in old_versions(archive_out) if in_home_archive(p)]
         loose += [item for item in archive_out.iterdir() if archive_leftover(item)]
         for item in loose:
             if item.is_dir():
@@ -160,6 +175,21 @@ def candidates() -> list[Path]:
             elif item.resolve() not in keep:
                 picks.append(item)
     return sorted(set(picks))
+
+
+BIN_SHARE = 0.05  # the Recycle Bin's size on a drive: Windows' default is about 5% (it deletes for good past it)
+
+
+def unrecyclable(path: Path) -> str | None:
+    """Why `path` can't go to the Recycle Bin safely (Windows deletes it for good instead), or None: a drive with no
+    bin ($Recycle.Bin: network shares, some removable drives) or an item larger than the bin may hold."""
+    drive = Path(path.resolve().anchor)
+    if not (drive / "$Recycle.Bin").exists():
+        return f"{drive} has no Recycle Bin (it would be deleted for good)"
+    limit = shutil.disk_usage(drive).total * BIN_SHARE
+    if size(path) > limit:
+        return f"{size(path) / 1e9:.1f} GB is more than {drive}'s Recycle Bin holds (~{limit / 1e9:.0f} GB)"
+    return None
 
 
 def recycle(path: Path) -> None:
@@ -187,9 +217,14 @@ def main() -> None:
         f"{len(picks)} items, {total / 1e6:.0f} MB" + ("" if args.yes else " (nothing removed: --yes to recycle them)")
     )
     if args.yes:
+        moved = 0
         for p in picks:
+            if reason := unrecyclable(p):
+                print(f"skipped {p}: {reason}; remove it yourself if you mean to")
+                continue
             recycle(p)
-        print("moved to the Recycle Bin")
+            moved += 1
+        print(f"{moved} moved to the Recycle Bin")
 
 
 if __name__ == "__main__":

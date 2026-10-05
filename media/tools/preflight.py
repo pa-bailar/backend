@@ -128,6 +128,20 @@ def edit_lists(path: Path) -> bool | None:
     return False
 
 
+def rotation(video: dict) -> int:
+    """The rotation a player applies (degrees): the display matrix (ffprobe's side data) or the old "rotate" tag."""
+    for side in video.get("side_data_list", []) or []:
+        if "rotation" in side:
+            return int(float(side["rotation"]))
+    return int(float((video.get("tags") or {}).get("rotate", 0) or 0))
+
+
+def displayed_size(video: dict) -> tuple[int, int]:
+    """Width × height as shown: a 1920×1080 stream rotated 90° is a 1080×1920 picture."""
+    w, h = int(video.get("width", 0)), int(video.get("height", 0))
+    return (h, w) if rotation(video) % 180 else (w, h)
+
+
 def video_problems(video: dict, fmt: dict, audio: dict | None, fail: list[str], warn: list[str]) -> None:
     codec = video.get("codec_name")
     if codec not in CODECS:
@@ -140,9 +154,10 @@ def video_problems(video: dict, fmt: dict, audio: dict | None, fail: list[str], 
     fps = rate(video.get("avg_frame_rate")) or rate(video.get("r_frame_rate"))
     if not FPS[0] <= fps <= FPS[1]:
         fail.append(f"{fps:.2f} fps: Instagram takes {FPS[0]}–{FPS[1]} fps")
-    w, h = int(video.get("width", 0)), int(video.get("height", 0))
+    w, h = displayed_size(video)
+    turned = f" (rotated {rotation(video)}°)" if rotation(video) else ""
     if not h or abs(w / h - ASPECT) > 0.01:
-        fail.append(f"{w}×{h} isn't 9:16")
+        fail.append(f"{w}×{h}{turned} isn't 9:16")
     if w > MAX_WIDTH:
         fail.append(f"{w} px wide: Instagram takes up to {MAX_WIDTH}")
     elif w < 1080:

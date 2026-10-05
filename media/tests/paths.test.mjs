@@ -2,7 +2,13 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { test } from "node:test";
-import { bundleDir, MEDIA, OUT } from "../tools/paths.mjs";
+import { bundleDir, MEDIA, mediaHome, OUT } from "../tools/paths.mjs";
+
+test("a relative PA_BAILAR_MEDIA_HOME is relative to the backend's root, as in tools/common.py", () => {
+  assert.equal(mediaHome(undefined), "D:\\AI\\pa-bailar-media");
+  assert.equal(mediaHome("../media-home"), path.resolve(MEDIA, "..", "..", "media-home"));
+  assert.equal(mediaHome("E:\\elsewhere"), path.resolve("E:\\elsewhere"));
+});
 
 test("each checkout has its own stills bundle in the shared home", () => {
   const here = bundleDir();

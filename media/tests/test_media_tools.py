@@ -1,6 +1,7 @@
 """The media tools' pure functions: the weekend rule, occurrences, version names, the sticker-band math, loudness
 parsing, shelf lives, stale stages, TTS errors. Standard library only (no ffmpeg, no network)."""
 
+import filecmp
 import json
 import os
 import time
@@ -14,6 +15,7 @@ import events
 import make
 import mix
 import music
+import new
 import preflight
 import pytest
 import render
@@ -463,6 +465,90 @@ class FakeError(Exception):
     def __init__(self, code, text):
         super().__init__(text)
         self.code = code
+
+
+def test_diff_scales_the_smaller_up_and_refuses_other_frame_rates():
+    assert review.fit((1080, 1920), (540, 960)) == ("", "scale=1080:1920:flags=bicubic,")
+    assert review.fit((540, 960), (1080, 1920)) == ("scale=1080:1920:flags=bicubic,", "")
+    assert review.fit((1080, 1920), (1080, 1920)) == ("", "")
+    a, b = probed(), probed(avg_frame_rate="25/1")
+    assert review.rate_mismatch(a, a) is None
+    assert review.rate_mismatch(a, b) == "frame rates differ (30/1 vs 25/1 fps)"
+    still = {"format": {"format_name": "png_pipe"}, "streams": [{"codec_type": "video", "avg_frame_rate": "25/1"}]}
+    assert review.rate_mismatch(still, a) is None
+
+
+def test_preflight_reads_the_picture_as_displayed():
+    turned = probed(width=1920, height=1080, side_data_list=[{"side_data_type": "Display Matrix", "rotation": -90}])
+    assert preflight.displayed_size(turned["streams"][0]) == (1080, 1920)
+    assert preflight.assess(turned, 1, "story", False, True)[0] == []
+    flat = probed(width=1920, height=1080)
+    assert any("isn't 9:16" in f for f in preflight.assess(flat, 1, "story", False, True)[0])
+    assert preflight.displayed_size(probed(tags={"rotate": "90"}, width=1920, height=1080)["streams"][0]) == (
+        1080,
+        1920,
+    )
+
+
+def test_a_relative_media_home_is_relative_to_the_backend():
+    assert common.media_home(None) == Path(r"D:\AI\pa-bailar-media")
+    assert common.media_home("../media-home") == (common.BACKEND.parent / "media-home").resolve()
+    assert common.media_home(r"E:\elsewhere") == Path(r"E:\elsewhere")
+
+
+def test_new_registers_a_video_once(tmp_path):
+    root = (
+        'import "./lib/fonts";\nimport { AVideo } from "../projects/a/A";\n\n'
+        "export const Root = () => (\n  <>\n    <AVideo />\n  </>\n);\n"
+    )
+    once = new.register(root, "b-c", "BC")
+    assert 'import { BCVideo } from "../projects/b-c/BC";' in once and "    <BCVideo />\n  </>" in once
+    assert new.register(once, "b-c", "BC") == once  # idempotent
+    with pytest.raises(ValueError):
+        new.register("no anchors here", "b-c", "BC")
+
+
+def test_clean_recycles_the_teaser_projects_versions_only_when_archived(tmp_path, monkeypatch):
+    monkeypatch.setattr(clean, "HOME", tmp_path / "home")
+    old = tmp_path / "teaser-v2.2-reel.mp4"
+    old.write_bytes(b"v2.2")
+    assert not clean.in_home_archive(old)
+    kept = tmp_path / "home" / "archive" / "teaser-v2" / "v2.2" / "teaser-v2-v2.2-reel.mp4"
+    kept.parent.mkdir(parents=True)
+    kept.write_bytes(b"v2.3")  # same size, other bytes: not a copy
+    assert not clean.in_home_archive(old)
+    kept.write_bytes(b"v2.2")
+    filecmp.clear_cache()  # filecmp remembers by size and mtime, which a rewrite this fast may not change
+    assert clean.in_home_archive(old)
+
+
+def test_clean_skips_what_the_recycle_bin_would_delete_for_good(tmp_path, monkeypatch):
+    item = touch(tmp_path / "x.mp4")
+    real_exists = Path.exists
+    monkeypatch.setattr(Path, "exists", lambda p: False if p.name == "$Recycle.Bin" else real_exists(p))
+    assert "no Recycle Bin" in clean.unrecyclable(item)
+    monkeypatch.setattr(Path, "exists", lambda p: True if p.name == "$Recycle.Bin" else real_exists(p))
+    assert clean.unrecyclable(item) is None
+    monkeypatch.setattr(clean, "BIN_SHARE", 0)
+    item.write_bytes(b"x")
+    assert "more than" in clean.unrecyclable(item)
+
+
+def test_soundtracks_are_replaced_together_or_not_at_all(tmp_path):
+    def pending(name, problem=None):
+        dest = touch(tmp_path / f"{name}.wav")
+        dest.write_text("old")
+        tmp = tmp_path / f".{name}.tmp.wav"
+        tmp.write_text("new")
+        return mix.Pending(tmp, dest, tmp_path / f"rejected-{name}.wav", problem)
+
+    both = [pending("voice-only"), pending("with-music", "with-music.wav: true peak -0.2 dBTP")]
+    assert mix.settle(both) == ["with-music.wav: true peak -0.2 dBTP"]
+    assert (tmp_path / "voice-only.wav").read_text() == "old"  # it passed, but its partner didn't: kept as a set
+    assert (tmp_path / "rejected-voice-only.wav").read_text() == "new"
+    assert (tmp_path / "with-music.wav").read_text() == "old"
+    assert mix.settle([pending("voice-only"), pending("with-music")]) == []
+    assert (tmp_path / "voice-only.wav").read_text() == "new" and (tmp_path / "with-music.wav").read_text() == "new"
 
 
 def test_tts_stops_clearly_without_a_key(monkeypatch):
