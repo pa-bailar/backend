@@ -7,7 +7,8 @@ Usage (from the repository root):
 Adding one post by hand (the admin tools' Agregar, docs/ADMIN.md) is `sweep --post <link> [--account @x] [--again]`.
 A story from its screenshots ("Agregar historia") is `sweep --story <id> [<id>…] [--story-dir stories]
 [--account @x] [--notes "…"]`: the sweep workflow downloads them from the admin page first, as <id>.jpg and
-<id>.json in --story-dir. `sweep --hide-story story-<hash>` takes one off the site again ("Ocultar historia").
+<id>.json in --story-dir. `sweep --hide-story story-<hash>` takes one off the site again ("Ocultar historia"), and
+`sweep --hide-event <event id>` any event, whatever it came from ("Ocultar", e.g. a new workshop series).
 """
 
 import argparse
@@ -20,7 +21,7 @@ from pathlib import Path
 from pa_bailar import config, health, links, storage, stories
 from pa_bailar.logs import setup_logging
 from pa_bailar.models import StoredEvent
-from pa_bailar.pipeline import AddedPost, AddedStory, AddPostError, HiddenStory, RunStats, Sweep
+from pa_bailar.pipeline import AddedPost, AddedStory, AddPostError, HiddenFromSite, HiddenStory, RunStats, Sweep
 from pa_bailar.status import moment_label
 from pa_bailar.text import MONTHS, WEEKDAYS, clock, event_dates_label
 
@@ -288,6 +289,30 @@ def hidden_story_markdown(hidden: HiddenStory) -> str:
     return "\n".join(lines) + "\n"
 
 
+def hidden_event_markdown(hidden: HiddenFromSite) -> str:
+    """The answer to "Ocultar" (an event, `sweep --hide-event`), in Spanish."""
+    event = hidden.event
+    if hidden.already:
+        return f"ℹ️ El evento `{event.id}` ({event.title}) ya estaba oculto.\n"
+    lines = [
+        f"🙈 Quité del sitio **{event.title}** (@{event.account}) · {_dates(event)}.",
+        "",
+        "Sale del sitio cuando termina de publicarse (unos minutos). Los barridos no lo vuelven a publicar desde "
+        "sus publicaciones ni desde otra publicación del mismo evento; un evento nuevo sí se publica.",
+        "Para publicarlo de nuevo: **Agregar** o **Volver a leer** una de sus publicaciones.",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def hide_event(event_id: str) -> None:
+    """`sweep --hide-event`: take an event off the site by hand ("Ocultar")."""
+    try:
+        report = hidden_event_markdown(Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS).hide_event(event_id))
+    except AddPostError as error:
+        report = f"❌ {error}\n"
+    _write_report(report)
+
+
 def _write_report(report: str) -> None:
     logging.info("\n%s", report)
     if report_file := os.environ.get("ADMIN_REPORT_FILE"):
@@ -374,6 +399,9 @@ def main(argv: list[str] | None = None) -> None:
     )
     parser.add_argument("--notes", help="with --story: the admin's notes (hints for Gemini, never published)")
     parser.add_argument("--hide-story", metavar="STORY", help="take a story added by hand off the site (story-…)")
+    parser.add_argument(
+        "--hide-event", metavar="ID", help="take an event off the site by hand, whatever it came from (its id)"
+    )
     args = parser.parse_args(argv)
     setup_logging()
 
@@ -383,6 +411,9 @@ def main(argv: list[str] | None = None) -> None:
         return
     if args.hide_story:
         hide_story(args.hide_story)
+        return
+    if args.hide_event:
+        hide_event(args.hide_event)
         return
     if args.post:
         add_post(args.post, links.account_name(args.account) if args.account else None, again=args.again)

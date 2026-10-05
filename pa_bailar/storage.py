@@ -13,11 +13,12 @@ from pydantic import TypeAdapter
 
 from . import config
 from .merging import ordered_media
-from .models import AccountState, ProcessedPost, StoredEvent
+from .models import AccountState, HiddenEvent, ProcessedPost, StoredEvent
 
 _events_adapter = TypeAdapter(list[StoredEvent])
 _processed_adapter = TypeAdapter(dict[str, ProcessedPost])
 _accounts_adapter = TypeAdapter(dict[str, AccountState])
+_hidden_adapter = TypeAdapter(dict[str, HiddenEvent])
 
 
 def read_json(path: Path, default: Any) -> Any:
@@ -77,6 +78,17 @@ def load_processed_posts() -> dict[str, ProcessedPost]:
 
 def save_processed_posts(processed: dict[str, ProcessedPost]) -> None:
     write_json(config.PROCESSED_POSTS_FILE, _processed_adapter.dump_python(processed, mode="json"))
+
+
+# ---------- events hidden by hand ----------
+
+
+def load_hidden_events() -> dict[str, HiddenEvent]:
+    return _hidden_adapter.validate_python(read_json(config.HIDDEN_EVENTS_FILE, {}))
+
+
+def save_hidden_events(hidden: dict[str, HiddenEvent]) -> None:
+    write_json(config.HIDDEN_EVENTS_FILE, _hidden_adapter.dump_python(hidden, mode="json"))
 
 
 # ---------- account state (backfill) ----------

@@ -5,9 +5,9 @@
 # an answer: the admin's other issues and comments are left alone.
 #
 # No AI here: `python -m pa_bailar admin inbox` (pa_bailar/inbox.py) reads the request with fixed patterns.
-# Adding a post or a story (from its screenshots), and hiding a story, need Gemini or write the site's data, so
-# they continue in the sweep workflow (one at a time with the sweeps: concurrency "data"), which comments the
-# result on the same issue.
+# Adding a post or a story (from its screenshots), and hiding a story or an event, need Gemini or write the site's
+# data, so they continue in the sweep workflow (one at a time with the sweeps: concurrency "data"), which comments
+# the result on the same issue.
 name: admin
 
 on:
@@ -19,7 +19,7 @@ on:
 permissions:
   contents: write # accounts.txt, when an account is added
   issues: write # the answer
-  actions: write # start the sweep workflow to add a post or a story, or hide a story
+  actions: write # start the sweep workflow to add a post or a story, or hide a story or an event
 
 # No concurrency group: GitHub keeps only one waiting run per group, so a third comment on an issue (even one
 # that isn't a request) would cancel the second one's run, and its request would never be answered. Adding a
@@ -127,11 +127,11 @@ jobs:
       # instead, first come first served: this waits until no sweep is running or waiting AND no earlier admin
       # run is still going (it may be about to start one), then starts the sweep and waits until GitHub lists it,
       # so the next request sees it. Still busy after 50 minutes: it answers so and starts nothing.
-      - name: Start adding the post or story, or hiding the story (sweep workflow)
+      - name: Start adding the post or story, or hiding the story or event (sweep workflow)
         id: dispatch
         if: >-
           steps.answer.outputs.action == 'add-post' || steps.answer.outputs.action == 'add-story' ||
-          steps.answer.outputs.action == 'hide-story'
+          steps.answer.outputs.action == 'hide-story' || steps.answer.outputs.action == 'hide-event'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -142,6 +142,7 @@ jobs:
           IMAGES: ${{ steps.answer.outputs.images }} # add-story: the uploaded screenshots' ids
           NOTES: ${{ steps.answer.outputs.notes }}
           STORY: ${{ steps.answer.outputs.story }} # hide-story
+          EVENT: ${{ steps.answer.outputs.event }} # hide-event: an event's id (inbox.EVENT_ID)
           WAIT_MINUTES: 50
         run: |
           sweeps_busy() {
@@ -171,6 +172,8 @@ jobs:
               gh workflow run daily-sweep.yml -f story="$IMAGES" -f account="$ACCOUNT" -f notes="$NOTES" -f issue="$ISSUE" ;;
             hide-story)
               gh workflow run daily-sweep.yml -f hide="$STORY" -f issue="$ISSUE" ;;
+            hide-event)
+              gh workflow run daily-sweep.yml -f hide="$EVENT" -f issue="$ISSUE" ;;
           esac
           for _ in $(seq 1 12); do
             if [ "$(sweeps_busy)" != "0" ]; then exit 0; fi

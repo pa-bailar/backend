@@ -153,6 +153,10 @@ def _explain_record(
         result.check("no", f"Era un evento, pero no se publicó: {why}.")
         result.verdict = "Se descartó a propósito. Si es un evento único con fecha, agregarla la vuelve a leer."
         result.suggestion = "add-post"
+    elif outcome == "hidden":
+        result.check("no", "Se quitó del sitio a mano (Ocultar): los barridos no lo vuelven a publicar.")
+        result.verdict = "No está en el sitio a propósito. Agregarla lo publica de nuevo."
+        result.suggestion = "add-post"
     elif outcome == "rejected":
         result.check("no", f"Gemini no pudo leerla: {record.get('reason', '')}")
         result.verdict = "Agregarla lo intenta de nuevo."

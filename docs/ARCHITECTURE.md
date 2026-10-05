@@ -298,10 +298,11 @@ sequenceDiagram
 ### 5.2 The workflow's steps
 
 `.github/workflows/daily-sweep.yml`, two jobs on `ubuntu-latest`, plus two for stories:
-- **`request`** checks an admin request (add a post or a story, hide a story) before anything else runs. Only
+- **`request`** checks an admin request (add a post or a story, hide a story or an event) before anything else runs. Only
   with `post_url`, `story`, `hide` or `issue`: for a regular sweep the job is skipped (its `if` is at job level,
   so no runner starts and no minute is billed). Exactly one of `post_url`, `story` (1 to 4 upload ids) or
-  `hide` (`story-<16 hex>`) must be given, `issue` must be a number, and that issue an open `admin` issue by
+  `hide` (`story-<16 hex>`, or an event's id: lowercase words joined by hyphens, at most 120 characters) must
+  be given, `issue` must be a number, and that issue an open `admin` issue by
   `jzamora5` (the inbox reopens an answered issue before starting the add). Otherwise the run fails
   and the sweep job doesn't start: whoever can start the workflow (the cron-job.org token) can't publish a
   post with it. When it fails, it answers on the issue that adding couldn't start, but only if that issue is
@@ -327,7 +328,7 @@ sequenceDiagram
 | 6a | Get the story's screenshots | `story` | Downloads the `story-images` job's artifact into `stories/` | |
 | 6b | Make sure ffmpeg is installed | Always | For videos' preview clips (`clips.py`); usually already on the runner | |
 | 6c | Make sure the last data PR merged | Always | Fails if a `data` PR is still open in the site repository: the sweep reads the events from the site's `main`, so sweeping past an unmerged PR would lose its events for good (their posts are already marked analyzed). Merge or fix it first | `GITHUB_TOKEN` (reads the public site repository) |
-| 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x] [--again]`, one post by hand (`--again` from the `again` input, "Volver a leer"). With `story`: `sweep --story <ids> --story-dir stories [--account=x] --notes=…` (the screenshots from `story-images`, step 6a). With `hide`: `sweep --hide-story <story id>`. Otherwise `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
+| 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x] [--again]`, one post by hand (`--again` from the `again` input, "Volver a leer"). With `story`: `sweep --story <ids> --story-dir stories [--account=x] --notes=…` (the screenshots from `story-images`, step 6a). With `hide`: `sweep --hide-story <story id>`, or `sweep --hide-event <event id>`. Otherwise `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 8 | Write the status for the admin page | Unless cancelled; its failure doesn't fail the run | `python -m pa_bailar admin status --json` → `state/status.json`, saved with the state (one Graph API call, no Gemini). The admin page reads it | `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 9 | Get a token for the site repository | Unless cancelled | Mints a pa-bailar-bot installation token for the site repository only | `APP_ID`, `APP_PRIVATE_KEY` |
 | 10 | Open a data PR | Unless cancelled | Only if `data/events.json` or `data/flyers` changed (clips change `events.json` too) (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled. It runs before the state is saved, so the state never marks posts as analyzed whose events didn't leave the runner | App token |
@@ -338,7 +339,7 @@ sequenceDiagram
 | 13 | Wait for the data PR to merge | A PR was opened | Polls every 30 s, up to 20 minutes. Fails if the PR is closed or doesn't merge in time | App token |
 | 14 | Republish the site | Success, no PR, not an admin request (`issue`) | `gh workflow run deploy.yml -f checked_at=<now in Bogotá>`, so "Actualizado el" stays current on days without new events | App token |
 | 15 | Report to the health check | Always, except admin requests (`issue`) | Pings `HEALTHCHECK_URL` (success) or `HEALTHCHECK_URL/fail`, with the report as the body | `HEALTHCHECK_URL` |
-| 16 | Answer on the admin issue | `issue` given (admin tools) | Comments the result of adding the post or story, or hiding the story (`ADMIN_REPORT_FILE`), and the data PR, then closes the issue | `GITHUB_TOKEN` |
+| 16 | Answer on the admin issue | `issue` given (admin tools) | Comments the result of adding the post or story, or hiding the story or event (`ADMIN_REPORT_FILE`), and the data PR, then closes the issue | `GITHUB_TOKEN` |
 
 Other workflow settings:
 - **`concurrency: data`** (`cancel-in-progress: false`): two sweeps never run at the same time. A new one
@@ -767,6 +768,10 @@ evento único").
 - **Merging:** section 9 (a post about one session joins the series; two series of one account merge only
   when they're the same program).
 - **The admin tools' answers** show a series as "4 sesiones: 8, 22, 29 nov y 6 dic" (`text.sessions_label`).
+- **Safety net:** `admin status` and the admin page list **Series nuevas**, the series first published in the
+  last `NEW_SERIES_DAYS` (14) and not over yet (`status.new_series`: when its first post was analyzed, else its
+  earliest post's date), each with its sessions, sources, link and a one-tap **Ocultar** (`hide-event`,
+  section 12.3), so each new series gets a look.
 
 ---
 
@@ -779,10 +784,11 @@ memory between runs; the site never sees it.
 
 | File | Content | Why it matters |
 |---|---|---|
-| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha` or `ya pasó`, `not_event`, `rejected`, `hidden` for a story taken off the site by hand) with the `event_ids` it became or joined. Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
+| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha` or `ya pasó`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined. Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
 | `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post` | Whether the account still gets the deeper first sweep, and when its next turn is |
 | `gemini_usage.json` | Today's quota day (Pacific) and requests per model | The day's runs share the daily budgets |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
+| `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load (if the data PR that hid one didn't merge). Adding one of its posts by hand publishes it again |
 | `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests and models the key couldn't use; warning keys | The health rules compare a run with the previous ones (section 11) |
 
 ```mermaid
@@ -985,8 +991,14 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
   account); the flyer is a checked, padded crop. Stored as a `STORY` item (`post_id` `story-<hash>`, the
   profile as permalink, no caption). The same screenshots, or another screenshot of a story published in the
   last 36 hours (perceptual hash), aren't read twice. `--hide-story` takes one off the site again.
+- **`sweep --hide-event <id>`** (`Sweep.hide_event`): takes any event off the site, whatever it came from (the
+  admin page's "Series nuevas", `/ocultar <id>`). Kept in `state/hidden_events.json`: the sweeps leave it off
+  (the same posts read again, or a later post of the same event by the merging rules), while a genuinely new
+  event is published as usual; adding one of its posts by hand publishes it again with its old id. ADMIN.md,
+  "Ocultar evento".
 - **`admin inbox`** (`pa_bailar/inbox.py`): reads an issue or comment with fixed patterns (a post link alone,
-  the commands `/agregar`, `/releer`, `/cuenta @x`, `/estado`, `/historia <ids>` and `/ocultar story-…`, or the
+  the commands `/agregar`, `/releer`, `/cuenta @x`, `/estado`, `/historia <ids>`, `/ocultar story-…` and
+  `/ocultar <event id>`, or the
   issue form's fields) and writes the
   answer; the `admin` workflow (`.github/workflows/admin.yml`) runs it on new issues and comments from
   `jzamora5`. Only the inbox's: an issue labelled `admin` (the form, the admin page) or a text that asks for
@@ -998,7 +1010,7 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
   otherwise); whether the Instagram token works and the share of Instagram's quota used (one call, `--no-instagram`
   skips it); accounts still in their first sweep; provisional posts; upcoming events (until their last day);
-  discovery progress.
+  new workshop series to look at, with `/ocultar <id>` (section 9.1); discovery progress.
   `--json` gives the same as data. On your computer it reads the sweeps' state from the `sweep-state`
   branch.
 
@@ -1149,11 +1161,11 @@ flowchart LR
 | `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions |
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |
 | `ids.py` | Readable, stable event ids (the event's URL) |
-| `pipeline.py` | `Sweep`: accounts, posts, storing, retention, run statistics |
+| `pipeline.py` | `Sweep`: accounts, posts, storing, retention, run statistics; the admin tools' add a post or a story, hide a story or an event |
 | `clips.py` | Videos' preview clips: download, cut 6 silent seconds with ffmpeg |
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, `accounts.txt` |
 | `health.py` | Run history, health rules, events to review, the report and its fingerprint |
-| `status.py` | What `admin status` shows: sweeps, Gemini usage, Instagram, accounts, events (data and Spanish text) |
+| `status.py` | What `admin status` shows: sweeps, Gemini usage, Instagram, accounts, events, new workshop series (data and Spanish text) |
 | `sweep_state.py` | The sweeps' latest state on your computer: reads the `sweep-state` branch with git |
 | `why.py` | `admin why`: why a post's event is or isn't on the site (fixed checks, Spanish answer) |
 | `inbox.py` | The admin inbox: what an issue or comment asks for |

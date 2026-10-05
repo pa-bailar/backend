@@ -15,13 +15,14 @@
 # - Started with `story` (the ids of story screenshots uploaded from the admin page), it adds that story instead
 #   (`sweep --story`): the `story-images` job downloads the screenshots from the admin page's Worker with GitHub's
 #   identity token (OIDC, no secret), and `story-cleanup` deletes them there once the story's event is published.
-#   With `hide` (a story's id), it takes that story off the site (`sweep --hide-story`). Like `post_url`, both
-#   need an open admin issue by the owner, and don't count for the health checks.
+#   With `hide` (a story's id), it takes that story off the site (`sweep --hide-story`); with an event's id, that
+#   event, whatever it came from (`sweep --hide-event`, e.g. a new workshop series). Like `post_url`, both need
+#   an open admin issue by the owner, and don't count for the health checks.
 name: daily-sweep
 run-name: >-
   ${{ inputs.post_url && format('Add a post by hand (#{0})', inputs.issue) ||
   inputs.story && format('Add a story by hand (#{0})', inputs.issue) ||
-  inputs.hide && format('Hide a story (#{0})', inputs.issue) || 'Sweep' }}
+  inputs.hide && format('Hide from the site (#{0})', inputs.issue) || 'Sweep' }}
 
 on:
   # Started twice a day (9:00 AM and 9:00 PM Bogotá) by cron-job.org, which calls GitHub's "run workflow"
@@ -60,7 +61,7 @@ on:
         description: "Admin tools: the admin's notes on the story (hints for Gemini, never published)"
         required: false
       hide:
-        description: "Admin tools: take this story (story-…) off the site"
+        description: "Admin tools: take this story (story-…) or this event (its id) off the site"
         required: false
 
 permissions:
@@ -111,8 +112,10 @@ jobs:
             echo "::error::story must be 1 to 4 upload ids."
             exit 1
           fi
-          if [ -n "$HIDE" ] && ! [[ "$HIDE" =~ ^story-[0-9a-f]{16}$ ]]; then
-            echo "::error::hide must be a story's id (story-…)."
+          # A story's id (story-…), or an event's id on the site (lowercase words joined by hyphens, ids.py).
+          if [ -n "$HIDE" ] && ! [[ "$HIDE" =~ ^story-[0-9a-f]{16}$ ]] \
+            && ! { [[ "$HIDE" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]] && [ "${#HIDE}" -le 120 ]; }; then
+            echo "::error::hide must be a story's id (story-…) or an event's id."
             exit 1
           fi
           ok="$(gh issue view "$ISSUE" --repo "$GITHUB_REPOSITORY" --json state,author,labels \
@@ -288,8 +291,10 @@ jobs:
             python -m pa_bailar sweep --post "$POST_URL" ${ACCOUNT:+--account "$ACCOUNT"} $AGAIN
           elif [ -n "$STORY" ]; then
             python -m pa_bailar sweep --story $STORY --story-dir stories ${ACCOUNT:+--account="$ACCOUNT"} --notes="$NOTES"
-          elif [ -n "$HIDE" ]; then
+          elif [[ "$HIDE" =~ ^story-[0-9a-f]{16}$ ]]; then
             python -m pa_bailar sweep --hide-story "$HIDE"
+          elif [ -n "$HIDE" ]; then
+            python -m pa_bailar sweep --hide-event "$HIDE"
           else
             python -m pa_bailar sweep --days "$LOOKBACK_DAYS" $ALL_ACCOUNTS
           fi

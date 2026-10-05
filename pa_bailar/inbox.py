@@ -8,7 +8,9 @@ Understood, in the issue form's fields (the form, the admin page), or as plain t
   - /estado: how the sweeps, quotas and accounts are doing;
   - /historia and the ids of story screenshots uploaded from the admin page (then optionally an @account and
     notes): "Agregar historia" (publish the story's events); /ocultar and a story's id (story-…): take it off the
-    site again. The admin page writes these as the form's fields (Acción, Capturas, Cuenta, Notas; Historia).
+    site again. The admin page writes these as the form's fields (Acción, Capturas, Cuenta, Notas; Historia);
+  - /ocultar and an event's id (its link's last part, e.g. programa-intensivo-8-nov): take that event off the site,
+    whatever it came from ("Ocultar", the admin page's new series list; form fields Acción and Evento).
 In plain text a command is a word starting with "/" at the start of a line: ordinary words never are ("revisar
 el estado de…", "agrega esto", "volver a leer"), since some commands spend Gemini or change accounts.txt.
 Anything else gets the list of what's understood, but only in the admin's inbox: an issue labelled `admin`
@@ -21,7 +23,7 @@ from typing import Literal
 
 from . import links
 
-Action = Literal["why", "add-post", "add-account", "status", "add-story", "hide-story", "help"]
+Action = Literal["why", "add-post", "add-account", "status", "add-story", "hide-story", "hide-event", "help"]
 
 # The issue form (.github/ISSUE_TEMPLATE/admin.yml) and the admin page write "### Field\n\nvalue".
 _FIELD = re.compile(r"^###\s*(?P<name>[^\n]+)\n+(?P<value>.*?)(?=\n###|\Z)", re.MULTILINE | re.DOTALL)
@@ -29,6 +31,9 @@ _LINK = re.compile(r"https?://(?:www\.|m\.)?instagram\.com/\S+", re.IGNORECASE)
 _HANDLE = re.compile(r"(?<![\w/])@([A-Za-z0-9._]{1,30})")
 _UPLOAD_ID = re.compile(r"\b[0-9a-f]{32}\b")  # a screenshot the admin page uploaded (admin-web/src/index.js)
 _STORY_ID = re.compile(r"\bstory-[0-9a-f]{16}\b")
+# An event's id (ids.py): lowercase words joined by hyphens, like the site's check-data.mjs.
+EVENT_ID = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+EVENT_ID_MAX = 120
 MAX_SCREENSHOTS = 4
 NOTES_MAX = 500
 # The form's "Acción" values (and the admin page's, which writes the same body).
@@ -40,6 +45,7 @@ _ACTIONS: dict[str, Action] = {
     "estado": "status",
     "agregar historia": "add-story",
     "ocultar historia": "hide-story",
+    "ocultar evento": "hide-event",
 }
 # Commands in plain text: "/word" at the start of a line (after spaces at most), any case. A quoted line
 # ("> /agregar …") isn't one, nor "/agregarlo".
@@ -61,6 +67,8 @@ línea):
 - **Agregar una historia:** desde la página de administración (comparte las capturas de la historia con PB Admin,
   o elígelas ahí). Aquí: `/historia` y los códigos de las capturas que la página subió (y la @cuenta, y notas).
 - **Ocultar una historia** que se publicó: `/ocultar story-…` (el código está en la respuesta).
+- **Ocultar un evento** del sitio (venga de publicaciones o de historias): `/ocultar` y su código, la última parte
+  de su enlace (`/ocultar programa-intensivo-8-nov`). Los barridos no lo vuelven a publicar.
 """
 
 
@@ -73,6 +81,7 @@ class Request:
     images: tuple[str, ...] = ()  # add-story: the uploaded screenshots' ids
     notes: str | None = None  # add-story: the admin's notes (hints for Gemini, never published), one line
     story: str | None = None  # hide-story: "story-<hash>"
+    event: str | None = None  # hide-event: the event's id
 
 
 def _clean(value: str) -> str:
@@ -100,6 +109,17 @@ def _uploads(text: str) -> tuple[str, ...]:
     return tuple(dict.fromkeys(_UPLOAD_ID.findall(text)))[:MAX_SCREENSHOTS]
 
 
+def _event_id(text: str) -> str | None:
+    """An event's id: the text's first word, if it is one (the event's link works too: its last part)."""
+    word = (text.strip().split() or [""])[0].rstrip("/").rsplit("/", 1)[-1]
+    return word if EVENT_ID.fullmatch(word) and len(word) <= EVENT_ID_MAX else None
+
+
+def _hide_event(text: str) -> Request:
+    event = _event_id(text)
+    return Request("hide-event", event=event) if event else Request("help")
+
+
 def _story_request(fields: dict[str, str], chosen: str) -> Request:
     """ "Agregar historia" or "Ocultar historia" from the form's fields (the admin page writes them)."""
     if chosen == "ocultar historia":
@@ -119,7 +139,7 @@ def _story_command(text: str) -> Request | None:
         name, rest = match.group("name").lower(), match.group("rest")
         if name == "ocultar":
             story = _STORY_ID.search(rest)
-            return Request("hide-story", story=story.group(0)) if story else Request("help")
+            return Request("hide-story", story=story.group(0)) if story else _hide_event(rest)
         if name == "historia":
             images = _uploads(rest)
             if not images:
@@ -154,6 +174,8 @@ def parse(text: str) -> Request:
         action = _ACTIONS.get(chosen, "help")
         if action in ("add-story", "hide-story"):
             return _story_request(fields, chosen)
+        if action == "hide-event":
+            return _hide_event(fields.get("evento") or "")
         field_link = _first_link(fields.get("enlace") or "")
         post = field_link or post  # the link alone, never what follows it
         if action in ("why", "add-post") and not (post and links.post_code(post)):

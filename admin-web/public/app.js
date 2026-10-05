@@ -3,6 +3,8 @@
 // sign-in; this file has none. A post shared to the installed page (Android's share menu) fills in the tools;
 // story screenshots shared to it (received by sw.js) or picked here go to "Agregar desde una historia".
 
+import { escapeHtml, seriesCard } from "./render.js";
+
 const main = document.getElementById("main");
 const userLine = document.getElementById("user");
 const WEEKDAYS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
@@ -13,8 +15,6 @@ const MESSAGES = {
   denied: "Esa cuenta de GitHub no tiene acceso a esta página.",
 };
 
-const escapeHtml = (text) =>
-  String(text ?? "").replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
 
 /** Bogotá time: "hoy 9:00 p. m.", "ayer 9:12 a. m.", "sábado 4/10, 9:00 a. m.". */
 function when(iso) {
@@ -201,7 +201,7 @@ async function getJson(url, init) {
 
 let sending = false; // a double tap would open the same request twice
 
-/** Open a request ({action, link?, account?, images?, notes?, story?}) and follow it. True when it went. */
+/** Open a request ({action, link?, account?, images?, notes?, story?, event?}) and follow it. True when it went. */
 async function send(request) {
   if (sending) return false;
   sending = true;
@@ -635,6 +635,7 @@ function statusCards(result) {
   if (!result.ok || status?.error) return card(`<p>${escapeHtml(status?.error ?? "No se pudo leer el estado.")}</p>`);
   try {
     return [
+      seriesCard(status.new_series), // first: it may need a tap
       sweepsCard(status.sweeps),
       geminiCard(status.gemini),
       instagramCard(status.instagram),
@@ -653,6 +654,15 @@ async function showDashboard(cards, shared, share) {
   // The meters' fill, set here: the Content Security Policy (public/_headers) blocks style="" in the HTML.
   main.querySelectorAll(".meter i[data-share]").forEach((bar) => (bar.style.width = `${bar.dataset.share}%`));
   initTools();
+  // "Series nuevas" (render.js): one tap hides a series from the site, through the same requests as the tools.
+  main.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-hide-event]");
+    if (!button || !confirm(`¿Quitar “${button.dataset.title}” del sitio? Los barridos no lo vuelven a publicar.`)) return;
+    if (await send({ action: "hide-event", event: button.dataset.hideEvent })) {
+      button.disabled = true;
+      document.getElementById("answer").scrollIntoView({ block: "center" });
+    }
+  });
   useSharedLink(shared, share);
 }
 

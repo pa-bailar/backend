@@ -241,6 +241,15 @@ class StoredEvent(EventDetails):
         return self
 
 
+class HiddenEvent(BaseModel):
+    """One record of state/hidden_events.json, keyed by event id: an event taken off the site by hand ("Ocultar",
+    Sweep.hide_event). The sweeps never publish it again from the same posts, nor from a later post of the same
+    event (merging.matches_hidden); adding a post by hand (Agregar, Volver a leer) lifts it."""
+
+    hidden_at: str
+    event: StoredEvent  # as it was on the site: what later posts are compared with
+
+
 PostOutcome = Literal["event", "merged", "discarded", "not_event", "rejected", "hidden"]
 
 
@@ -260,7 +269,7 @@ class ProcessedPost(BaseModel):
     # What became of it, so `admin why` can explain a missing event (None: analyzed before this was recorded):
     #   event: published as new events · merged: added to events another post announced · discarded: an event
     #   post whose events weren't publishable (`detail`: "recurrente", "sin fecha") · not_event · rejected ·
-    #   hidden: a story taken off the site by hand ("Ocultar historia")
+    #   hidden: a story, or the events of a post, taken off the site by hand ("Ocultar historia", "Ocultar")
     outcome: PostOutcome | None = None
     event_ids: list[str] = []  # the events it became or was merged into
     detail: str | None = None

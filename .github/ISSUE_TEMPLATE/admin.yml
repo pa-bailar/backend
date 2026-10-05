@@ -1,8 +1,8 @@
 # The admin inbox's form (docs/ADMIN.md): the admin workflow answers it with a comment (pa_bailar/inbox.py reads
-# the "### Acción", "### Enlace", "### Cuenta" and "### Historia" fields this form writes). "Agregar historia" isn't
+# the "### Acción", "### Enlace", "### Cuenta", "### Historia" and "### Evento" fields this form writes). "Agregar historia" isn't
 # here: its screenshots are uploaded from the admin page, which opens that request itself.
 name: Pedido a las herramientas de administración
-description: Revisar, agregar o volver a leer una publicación, agregar una cuenta, ver el estado u ocultar una historia.
+description: Revisar, agregar o volver a leer una publicación, agregar una cuenta, ver el estado u ocultar una historia o un evento.
 title: "Pedido"
 labels: [admin]
 body:
@@ -17,6 +17,7 @@ body:
         - Agregar cuenta
         - Estado
         - Ocultar historia
+        - Ocultar evento
       default: 0
     validations:
       required: true
@@ -38,3 +39,9 @@ body:
       label: Historia
       description: Para Ocultar historia, su código (story-…), que está en la respuesta que la publicó.
       placeholder: story-…
+  - type: input
+    id: evento
+    attributes:
+      label: Evento
+      description: Para Ocultar evento, su código (la última parte de su enlace en el sitio, después de /evento/).
+      placeholder: programa-intensivo-8-nov

@@ -217,6 +217,17 @@ def find_existing(
     return same_account or next((e for e in others if looks_like_shared_event(e, account, candidate)), None)
 
 
+def matches_hidden(hidden: StoredEvent, account: str, candidate: ExtractedEvent, post_id: str) -> bool:
+    """Whether an extracted event is one taken off the site by hand (models.HiddenEvent): read again from one of
+    its posts (a day in common), linked to it by Gemini, or the same event by the merging rules (a later reminder
+    of it, another account's post of it). Anything else is a new event, even from the same account."""
+    if post_id in {media.post_id for media in hidden.media} and _overlap(hidden, candidate):
+        return True
+    if candidate.same_as == hidden.id and hidden.account == account:
+        return True
+    return looks_like_same_event(hidden, account, candidate) or looks_like_shared_event(hidden, account, candidate)
+
+
 def merge_into(stored: StoredEvent, candidate: EventDetails, media: EventMedia) -> StoredEvent:
     """Add a post to an existing event: fill in what it was missing, and take dates, times and prices from
     the post if it's the newest one announcing the event (an older post re-analyzed never overrides). A post

@@ -42,12 +42,13 @@ from .instagram import (
     slide_count,
     video_url,
 )
-from .merging import detach_post, find_existing, merge_into
+from .merging import detach_post, find_existing, matches_hidden, merge_into
 from .models import (
     AccountState,
     EventDetails,
     EventMedia,
     ExtractedEvent,
+    HiddenEvent,
     PostAnalysis,
     PostOutcome,
     ProcessedPost,
@@ -274,6 +275,14 @@ class AddedStory:
 
 
 @dataclass
+class HiddenFromSite:
+    """What hide_event did."""
+
+    event: StoredEvent  # as it was on the site
+    already: bool = False  # it was hidden before
+
+
+@dataclass
 class HiddenStory:
     """What hide_story did."""
 
@@ -365,8 +374,14 @@ class Sweep:
         self.lookback = timedelta(days=lookback_days)
         self.instagram = instagram or InstagramClient.from_env()
         self.extractor = extractor or EventExtractor(config.require_env("GEMINI_API_KEY"))
-        self.events = storage.load_events()
+        self.hidden = storage.load_hidden_events()
+        # An event hidden by hand stays off the site, even if the data PR of the run that hid it wasn't merged.
+        stored = storage.load_events()
+        self.events = [event for event in stored if event.id not in self.hidden]
+        if len(self.events) != len(stored):
+            storage.save_events(self.events)
         self.processed = storage.load_processed_posts()
+        self.by_hand = False  # adding a post or story by hand: it may publish again what was hidden
         self.accounts = storage.load_account_state()
         self.stats = RunStats()
         self.started = time.monotonic()
@@ -451,6 +466,9 @@ class Sweep:
         kept = [event for event in self.events if not event.last_day or event.last_day >= oldest_date]
         self.stats.events_expired = len(self.events) - len(kept)
         self.events = kept
+        past = [key for key, item in self.hidden.items() if (item.event.last_day or "") < oldest_date]
+        for key in past:  # long past: no post of it will be read again
+            del self.hidden[key]
 
         # Never forget a post the lookback could still fetch (e.g. a manual run with --days 60).
         keep_days = max(config.PROCESSED_RETENTION_DAYS, self.lookback.days + 1)
@@ -460,7 +478,7 @@ class Sweep:
             del self.processed[post_id]
         self.stats.processed_forgotten = len(old)
 
-        if self.stats.events_expired or old:
+        if self.stats.events_expired or old or past:
             log.info(
                 "Retention: %s past events deleted, %s old post records forgotten", self.stats.events_expired, len(old)
             )
@@ -484,6 +502,7 @@ class Sweep:
         code = links.post_code(url)
         if not code:
             raise AddPostError("Ese enlace no es de una publicación de Instagram (instagram.com/p/…).")
+        self.by_hand = True  # whoever asks wants it published, even if it was hidden before
         known_id = self._record_id(code)
         known = self.processed.get(known_id) if known_id else None
         account = account or (known.account if known else None) or links.account_in_link(url)
@@ -564,6 +583,7 @@ class Sweep:
           screenshot itself is never published. The event's permalink is the account's profile."""
         if not shots:
             raise AddPostError("No llegó ninguna captura.")
+        self.by_hand = True
         shots = shots[: stories.MAX_SCREENSHOTS]
         images = [shot.image for shot in shots]
         story_id = stories.story_id(images)
@@ -756,6 +776,37 @@ class Sweep:
             record.account,
             removed=[event for event in affected if event.id not in remaining],
             kept=[event for event in self.events if event.id in {e.id for e in affected}],
+        )
+
+    def hide_event(self, event_id: str) -> HiddenFromSite:
+        """Take any event off the site by hand ("Ocultar", e.g. a new workshop series that isn't right), whatever
+        it came from (posts, stories). It's kept in state/hidden_events.json: the sweeps never publish it again from
+        the same posts (a caption edit, an upgrade) nor from a later post of the same event (merging.matches_hidden);
+        a genuinely new event is published as usual. Adding one of its posts by hand (Agregar, Volver a leer)
+        publishes it again. Its posts' records lose it (`hidden` when it was all they announced)."""
+        if event_id in self.hidden:
+            return HiddenFromSite(self.hidden[event_id].event, already=True)
+        event = next((item for item in self.events if item.id == event_id), None)
+        if event is None:
+            raise AddPostError(f"No encontré el evento `{event_id}` en el sitio: ¿ya pasó, o cambió de nombre?")
+        self.events.remove(event)
+        self.hidden[event_id] = HiddenEvent(hidden_at=config.now_bogota().isoformat(timespec="seconds"), event=event)
+        for media in event.media:
+            record = self.processed.get(media.post_id)
+            if record is None:
+                continue
+            record.event_ids = [other for other in record.event_ids if other != event_id]
+            if not record.event_ids:
+                record.outcome, record.provisional = "hidden", False  # no upgrade for nothing
+        self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
+        self._save()
+        storage.save_meta(asdict(self.stats))
+        log.info("   %s hidden by hand: %s", event_id, event.title)
+        return HiddenFromSite(event)
+
+    def _hidden_match(self, account: str, candidate: ExtractedEvent, post_id: str) -> HiddenEvent | None:
+        return next(
+            (item for item in self.hidden.values() if matches_hidden(item.event, account, candidate, post_id)), None
         )
 
     # ---------- one post, one identity: the API's id, or public-<id> when read from its public page ----------
@@ -1034,13 +1085,16 @@ class Sweep:
 
         if not publishable:
             log.info("     skipped: %s", analysis.reason)
-        results = [
+        added = [
             self._add_event(account, post, candidate, _media_for(post, flyer), reusable, count=count_as_new)
             for candidate, flyer in zip(publishable, flyers, strict=True)
         ]
+        results = [result for result in added if result]
         if results:
             merged_only = all(merged for _, merged in results)
             self._set_outcome(post, "merged" if merged_only else "event", [event_id for event_id, _ in results])
+        elif added:  # every event it announces was hidden by hand
+            self._set_outcome(post, "hidden", detail="oculto a mano")
         elif analysis.is_event_post and analysis.events:
             reasons = sorted({"recurrente" if event.is_recurring else "sin fecha" for event in cleaned})
             self._set_outcome(post, "discarded", detail=", ".join(reasons))
@@ -1067,11 +1121,19 @@ class Sweep:
         media: EventMedia,
         reusable: list[StoredEvent],
         count: bool = True,
-    ) -> tuple[str, bool]:
-        """Merge into the same event from another post, or store it as a new event: (its id, merged?).
+    ) -> tuple[str, bool] | None:
+        """Merge into the same event from another post, or store it as a new event: (its id, merged?). None when
+        it's an event hidden by hand (hide_event): left off the site, unless the post is added by hand.
 
         `count=False` for re-extractions (upgrades), which replace events instead of adding new ones.
         """
+        hidden = self._hidden_match(account, candidate, post["id"])
+        if hidden and not self.by_hand:
+            log.info("     hidden by hand, left off the site: %s %s", _days(hidden.event), hidden.event.title)
+            return None
+        if hidden:  # added by hand: published again (with its old id, when it's stored as new)
+            del self.hidden[hidden.event.id]
+            log.info("     hidden by hand before, published again (added by hand): %s", hidden.event.title)
         existing = find_existing(self.events, account, candidate, post["id"])
         if existing:
             self.events[self.events.index(existing)] = merge_into(existing, candidate, media)
@@ -1079,9 +1141,8 @@ class Sweep:
                 self.stats.count(account, "events_merged")
             log.info("     same event as an earlier post, merged: %s %s", _days(existing), existing.title)
             return existing.id, True
-        event = StoredEvent(
-            **_details(candidate), id=self._event_id(candidate, reusable), account=account, media=[media]
-        )
+        event_id = hidden.event.id if hidden else self._event_id(candidate, reusable)
+        event = StoredEvent(**_details(candidate), id=event_id, account=account, media=[media])
         self.events.append(event)
         if count:
             self.stats.count(account, "events_new")
@@ -1093,11 +1154,12 @@ class Sweep:
         previous = next((event for event in reusable if event.date == candidate.date), None) or next(
             iter(reusable), None
         )
+        taken = {event.id for event in self.events} | set(self.hidden)  # a hidden event keeps its id to itself
         if previous:
             reusable.remove(previous)
             return previous.id
         assert candidate.date, "only events with a date are stored (_is_publishable)"
-        return new_event_id(candidate.title, candidate.date, {event.id for event in self.events})
+        return new_event_id(candidate.title, candidate.date, taken)
 
     def _record_processed(
         self, account: str, post: Post, is_event_post: bool, reason: str, model: str, provisional: bool
@@ -1123,3 +1185,4 @@ class Sweep:
         """Save after every post so progress survives an interrupted run."""
         storage.save_events(self.events)
         storage.save_processed_posts(self.processed)
+        storage.save_hidden_events(self.hidden)

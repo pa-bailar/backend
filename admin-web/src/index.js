@@ -190,6 +190,9 @@ async function readStatus(session, env) {
 const POST_LINK = /^https?:\/\/(www\.|m\.)?instagram\.com\/([\w.]+\/)?(p|reel|reels|tv)\/[\w-]+\/?(\?[^\s#]*)?(#\S*)?$/i;
 const ACCOUNT = /^[A-Za-z0-9._]{1,30}$/; // tested without its "@"
 const STORY_ID = /^story-[a-f0-9]{16}$/; // a story published from screenshots (pa_bailar/stories.py)
+// An event's id on the site (pa_bailar/ids.py; pa_bailar/inbox.py EVENT_ID): lowercase words joined by hyphens.
+const EVENT_ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const EVENT_ID_MAX = 120;
 const NOTES_MAX = 500;
 const ACTIONS = {
   why: "Revisar",
@@ -199,13 +202,15 @@ const ACTIONS = {
   status: "Estado",
   "add-story": "Agregar historia",
   "hide-story": "Ocultar historia",
+  "hide-event": "Ocultar evento",
 };
 const POST_ACTIONS = new Set(["why", "add-post", "add-post-again"]); // the ones that need a post link
 
 /**
  * POST {action, link?, account?, images?, notes?, story?} → an issue written like the inbox's form
  * (pa_bailar/inbox.py reads it). "add-story" takes the ids of screenshots uploaded first (/api/uploads) and
- * optional notes; "hide-story" a published story's id (story-…), from the answer to an "add-story".
+ * optional notes; "hide-story" a published story's id (story-…), from the answer to an "add-story"; "hide-event"
+ * an event's id on the site (the status' new series list: "Ocultar del sitio").
  */
 async function createRequest(request, session, env) {
   const fields = (await request.json().catch(() => null)) ?? {};
@@ -219,6 +224,7 @@ async function createRequest(request, session, env) {
   if (action === "add-story" || action === "hide-story") {
     return createStoryRequest(action, fields, cleanAccount, session, env);
   }
+  if (action === "hide-event") return createHideEventRequest(fields, session, env);
   if (POST_ACTIONS.has(action) && !POST_LINK.test(cleanLink)) {
     return Response.json({ error: "Pega el enlace de una publicación de Instagram (instagram.com/p/…)." }, { status: 400 });
   }
@@ -235,6 +241,22 @@ async function createRequest(request, session, env) {
   const response = await github(`/repos/${env.REPO}/issues`, session.access_token, undefined, {
     method: "POST",
     body: JSON.stringify({ title: `${ACTIONS[action]}${subject ? `: ${subject}` : ""}`, body, labels: ["admin"] }),
+  });
+  if (!response.ok) return githubError(response, " al crear el pedido");
+  const issue = await response.json();
+  return Response.json({ number: issue.number, url: issue.html_url });
+}
+
+/** "Ocultar evento": take one event off the site (its id), whatever it came from. */
+async function createHideEventRequest(fields, session, env) {
+  const event = String(fields.event ?? "").trim();
+  if (event.length > EVENT_ID_MAX || !EVENT_ID.test(event)) {
+    return Response.json({ error: "Ese evento no es válido." }, { status: 400 });
+  }
+  const body = [`### Acción\n\n${ACTIONS["hide-event"]}`, `### Evento\n\n${event}`, "_Desde la página de administración._"];
+  const response = await github(`/repos/${env.REPO}/issues`, session.access_token, undefined, {
+    method: "POST",
+    body: JSON.stringify({ title: `${ACTIONS["hide-event"]}: ${event}`, body: body.join("\n\n"), labels: ["admin"] }),
   });
   if (!response.ok) return githubError(response, " al crear el pedido");
   const issue = await response.json();

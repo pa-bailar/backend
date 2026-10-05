@@ -73,6 +73,9 @@ a { color: var(--accent); }
 .runs li { padding: 8px 0; border-top: 1px solid var(--divider); }
 .runs li:first-child { border-top: 0; padding-top: 0; }
 .runs .when { font-weight: 600; }
+.series { list-style: none; margin: 0; padding: 0; }
+.series__item { padding: 10px 0; border-top: 1px solid var(--divider); }
+.series__item:first-child { border-top: 0; padding-top: 0; }
 .ok { color: var(--ok); }
 .warn { color: var(--warn); }
 

@@ -31,6 +31,8 @@ PROCESSED_POSTS_FILE = STATE_DIR / "processed_posts.json"
 ACCOUNT_STATE_FILE = STATE_DIR / "accounts.json"
 GEMINI_USAGE_FILE = STATE_DIR / "gemini_usage.json"
 RUN_HISTORY_FILE = STATE_DIR / "run_history.json"  # each sweep in short, for the health checks (health.py)
+# Events taken off the site by hand ("Ocultar", Sweep.hide_event): never published again from the same posts.
+HIDDEN_EVENTS_FILE = STATE_DIR / "hidden_events.json"
 
 # ---------- Instagram (Meta Graph API) ----------
 GRAPH_API_URL = "https://graph.facebook.com/v26.0"
@@ -124,6 +126,8 @@ MAX_EVENT_DAYS = 7
 MIN_SERIES_SESSIONS = 2
 MAX_SERIES_SESSIONS = 12
 MAX_SERIES_DAYS = 123
+# New series are listed for a look in `admin status` (and the admin page) this long after first published.
+NEW_SERIES_DAYS = 14
 
 # ---------- Retention ----------
 # Events whose last day was more than this many days ago are deleted, and their flyers with them (git history
