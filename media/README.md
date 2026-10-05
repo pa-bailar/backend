@@ -37,7 +37,8 @@ D:\AI\pa-bailar-media\
 ├── cache/tts/, cache/music/     TTS lines and music beds, by content hash (the bed can't be made again by chance)
 ├── public/<video>/              screens, flyers, audio: Remotion's public folder (staticFile, assets(video))
 ├── out/<video>/                 renders (<video>-v<version>-<deliverable>.mp4), drafts, frames, sheets, comparisons
-├── out/.bundle/, out/check/     the stills bundle (made again when the code changes), npm run check's stills
+├── out/.bundle-<checkout>/      the stills bundle, one per checkout (made again when its code changes)
+├── out/check/                   npm run check's stills
 ├── archive/<video>/v<version>/  each posted version, whole: its renders, public/ as it was, its project files
 └── publish_state.json           what tools/publish.py sent, per render (its sha256), account and kind
 ```

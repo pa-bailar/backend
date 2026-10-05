@@ -7,8 +7,8 @@ Looks in three places:
 - the media home's out/ (D:\\AI\\pa-bailar-media\\out, all generated): each video's older versions
   (`<video>-v2.3-reel.mp4` once `<video>-v2.4-reel.mp4` exists), stills (`frames/`), drafts (`*-draft.mp4`), keyframe
   sheets (`*-sheet.png`), side-by-sides (`*-vs-*.mp4`), the scratch folders tools and checks leave (`review/`,
-  `rt/`, `auditions/`, `music/`, the stills bundle `.bundle/`), and logs. Each deliverable's latest version and its
-  `<deliverable>.mp4` link stay. The home's archive/ (posted versions) is never touched.
+  `rt/`, `auditions/`, `music/`, the stills bundles `.bundle-<checkout>/`), and logs. Each deliverable's latest
+  version and its `<deliverable>.mp4` link stay. The home's archive/ (posted versions) is never touched.
 - the checkout's media/cache, media/public/<video> and media/out/<video> from before the media home: a file is
   listed only when the home holds an identical copy (a render of a posted version: in the archive). The site checks
   that live in media/out/ (`*.mjs`, `site-bugs/`, `site-quality/`, `admin-tabs/`) are skipped, by name; new checks
@@ -100,7 +100,7 @@ def site_check(path: Path) -> bool:
 def home_out(out: Path) -> list[Path]:
     picks: list[Path] = []
     for item in out.iterdir() if out.exists() else []:
-        if item.is_dir() and item.name in SCRATCH_DIRS:
+        if item.is_dir() and (item.name in SCRATCH_DIRS or item.name.startswith(".bundle")):  # .bundle-<checkout>
             picks.append(item)
         elif item.is_file() and item.suffix in {".log", ".png", ".mp4"}:
             picks.append(item)  # loose checks and stills at out/'s top level

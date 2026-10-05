@@ -7,15 +7,15 @@
 //
 // Times: seconds (1.5), a frame (f300), a line's start (c4) or a word's start (c4:link, the nth with c4:link:1), from
 // the video's data/timing.json (the same lookups as makeTiming() in src/lib/timing.ts). The deliverable is one of
-// video.json's "renders" (default: the first). The bundle lives in out/.bundle/ with a key of every file it reads
+// video.json's "renders" (default: the first). The bundle lives in out/.bundle-<checkout>/ with a key of every file it reads
 // (src/, projects/, the public files): a second run with nothing changed starts rendering in a second or two.
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { arg, flag, positionals } from "./capture.mjs";
-import { MEDIA, OUT, PUBLIC } from "./paths.mjs";
+import { bundleDir, MEDIA, OUT, PUBLIC } from "./paths.mjs";
 
 /** Every file under `dir` (recursively), skipping node_modules. */
 async function files(dir) {
@@ -48,19 +48,30 @@ async function sourceKey() {
   return hash.digest("hex").slice(0, 16);
 }
 
-/** The bundle's folder: the cached one when its key matches, else a fresh bundle. */
+/**
+ * The bundle's folder (one per checkout: bundleDir()): the cached one when its key matches, else a fresh bundle,
+ * built in a temporary folder and moved into place whole, so a reader never sees half a bundle.
+ */
 export async function bundled() {
-  const dir = path.join(OUT, ".bundle");
+  const dir = bundleDir();
   const key = await sourceKey();
   const keyFile = path.join(dir, "key.txt");
   if ((await readFile(keyFile, "utf8").catch(() => "")) === key && existsSync(path.join(dir, "index.html"))) {
     return dir;
   }
   const { bundle } = await import("@remotion/bundler");
-  await rm(dir, { recursive: true, force: true });
+  const tmp = `${dir}.tmp-${process.pid}`;
+  await rm(tmp, { recursive: true, force: true });
   const t0 = Date.now();
-  await bundle({ entryPoint: path.join(MEDIA, "src", "index.ts"), outDir: dir, publicDir: PUBLIC });
-  await writeFile(keyFile, key);
+  await bundle({ entryPoint: path.join(MEDIA, "src", "index.ts"), outDir: tmp, publicDir: PUBLIC });
+  await writeFile(path.join(tmp, "key.txt"), key);
+  await rm(dir, { recursive: true, force: true });
+  try {
+    await rename(tmp, dir);
+  } catch {
+    console.log(`   (kept the bundle in ${path.basename(tmp)}: ${path.basename(dir)} was busy)`);
+    return tmp;
+  }
   console.log(`   bundled in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   return dir;
 }
