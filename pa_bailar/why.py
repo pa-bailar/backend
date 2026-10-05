@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from typing import Any, Literal
 
 from . import config, links, storage, sweep_state
+from .external import is_external
 from .instagram import InstagramError, Post, is_not_visible, published_at
 from .models import AccountState, ProcessedPost, StoredEvent
 from .text import clock, event_dates_label
@@ -117,7 +118,13 @@ def _explain_record(
     account = record.account
     result.check("ok" if swept else "no", f"@{account} {'está' if swept else 'ya no está'} en los barridos.")
     model = record.model or "?"
-    light = " (Flash-Lite, provisional: se relee con Flash)" if record.provisional else ""
+    light = ""
+    if record.provisional:
+        light = (
+            " (último recurso fuera de Gemini, que no tenía cuota; provisional: se relee con Gemini)"
+            if is_external(model)
+            else " (Flash-Lite, provisional: se relee con Flash)"
+        )
     result.check("ok", f"Analizada el {_date(record.processed_at)} con {model}{light}.")
 
     outcome = record.outcome

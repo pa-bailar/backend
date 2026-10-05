@@ -1,0 +1,335 @@
+"""`admin bakeoff`: how well other models read posts, measured against what Gemini Flash read (docs/ADMIN.md).
+
+For re-checking the last resort's models (config.EXTERNAL_PROVIDERS) from time to time, or a new model before it's
+listed: free models change, get slower or disappear without notice. On your computer only; it spends real requests
+(each model, once per post), from the same daily quotas as the sweeps. Models are named as the sweep records them:
+a Gemini model ("gemini-3.5-flash-lite") or "<provider>:<model>" ("groq:qwen/qwen3.8-27b").
+
+  1. pick: recent posts Flash read on its own (not provisional, the only post of each of its events, with a stored
+     flyer) from the site's events (config.DATA_DIR) and the sweeps' records (the sweep-state branch). A third of
+     them, when there are, are workshop series or events over several days, the hardest dates.
+  2. run: each model reads each post's caption and its stored flyer (one image) with the sweep's own extraction
+     prompt. Answers are cached in state/bakeoff/ (never committed), so a rerun spends nothing on posts already
+     answered and retries only the ones that failed.
+  3. score: each model's events against Flash's, field by field. Agreement with Flash measures similarity, not
+     truth, and every model misses what's only on slides it wasn't given (a test limit).
+`--discover` lists OpenRouter's free models now, with image input, and whether they take structured output: the
+candidates for the list (no key, no quota).
+"""
+
+import io
+import json
+import random
+import time
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+import httpx
+from google.genai import types
+from PIL import Image
+
+from . import config, storage, sweep_state
+from .external import ExternalTier, recorded_name
+from .gemini import ExtractionError, ModelPool, QuotaExhaustedError
+from .models import PostAnalysis
+from .prompts import EXTRACTION_PROMPT
+from .text import fold
+
+CACHE_DIR = config.STATE_DIR / "bakeoff"
+DEFAULT_POSTS = 15
+SEED = 5  # the same posts each time for the same data
+FLASH_MODELS = tuple(model for model in config.MODEL_LIMITS if not model.endswith("-lite"))
+# The baseline (Flash-Lite, the first fallback), then every model of the last resort.
+DEFAULT_MODELS = (
+    "gemini-3.5-flash-lite",
+    *(recorded_name(provider.name, model.name) for provider in config.EXTERNAL_PROVIDERS for model in provider.models),
+)
+JPEG_QUALITY = 90
+
+Item = dict[str, Any]  # a picked post: its id, account, caption, flyer, dates and Flash's events (plain JSON)
+Ask = Callable[[str, list[types.PartUnionDict]], PostAnalysis]  # (model, contents) → its reading
+
+
+# ---------- 1. pick ----------
+
+
+def candidates(events: list[dict[str, Any]], processed: dict[str, dict[str, Any]], data_dir: Path) -> list[Item]:
+    """Posts Flash read on its own: final (not provisional) Flash records whose events have that post alone, and a
+    flyer on disk. Stories aren't posts: left out."""
+    by_post: dict[str, list[dict[str, Any]]] = {}
+    for event in events:
+        for media in event["media"]:
+            by_post.setdefault(media["post_id"], []).append(event)
+    found = []
+    for post_id, its_events in by_post.items():
+        record = processed.get(post_id)
+        if not record or record.get("model") not in FLASH_MODELS or record.get("provisional"):
+            continue
+        media = next(m for m in its_events[0]["media"] if m["post_id"] == post_id)
+        if media["media_type"] == "STORY" or not media.get("flyer") or not (data_dir / media["flyer"]).exists():
+            continue
+        if any(len(event["media"]) > 1 for event in its_events):
+            continue  # details merged from other posts: not this post's own reading
+        found.append(
+            {
+                "post_id": post_id,
+                "account": its_events[0]["account"],
+                "caption": media.get("caption"),
+                "flyer": media["flyer"],
+                "published": media["published"],
+                "processed_at": record["processed_at"],
+                "events": its_events,
+            }
+        )
+    return sorted(found, key=lambda item: item["post_id"])
+
+
+def pick(found: list[Item], count: int, seed: int = SEED) -> list[Item]:
+    """`count` posts: up to a third with a series or an event over several days, the rest at random."""
+    special = [item for item in found if any(e.get("sessions") or e.get("end_date") for e in item["events"])]
+    chosen = special[: count // 3]
+    rest = [item for item in found if item not in chosen]
+    return chosen + random.Random(seed).sample(rest, min(len(rest), count - len(chosen)))
+
+
+# ---------- 2. run ----------
+
+
+def contents_for(item: Item, data_dir: Path) -> list[types.PartUnionDict]:
+    """What the sweep sends for an extraction, as on the day Flash read the post: its flyer, then the prompt."""
+    published = datetime.fromisoformat(item["published"].replace("+0000", "+00:00"))
+    today = datetime.fromisoformat(item["processed_at"]).astimezone(config.BOGOTA_TZ)
+    prompt = EXTRACTION_PROMPT.format(
+        account=item["account"],
+        published=published.astimezone(config.BOGOTA_TZ).strftime("%Y-%m-%d %A"),
+        today=today.strftime("%Y-%m-%d %A"),
+        caption=item["caption"] or "(sin texto)",
+        account_rules="",
+        known_events="(none)",
+    )
+    buffer = io.BytesIO()
+    Image.open(data_dir / item["flyer"]).convert("RGB").save(buffer, "JPEG", quality=JPEG_QUALITY)
+    return ["Image 0:", types.Part.from_bytes(data=buffer.getvalue(), mime_type="image/jpeg"), prompt]
+
+
+def asker(gemini_key: Callable[[], str], external: ExternalTier | None = None) -> Ask:
+    """Reads with a Gemini model (config.MODEL_LIMITS) or a "<provider>:<model>" one, each client made when first
+    needed (Gemini's key too; the providers' keys come from the environment)."""
+    gemini: ModelPool | None = None
+
+    def ask(model: str, contents: list[types.PartUnionDict]) -> PostAnalysis:
+        nonlocal gemini, external
+        if model in config.MODEL_LIMITS:
+            gemini = gemini or ModelPool(gemini_key())
+            return gemini.generate((model,), contents, PostAnalysis)[0]
+        provider, _, name = model.partition(":")
+        external = external or ExternalTier()
+        return external.generate_with(provider, name, contents, PostAnalysis)[0]
+
+    return ask
+
+
+def cache_file(model: str, cache_dir: Path = CACHE_DIR) -> Path:
+    return cache_dir / f"answers-{model.replace('/', '_').replace(':', '_')}.json"
+
+
+def load_cache(path: Path) -> dict[str, Any]:
+    cached: dict[str, Any] = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    return cached
+
+
+def run_model(
+    model: str,
+    picks: list[Item],
+    ask: Ask,
+    data_dir: Path,
+    cache_dir: Path = CACHE_DIR,
+    say: Callable[[str], None] = print,
+) -> None:
+    """One model on every picked post it hasn't answered yet: one request each, the answer or the error cached."""
+    path = cache_file(model, cache_dir)
+    cache = load_cache(path)
+    for item in picks:
+        if "answer" in cache.get(item["post_id"], {}):
+            continue
+        started = time.monotonic()
+        try:
+            answer = ask(model, contents_for(item, data_dir))
+        except QuotaExhaustedError as error:
+            say(f"  no quota left today: {error}. The rest waits for another day.")
+            break
+        except (ExtractionError, OSError) as error:
+            cache[item["post_id"]] = {"error": str(error)[:300]}
+            say(f"  {item['post_id']}: error: {str(error)[:120]}")
+        else:
+            seconds = round(time.monotonic() - started, 1)
+            cache[item["post_id"]] = {"answer": answer.model_dump(mode="json"), "seconds": seconds}
+            say(f"  {item['post_id']}: {len(answer.events)} events ({seconds} s)")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+# ---------- 3. score ----------
+
+
+def _words(text: str | None) -> set[str]:
+    return {word for word in fold(text).replace(",", " ").split() if len(word) > 2}
+
+
+def compare(reference: dict[str, Any], answer: dict[str, Any]) -> dict[str, bool]:
+    """Field by field, one of Flash's events against the model's event on the same date: the same or not. A title
+    matches when it has at least half of Flash's words; a venue, when they share one."""
+    ref_title, title = _words(reference.get("title")), _words(answer.get("title"))
+    ref_venue, venue = _words(reference.get("venue")), _words(answer.get("venue"))
+    return {
+        "date": answer.get("date") == reference.get("date"),
+        "end_date": (answer.get("end_date") or None) == (reference.get("end_date") or None),
+        "start_time": (answer.get("start_time") or "")[:5] == (reference.get("start_time") or "")[:5],
+        "event_type": answer.get("event_type") == reference.get("event_type"),
+        "title": bool(ref_title) and len(ref_title & title) / len(ref_title) >= 0.5,
+        "styles": set(answer.get("styles") or []) == set(reference.get("styles") or []),
+        "prices": {p.get("amount_cop") for p in answer.get("prices") or []}
+        == {p.get("amount_cop") for p in reference.get("prices") or []},
+        "venue": (not ref_venue and not venue) or bool(ref_venue & venue),
+        "sessions": [s.get("date") for s in answer.get("sessions") or []]
+        == [s.get("date") for s in reference.get("sessions") or []],
+    }
+
+
+@dataclass
+class Score:
+    found: int = 0  # Flash's events the model also found (on the same date)
+    missed: int = 0
+    extra: int = 0  # events the model found that Flash didn't
+    errors: int = 0  # posts without an answer (failed or not run)
+    seconds: list[float] = field(default_factory=list)
+    fields: dict[str, list[int]] = field(default_factory=dict)  # field → [same, compared]
+    notes: list[str] = field(default_factory=list)
+
+    @property
+    def average_seconds(self) -> float:
+        return sum(self.seconds) / len(self.seconds) if self.seconds else 0.0
+
+
+def score(picks: list[Item], cache: dict[str, Any]) -> Score:
+    """A model's cached answers against Flash's events, over every picked post."""
+    result = Score()
+    for item in picks:
+        entry = cache.get(item["post_id"]) or {}
+        if "answer" not in entry:
+            result.errors += 1
+            continue
+        result.seconds.append(entry["seconds"])
+        answered = [event for event in entry["answer"]["events"] if not event.get("is_recurring")]
+        for reference in item["events"]:
+            same_day = [event for event in answered if event.get("date") == reference["date"]]
+            if not same_day:
+                result.missed += 1
+                result.notes.append(f"missed {reference['id']}")
+                continue
+            result.found += 1
+            best = max(same_day, key=lambda event: len(_words(event.get("title")) & _words(reference.get("title"))))
+            for name, same in compare(reference, best).items():
+                counts = result.fields.setdefault(name, [0, 0])
+                counts[0] += same
+                counts[1] += 1
+                if not same and name in ("start_time", "prices", "sessions", "end_date"):
+                    result.notes.append(f"{reference['id']} {name}: Flash {reference.get(name)} vs {best.get(name)}")
+        result.extra += max(0, len(answered) - len(item["events"]))
+    return result
+
+
+def score_text(model: str, result: Score, notes: int = 12) -> str:
+    """One model's score for people: the totals, each field's agreement and the first differences."""
+    fields = " · ".join(f"{name} {same}/{compared}" for name, (same, compared) in result.fields.items())
+    lines = [
+        f"== {model}: found {result.found}, missed {result.missed}, extra {result.extra}, "
+        f"errors {result.errors}, avg {result.average_seconds:.0f} s",
+        f"   {fields or '(nothing to compare)'}",
+        *(f"   - {note[:170]}" for note in result.notes[:notes]),
+    ]
+    return "\n".join(lines)
+
+
+# ---------- the command ----------
+
+
+def load_picks(count: int, repick: bool, cache_dir: Path = CACHE_DIR) -> list[Item]:
+    """The posts of the last bake-off, or new ones (`repick`, or another `count`): from the site's events and the
+    sweeps' records."""
+    path = cache_dir / "picks.json"
+    saved = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    if not repick and saved.get("posts") == count:
+        picks: list[Item] = saved["picks"]
+        return picks
+    events = storage.read_json(config.EVENTS_FILE, [])
+    processed = sweep_state.read(config.PROCESSED_POSTS_FILE.name, {})
+    picks = pick(candidates(events, processed, config.DATA_DIR), count)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"posts": count, "picks": picks}, ensure_ascii=False, indent=1), encoding="utf-8")
+    return picks
+
+
+def run(
+    count: int, models: list[str], repick: bool = False, score_only: bool = False, say: Callable[[str], None] = print
+) -> None:
+    """`admin bakeoff`: pick the posts, run each model on the ones it hasn't answered (unless `score_only`), score."""
+    picks = load_picks(count, repick)
+    say(f"{len(picks)} posts read by Flash ({config.DATA_DIR}); answers cached in {CACHE_DIR}")
+    if not score_only:
+        ask = asker(lambda: config.require_env("GEMINI_API_KEY"))
+        for model in models:
+            say(f"\n{model}:")
+            run_model(model, picks, ask, config.DATA_DIR, say=say)
+    for model in models:
+        say("\n" + score_text(model, score(picks, load_cache(cache_file(model)))))
+
+
+def discover(say: Callable[[str], None] = print) -> None:
+    """`admin bakeoff --discover`: OpenRouter's free vision models now (one request, no key)."""
+    reply = httpx.get(config.OPENROUTER_MODELS_URL, timeout=config.EXTERNAL_TIMEOUT_SECONDS)
+    reply.raise_for_status()
+    say(discover_text(free_vision_models(reply.json())))
+
+
+# ---------- discover ----------
+
+
+def free_vision_models(listing: dict[str, Any]) -> list[dict[str, Any]]:
+    """From OpenRouter's model list (GET config.OPENROUTER_MODELS_URL): the free ones that take images, with whether
+    they take structured output (`structured`, json_schema with require_parameters) and their context length."""
+    found = []
+    for model in listing.get("data") or []:
+        pricing = model.get("pricing") or {}
+        free = str(model.get("id", "")).endswith(":free") or (
+            pricing.get("prompt") in ("0", 0) and pricing.get("completion") in ("0", 0)
+        )
+        inputs = (model.get("architecture") or {}).get("input_modalities") or []
+        if not free or "image" not in inputs:
+            continue
+        parameters = model.get("supported_parameters") or []
+        found.append(
+            {
+                "id": model["id"],
+                "structured": "structured_outputs" in parameters,
+                "json_mode": "response_format" in parameters,
+                "context": model.get("context_length"),
+            }
+        )
+    return sorted(found, key=lambda item: (not item["structured"], item["id"]))
+
+
+def discover_text(models: list[dict[str, Any]]) -> str:
+    """The free vision models for people, marking the ones already in the list (config.EXTERNAL_PROVIDERS)."""
+    listed = {model.name for provider in config.EXTERNAL_PROVIDERS for model in provider.models}
+    if not models:
+        return "No free model with image input on OpenRouter right now."
+    lines = [f"{len(models)} free models with image input on OpenRouter (* = in config.EXTERNAL_PROVIDERS):"]
+    for model in models:
+        mode = "structured" if model["structured"] else "json_object" if model["json_mode"] else "no JSON mode"
+        mark = "*" if model["id"] in listed else " "
+        lines.append(f" {mark} {model['id']}  ({mode}, context {model['context']})")
+    return "\n".join(lines)

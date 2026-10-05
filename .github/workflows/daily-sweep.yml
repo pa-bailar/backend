@@ -280,6 +280,10 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_LITE_ONLY: ${{ vars.GEMINI_LITE_ONLY }} # "1": Flash-Lite extracts too (config.LITE_ONLY)
+          # Optional: the last resort when Gemini runs out, Groq then OpenRouter (config.EXTERNAL_PROVIDERS; unset:
+          # that provider is never used)
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           DATA_DIR: ${{ github.workspace }}/site/data

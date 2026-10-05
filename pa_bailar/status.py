@@ -3,6 +3,7 @@
 Plain reading of what the sweeps record (no AI, no Gemini requests):
   - the latest sweeps and the next ones (run_history.json, config.SWEEP_TIMES);
   - today's Gemini usage per model against its daily budget, and when the quota resets (gemini_usage.json);
+  - today's use of the last resort, the providers outside Gemini (Groq, OpenRouter: external_usage.json);
   - Instagram: whether the token works and how much of Instagram's quota is used (one call, optional);
   - accounts followed, those still in their first, deeper sweep (accounts.txt, accounts.json);
   - analyzed posts, provisional ones waiting for Flash, upcoming events (processed_posts.json, events.json);
@@ -16,6 +17,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from . import config, discovery, links, storage, sweep_state
+from .external import usage_day, usage_reset
 from .gemini import daily_budget, quota_day, quota_reset
 from .models import AccountState, StoredEvent
 from .pipeline import hours_overdue
@@ -48,6 +50,18 @@ def _role(model: str) -> str:
         if model in models
     ]
     return ", ".join(roles) or "discovery"
+
+
+def _external_usage(provider: config.ExternalProvider, used: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "name": provider.name,
+        "models": [model.name for model in provider.models],
+        "used": used.get("requests", 0),
+        "budget": provider.daily_requests,
+        "tokens": used.get("tokens", 0) if provider.daily_tokens else None,
+        "token_budget": provider.daily_tokens,
+        "answered": used.get("answered", {}),
+    }
 
 
 def check_instagram() -> dict[str, Any]:
@@ -117,6 +131,8 @@ def collect(
     history = read(config.RUN_HISTORY_FILE.name, [])
     usage = read(config.GEMINI_USAGE_FILE.name, {})
     used = usage.get("requests", {}) if usage.get("day") == quota_day() else {}
+    external = read(config.EXTERNAL_USAGE_FILE.name, {})
+    external_used = external.get("providers", {}) if external.get("day") == usage_day(now) else {}
     states = {
         name: AccountState.model_validate(value) for name, value in read(config.ACCOUNT_STATE_FILE.name, {}).items()
     }
@@ -140,6 +156,15 @@ def collect(
             "models": [
                 {"model": model, "role": _role(model), "used": used.get(model, 0), "budget": daily_budget(model)}
                 for model in config.MODEL_LIMITS
+            ],
+        },
+        # The last resort, used only when Gemini runs out (the keys are the sweep's alone: whether they're set isn't
+        # known here). `answered`: how many answers each model gave today.
+        "external": {
+            "resets_at": usage_reset(now).isoformat(timespec="minutes"),
+            "providers": [
+                _external_usage(provider, external_used.get(provider.name, {}))
+                for provider in config.EXTERNAL_PROVIDERS
             ],
         },
         "instagram": instagram() if instagram else None,
@@ -233,6 +258,26 @@ def _series_line(item: dict[str, Any]) -> str:
     )
 
 
+def _models_lines(status: dict[str, Any], now: datetime) -> list[str]:
+    """Gemini's use today per model, and the last resort's when it was used (Gemini ran out)."""
+    gemini = status["gemini"]
+    lines = ["### Gemini hoy", "", "| Modelo | Para | Usado | Presupuesto |", "|---|---|---|---|"]
+    for model in gemini["models"]:
+        full = " (agotado)" if model["used"] >= model["budget"] else ""
+        lines.append(f"| `{model['model']}` | {model['role']} | {model['used']}{full} | {model['budget']} |")
+    lines += ["", f"La cuota se reinicia {moment_label(gemini['resets_at'], now)}"]
+    if gemini["lite_only"]:
+        lines.append("Modo solo Flash-Lite activo (GEMINI_LITE_ONLY).")
+    for provider in (status.get("external") or {}).get("providers", []):
+        if provider["used"]:
+            answered = ", ".join(f"`{model}` {count}" for model, count in provider["answered"].items())
+            lines.append(
+                f"⚠️ {provider['name']} (último recurso, Gemini sin cuota): {provider['used']} de {provider['budget']} "
+                "solicitudes hoy" + (f" (respuestas: {answered})" if answered else "") + "."
+            )
+    return [*lines, ""]
+
+
 def markdown(status: dict[str, Any]) -> str:
     """The status for people (GitHub summaries, issue replies, the terminal), in Spanish."""
     now = datetime.fromisoformat(status["generated_at"])
@@ -248,15 +293,7 @@ def markdown(status: dict[str, Any]) -> str:
     lines += [_run_line(run, now) for run in sweeps["recent"]] or ["- Todavía no hay barridos registrados."]
     lines += ["", "Próximos: " + " y ".join(moment_label(iso, now) for iso in sweeps["next"]), ""]
 
-    gemini = status["gemini"]
-    lines += ["### Gemini hoy", "", "| Modelo | Para | Usado | Presupuesto |", "|---|---|---|---|"]
-    for model in gemini["models"]:
-        full = " (agotado)" if model["used"] >= model["budget"] else ""
-        lines.append(f"| `{model['model']}` | {model['role']} | {model['used']}{full} | {model['budget']} |")
-    lines += ["", f"La cuota se reinicia {moment_label(gemini['resets_at'], now)}"]
-    if gemini["lite_only"]:
-        lines.append("Modo solo Flash-Lite activo (GEMINI_LITE_ONLY).")
-    lines.append("")
+    lines += _models_lines(status, now)
 
     instagram = status["instagram"]
     if instagram is not None:
@@ -280,7 +317,10 @@ def markdown(status: dict[str, Any]) -> str:
     posts = status["posts"]
     lines.append(f"- {posts['recorded']} publicaciones analizadas en los últimos días.")
     if posts["provisional"]:
-        lines.append(f"- {posts['provisional']} eventos provisionales (leídos con Flash-Lite), a releer con Flash.")
+        lines.append(
+            f"- {posts['provisional']} eventos provisionales (leídos con Flash-Lite o el último recurso), a releer "
+            "con Flash."
+        )
     if status["events"] is not None:
         events = status["events"]
         low = f", {events['low_confidence']} con datos dudosos" if events["low_confidence"] else ""

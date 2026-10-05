@@ -78,6 +78,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
         self.stats.gemini_requests = self.extractor.requests_this_run()
         self.stats.models_unavailable = self.extractor.models_unavailable()
+        self.stats.external = self.extractor.external_report()
         self.stats.rate_limited = self.rate_limited
         self.stats.instagram_usage = getattr(self.instagram, "app_usage_percent", 0)
         self.stats.out_of_time = self.time_up_logged

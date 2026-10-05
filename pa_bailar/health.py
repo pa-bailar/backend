@@ -62,8 +62,13 @@ class RunRecord(BaseModel):
     provisional: int
     rate_limited: bool
     out_of_time: bool
-    gemini_requests: dict[str, int]
+    gemini_requests: dict[str, int]  # per Gemini model, and per external provider (the last resort: "groq"…)
     models_unavailable: list[str] = []  # Gemini models this key couldn't use (e.g. taken out of the free tier)
+    # The last resort (external.ExternalReport): what each of its models did, those set aside after failing, and
+    # the providers turned off (their key, the account's credit).
+    external_outcomes: dict[str, dict[str, int]] = {}
+    external_quarantined: list[str] = []
+    external_problems: dict[str, str] = {}
     instagram_usage: int | None = None  # share of Instagram's quota used when the run ended
     warnings: list[str] = []  # keys of the warnings found (Finding.key)
 
@@ -98,6 +103,9 @@ def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) 
         out_of_time=stats.out_of_time,
         gemini_requests=stats.gemini_requests,
         models_unavailable=stats.models_unavailable,
+        external_outcomes=stats.external.outcomes,
+        external_quarantined=stats.external.quarantined,
+        external_problems=stats.external.problems,
         instagram_usage=stats.instagram_usage,
     )
 
@@ -137,6 +145,74 @@ def _repeated(
     if streak >= REPEATED_RUNS:
         return [Finding("warning", key, warning.format(runs=streak))]
     return [Finding("notice", key, notice)] if streak else []
+
+
+def _model_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
+    """What the run says about the AI models: Gemini models the key can't use, Flash out of quota (provisional
+    reads), and OpenRouter, the last resort: used (Gemini ran out) or refused."""
+    findings: list[Finding] = []
+    unavailable = ", ".join(run.models_unavailable)
+    findings += _repeated(
+        runs,
+        lambda r: bool(r.models_unavailable),
+        "models-unavailable",
+        f"Gemini said this key can't use {unavailable} in the last {{runs}} runs: did Google change the free "
+        "tier? Extraction falls back to Flash-Lite meanwhile. To make that the plan, set the repository "
+        "variable GEMINI_LITE_ONLY to 1 (docs/ARCHITECTURE.md, Gemini).",
+        f"Gemini said this key can't use {unavailable} this run (it's tried again next run).",
+    )
+
+    findings += _external_findings(runs, run)
+
+    if run.provisional:
+        findings.append(
+            Finding(
+                "notice",
+                "provisional",
+                f"Flash's daily quota ran out: {run.provisional} posts were extracted with the light model "
+                "or OpenRouter (upgraded on later runs).",
+            )
+        )
+    return findings
+
+
+def _external_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
+    """The last resort: a provider turned off this run (a warning when it was in REPEATED_RUNS runs in a row), and a
+    notice when it was used at all: Gemini ran out."""
+    findings: list[Finding] = []
+    for provider in config.EXTERNAL_PROVIDERS:
+        if (problem := run.external_problems.get(provider.name)) is None:
+            continue
+
+        def turned_off(r: RunRecord, name: str = provider.name) -> bool:
+            return name in r.external_problems
+
+        findings += _repeated(
+            runs,
+            turned_off,
+            f"external-off:{provider.name}",
+            f"{provider.name}, a last resort, was turned off in the last {{runs}} runs ({problem}): check the "
+            f"{provider.key_env} secret and the account, or delete the secret to stop using it.",
+            f"{provider.name}, a last resort, was turned off this run ({problem}).",
+        )
+    requests = {p.name: count for p in config.EXTERNAL_PROVIDERS if (count := run.gemini_requests.get(p.name))}
+    if requests:
+        outcomes = "; ".join(
+            f"`{label}` " + ", ".join(f"{kind} {count}" for kind, count in counts.items())
+            for label, counts in run.external_outcomes.items()
+        )
+        aside = f" Set aside after failing: {', '.join(run.external_quarantined)}." if run.external_quarantined else ""
+        findings.append(
+            Finding(
+                "notice",
+                "external",
+                "Gemini's quotas ran out: the last resort took "
+                + ", ".join(f"{count} {name} requests" for name, count in requests.items())
+                + (f" ({outcomes})" if outcomes else "")
+                + f".{aside} Its reads are provisional (read again with Gemini later); `admin why` shows the model.",
+            )
+        )
+    return findings
 
 
 def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date) -> list[Finding]:
@@ -187,17 +263,6 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
         f"{run.post_errors} posts failed this run (tried again next run). See the run's log.",
     )
 
-    unavailable = ", ".join(run.models_unavailable)
-    findings += _repeated(
-        runs,
-        lambda r: bool(r.models_unavailable),
-        "models-unavailable",
-        f"Gemini said this key can't use {unavailable} in the last {{runs}} runs: did Google change the free "
-        "tier? Extraction falls back to Flash-Lite meanwhile. To make that the plan, set the repository "
-        "variable GEMINI_LITE_ONLY to 1 (docs/ARCHITECTURE.md, Gemini).",
-        f"Gemini said this key can't use {unavailable} this run (it's tried again next run).",
-    )
-
     backlog = runs[-STUCK_RUNS:]
     if len(backlog) == STUCK_RUNS and all(r.pending for r in backlog) and run.pending >= backlog[0].pending:
         findings.append(
@@ -224,15 +289,7 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
             )
         )
 
-    if run.provisional:
-        findings.append(
-            Finding(
-                "notice",
-                "provisional",
-                f"Flash's daily quota ran out: {run.provisional} posts were extracted with the light model "
-                "(upgraded on later runs).",
-            )
-        )
+    findings += _model_findings(runs, run)
 
     for account, s in stats.by_account.items():
         if s.fetch_failed:

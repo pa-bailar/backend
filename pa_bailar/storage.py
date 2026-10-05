@@ -115,6 +115,18 @@ def save_gemini_usage(usage: dict[str, Any]) -> None:
     write_json(config.GEMINI_USAGE_FILE, usage)
 
 
+# ---------- External providers' usage (per provider on the current UTC day: external.py) ----------
+
+
+def load_external_usage() -> dict[str, Any]:
+    usage: dict[str, Any] = read_json(config.EXTERNAL_USAGE_FILE, {})
+    return usage
+
+
+def save_external_usage(usage: dict[str, Any]) -> None:
+    write_json(config.EXTERNAL_USAGE_FILE, usage)
+
+
 # ---------- accounts ----------
 
 
