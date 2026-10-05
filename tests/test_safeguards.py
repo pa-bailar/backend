@@ -5,9 +5,10 @@ with several events read only by a lighter model. No network."""
 import pytest
 
 from pa_bailar import config, health
+from pa_bailar.merging import merge_into
 from pa_bailar.models import PostAnalysis, StoredEvent
-from pa_bailar.normalize import MULTI_DOUBT, styles_in_text
-from tests.factories import extracted, make_image
+from pa_bailar.normalize import GUESSED_STYLES_DOUBT, MULTI_DOUBT, normalize_style, styles_in_text
+from tests.factories import extracted, make_image, media, stored
 from tests.test_sweep import FakeExtractor, FakeInstagram, post, read, run
 
 
@@ -80,6 +81,138 @@ def test_flash_reading_several_events_adds_no_doubt_and_its_upgrade_clears_it():
     run(instagram, FakeExtractor({"p1": two_events()}, flash_available=False))
     run(instagram, FakeExtractor({"p1": two_events()}))  # the provisional reading upgraded with Flash
     assert all(MULTI_DOUBT not in event["doubts"] for event in read(config.EVENTS_FILE))
+
+
+def test_flash_reading_an_event_another_post_shares_clears_the_doubt_too():
+    """Review finding: a reminder merged into one of the events kept the doubt after Flash re-read both posts."""
+    p1, p2 = post("p1", days_ago=3), post("p2", days_ago=1)  # p2: a reminder of Taller A
+    reminder = PostAnalysis(is_event_post=True, reason="", events=[extracted(title="Taller A", start_time="15:00")])
+    instagram = FakeInstagram({"academia": [p1, p2]})
+    run(instagram, FakeExtractor({"p1": two_events(), "p2": reminder}, flash_available=False))
+    assert all(MULTI_DOUBT in event["doubts"] for event in read(config.EVENTS_FILE))
+    run(instagram, FakeExtractor({"p1": two_events(), "p2": reminder}))  # both upgraded with Flash
+    events = read(config.EVENTS_FILE)
+    assert len(events) == 2 and all(MULTI_DOUBT not in event["doubts"] for event in events)
+
+
+def test_a_lighter_reading_merged_in_keeps_the_doubt():
+    p1, p2 = post("p1", days_ago=3), post("p2", days_ago=1)
+    reminder = PostAnalysis(is_event_post=True, reason="", events=[extracted(title="Taller A", start_time="15:00")])
+    run(
+        FakeInstagram({"academia": [p1, p2]}),
+        FakeExtractor({"p1": two_events(), "p2": reminder}, flash_available=False),
+    )
+    taller_a = next(event for event in read(config.EVENTS_FILE) if event["title"] == "Taller A")
+    assert len(taller_a["media"]) == 2 and MULTI_DOUBT in taller_a["doubts"]
+
+
+def test_guessed_styles_are_marked_and_give_way_to_a_reading_of_them():
+    flyer = captioned("flyer", "Social de bachata y salsa", days_ago=3)
+    video = captioned("video", "Nos vemos", days_ago=1)
+    analyses = {
+        "flyer": PostAnalysis(is_event_post=True, reason="", events=[extracted(title="Social", styles=[])]),
+        "video": PostAnalysis(is_event_post=True, reason="", events=[extracted(title="Social", styles=["kizomba"])]),
+    }
+    instagram = FakeInstagram({"academia": [flyer]})
+    run(instagram, FakeExtractor(analyses))
+    [event] = read(config.EVENTS_FILE)
+    assert event["styles"] == ["bachata", "salsa"] and GUESSED_STYLES_DOUBT in event["doubts"]
+
+    instagram.posts_by_account["academia"] = [flyer, video]  # a later post whose reading gives the styles
+    run(instagram, FakeExtractor(analyses))
+    [event] = read(config.EVENTS_FILE)
+    assert event["styles"] == ["kizomba"] and GUESSED_STYLES_DOUBT not in event["doubts"]
+
+
+def test_read_styles_never_give_way_to_guessed_ones():
+    stored_event = stored(styles=["salsa"])
+    guessed = extracted(styles=["bachata"], doubts=[GUESSED_STYLES_DOUBT])
+    merged = merge_into(stored_event, guessed, media("p2", published="2026-10-05T12:00:00+0000"))
+    assert merged.styles == ["salsa"] and GUESSED_STYLES_DOUBT not in merged.doubts
+
+
+def test_guessed_styles_dont_make_an_accounts_usual_style():
+    posts = [captioned(f"p{i}", "Social de bachata", days_ago=5 - i) for i in range(4)]
+    analyses = {
+        f"p{i}": PostAnalysis(
+            is_event_post=True, reason="", events=[extracted(title=f"Social {i}", date=f"2027-01-0{i + 1}", styles=[])]
+        )
+        for i in range(4)
+    }
+    posts[3]["caption"] = "Social"
+    run(FakeInstagram({"academia": posts}), FakeExtractor(analyses))
+    styles = {event["title"]: event["styles"] for event in read(config.EVENTS_FILE)}
+    assert styles["Social 3"] == []  # three guessed "bachata" don't make it the account's usual style
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "La mejor rumba salsera de Bogotá",
+        "Con la orquesta Swing Latino",
+        "Este viernes en Mambo Cafe",
+        "Noche en el Casino Royal",
+        "Street food y transporte urbano gratis",
+        "Viene la caleña más bailadora",
+        "Ron cubano y timba de la buena",
+        "¡Qué pachanga la de anoche!",
+    ],
+)
+def test_words_captions_use_otherwise_name_no_style(text):
+    assert styles_in_text(text) == []
+
+
+def test_the_phrases_that_do_name_those_styles():
+    assert styles_in_text("Clase de baile urbano y hip hop") == ["urbano"]
+    assert styles_in_text("Danzas urbanas, reggaeton y dancehall") == ["urbano", "dancehall"]
+    assert styles_in_text("Rueda de casino y rumba cubana") == ["salsa cubana", "afro"]
+    assert styles_in_text("Salsa estilo caleño") == ["salsa caleña"]
+    assert styles_in_text("West coast swing social") == ["swing"]
+    assert styles_in_text("Noche de boogaloo y salsa brava") == ["salsa"]
+    assert styles_in_text("Salsa dura, salsa choke y bugalú") == ["salsa"]
+    assert styles_in_text("Taller de salsa estilo cubano") == ["salsa cubana"]
+
+
+@pytest.mark.parametrize(
+    ("name", "style"),
+    [
+        ("pachanga", "salsa"),
+        ("boogaloo", "salsa"),
+        ("bugalú", "salsa"),
+        ("Salsa Brava", "salsa"),
+        ("salsa dura", "salsa"),
+        ("salsa choke", "salsa"),
+        ("cubano", "salsa cubana"),
+        ("estilo cubano", "salsa cubana"),
+        ("salsa estilo cubano", "salsa cubana"),
+        ("son cubano", "son"),
+        ("guaguancó", "afro"),
+        ("rumba cubana", "afro"),
+    ],
+)
+def test_salsas_other_names_map_to_its_family(name, style):
+    """The owner, 5 Oct 2026: a model answering one of these gets the salsa family, not "otro"."""
+    assert normalize_style(name) == style
+
+
+def multi(caption: str, *titles: str) -> dict[str, str]:
+    """The styles each event of a post with several events, all without styles, gets from `caption`."""
+    events = [extracted(title=title, start_time=f"1{n}:00", styles=[]) for n, title in enumerate(titles)]
+    run(
+        FakeInstagram({"academia": [captioned("p1", caption)]}),
+        FakeExtractor({"p1": PostAnalysis(is_event_post=True, reason="", events=events)}),
+    )
+    return {event["title"]: event["styles"] for event in read(config.EVENTS_FILE)}
+
+
+def test_several_events_take_their_own_titles_styles_first():
+    styles = multi("Este sábado: salsa y bachata", "Taller de bachata sensual", "Taller de salsa", "Social")
+    assert styles == {"Taller de bachata sensual": ["bachata sensual"], "Taller de salsa": ["salsa"], "Social": []}
+
+
+def test_several_events_take_the_captions_styles_only_when_it_names_one_family():
+    styles = multi("Salsa en línea y salsa caleña este sábado", "Taller A", "Taller B")
+    assert styles == {"Taller A": ["salsa en línea", "salsa caleña"], "Taller B": ["salsa en línea", "salsa caleña"]}
 
 
 def test_lite_only_mode_marks_them_too(monkeypatch):

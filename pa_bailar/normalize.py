@@ -31,6 +31,16 @@ _STYLE_SYNONYMS = {
     "rueda": "salsa cubana",
     "rueda de casino": "salsa cubana",
     "timba": "salsa cubana",
+    "cubano": "salsa cubana",
+    "estilo cubano": "salsa cubana",
+    "salsa estilo cubano": "salsa cubana",
+    # Salsa's other names (the owner, 5 Oct 2026): plain salsa.
+    "pachanga": "salsa",
+    "boogaloo": "salsa",
+    "bugalu": "salsa",
+    "salsa brava": "salsa",
+    "salsa dura": "salsa",
+    "salsa choke": "salsa",
     "calena": "salsa caleña",
     "salsa estilo caleno": "salsa caleña",
     "estilo caleno": "salsa caleña",
@@ -50,6 +60,7 @@ _STYLE_SYNONYMS = {
     "street": "urbano",
     "rumba": "afro",
     "rumba cubana": "afro",
+    "guaguanco": "afro",
     "afrobeat": "afro",
     "afrohouse": "afro",
     "west coast swing": "swing",
@@ -87,21 +98,42 @@ def normalize_style(style: str) -> str | None:
     return _STYLE_SYNONYMS.get(key, "otro")
 
 
-# Words that name a style in a caption, for an event that came back without styles (styles_in_text). Not "son"
-# ("they are"), "salsa la", "otro" nor the bare variants' short forms: too common as plain words.
-_TEXT_STYLE_WORDS = sorted(
-    (key for key in _STYLE_SYNONYMS if key not in {"son", "salsa la", "otro", "sensual", "rueda", "la"}),
-    key=len,
-    reverse=True,
+# Words that name a style in a caption, for an event that came back without styles (styles_in_text): the synonyms
+# above, but not the ones captions use as plain words or names, which gave wrong styles (Oct 2026 review): "son"
+# ("they are"), "salsa la", "otro", "sensual", "rueda", "rumba" ("la mejor rumba salsera": a party), "street" and
+# "urbano" ("street food", "transporte urbano"), "casino" ("Casino Royal"), "mambo" ("Mambo Cafe"), "calena" ("la
+# caleña"), "swing" ("Swing Latino", a salsa company), "timba", "cubano" ("ron cubano") and "pachanga" ("¡qué
+# pachanga!"). A model's own styles keep the whole map (normalize_style).
+_NOT_IN_TEXT = {"son", "salsa la", "otro", "sensual", "rueda", "rumba", "street", "urbano", "casino", "mambo"}
+_NOT_IN_TEXT |= {"calena", "swing", "timba", "cubano", "pachanga"}
+# Phrases only a caption uses for a style (urban dance without the bare word "urbano").
+_TEXT_ONLY_STYLES = {
+    "baile urbano": "urbano",
+    "bailes urbanos": "urbano",
+    "danza urbana": "urbano",
+    "danzas urbanas": "urbano",
+}
+_TEXT_STYLES = {key: style for key, style in _STYLE_SYNONYMS.items() if key not in _NOT_IN_TEXT} | _TEXT_ONLY_STYLES
+_TEXT_STYLE = re.compile(
+    r"\b(" + "|".join(re.escape(key) for key in sorted(_TEXT_STYLES, key=len, reverse=True)) + r")\b"
 )
-_TEXT_STYLE = re.compile(r"\b(" + "|".join(re.escape(key) for key in _TEXT_STYLE_WORDS) + r")\b")
 
 
 def styles_in_text(text: str | None) -> list[str]:
     """The styles a text names ("Noche de SALSA y bachata" → salsa, bachata), longest names first, so "salsa en
     linea" wins over "salsa". For an event that came back without styles: free, no request."""
-    found = [_STYLE_SYNONYMS[m.group(1)] for m in _TEXT_STYLE.finditer(fold(text))]
+    found = [_TEXT_STYLES[m.group(1)] for m in _TEXT_STYLE.finditer(fold(text))]
     return normalize_styles(found)
+
+
+def style_family(style: str) -> str:
+    """A style's family: "salsa" for salsa and its variants, "bachata" likewise, any other style itself."""
+    return next((family for family in ("salsa", "bachata") if style.startswith(family)), style)
+
+
+# Styles the safeguards filled in (from the text or the account, pipeline/base.py: _safeguarded), not read from the
+# post: a later reading's own styles replace them (merging.merge_into), and they don't count as the account's usual.
+GUESSED_STYLES_DOUBT = "estilos deducidos del texto o de la cuenta, no leídos en el post"
 
 
 # A post announcing several events, read only by a lighter model (Flash-Lite as the final reader, or a provisional

@@ -24,7 +24,14 @@ from ..models import (
     ProcessedPost,
     StoredEvent,
 )
-from ..normalize import MULTI_DOUBT, doubtful_city, normalize_event, styles_in_text
+from ..normalize import (
+    GUESSED_STYLES_DOUBT,
+    MULTI_DOUBT,
+    doubtful_city,
+    normalize_event,
+    style_family,
+    styles_in_text,
+)
 from ..prompts import account_rules
 from ..text import fold
 from . import common
@@ -94,18 +101,33 @@ class SweepBase:
         self.time_up_logged = False
         self.rate_limited = False  # Meta is throttling the app: the remaining accounts wait for the next run
 
-    def _safeguarded(self, account: str, post: Post, event: ExtractedEvent) -> ExtractedEvent:
+    def _safeguarded(self, account: str, post: Post, event: ExtractedEvent, several: bool) -> ExtractedEvent:
         """An event that came back without styles gets the ones its title or caption names, else its account's usual
-        one (styles_in_text, _usual_styles): the dance filters would miss it otherwise. Free, no request."""
+        one (styles_in_text, _usual_styles): the dance filters would miss it otherwise. Free, no request. One of
+        `several` events in a post looks at its own title first, and takes the caption's styles only when they're
+        all one family (all salsa): a caption naming salsa and bachata doesn't say which event is which. Guessed
+        styles carry GUESSED_STYLES_DOUBT, so a reading's own styles replace them later (merging.merge_into)."""
         if event.styles:
             return event
-        styles = styles_in_text(f"{event.title} {post.get('caption') or ''}") or self._usual_styles(account)
-        return event.model_copy(update={"styles": styles}) if styles else event
+        caption = styles_in_text(post.get("caption"))
+        if several:
+            own = styles_in_text(event.title)
+            styles = own or (caption if len({style_family(style) for style in caption}) == 1 else [])
+        else:
+            styles = styles_in_text(f"{event.title} {post.get('caption') or ''}")
+        styles = styles or self._usual_styles(account)
+        if not styles:
+            return event
+        return event.model_copy(update={"styles": styles, "doubts": [*event.doubts, GUESSED_STYLES_DOUBT]})
 
     def _usual_styles(self, account: str) -> list[str]:
         """The styles nearly all of an account's stored events share (at least 3 events, 80% of them): a bachata
-        school's bachata. Empty when the account is varied or new."""
-        events = [event for event in self.events if event.account == account and event.styles]
+        school's bachata. Empty when the account is varied or new. Only styles a model read count, not guessed ones."""
+        events = [
+            event
+            for event in self.events
+            if event.account == account and event.styles and GUESSED_STYLES_DOUBT not in event.doubts
+        ]
         if len(events) < 3:
             return []
         counts: dict[str, int] = {}
@@ -201,8 +223,10 @@ class SweepBase:
             if self._is_bar(account)
             else [doubtful_city(e, post.get("caption")) for e in analysis.events]
         )
-        cleaned = [self._safeguarded(account, post, normalize_event(event)) for event in checked]
-        if len(cleaned) > 1 and (provisional or config.LITE_ONLY):
+        several = len(checked) > 1
+        cleaned = [self._safeguarded(account, post, normalize_event(event), several) for event in checked]
+        light = provisional or config.LITE_ONLY  # read by a lighter model (Flash-Lite, the last resort)
+        if several and light:
             cleaned = [_with_doubt(event, MULTI_DOUBT) for event in cleaned]
         publishable: list[ExtractedEvent] = []
         reasons: set[str] = set()  # why the others weren't published, for the post's record
@@ -233,7 +257,7 @@ class SweepBase:
         if not publishable:
             log.info("     skipped: %s", analysis.reason)
         added = [
-            self._add_event(account, post, candidate, media_for(post, flyer), reusable, count=count_as_new)
+            self._add_event(account, post, candidate, media_for(post, flyer), reusable, count=count_as_new, light=light)
             for candidate, flyer in zip(publishable, flyers, strict=True)
         ]
         results = [result for result in added if result]
@@ -306,11 +330,13 @@ class SweepBase:
         media: EventMedia,
         reusable: list[StoredEvent],
         count: bool = True,
+        light: bool = False,
     ) -> tuple[str, bool] | None:
         """Merge into the same event from another post, or store it as a new event: (its id, merged?). None when
         it's an event hidden by hand (hide_event): left off the site, unless the post is added by hand.
 
-        `count=False` for re-extractions (upgrades), which replace events instead of adding new ones.
+        `count=False` for re-extractions (upgrades), which replace events instead of adding new ones. A reading by
+        Flash (not `light`) merged into an event settles a lighter model's several-events doubt (MULTI_DOUBT).
         """
         hidden = self._hidden_match(account, candidate, post["id"])
         if hidden and not self.by_hand:
@@ -325,7 +351,10 @@ class SweepBase:
             candidate = candidate.model_copy(update={"doubts": [*candidate.doubts, doubt]})
         existing = find_existing(self.events, account, candidate, post["id"])
         if existing:
-            self.events[self.events.index(existing)] = merge_into(existing, candidate, media)
+            merged = merge_into(existing, candidate, media)
+            if not light and MULTI_DOUBT in merged.doubts:
+                merged = merged.model_copy(update={"doubts": [d for d in merged.doubts if d != MULTI_DOUBT]})
+            self.events[self.events.index(existing)] = merged
             if count:
                 self.stats.count(account, "events_merged")
             log.info("     same event as an earlier post, merged: %s %s", _days(existing), existing.title)
