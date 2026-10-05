@@ -30,6 +30,7 @@
   },
   "mix": { "fade": 0.3, "voice_only_lufs": -15, "with_music_lufs": -14, "bed_db": -8 },
   "capture": { "styles": ["Salsa", "Bachata"] },
+  "sticker_band": {"deliverables": ["voice-only", "with-music"], "allow": [[4.2, 4.3, "iris 1→2: the cover's full-bleed tomato opens out of the record's spot"], [5.75, 6.45, "whip 2→3 and its overshoot: the cover's edge sweeps through the band"]]},
   "renders": {
     "voice-only": "teaser-v2-voice-only",
     "with-music": "teaser-v2-with-music",

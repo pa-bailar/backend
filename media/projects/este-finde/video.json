@@ -2,5 +2,6 @@
   "title": "Este finde: the coming weekend's events, from the data (a weekly Story, no voice)",
   "fps": 30,
   "duration": 12.0,
+  "sticker_band": {"deliverables": ["story"], "allow": []},
   "renders": { "story": "este-finde-story" }
 }

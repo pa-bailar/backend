@@ -12,13 +12,17 @@ import subprocess
 import sys
 import wave
 from dataclasses import dataclass
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 MEDIA = Path(__file__).resolve().parent.parent
 BACKEND = MEDIA.parent
 # The canvas, safe zones, sticker band, default tempo and loudness targets, shared with src/lib/tokens.ts.
 BRAND: dict = json.loads((MEDIA / "brand.json").read_text(encoding="utf-8"))
-CACHE = MEDIA / "cache"
+# Generated files (the TTS and music cache, each video's public/ binaries, renders and working files) live in the
+# media home, outside any checkout.
+HOME = MEDIA
+CACHE = HOME / "cache"
 # winget's Gyan.FFmpeg package (D:\AI\README.md), any version: <package>\ffmpeg-<version>-full_build\bin
 WINGET_PACKAGES = Path.home() / "AppData" / "Local" / "Microsoft" / "WinGet" / "Packages"
 TTS_RATE = 24000  # Gemini TTS: 24 kHz 16-bit mono PCM
@@ -76,6 +80,11 @@ def load_env() -> None:
             os.environ.setdefault(key.strip(), value.strip().strip("'\""))
 
 
+def bogota_today() -> date:
+    """Today in Bogotá (UTC−5, no daylight saving): the day the site and its visitors are on."""
+    return datetime.now(timezone(timedelta(hours=-5))).date()
+
+
 def key(*parts: object) -> str:
     """A short, stable cache key for the given inputs."""
     return hashlib.sha256(json.dumps(parts, ensure_ascii=False).encode()).hexdigest()[:16]
@@ -100,12 +109,12 @@ class Video:
     @property
     def public(self) -> Path:
         """Binaries the composition loads with staticFile (screens, flyers, audio): not committed."""
-        return MEDIA / "public" / self.name
+        return HOME / "public" / self.name
 
     @property
     def out(self) -> Path:
         """Working files and renders: not committed."""
-        return MEDIA / "out" / self.name
+        return HOME / "out" / self.name
 
     @property
     def fps(self) -> int:
@@ -114,6 +123,14 @@ class Video:
     @property
     def duration(self) -> float:
         return float(self.settings["duration"])
+
+
+def shown(path: Path) -> str:
+    """A path to print: relative to the media home or to media/ when it's inside one, else whole."""
+    for root in (HOME, MEDIA):
+        if path.resolve().is_relative_to(root.resolve()):
+            return path.resolve().relative_to(root.resolve()).as_posix()
+    return path.as_posix()
 
 
 def video(name: str) -> Video:
@@ -136,3 +153,28 @@ def write_wav(path: Path, pcm: bytes, rate: int = TTS_RATE) -> None:
 def tts_path(text: str, voice: str, direction: str, take: int = 0) -> Path:
     """Where one TTS line is cached: the same words, voice, direction and take never call Gemini twice."""
     return CACHE / "tts" / f"{key(text, voice, direction, take)}.wav"
+
+
+# The owner's chosen reading direction (a video's "voice"."direction" overrides it). Part of every line's cache key:
+# changing it re-records every line.
+DIRECTION = (
+    "Lee este texto en español con acento colombiano de Bogotá (rolo), natural y cercano, como un audio de "
+    "WhatsApp a un amigo: relajado, con una sonrisa, sin sonar a locutor ni a comercial. Haz pausas cortas "
+    "donde hay puntos suspensivos."
+)
+
+
+def voice_key(settings: dict) -> str | None:
+    """A key of everything the voice track and its timing are made of: each line's words, take and gap, the voice,
+    the direction, the lead and the pauses, and the bytes of each cached line. tools/timing.py stores it in
+    timing.json; tools/render.py refuses to render when it no longer matches (timing older than the voice)."""
+    voice = settings.get("voice")
+    if not voice:
+        return None
+    direction = voice.get("direction", DIRECTION)
+    parts: list[object] = [voice["name"], direction, voice.get("lead", 0.55), voice.get("max_pause", 0.32)]
+    for line in voice["lines"]:
+        path = tts_path(line["text"], voice["name"], direction, line.get("take", 0))
+        audio = hashlib.sha256(path.read_bytes()).hexdigest()[:16] if path.exists() else "missing"
+        parts.append([line["text"], line.get("take", 0), line.get("gap", 0.3), audio])
+    return key(*parts)

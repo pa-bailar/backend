@@ -18,8 +18,7 @@ import wave
 from pathlib import Path
 
 import numpy as np
-from common import TTS_RATE, tts_path, video
-from tts import DIRECTION
+from common import DIRECTION, TTS_RATE, tts_path, video, voice_key
 
 RATE = TTS_RATE
 
@@ -124,6 +123,8 @@ def build(name: str) -> None:
         "duration": round(len(track) / RATE, 3),
         "voice": f"media/out/{name}/voice-track.wav",
         "lead": lead,
+        # what the track was made from: tools/render.py refuses to render when the voice changed since
+        "voice_key": voice_key(v.settings),
         "lines": lines,
         "segments": segs,
         "note": "Times are video seconds. Line start/end are exact (from the joined files); "

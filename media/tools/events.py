@@ -18,10 +18,10 @@ import argparse
 import json
 import shutil
 import urllib.request
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
 from pathlib import Path
 
-from common import BACKEND, MEDIA, probe, video
+from common import BACKEND, MEDIA, bogota_today, probe, video
 
 SITE_DATA = BACKEND.parent / "pa-bailar-web" / "data"
 RAW = "https://raw.githubusercontent.com/pa-bailar/pa-bailar.github.io/main/data/"
@@ -48,10 +48,6 @@ def fetch(rel: str, live: bool) -> bytes:
         with urllib.request.urlopen(RAW + rel, timeout=30) as r:
             return r.read()
     return (SITE_DATA / rel).read_bytes()
-
-
-def bogota_today() -> date:
-    return datetime.now(timezone(timedelta(hours=-5))).date()
 
 
 def days_of(e: dict) -> list[str]:

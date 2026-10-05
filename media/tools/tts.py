@@ -14,15 +14,10 @@ import argparse
 import os
 import time
 
-from common import CACHE, MEDIA, key, load_env, tts_path, video, write_wav
+from common import CACHE, DIRECTION, MEDIA, key, load_env, tts_path, video, write_wav
 
 # 2.5 answers reliably on the free tier; both time out at times (90 s timeout, retries with backoff).
 MODELS = ("gemini-2.5-flash-preview-tts", "gemini-3.8-flash-tts")
-DIRECTION = (
-    "Lee este texto en español con acento colombiano de Bogotá (rolo), natural y cercano, como un audio de "
-    "WhatsApp a un amigo: relajado, con una sonrisa, sin sonar a locutor ni a comercial. Haz pausas cortas "
-    "donde hay puntos suspensivos."
-)
 
 
 def say(text: str, voice: str, direction: str) -> tuple[bytes, str]:

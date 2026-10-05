@@ -11,7 +11,7 @@
     "$comment": "Stories: the owner puts Instagram's link sticker at the top, over y 0-250, for the whole clip. Nothing enters it on any frame; review.py band measures it and allows no content above bottom + margin.",
     "top": 0,
     "bottom": 250,
-    "margin": 4
+    "margin": 2
   },
   "titleBand": { "top": 280, "bottom": 520 },
   "margins": { "left": 80, "right": 80, "top": 250 },

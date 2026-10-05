@@ -18,11 +18,10 @@
 // them here and the matching beats in scenes/App.tsx (the README lists the last such change).
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { arg, comingSaturday, loadAll, MEDIA, openPhone, openSite, periodsOnPage, rectOf, shot, wait } from "../../tools/capture.mjs";
+import { arg, comingSaturday, loadAll, MEDIA, openPhone, openSite, periodsOnPage, rectOf, shot, SITE, wait } from "../../tools/capture.mjs";
 
 const OUT = path.join(MEDIA, "public", "teaser-v2", "app");
 const DATA = path.join(MEDIA, "projects", "teaser-v2", "data", "app.json");
-const SITE = "https://pa-bailar.github.io/";
 const NOW_ISO = arg("now", comingSaturday());
 const NOW = new Date(NOW_ISO);
 const STYLES = arg("styles", "salsa,bachata").split(",");
@@ -114,8 +113,12 @@ const sticky = await page.evaluate(() => {
 });
 await page.screenshot({ path: path.join(OUT, "bar.png"), clip: { x: 0, y: 0, width: 360, height: sticky } });
 meta.bar = { file: "bar.png", h: sticky };
-for (const key of PERIODS) {
-  if (!periods.find((x) => x.key === key)) console.warn(`   WARNING: no "${key}" with ${STYLES.join("+")} at ${NOW_ISO}: pick another --now`);
+// Every period the voice names must be on the page: a missing one is an error, not a warning (the scene would point at
+// nothing).
+const missing = PERIODS.filter((key) => !periods.find((x) => x.key === key));
+if (missing.length) {
+  await browser.close();
+  throw new Error(`no ${missing.map((k) => `"${k}"`).join(", ")} with ${STYLES.join("+")} at ${NOW_ISO}: pick another --now or --styles`);
 }
 
 // ---------- 4. One event's details, opened the way a visitor would, at half then full height ----------
