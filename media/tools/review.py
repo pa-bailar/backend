@@ -1,6 +1,6 @@
 """Look at a render without watching it: keyframe sheets with the safe zones, side-by-sides, and a regression check.
 
-  python media/tools/review.py sheet <video.mp4> [--at 1.5,4,9.2 | --every 2] [--out sheet.png]
+  python media/tools/review.py sheet <video.mp4> [--at 1.5,4,f255,c4:link --timing <video> | --every 2] [--out …]
       One row of keyframes (360 px wide each) with the safe zones drawn in cyan (no text above 250 px or below
       1580 px at 1080×1920: brand.json's "safe"). Default: every 2 s. → next to the video, <name>-sheet.png
   python media/tools/review.py compare <a.mp4> <b.mp4> [--labels v1,v2] [--from 0 --to 4.6] [--out ab.mp4]
@@ -18,6 +18,7 @@ Standard library + ffmpeg: any Python runs it.
 """
 
 import argparse
+import json
 import re
 import shutil
 import subprocess
@@ -26,7 +27,7 @@ from collections import Counter
 from collections.abc import Iterator
 from pathlib import Path
 
-from common import BRAND, ffmpeg, probe, tool, video
+from common import BRAND, at_seconds, ffmpeg, probe, tool, video
 
 FONT = "C\\:/Windows/Fonts/arial.ttf"
 HEIGHT = BRAND["canvas"]["height"]
@@ -213,6 +214,7 @@ def main() -> None:
     s.add_argument("--at")
     s.add_argument("--every", type=float, default=2.0)
     s.add_argument("--out", type=Path)
+    s.add_argument("--timing", metavar="VIDEO", help="the video whose timing.json --at's line:word refer to")
     c = sub.add_parser("compare")
     c.add_argument("a", type=Path)
     c.add_argument("b", type=Path)
@@ -236,7 +238,8 @@ def main() -> None:
         raise SystemExit(0 if all(ok) else 1)
     if args.cmd == "sheet":
         if args.at:
-            at = [float(t) for t in args.at.split(",")]
+            timing = json.loads((video(args.timing).data / "timing.json").read_text("utf-8")) if args.timing else None
+            at = [round(at_seconds(t, timing), 3) for t in args.at.split(",")]
         else:
             total = duration_of(args.video)
             at = [round(t * args.every + args.every / 2, 2) for t in range(int(total / args.every))]

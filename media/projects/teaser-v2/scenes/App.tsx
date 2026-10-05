@@ -31,7 +31,7 @@ import {
   Word,
 } from "../../../src/kit";
 import app from "../data/app.json";
-import { BAR, file, SCENES, word } from "../theme";
+import { BAR, file, line, SCENES, word } from "../theme";
 
 const f = (s: number) => sec(s) - sec(SCENES.app);
 const { css: CSS, sx, sy, height: SCREEN_H } = PHONE;
@@ -39,7 +39,7 @@ const VIEW_H = 640; // the capture's viewport height (CSS px)
 
 // ---------- the beats of the shot ----------
 const CHIPS = app.chips; // each chip tapped, in order, with where it was when tapped
-const TAPS = CHIPS.map((_, i) => f(6.5 + i * 0.32)); // Salsa, Bachata…
+const TAPS = CHIPS.map((_, i) => f(line("c1").start + 0.14 + i * 0.32)); // Salsa, Bachata… (as "Miras" starts)
 const periodTop = (key: string) => {
   const p = app.periods.find((x) => x.key === key);
   if (!p) throw new Error(`no period ${key} in app.json`);
@@ -50,9 +50,9 @@ const FLICKS = [
   { at: f(word("c1", "este") - 0.2), key: "fin-de-semana", title: "Este finde" },
   { at: f(word("c1", "la") - 0.15), key: "proxima-semana", title: "La otra semana" },
 ].map((c) => ({ ...c, to: periodTop(c.key) }));
-const TAP_EVENT = f(10.86); // "Detalles" on the card
+const TAP_EVENT = f(line("c2").start - 0.01); // "Detalles" on the card, as "a qué hora" starts
 const OPEN = TAP_EVENT + 3; // the drawer rises to half height
-const EXPAND = f(11.58); // the thumb pulls it up to full height
+const EXPAND = f(word("c2", "hora") + 0.22); // the thumb pulls it up to full height, right after "hora"
 
 const D = app.detail;
 const HALF = D.half.panel.y; // the drawer's top at half height (CSS px in the viewport)

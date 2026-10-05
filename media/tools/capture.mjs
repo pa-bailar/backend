@@ -7,7 +7,8 @@
 //
 // The phone: 360×640 CSS px at device scale 3 (= 1080×1920), es-CO, Bogotá time, the install banner and the swipe
 // hint already dismissed, analytics blocked, the theme forced through the site's own localStorage key. The clock is
-// frozen at --now (default: the coming Saturday, 7 p. m. Bogotá) so "Hoy" and "Este fin de semana" are full of real
+// frozen at --now (default: weekendClock(), 7 p. m. Bogotá on the Saturday of the weekend rule, or today on a Sunday)
+// so "Hoy" and "Este fin de semana" are full of real
 // events; a video showing those dates has a shelf life: post it before that day is over.
 //
 // A video with a scripted walk through the site (menus, scrolls, the details sheet) writes its own capture script
@@ -16,10 +17,11 @@
 // here and in the video's script.
 //
 // playwright-core (a dev dependency here) drives the installed Chrome (its "chrome" channel: no path to keep).
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright-core";
+import { weekend } from "../src/data/events.ts";
 import { HOME, MEDIA, PUBLIC } from "./paths.mjs";
 
 export { HOME, MEDIA, PUBLIC };
@@ -44,16 +46,32 @@ export function positionals(withValue) {
 }
 
 /** The coming Saturday at 19:00 Bogotá (UTC−5, no DST); today if it's Saturday before 19:00. */
-export function comingSaturday() {
-  const bogota = new Date(Date.now() - 5 * 3600e3); // wall clock in Bogotá, read with UTC getters
-  let days = (6 - bogota.getUTCDay() + 7) % 7;
-  if (days === 0 && bogota.getUTCHours() >= 19) days = 7;
-  const d = new Date(Date.UTC(bogota.getUTCFullYear(), bogota.getUTCMonth(), bogota.getUTCDate() + days));
-  return `${d.toISOString().slice(0, 10)}T19:00:00-05:00`;
+/** Today in Bogotá (UTC−5, no daylight saving), YYYY-MM-DD. */
+export const bogotaToday = (now = Date.now()) => new Date(now - 5 * 3600e3).toISOString().slice(0, 10);
+
+/**
+ * The default capture clock, on the weekend rule shared with tools/events.py and src/data/events.ts (weekend(): Monday
+ * to Thursday → the coming weekend, Friday to Sunday → the one under way): 19:00 Bogotá on its Saturday, or today at
+ * 19:00 when that's later (a Sunday: the weekend ending today).
+ */
+export function weekendClock(today = bogotaToday()) {
+  const { from } = weekend(today);
+  const saturday = new Date(`${from}T12:00:00Z`);
+  saturday.setUTCDate(saturday.getUTCDate() + 1);
+  const sat = saturday.toISOString().slice(0, 10);
+  return `${today > sat ? today : sat}T19:00:00-05:00`;
+}
+
+/** Writes a file whole or not at all: to a temporary name next to it, then renamed over it. */
+export async function writeAtomic(file, data) {
+  await mkdir(path.dirname(file), { recursive: true });
+  const tmp = `${file}.${process.pid}.tmp`;
+  await writeFile(tmp, data);
+  await rename(tmp, file);
 }
 
 /** A phone with the site's state preset and the clock frozen at `now`. Close `browser` when done. */
-export async function openPhone({ now = comingSaturday(), theme = "light" } = {}) {
+export async function openPhone({ now = weekendClock(), theme = "light" } = {}) {
   const browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--hide-scrollbars"] });
   const context = await browser.newContext({
     viewport: { width: 360, height: 640 },
@@ -138,7 +156,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   }
   const theme = arg("theme", "light");
   const pagePath = arg("path", "/");
-  const { browser, page, now } = await openPhone({ now: arg("now", comingSaturday()), theme });
+  const { browser, page, now } = await openPhone({ now: arg("now", weekendClock()), theme });
   await openSite(page, pagePath, theme);
   if (flag("full")) await loadAll(page);
   const click = arg("click");
@@ -170,6 +188,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     cssHeight: height,
     capturedAt: new Date().toISOString(),
   };
-  await mkdir(path.dirname(index), { recursive: true });
-  await writeFile(index, JSON.stringify(screens, null, 1));
+  await writeAtomic(index, JSON.stringify(screens, null, 1));
 }

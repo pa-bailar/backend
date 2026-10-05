@@ -11,6 +11,7 @@ import re
 import shutil
 import subprocess
 import sys
+import unicodedata
 import wave
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -233,3 +234,30 @@ def voice_key(settings: dict) -> str | None:
         audio = hashlib.sha256(path.read_bytes()).hexdigest()[:16] if path.exists() else "missing"
         parts.append([line["text"], line.get("take", 0), line.get("gap", 0.3), audio])
     return key(*parts)
+
+
+def _norm(word: str) -> str:
+    """A word as makeTiming() compares it (src/lib/timing.ts): no accents, no punctuation, lower case."""
+    plain = "".join(c for c in unicodedata.normalize("NFD", word.lower()) if not unicodedata.combining(c))
+    return re.sub(r"[^a-z']", "", plain)
+
+
+def at_seconds(spec: str, timing: dict | None, fps: int = 30) -> float:
+    """A moment as tools/stills.mjs takes it: seconds ("8.5" or "8.5s"), a frame ("f255"), a line's start ("c4") or a
+    word's start ("c4:link", the nth with "c4:link:1"), from a video's data/timing.json."""
+    spec = spec.strip()
+    if re.fullmatch(r"f\d+", spec):
+        return int(spec[1:]) / fps
+    if re.fullmatch(r"\d+(\.\d+)?s?", spec):
+        return float(spec.removesuffix("s"))
+    line_id, _, rest = spec.partition(":")
+    line = next((x for x in (timing or {}).get("lines", []) if x["id"] == line_id), None)
+    if line is None:
+        raise SystemExit(f'no line "{line_id}" in timing.json (times are seconds, f<frame>, <line> or <line>:<word>)')
+    if not rest:
+        return float(line["start"])
+    word, _, nth = rest.partition(":")
+    hits = [w for w in line["words"] if _norm(w["word"]) == _norm(word)]
+    if len(hits) <= int(nth or 0):
+        raise SystemExit(f'no word "{word}" (#{nth or 0}) in {line_id}')
+    return float(hits[int(nth or 0)]["start"])

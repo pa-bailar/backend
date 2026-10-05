@@ -12,12 +12,27 @@ Then tools/timing.py joins the lines and times every word.
 
 import argparse
 import os
+import re
 import time
 
 from common import CACHE, DIRECTION, HOME, key, load_env, shown, tts_path, video, write_wav
 
 # 2.5 answers reliably on the free tier; both time out at times (90 s timeout, retries with backoff).
 MODELS = ("gemini-2.5-flash-preview-tts", "gemini-3.8-flash-tts")
+
+
+def classify(error: Exception) -> str:
+    """What to do after a failed call: "retry" (timeouts, busy, per-minute limits, 5xx), "next" (this model won't
+    answer today: its daily quota, a bad request, an unknown model) or "stop" (the key itself is refused)."""
+    code = getattr(error, "code", None)
+    text = str(error)
+    if code in (401, 403) or (code == 400 and "API key" in text):
+        return "stop"
+    if code == 429 and re.search(r"per ?day|daily", text, re.IGNORECASE):
+        return "next"
+    if code in (400, 404):
+        return "next"
+    return "retry"
 
 
 def say(text: str, voice: str, direction: str) -> tuple[bytes, str]:
@@ -43,8 +58,14 @@ def say(text: str, voice: str, direction: str) -> tuple[bytes, str]:
                     ),
                 )
                 return response.candidates[0].content.parts[0].inline_data.data, model
-            except Exception as error:  # timeouts and "busy" are common: back off and retry
-                last = " ".join(str(error).split())[:120]
+            except Exception as error:  # timeouts and "busy" are common: back off and retry; not the rest
+                last = " ".join(str(error).split())[:160]
+                action = classify(error)
+                if action == "stop":
+                    raise SystemExit(f"TTS refused the key (MEDIA_GEMINI_API_KEY): {last}") from None
+                if action == "next":
+                    print(f"   {model}: {last}; not retrying this model", flush=True)
+                    break
                 wait = 5 * 2**attempt
                 print(f"   {model} attempt {attempt + 1} failed ({last}); retry in {wait} s", flush=True)
                 time.sleep(wait)

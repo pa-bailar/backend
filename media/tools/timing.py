@@ -18,7 +18,7 @@ import wave
 from pathlib import Path
 
 import numpy as np
-from common import DIRECTION, TTS_RATE, tts_path, video, voice_key
+from common import DIRECTION, TTS_RATE, shown, tts_path, video, voice_key
 
 RATE = TTS_RATE
 
@@ -121,7 +121,7 @@ def build(name: str) -> None:
     timing = {
         "fps_hint": v.fps,
         "duration": round(len(track) / RATE, 3),
-        "voice": f"media/out/{name}/voice-track.wav",
+        "voice": f"(media home) {shown(out)}",
         "lead": lead,
         # what the track was made from: tools/render.py refuses to render when the voice changed since
         "voice_key": voice_key(v.settings),
