@@ -25,8 +25,8 @@ from datetime import date, datetime, timedelta
 from PIL import Image
 
 from . import config, links
-from .models import StoryEvent
-from .text import fold
+from .models import StoryEvent, StorySession
+from .text import WEEKDAYS, fold
 
 STORY_PREFIX = "story-"
 _STORY_ID = re.compile(r"story-[0-9a-f]{16}")
@@ -42,7 +42,6 @@ MIN_BOX_AREA = 0.12  # a smaller box is a misreading (a sticker, the avatar)
 BOX_ASPECT = (0.3, 2.5)  # width / height of a plausible flyer
 FAR_AHEAD_DAYS = 60  # a date further ahead is flagged for a look
 SCREENSHOT_MAX_AGE_DAYS = 30
-WEEKDAYS = ("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
 _WEEKDAY_KEYS = {fold(name)[:3]: number for number, name in enumerate(WEEKDAYS)}
 _FILE_TIME = re.compile(r"(20\d\d)[-_.]?(\d\d)[-_.]?(\d\d)[-_. T]?(\d\d)[-_.:h]?(\d\d)[-_.:m]?(\d\d)")
 _AGE = re.compile(r"(\d+)\s*(min|m|h|d)\b", re.IGNORECASE)
@@ -148,6 +147,9 @@ class ResolvedDate:
     weekday_mismatch: bool = False
     weekly: bool = False
     far_ahead: bool = False
+    # A workshop series: each session's date, with the session as printed (its times); start and end are the first
+    # and the last.
+    sessions: list[tuple[date, StorySession]] = field(default_factory=list)
 
 
 def _valid(year: int, month: int, day: int) -> date | None:
@@ -181,7 +183,10 @@ def resolve_date(event: StoryEvent, taken: date, today: date) -> ResolvedDate:
       (a printed year is used as it is);
     - a day alone ("sábado 12"): the next 12th, the weekday settling the month;
     - a weekday alone ("este sábado"): the next one; a weekly night ("todos los viernes"): the next one from today.
+    A workshop series (two or more sessions printed) is worked out by resolve_sessions.
     Flags a weekday that doesn't match the date, an inferred year, and a date more than FAR_AHEAD_DAYS ahead."""
+    if len(event.sessions or []) >= config.MIN_SERIES_SESSIONS and (series := resolve_sessions(event, taken)):
+        return series
     weekday = weekday_number(event.weekday)
     result = ResolvedDate(start=None, weekly=event.weekly)
     if event.relative_day == "hoy":
@@ -214,6 +219,66 @@ def resolve_date(event: StoryEvent, taken: date, today: date) -> ResolvedDate:
         result.notes.append("semanal: publiqué la próxima fecha")
     result.end = _end_date(event, result.start)
     if (result.start - taken).days > FAR_AHEAD_DAYS:
+        result.far_ahead = True
+        result.notes.append(f"más de {FAR_AHEAD_DAYS} días adelante: revisar")
+    return result
+
+
+def _series_from(first_year: int, printed: list[tuple[int, int]]) -> list[date] | None:
+    """The sessions' dates when the first one is in `first_year`: each the next (month, day) after the one
+    before (the year turns when the months do: "29 dic, 5 ene"). None if a day doesn't exist."""
+    days: list[date] = []
+    for month, day in printed:
+        years = [first_year] if not days else [days[-1].year, days[-1].year + 1]
+        found = next(
+            (found for year in years if (found := _valid(year, month, day)) and (not days or found > days[-1])), None
+        )
+        if found is None:
+            return None
+        days.append(found)
+    return days
+
+
+def resolve_sessions(event: StoryEvent, taken: date) -> ResolvedDate | None:
+    """A workshop series' sessions from what the story prints, relative to the day the screenshot was taken: the
+    year (unless printed) that makes it the earliest series not over yet (a story can be shared after its first
+    sessions), preferring one whose sessions fall on the printed weekday ("domingos"). A session without its month
+    takes the one before's, or the next month when its day is smaller ("29 nov, 6" → 6 dic). None when fewer than
+    two sessions have a date."""
+    printed: list[tuple[int, int]] = []
+    sessions: list[StorySession] = []
+    notes: list[str] = []
+    for session in event.sessions or []:
+        month = session.month or (printed[-1][0] if printed else event.month)
+        if month is None:
+            month = taken.month
+            notes.append("mes deducido")
+        elif not session.month and printed and session.day <= printed[-1][1]:
+            month = month % 12 + 1  # "29 nov, 6": the next month
+        if not 1 <= month <= 12 or (printed and (month, session.day) == printed[-1]):
+            continue  # no such month, or the same session twice
+        printed.append((month, session.day))
+        sessions.append(session)
+    if len(printed) < config.MIN_SERIES_SESSIONS:
+        return None
+    years = [event.year] if event.year else [taken.year - 1, taken.year, taken.year + 1]
+    options = [days for year in years if (days := _series_from(year, printed))]
+    if not options:
+        return None
+    weekday = weekday_number(event.weekday)
+    upcoming = [days for days in options if days[-1] >= taken]
+    matching = [days for days in upcoming if weekday is not None and all(day.weekday() == weekday for day in days)]
+    days = (matching or upcoming or options[-1:])[0]
+    result = ResolvedDate(start=days[0], end=days[-1], sessions=list(zip(days, sessions, strict=True)))
+    result.notes = list(dict.fromkeys(notes))
+    if not event.year:
+        result.year_inferred = True
+        result.notes.append("año deducido")
+    if weekday is not None and any(day.weekday() != weekday for day in days):
+        result.weekday_mismatch = True
+        wrong = next(day for day in days if day.weekday() != weekday)
+        result.notes.append(f"dice {event.weekday}, pero el {wrong.day} es {WEEKDAYS[wrong.weekday()]}")
+    if (days[0] - taken).days > FAR_AHEAD_DAYS:
         result.far_ahead = True
         result.notes.append(f"más de {FAR_AHEAD_DAYS} días adelante: revisar")
     return result

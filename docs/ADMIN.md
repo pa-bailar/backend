@@ -83,7 +83,8 @@ sharing again works.
    cut off) on the phone, uploaded, and a request is opened like the others. The answer appears below.
 5. A few minutes later (it takes its turn after a running sweep, like Agregar): the answer, a **receipt**
    of what was read:
-   - the events published (title, weekday and date, time, venue), with links;
+   - the events published (title, weekday and date, time, venue), with links; a workshop series shows its
+     sessions ("4 sesiones: 8, 22, 29 nov y 6 dic");
    - **Lo que leí:** the account and where it came from (typed, the post the story reshares, the name at the
      top of the story, or completed from a known account when that name was cut off; ⚠️ when Instagram
      couldn't confirm it), how each date was worked out ("año deducido", "fecha deducida del día de la
@@ -152,12 +153,15 @@ The checks, in the order a post goes through the sweep:
 1. **Was the post analyzed?** The sweeps record every analyzed post (`processed_posts.json`) with what became
    of it:
    - **Está en el sitio:** it became events (links to them, with their dates: "13–15 nov 2026" for an event
-     over several days), or joined an event another post announced.
-   - **Ya pasó su fecha:** the event left the site after its date (its last day, over several days).
+     over several days, "4 sesiones: 8, 22, 29 nov y 6 dic" for a workshop series), or joined an event
+     another post announced.
+   - **Ya pasó su fecha:** the event left the site after its date (its last day, over several days; its last
+     session, for a workshop series).
    - **Gemini dijo que no es un evento:** with Gemini's reason. If it's wrong, **Agregar** reads it again
      without that first filter.
-   - **Se descartó a propósito:** an event that repeats (a weekly class) or without a clear date. The site only
-     lists one-time dated events.
+   - **Se descartó a propósito:** an event that repeats (a weekly class, or a course: more than 12 sessions,
+     more than 4 months, or sessions without their dates) or without a clear date. The site only lists
+     one-time dated events, and workshop series with every session dated (ARCHITECTURE.md, section 9.1).
    - **Gemini no pudo leerla**, or **se quitó a mano** (removed on purpose).
 2. **If it was never analyzed:** whose post is it? The link, or else the post's public page, says the
    account. When the public page names another author, the post is a collaboration: it's its author's,
@@ -194,7 +198,8 @@ The sweep workflow runs in single-post mode (`sweep --post`), one at a time with
    keeps its Flash-Lite read (adding it again doesn't redo it while its caption is the same), and the answer
    says "Flash no tenía cuota" instead of "se relee con Flash".
 3. Publishes through the usual data PR (it merges itself and the site deploys), and answers: the events it
-   became (with links and dates, a range for an event over several days), or why not (not an event, recurring, no date, no Gemini quota left today).
+   became (with links and dates, a range for an event over several days, the sessions of a workshop series),
+   or why not (not an event, recurring, no date, no Gemini quota left today).
 
 Such runs don't count for the health checks, and don't report to healthchecks.io.
 
@@ -224,9 +229,11 @@ The sweep workflow runs in story mode, one at a time with the sweeps:
 5. **The dates, worked out in code** (`stories.resolve_date`), from the day the screenshot was taken (its file
    name, `Screenshot_20261004-183012…`, else the file's date, else when it was uploaded): the next such date
    on or after it, the printed weekday settling the year (or the month, for "sábado 12"); "este sábado" is the
-   next Saturday; a weekly night ("todos los viernes") publishes only its next date. A weekday that doesn't
-   match the date makes the event low-confidence, with a doubt; a date more than 60 days ahead gets a doubt. An
-   event whose date has passed isn't published.
+   next Saturday; a weekly night ("todos los viernes") publishes only its next date. A workshop series' sessions
+   (each printed with its day and month, `stories.resolve_sessions`) take the year that makes the series the
+   earliest one not over yet, so a story shared after its first sessions still publishes it. A weekday that
+   doesn't match the date makes the event low-confidence, with a doubt; a date more than 60 days ahead gets a
+   doubt. An event whose date (a series: its last session) has passed isn't published.
 6. **The flyer:** each screenshot is cropped to Gemini's box, if it's plausible (at least 12% of the
    screenshot, shaped like a flyer), with 3% padding; otherwise 12% comes off the top and the bottom. Each event
    uses the crop of the screenshot that shows it best. Only the crop is published.

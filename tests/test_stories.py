@@ -16,6 +16,7 @@ from pa_bailar.merging import ordered_media
 from pa_bailar.models import StoryAnalysis, StoryEvent, StoryImage
 from pa_bailar.pipeline import AddPostError, Sweep
 from pa_bailar.stories import Screenshot
+from pa_bailar.text import WEEKDAYS
 from tests.factories import DETAILS, media, stored
 
 BOGOTA = config.BOGOTA_TZ
@@ -295,7 +296,7 @@ def test_a_story_becomes_an_event_with_its_crop_and_the_profile_as_permalink():
 
     [event] = storage.load_events()
     assert event.date == EVENT_DAY.isoformat()
-    assert event.weekday == stories.WEEKDAYS[EVENT_DAY.weekday()]
+    assert event.weekday == WEEKDAYS[EVENT_DAY.weekday()]
     assert event.venue == "Galería Café Libro"  # from the location sticker
     assert event.account == "salsa.club"
     [story] = event.media

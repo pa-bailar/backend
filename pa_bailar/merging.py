@@ -8,7 +8,7 @@ lists all of them in `media`, under the account that posted it first.
 from datetime import date
 
 from . import config
-from .models import EventDetails, EventMedia, ExtractedEvent, StoredEvent
+from .models import EventDetails, EventMedia, ExtractedEvent, StoredEvent, series_problems
 from .text import fold
 
 _DETAIL_FIELDS = list(EventDetails.model_fields)
@@ -17,10 +17,10 @@ _DETAIL_FIELDS = list(EventDetails.model_fields)
 # when missing (a venue "to be confirmed" on the flyer, given later in a reminder).
 _UPDATABLE_FIELDS = {"date", "end_date", "weekday", "start_time", "end_time", "prices"}
 # What a single day can't change in an event over several days: a post about one of its days (a teacher's
-# class, one night) is part of the event, not a new date for it.
+# class, one night, one session of a workshop series) is part of the event, not a new date for it.
 _RANGE_FIELDS = {"date", "end_date", "weekday", "start_time", "end_time"}
-# An event's first and last day, taken together from one post (merge_into).
-_DAY_FIELDS = {"date", "end_date"}
+# An event's first and last day, and a workshop series' sessions, taken together from one post (merge_into).
+_DAY_FIELDS = {"date", "end_date", "sessions"}
 _EMPTY: tuple[object, ...] = (None, "", [])
 
 
@@ -42,8 +42,20 @@ def _days(event: EventDetails) -> tuple[str, str] | None:
     return (event.date, event.end_date or event.date) if event.date else None
 
 
+def _within(day: str, event: EventDetails) -> bool:
+    """Whether the event takes place that day: one of a series' sessions, or a day from its first to its last."""
+    if event.sessions:
+        return day in event.session_dates
+    days = _days(event)
+    return days is not None and days[0] <= day <= days[1]
+
+
 def _overlap(a: EventDetails, b: EventDetails) -> bool:
-    """Whether two events share a day: the same date, or a day within an event over several days."""
+    """Whether two events share a day: the same date, a day within an event over several days, or one of a
+    workshop series' sessions (the days between them aren't the series')."""
+    if a.sessions or b.sessions:
+        series, other = (a, b) if a.sessions else (b, a)
+        return any(_within(day, other) for day in series.session_dates)
     days_a, days_b = _days(a), _days(b)
     if days_a is None or days_b is None:
         return False
@@ -51,17 +63,56 @@ def _overlap(a: EventDetails, b: EventDetails) -> bool:
 
 
 def _multi_day(event: EventDetails) -> bool:
-    return bool(event.end_date)
+    """Over several days: consecutive ones (end_date), or a workshop series' sessions."""
+    return bool(event.end_date or event.sessions)
+
+
+def _same_series(a: EventDetails, b: EventDetails) -> bool:
+    """Two workshop series of one account are the same program when most sessions match (at least half of the
+    shorter one's), with the same start time on a session they share when both give one, and the same title or
+    distinctive title words in common: two levels of one academy's intensive on the same Sundays ("Nivel 1",
+    "Nivel 2") have different times, or a title that tells them apart."""
+    shared = sorted(set(a.session_dates) & set(b.session_dates))
+    if 2 * len(shared) < min(len(a.session_dates), len(b.session_dates)):
+        return False
+    times_a = {s.date: s.start_time for s in a.sessions or []}
+    times_b = {s.date: s.start_time for s in b.sessions or []}
+    if any(times_a[day] and times_b[day] and times_a[day] != times_b[day] for day in shared):
+        return False
+    return fold(a.title) == fold(b.title) or _share_title(a, b)
+
+
+def _session_of(series: EventDetails, other: EventDetails) -> bool:
+    """A post about one session of a workshop series (a reminder, "sesión 3"): one of its session days, no clash
+    in start time with that session, and the same title, a distinctive title word in common, or the same venue
+    (both known) at the same start time."""
+    day = other.date
+    if not day or other.end_date or other.sessions or day not in series.session_dates:
+        return False
+    session = next(s for s in series.sessions or [] if s.date == day)
+    same_time = bool(other.start_time) and other.start_time == session.start_time
+    if other.start_time and session.start_time and not same_time:
+        return False
+    if fold(series.title) == fold(other.title) or _title_words(series.title) & _title_words(other.title):
+        return True
+    venues = _key(series.venue), _key(other.venue)
+    return all(venues) and venues[0] == venues[1] and same_time
 
 
 def looks_like_same_event(stored: StoredEvent, account: str, candidate: EventDetails) -> bool:
     """Rule-based fallback when Gemini didn't link the post: same account and a day in common, plus
     - for two one-day events: the same start time, or the same title when a start time is missing;
     - when either lasts several days: the same title, or distinctive title words in common (a festival
-      and a post about its teacher), never the start time alone (a festival weekend has several nights).
+      and a post about its teacher), never the start time alone (a festival weekend has several nights);
+    - a workshop series and a post about one of its sessions: _session_of; two series: _same_series.
     """
     if stored.account != account or not _overlap(stored, candidate):
         return False
+    if stored.sessions and candidate.sessions:
+        return _same_series(stored, candidate)
+    if stored.sessions or candidate.sessions:
+        series, other = (stored, candidate) if stored.sessions else (candidate, stored)
+        return _session_of(series, other)
     if _multi_day(stored) or _multi_day(candidate):
         return fold(stored.title) == fold(candidate.title) or _share_title(stored, candidate)
     if stored.start_time and candidate.start_time:
@@ -186,18 +237,39 @@ def merge_into(stored: StoredEvent, candidate: EventDetails, media: EventMedia) 
             updates[field] = new
     if candidate.date and not one_of_its_days:
         if is_newest or not stored.date:
-            updates |= {"date": candidate.date, "end_date": candidate.end_date}
-        elif not stored.end_date and candidate.end_date and candidate.date == stored.date:
+            updates |= {"date": candidate.date, "end_date": candidate.end_date, "sessions": candidate.sessions}
+        elif _completes_series(stored, candidate):
+            first = (candidate.sessions or [])[0]
+            updates |= {
+                **{field: getattr(candidate, field) for field in ("date", "end_date", "sessions", "weekday")},
+                "start_time": first.start_time or stored.start_time,
+                "end_time": first.end_time or stored.end_time,
+            }
+        elif not stored.end_date and candidate.end_date and not candidate.sessions and candidate.date == stored.date:
             updates["end_date"] = candidate.end_date
     updates["media"] = ordered_media([*others, media])
     merged = stored.model_copy(update=updates)
     if not _valid_range(merged):  # a new date the old last day doesn't fit (rescheduled): one day, as posted
-        merged.end_date = None
+        merged.end_date, merged.sessions = None, None
     return merged
 
 
+def _completes_series(stored: EventDetails, candidate: EventDetails) -> bool:
+    """An older post with a whole workshop series (the program's flyer) for an event stored from a post about one
+    of its sessions: the event becomes the series."""
+    return (
+        bool(candidate.sessions)
+        and not stored.sessions
+        and not stored.end_date
+        and _within(stored.date or "", candidate)
+    )
+
+
 def _valid_range(event: EventDetails) -> bool:
-    """No end_date, or one after the first day and within MAX_EVENT_DAYS of it (normalize.parse_end_date)."""
+    """No end_date, or one after the first day and within MAX_EVENT_DAYS of it (normalize.parse_end_date); a
+    workshop series: its sessions follow the rules (models.series_problems)."""
+    if event.sessions:
+        return not series_problems(event)
     if not event.end_date:
         return True
     if not event.date:

@@ -473,11 +473,17 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
      come after `date` and make at most `MAX_EVENT_DAYS` (7) days in all; otherwise it's dropped and the
      event keeps its first day, with a doubt when the range was reversed ("fecha final anterior a la
      inicial") or too long ("dura más de una semana: revisar fechas"), so it's listed for review;
+   - a workshop series' `sessions` (section 9.1) sorted, without repeats or invalid dates, each with valid
+     times (the event's own when a session gives none); `date` and `end_date` become the first and last
+     session's, `start_time`, `end_time` and `weekday` the first session's (`normalize.fit_sessions`).
+     Sessions on consecutive days are an event over several days instead, and more than
+     `MAX_SERIES_SESSIONS` (12) sessions or more than `MAX_SERIES_DAYS` (123, about 4 months) is a course:
+     recurring, so discarded ("más de 12 sesiones o más de 4 meses: es un curso");
    - prices and text cleaned.
 
    The site relies on these formats.
-2. **Keep only publishable events:** one-time (`is_recurring` false) and with a valid date. The rest
-   count as "discarded".
+2. **Keep only publishable events:** one-time (`is_recurring` false; a workshop series counts) and with a
+   valid date. The rest count as "discarded".
 3. **Save flyers** (`storage.save_flyer`): the image Gemini says shows each event (`image_index`),
    shrunk to at most 1080×1350 and saved as WebP (quality 80) in `data/flyers/<post id>-<slide>.webp`.
    When that slide is a video (a reel, or a carousel's video slide), `clips.make_clip` cuts its first 6
@@ -502,9 +508,9 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 | Step | Model(s) | Input | Output (schema) | Thinking |
 |---|---|---|---|---|
 | Triage | `gemini-3.5-flash-lite` | Caption, account, publication date, today's date, first image as a 512 px JPEG | `Triage`: `is_event_post`, `reason` | Low |
-| Extraction | `gemini-3.8-flash`, then `gemini-3.5-flash` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `image_index` and `same_as`) | Model default |
+| Extraction | `gemini-3.8-flash`, then `gemini-3.5-flash` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day and a series' sessions, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `sessions`, `image_index` and `same_as`) | Model default |
 | Provisional extraction | `gemini-3.5-flash-lite` | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
-| Story (admin tools) | Extraction's models, Flash-Lite when Flash is out (kept as it is) | Up to 4 screenshots of one story (numbered), when the screenshot was taken, the admin's notes and account, the account's known events | `StoryAnalysis`: the header's account, a reshared post's author, mentions, location sticker, the story's age, a `content_box` per screenshot, `events[]` (`StoryEvent`: dates as printed, worked out in code by `stories.resolve_date`) | Model default |
+| Story (admin tools) | Extraction's models, Flash-Lite when Flash is out (kept as it is) | Up to 4 screenshots of one story (numbered), when the screenshot was taken, the admin's notes and account, the account's known events | `StoryAnalysis`: the header's account, a reshared post's author, mentions, location sticker, the story's age, a `content_box` per screenshot, `events[]` (`StoryEvent`: dates as printed, a series' sessions too (`StorySession`), worked out in code by `stories.resolve_date`) | Model default |
 | Discovery | `gemini-3.5-flash-lite` | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, whether it announces one-time events, reason | Model default |
 
 Notes on the prompts and parameters:
@@ -514,8 +520,10 @@ Notes on the prompts and parameters:
 - **The extraction prompt covers:**
   - what is and isn't an event, shared with triage (`_EVENT_DEFINITION`): one-time socials, workshops,
     concerts, festivals (an event over several consecutive days is one event, from its first to its last
-    day)… but not regular
-    classes, programs spread over several weeks, recaps, showcases or tutorials, nor anything that isn't
+    day), workshop series (one finite program on 2 to 12 separate days, every one of them dated in the post,
+    within 4 months: one event with its sessions)… but not regular
+    classes, courses or programs whose sessions aren't each dated ("todos los sábados de noviembre", "8
+    semanas") or that are longer, recaps, showcases or tutorials, nor anything that isn't
     about dancing (like a drawing workshop at a dance venue), nor concerts and music festivals that aren't for
     social or partner dancing (electronic, rock, pop, indie, reggaeton or urbano mass concerts, general music
     festivals: a concert or festival counts only for salsa, bachata, merengue, son, timba, kizomba, tango,
@@ -526,9 +534,11 @@ Notes on the prompts and parameters:
     multi-day dance congress is a `congress`, its workshops included) and the styles (from a fixed list);
   - dates: `date` is the event's day or its first day, `end_date` its last day over several consecutive days
     ("NOV 13-15" → 13 and 15; null for one day, a night past midnight included); never one event per day of
-    a congress, but the same workshop on separate, non-consecutive dates is one event per date; a post
-    presenting a teacher or one night of a festival is that festival. Times over several days: the first
-    day's start and the last day's end;
+    a congress, but the same workshop given again on separate, non-consecutive dates is one event per date,
+    while a workshop series (one sign-up, every session attended) is one event with `sessions` (each with its
+    date and times; `date` and `end_date` the first and last session's), and a post about one of its
+    sessions is that series; a post presenting a teacher or one night of a festival is that festival. Times
+    over several days: the first day's start and the last day's end;
   - how to resolve dates without a year;
   - how to rate confidence (high, medium or low);
   - when to set `same_as` (section 9).
@@ -636,10 +646,21 @@ flowchart TD
 ```
 
 - **Gemini links first:** the extraction prompt lists the account's known upcoming events (id, date or
-  first → last day, time, title), and Gemini sets `same_as` when the post announces one of them again. The
-  rule-based match is the fallback.
+  first → last day and a workshop series' sessions, time, title), and Gemini sets `same_as` when the post
+  announces one of them again. The rule-based match is the fallback.
 - **Days in common:** an event covers `date` to `end_date` (or just `date`), and two events match only if
   their days overlap. A post about one night or one teacher of a festival falls within the festival's days.
+  A workshop series covers only its session days, not the days between them.
+- **Workshop series** (section 9.1), same account:
+  - a post about one of its sessions (a reminder, "sesión 3") is the series when it's dated on a session
+    day, doesn't clash with that session's start time, and has the same title, a distinctive title word in
+    common ("Intensivo: sesión 3" and "Programa intensivo de bachata"), or the same venue at the same
+    start time (`merging._session_of`). It joins the series without changing its sessions;
+  - two series are the same program only when at least half of the shorter one's sessions match, with the
+    same start time on the sessions they share, and the same title or distinctive title words in common
+    (`merging._same_series`): two levels of one academy's intensive on the same Sundays stay two events;
+  - the newest post's sessions replace the series' (with `date` and `end_date`); an older post with the
+    whole series (the program's flyer) turns an event stored from one of its sessions into the series.
 - **The same account's event** (`looks_like_same_event`): between two one-day events, the same start time,
   or the same title when a time is missing. When either lasts several days, the title decides (the same
   title, or distinctive title words in common, as below), never the start time alone: a festival weekend
@@ -678,17 +699,74 @@ flowchart TD
   - An empty value never clears a known one, so a reminder without dates keeps an event's last day.
   - A post about one day of an event over several days (one day of its own, within the event's) doesn't
     change its days or times: a teacher's class isn't the festival's new date.
-  - The first and last day go together: the newest post's `date` and `end_date` replace both, so an event
-    moved to one day, as posted, loses its old last day (13–15 Nov moved to 10 Nov is 10 Nov, not 10–15).
+  - The first and last day go together (and a series' `sessions` with them): the newest post's `date` and
+    `end_date` replace both, so an event moved to one day, as posted, loses its old last day (13–15 Nov
+    moved to 10 Nov is 10 Nov, not 10–15).
   - An older post only gives a last day to an event that has none and starts the same day (a flyer's
     "13–15 Nov" for an event stored on 13 Nov). It never mixes its days with a newer post's: "13–15 Nov"
     from an older post leaves a newer "14 Nov" as it is.
 - **Ids are URLs** (`ids.py`): `<title>-<day>-<month>`, for example `social-de-halloween-24-oct`, with
   `-2`, `-3`… when taken. An event over several days is named after its first day
-  (`level-up-bachata-fusion-congress-13-nov`).
+  (`level-up-bachata-fusion-congress-13-nov`), a workshop series after its first session.
   - An id is set once and never recomputed. A re-extraction that rewords the title keeps the old id,
     because the post "gives back" its ids before being stored again.
   - So a link shared on WhatsApp keeps working.
+
+### 9.1 Workshop series: one event, several dated sessions
+
+A **workshop series** is one finite program people sign up for once and attend on separate, non-consecutive
+days: a "programa intensivo" on Sundays 8, 22 and 29 November and 6 December, a "ciclo de talleres", a short
+course. It's listed as **one event** until its last session; the site shows the next session on the card and
+every session in the details. Decided on 4 October 2026 (the first case, a story, was rejected as "no un
+evento único").
+
+- **What qualifies:** 2 to 12 sessions (`MIN_SERIES_SESSIONS`, `MAX_SERIES_SESSIONS`), **every one dated** in
+  the post, the last at most `MAX_SERIES_DAYS` (123) days in all after the first (about 4 months). Regular
+  classes ("todos los viernes", "clases regulares", monthly fees), programs with only a start date or "todos
+  los sábados de noviembre", and longer courses stay out (recurring). A story's weekly social night still
+  publishes its next date, as before.
+- **Not a series:** an event over consecutive days (a congress, "7, 8 y 9 de noviembre") keeps `date` and
+  `end_date` without sessions, at most 7 days; the same workshop given again on another date (people attend
+  one) is one event per date.
+- **The `sessions` field** (in `events.json`, `EventDetails.sessions`, `models.Session`): `null` for every
+  event that isn't a series (written as `null`, absent in data written before it existed); for a series, a
+  list of 2 to 12 `{"date": "YYYY-MM-DD", "start_time": "HH:MM" | null, "end_time": "HH:MM" | null}`, sorted
+  by date, no date twice. Then `date` is the first session's date and `end_date` the last's (so `end_date`
+  can be up to 122 days after `date`, not 6), `start_time`, `end_time` and `weekday` the first session's.
+  The id is named after the first session. `models.series_problems` holds these rules, and `StoredEvent`
+  refuses a series that breaks them (normalization and merging keep them).
+
+  ```json
+  {
+    "id": "programa-intensivo-de-bachata-8-nov",
+    "title": "Programa intensivo de bachata",
+    "event_type": "workshop",
+    "date": "2026-11-08",
+    "end_date": "2026-12-06",
+    "sessions": [
+      { "date": "2026-11-08", "start_time": "14:00", "end_time": "17:00" },
+      { "date": "2026-11-22", "start_time": "14:00", "end_time": "17:00" },
+      { "date": "2026-11-29", "start_time": "14:00", "end_time": "17:00" },
+      { "date": "2026-12-06", "start_time": "14:00", "end_time": "17:00" }
+    ],
+    "weekday": "domingo",
+    "start_time": "14:00",
+    "end_time": "17:00"
+  }
+  ```
+
+  (the other fields as for any event). `schema_version` stays 1: the field is optional and additive.
+- **Upcoming and retention:** everything that goes by an event's last day (`EventDetails.last_day`: the
+  known events Gemini is shown, health's events to review, `admin status`, `admin why`, the 60-day
+  retention) uses `end_date`, the last session, so a series stays listed until its last session has passed.
+- **Reading it:** the extraction prompt asks for one event with `sessions` (each with its own times), the
+  triage counts a dated series as an event, and a story's sessions are copied as printed (`StorySession`) and
+  dated in code (`stories.resolve_sessions`: the year that makes it the earliest series not over yet, so a
+  story shared after the first sessions still gets this year's). `normalize.fit_sessions` then sets the
+  event's days and times from them (section 6.3).
+- **Merging:** section 9 (a post about one session joins the series; two series of one account merge only
+  when they're the same program).
+- **The admin tools' answers** show a series as "4 sesiones: 8, 22, 29 nov y 6 dic" (`text.sessions_label`).
 
 ---
 
@@ -731,8 +809,8 @@ itself: `pa_bailar/sweep_state.py` fetches it and reads each file with `git show
 | `data/flyers/*.webp` | The flyer copies. Unused ones are deleted at the end of every run |
 | `data/previews/*.mp4` | Videos' preview clips (6 s, silent). Deleted with their events, like flyers |
 
-**Retention:** events whose last day (`end_date`, or `date`) was more than 60 days ago are deleted, together
-with their flyers, so `data/` doesn't grow forever. Git history keeps them.
+**Retention:** events whose last day (`end_date`, or `date`; a workshop series' last session) was more than 60
+days ago are deleted, together with their flyers, so `data/` doesn't grow forever. Git history keeps them.
 
 ---
 

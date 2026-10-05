@@ -118,6 +118,12 @@ MAX_RUN_MINUTES = 30
 # Events over several consecutive days (a congress, a festival weekend) have an end_date: at most this many
 # days in all. A longer range is dropped as a misreading (normalize.py), and the event keeps its first day.
 MAX_EVENT_DAYS = 7
+# A workshop series (a finite program on separate, non-consecutive dates, every one of them written in the post: a
+# "programa intensivo" on four Sundays) is one event with its `sessions`: from MIN to MAX sessions, the last one at
+# most MAX_SERIES_DAYS days in all after the first (4 months). Anything longer is a course: not published.
+MIN_SERIES_SESSIONS = 2
+MAX_SERIES_SESSIONS = 12
+MAX_SERIES_DAYS = 123
 
 # ---------- Retention ----------
 # Events whose last day was more than this many days ago are deleted, and their flyers with them (git history

@@ -1,9 +1,11 @@
 """Text helpers shared by matching, normalization, ids, discovery and the admin tools' answers."""
 
 import unicodedata
+from collections.abc import Sequence
 from datetime import date, datetime
 
 MONTHS = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")  # short, Spanish
+WEEKDAYS = ("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")  # date.weekday() order
 
 
 def fold(text: str | None) -> str:
@@ -23,6 +25,28 @@ def dates_label(start: str | None, end: str | None = None) -> str:
     if first.month != last.month:
         return f"{first.day} {MONTHS[first.month - 1]} – {last.day} {MONTHS[last.month - 1]} {last.year}"
     return f"{first.day}–{last.day} {MONTHS[last.month - 1]} {last.year}"
+
+
+def sessions_label(dates: Sequence[str]) -> str:
+    """A workshop series' sessions for the admin tools' answers: '4 sesiones: 8, 22, 29 nov y 6 dic' (the year
+    after each month only when they span two years: '2 sesiones: 29 dic 2026 y 5 ene 2027')."""
+    days = [date.fromisoformat(day) for day in dates]
+    two_years = len({day.year for day in days}) > 1
+    parts = []
+    for index, day in enumerate(days):
+        following = days[index + 1] if index + 1 < len(days) else None
+        part = str(day.day)
+        if following is None or (following.year, following.month) != (day.year, day.month):  # its month's last
+            part += f" {MONTHS[day.month - 1]}" + (f" {day.year}" if two_years else "")
+        parts.append(part)
+    listed = f"{', '.join(parts[:-1])} y {parts[-1]}" if len(parts) > 1 else "".join(parts)
+    return f"{len(days)} sesiones: {listed}"
+
+
+def event_dates_label(start: str | None, end: str | None = None, sessions: Sequence[str] = ()) -> str:
+    """An event's days for the admin tools' answers: a workshop series' sessions (sessions_label), else its date or
+    range (dates_label)."""
+    return sessions_label(sessions) if len(sessions) > 1 else dates_label(start, end)
 
 
 def clock(moment: datetime) -> str:

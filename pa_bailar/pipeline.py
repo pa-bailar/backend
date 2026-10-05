@@ -51,13 +51,14 @@ from .models import (
     PostAnalysis,
     PostOutcome,
     ProcessedPost,
+    Session,
     StoredEvent,
     StoryAnalysis,
     StoryEvent,
     Triage,
 )
 from .normalize import normalize_event
-from .text import clock
+from .text import WEEKDAYS, clock
 
 log = logging.getLogger(__name__)
 
@@ -302,8 +303,9 @@ def hours_overdue(state: AccountState | None, now: datetime) -> float:
 
 
 def _days(event: EventDetails) -> str:
-    """An event's day for the log: its date, or first → last day."""
-    return f"{event.date} → {event.end_date}" if event.end_date else str(event.date)
+    """An event's day for the log: its date, or first → last day (a workshop series: and how many sessions)."""
+    sessions = f" ({len(event.sessions)} sessions)" if event.sessions else ""
+    return f"{event.date} → {event.end_date}{sessions}" if event.end_date else str(event.date)
 
 
 def _details(event: ExtractedEvent) -> dict[str, Any]:
@@ -313,8 +315,9 @@ def _details(event: ExtractedEvent) -> dict[str, Any]:
 def _story_event(
     item: StoryEvent, resolved: "stories.ResolvedDate", location: str | None, image_index: int
 ) -> ExtractedEvent:
-    """A story's event as the sweep stores events: its date worked out in code, the location sticker as the venue
-    when none is written, and a weekday that doesn't match the date (or a date far ahead) as a doubt."""
+    """A story's event as the sweep stores events: its date (a workshop series: its sessions) worked out in code, the
+    location sticker as the venue when none is written, and a weekday that doesn't match the date (or a date far
+    ahead) as a doubt."""
     doubts = list(item.doubts)
     if resolved.weekday_mismatch or resolved.far_ahead:
         doubts += [note for note in resolved.notes if note.startswith(("dice ", "más de"))]
@@ -329,7 +332,12 @@ def _story_event(
         area=item.area,
         date=resolved.start.isoformat() if resolved.start else None,
         end_date=resolved.end.isoformat() if resolved.end else None,
-        weekday=stories.WEEKDAYS[resolved.start.weekday()] if resolved.start else item.weekday,
+        sessions=[
+            Session(date=day.isoformat(), start_time=session.start_time, end_time=session.end_time)
+            for day, session in resolved.sessions
+        ]
+        or None,
+        weekday=WEEKDAYS[resolved.start.weekday()] if resolved.start else item.weekday,
         start_time=item.start_time,
         end_time=item.end_time,
         prices=item.prices,

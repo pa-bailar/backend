@@ -5,9 +5,14 @@ These models are the source of truth for the data contract with the frontend
 every data PR against the contract).
 """
 
-from typing import Literal, get_args
+import datetime as dt
+import re
+from itertools import pairwise
+from typing import Literal, Self, get_args
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+from . import config
 
 EventType = Literal["social", "workshop", "concert", "festival", "congress", "competition", "show", "other"]
 Confidence = Literal["high", "medium", "low"]
@@ -45,15 +50,67 @@ class Price(BaseModel):
     condition: str | None = Field(None, description="e.g. 'hasta el 24 de septiembre', 'solo 50 cupos'")
 
 
+class Session(BaseModel):
+    """One dated session of a workshop series."""
+
+    date: str = Field(description="YYYY-MM-DD")
+    start_time: str | None = Field(description="HH:MM, 24-hour; null if not given")
+    end_time: str | None = Field(description="HH:MM, 24-hour; null if not given")
+
+
+_TIME = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+
+
+def _iso_date(value: str | None) -> dt.date | None:
+    try:
+        return dt.date.fromisoformat(value) if value and len(value) == 10 else None
+    except ValueError:
+        return None
+
+
+def series_problems(event: "EventDetails") -> list[str]:
+    """What breaks the rules of a workshop series' `sessions` (none: fine, or not a series): from
+    MIN_SERIES_SESSIONS to MAX_SERIES_SESSIONS sessions, real dates in order without repeats, valid times, the last
+    session at most MAX_SERIES_DAYS days in all after the first, `date` the first session's and `end_date` the
+    last's. The site's check-data.mjs checks the same."""
+    sessions = event.sessions
+    if sessions is None:
+        return []
+    problems = []
+    if not config.MIN_SERIES_SESSIONS <= len(sessions) <= config.MAX_SERIES_SESSIONS:
+        problems.append(
+            f"{len(sessions)} sessions: {config.MIN_SERIES_SESSIONS} to {config.MAX_SERIES_SESSIONS} expected"
+        )
+    parsed = [_iso_date(session.date) for session in sessions]
+    days = [day for day in parsed if day]
+    if len(days) != len(parsed):
+        problems.append("a session without a valid date")
+    elif any(later <= earlier for earlier, later in pairwise(days)):
+        problems.append("sessions out of order or repeated")
+    elif days and (days[-1] - days[0]).days + 1 > config.MAX_SERIES_DAYS:
+        problems.append(f"sessions over more than {config.MAX_SERIES_DAYS} days")
+    for session in sessions:
+        if any(time is not None and not _TIME.match(time) for time in (session.start_time, session.end_time)):
+            problems.append(f"bad time in the session of {session.date}")
+    if sessions and (event.date != sessions[0].date or event.end_date != sessions[-1].date):
+        problems.append("date and end_date must be the first and last sessions' dates")
+    return problems
+
+
 class EventDetails(BaseModel):
     """Fields shared by an extracted event and a stored event."""
 
     title: str
     event_type: EventType = Field(
         description="social = socials, parties, dance nights, anniversaries; "
-        "workshop = one-time workshops, masterclasses and special classes with guest teachers"
+        "workshop = one-time workshops, masterclasses and special classes with guest teachers, and workshop series "
+        "(see sessions)"
     )
-    is_recurring: bool = Field(description="True for regular classes or nights that repeat (weekly, every Friday...)")
+    is_recurring: bool = Field(
+        description="True for regular classes or nights that repeat (weekly, every Friday...), and courses or "
+        "programs whose sessions aren't each dated. A workshop series with every session dated isn't recurring: "
+        "see sessions"
+    )
     styles: list[Style] = Field(
         description="Dance styles from the list. Use a salsa/bachata variant only when the post says it; "
         "otherwise plain 'salsa' or 'bachata'."
@@ -62,12 +119,23 @@ class EventDetails(BaseModel):
     venue: str | None = Field(description="Venue name if given")
     address: str | None
     area: str | None = Field(description="Bogotá neighborhood or zone if given")
-    date: str | None = Field(description="YYYY-MM-DD; an event over several consecutive days: its first day")
+    date: str | None = Field(
+        description="YYYY-MM-DD; an event over several consecutive days: its first day; a workshop series: its "
+        "first session's"
+    )
     # Optional in stored data (events stored before it existed have none); ExtractedEvent makes Gemini fill it.
     end_date: str | None = Field(
         None,
         description="Last day (YYYY-MM-DD) of an event over several consecutive days, e.g. 'NOV 13-15' → "
-        "2026-11-15. Null for a one-day event.",
+        "2026-11-15; a workshop series: its last session's. Null for a one-day event.",
+    )
+    # A workshop series (a finite program on separate dates, each written in the post): its sessions, in order. None
+    # for every other event. Optional in stored data, like end_date; ExtractedEvent makes Gemini fill it.
+    sessions: list[Session] | None = Field(
+        None,
+        description="Only for a workshop series (a taller, intensivo, curso corto, bootcamp or ciclo whose 2 to 12 "
+        "sessions each have their own date written in the post, on separate non-consecutive days within 4 months): "
+        "every session, in order. Null for every other event, including one over consecutive days.",
     )
     weekday: str | None = Field(description="Spanish weekday name, lowercase")
     start_time: str | None = Field(description="HH:MM, 24-hour")
@@ -85,8 +153,14 @@ class EventDetails(BaseModel):
 
     @property
     def last_day(self) -> str | None:
-        """The event's last day: its end_date over several days, else its date. Upcoming until it has passed."""
+        """The event's last day: its end_date over several days (a series: its last session), else its date.
+        Upcoming until it has passed."""
         return self.end_date or self.date
+
+    @property
+    def session_dates(self) -> list[str]:
+        """A workshop series' session dates, in order; empty for any other event."""
+        return [session.date for session in self.sessions or []]
 
 
 # ---------- Gemini response schema ----------
@@ -96,7 +170,13 @@ class ExtractedEvent(EventDetails):
     # Required (but nullable) like the other fields, so Gemini's response schema asks for it.
     end_date: str | None = Field(
         description="Last day (YYYY-MM-DD) of an event over several consecutive days, e.g. 'NOV 13-15' → "
-        "2026-11-15. Null for a one-day event."
+        "2026-11-15; a workshop series: its last session's. Null for a one-day event."
+    )
+    sessions: list[Session] | None = Field(
+        description="Only for a workshop series (a taller, intensivo, curso corto, bootcamp or ciclo whose 2 to 12 "
+        "sessions each have their own date written in the post, on separate non-consecutive days within 4 months): "
+        "every session, in order, with its own times. Null for every other event, including one over consecutive "
+        "days."
     )
     image_index: int | None = Field(
         description="Number of the attached image that shows THIS event (its own flyer, or the schedule slide "
@@ -152,6 +232,14 @@ class StoredEvent(EventDetails):
     account: str
     media: list[EventMedia]  # main post first: flyers before videos, newest first (merging.ordered_media)
 
+    @model_validator(mode="after")
+    def _valid_series(self) -> Self:
+        """A stored series follows the contract (series_problems). The code keeps it so (normalize.fit_sessions,
+        merging.merge_into); this catches a mistake before the site's check does."""
+        if problems := series_problems(self):
+            raise ValueError(f"event {self.id}: {'; '.join(problems)}")
+        return self
+
 
 PostOutcome = Literal["event", "merged", "discarded", "not_event", "rejected", "hidden"]
 
@@ -193,6 +281,18 @@ class StoryImage(BaseModel):
     )
 
 
+class StorySession(BaseModel):
+    """One session of a workshop series in a story, as printed (its date is worked out in code)."""
+
+    day: int = Field(description="Day of the month as printed (1-31)")
+    month: int | None = Field(
+        description="Its month (1-12): printed next to it, or the month the story gives for the group it belongs to "
+        "('8, 22 y 29 de noviembre' → 11 for each); null if no month is printed"
+    )
+    start_time: str | None = Field(description="HH:MM, 24-hour")
+    end_time: str | None = Field(description="HH:MM, 24-hour")
+
+
 class StoryEvent(BaseModel):
     """An event read from a story. Its date is worked out in code (stories.resolve_date) from what's printed."""
 
@@ -203,7 +303,7 @@ class StoryEvent(BaseModel):
     )
     is_recurring: bool = Field(
         description="True for regular classes or courses (schedules, levels, monthly fees). A weekly social "
-        "night is not this: see weekly"
+        "night is not this: see weekly. Nor is a workshop series with every session dated: see sessions"
     )
     weekly: bool = Field(description="True for a social or party night that repeats every week ('todos los viernes')")
     styles: list[Style] = Field(
@@ -220,6 +320,11 @@ class StoryEvent(BaseModel):
     year: int | None = Field(description="The year only if it's printed; null otherwise. Never guess it")
     end_day: int | None = Field(description="Last day of an event over several consecutive days, as printed")
     end_month: int | None = Field(description="Month of that last day, if printed")
+    sessions: list[StorySession] | None = Field(
+        description="Only for a workshop series (a taller, intensivo, curso corto, bootcamp or ciclo whose 2 to 12 "
+        "sessions each have their own date printed, on separate non-consecutive days): every session, in order, as "
+        "printed. Then day, month and year are the first session's. Null for every other event"
+    )
     weekday: str | None = Field(
         description="The weekday printed or meant ('sábado' for 'SÁB' or 'este sábado'), Spanish, lowercase"
     )

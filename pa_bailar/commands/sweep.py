@@ -22,7 +22,7 @@ from pa_bailar.logs import setup_logging
 from pa_bailar.models import StoredEvent
 from pa_bailar.pipeline import AddedPost, AddedStory, AddPostError, HiddenStory, RunStats, Sweep
 from pa_bailar.status import moment_label
-from pa_bailar.text import MONTHS, clock, dates_label
+from pa_bailar.text import MONTHS, WEEKDAYS, clock, event_dates_label
 
 log = logging.getLogger(__name__)
 
@@ -110,7 +110,12 @@ def lookback_days(value: str) -> int:
 
 
 def _event_line(event: StoredEvent) -> str:
-    return f"- [{event.title}]({links.event_url(event.id)}) · {dates_label(event.date, event.end_date)}"
+    return f"- [{event.title}]({links.event_url(event.id)}) · {_dates(event)}"
+
+
+def _dates(event: StoredEvent) -> str:
+    """ "2026-11-13", "13–15 nov 2026", or a workshop series' sessions: "4 sesiones: 8, 22, 29 nov y 6 dic"."""
+    return event_dates_label(event.date, event.end_date, event.session_dates)
 
 
 def added_post_markdown(added: AddedPost) -> str:
@@ -176,11 +181,11 @@ def add_post(link: str, account: str | None, again: bool = False) -> None:
 
 
 def _day(event: StoredEvent) -> str:
-    """ "sábado 10 oct 2026", or the range of an event over several days."""
+    """ "sábado 10 oct 2026", or the range of an event over several days, or a workshop series' sessions."""
     if event.end_date or not event.date:
-        return dates_label(event.date, event.end_date)
+        return _dates(event)
     day = date.fromisoformat(event.date)
-    return f"{stories.WEEKDAYS[day.weekday()]} {day.day} {MONTHS[day.month - 1]} {day.year}"
+    return f"{WEEKDAYS[day.weekday()]} {day.day} {MONTHS[day.month - 1]} {day.year}"
 
 
 def _story_event_line(event: StoredEvent) -> str:

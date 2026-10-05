@@ -26,7 +26,7 @@ from pydantic import BaseModel, TypeAdapter
 from . import config, storage
 from .models import StoredEvent
 from .pipeline import RunStats
-from .text import dates_label, fold
+from .text import event_dates_label, fold
 
 HISTORY_RUNS = 120  # runs kept: two a day, two months
 REPEATED_RUNS = 3  # a problem in this many runs in a row is a pattern, not bad luck
@@ -296,7 +296,7 @@ def report_markdown(findings: list[Finding], review: list[StoredEvent], run_url:
         for event in review:
             reasons = "; ".join(review_reasons(event))
             link = f"[{event.title}]({event.media[0].permalink})" if event.media else event.title
-            when = dates_label(event.date, event.end_date)
+            when = event_dates_label(event.date, event.end_date, event.session_dates)
             lines.append(f"- {when} · {link} (@{event.account}, {event.confidence} confidence): {reasons}")
         lines.append("")
     if run_url:

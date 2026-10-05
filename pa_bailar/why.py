@@ -17,7 +17,7 @@ from typing import Any, Literal
 
 from . import config, links, storage, sweep_state
 from .instagram import InstagramError, Post, is_not_visible, published_at
-from .text import clock, dates_label
+from .text import clock, event_dates_label
 
 Mark = Literal["ok", "no", "info"]
 Suggestion = Literal["add-post", "none"]
@@ -36,7 +36,8 @@ class Diagnosis:
     checks: list[tuple[Mark, str]] = field(default_factory=list)
     verdict: str = ""
     suggestion: Suggestion = "none"
-    # {title, date, url} of the events on the site; date: '2026-11-13', or '13–15 nov 2026' over several days
+    # {title, date, url} of the events on the site; date: '2026-11-13', or '13–15 nov 2026' over several days, or
+    # '4 sesiones: 8, 22, 29 nov y 6 dic' for a workshop series
     events: list[dict[str, str]] = field(default_factory=list)
 
     def check(self, mark: Mark, text: str) -> None:
@@ -131,7 +132,9 @@ def _explain_record(
             result.events = [
                 {
                     "title": e["title"],
-                    "date": dates_label(e["date"], e.get("end_date")),
+                    "date": event_dates_label(
+                        e["date"], e.get("end_date"), [session["date"] for session in e.get("sessions") or []]
+                    ),
                     "url": links.event_url(e["id"]),
                 }
                 for e in upcoming
