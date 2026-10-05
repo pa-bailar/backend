@@ -278,3 +278,14 @@ def test_a_series_whose_records_were_forgotten_goes_by_its_posts_date():
     storage.save_events([series("sin-registro", posts=[media("z", published=published)])])
     assert [item["id"] for item in collect({})["new_series"]] == ["sin-registro"]
     assert datetime.fromisoformat(collect({})["new_series"][0]["first_published"]) <= NOW
+
+
+def test_a_post_renamed_to_the_apis_id_still_counts_as_where_a_hidden_event_came_from():
+    """Read from its public page (public-…), hidden, then found through the API under its real id: adding it by hand
+    still undoes the hide (review finding, 5 Oct 2026)."""
+    p1 = post("p1", days_ago=3)
+    run(FakeInstagram({"academia": [p1], "otra": []}), FakeExtractor({"p1": series_post("p1")}))
+    sweep = sweep_with([p1], {})
+    sweep.hide_event(SERIES_ID)
+    sweep._rename_post("p1", "17999")
+    assert sweep._announced_hidden("17999") and not sweep._announced_hidden("p1")

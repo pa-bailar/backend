@@ -112,3 +112,40 @@ def test_a_bars_first_sweep_is_a_regular_one():
     assert instagram.limits["academia"] == [config.BACKFILL_POSTS]  # a new academy: the deeper first sweep
     assert instagram.limits["salsabar"] == [config.POSTS_PER_ACCOUNT]  # a bar: its old posts are past nights
     assert storage.load_account_state()["salsabar"].backfill_done
+
+
+# ---------- review findings (5 Oct 2026) ----------
+
+
+def test_an_edited_caption_of_a_post_with_events_is_read_again_even_without_its_styles():
+    """A published salsa night whose caption becomes "CANCELADO…": the extraction decides (and can take it down),
+    not the free filter, which would leave the event up under a "not an event" record."""
+    instagram = FakeInstagram({"academia": [], "salsabar": [], "club": [captioned("c1", "Noche de salsa con La-33")]})
+    run(instagram, FakeExtractor({"c1": one_event("c1", "La-33 en vivo")}))
+    instagram.posts_by_account["club"] = [captioned("c1", "CANCELADO el concierto de La-33")]
+    extractor = FakeExtractor({"c1": PostAnalysis(is_event_post=False, reason="cancelado", events=[])})
+    run(instagram, extractor)
+    assert "c1" in extractor.extracted_posts  # read again, not filtered
+    assert read(config.EVENTS_FILE) == []
+
+
+def test_a_bar_post_added_by_hand_keeps_being_read_as_it_is():
+    """Added by hand while Flash was out (provisional), then upgraded by a sweep: still without the bar's rules, so
+    the upgrade can't drop what the owner chose to publish."""
+    from pa_bailar.pipeline import Sweep
+
+    night = captioned("b1", "Viernes de salsa con DJ residente")
+    instagram = FakeInstagram({"academia": [], "salsabar": [night], "club": []})
+    lite = FakeExtractor({"b1": one_event("b1", "Viernes de salsa")}, flash_available=False)
+    Sweep(lookback_days=7, instagram=instagram, extractor=lite).add_post(night["permalink"], "salsabar")
+    assert storage.load_processed_posts()["b1"].by_hand
+    flash = FakeExtractor({"b1": one_event("b1", "Viernes de salsa")})
+    run(instagram, flash)
+    assert flash.rules_seen["b1"] == ""  # the upgrade read it without BAR_RULES
+    assert [event["title"] for event in read(config.EVENTS_FILE)] == ["Viernes de salsa"]
+
+
+def test_fancy_font_captions_still_name_their_styles():
+    assert mentions_focus("𝐍𝐎𝐂𝐇𝐄 𝐃𝐄 𝐒𝐀𝐋𝐒𝐀 🔥", ("salsa",))
+    assert mentions_focus("𝗕𝗔𝗖𝗛𝗔𝗧𝗔 sensual", ("bachata",))
+    assert mentions_focus("𝓢𝓪𝓵𝓼𝓪 en vivo", ("salsa",))

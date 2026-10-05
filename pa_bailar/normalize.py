@@ -147,21 +147,28 @@ CITY_DOUBT = "ciudad sin confirmar: ¿es en Bogotá?"
 # Places a caption can name when an event is elsewhere (folded: text.fold). Checked in code after Gemini, for free:
 # "Nos vemos en expofitness Medellin 2027" came out as a Bogotá event (La Revuelta, read by Flash-Lite, Oct 2026).
 _OTHER_PLACES = re.compile(
-    r"\b(medellin|cali|barranquilla|cartagena|bucaramanga|pereira|manizales|armenia|villavicencio|ibague|tunja|"
-    r"santa marta|cucuta|neiva|pasto|popayan|monteria|sincelejo|valledupar|riohacha|quibdo|envigado|rionegro|"
-    r"mexico|cdmx|miami|new york|nueva york|madrid|barcelona|lima|quito|guayaquil|panama|caracas|santiago de chile|"
-    r"buenos aires|puerto rico|santo domingo|la habana)\b"
+    r"\b(medellin|cali|barranquilla|cartagena|bucaramanga|manizales|armenia|villavicencio|ibague|tunja|"
+    r"santa marta|cucuta|neiva|popayan|monteria|sincelejo|valledupar|riohacha|quibdo|envigado|rionegro|"
+    r"mexico|cdmx|miami|madrid|barcelona|lima|quito|guayaquil|panama|caracas|santiago de chile|buenos aires)\b"
 )
+# "estilo Cali", "desde Medellín", "style Cali", "Cali Pachanguero" (a song): where a style, a guest or a song comes
+# from, not where the event is. (Pasto and Pereira are left out: a word and a surname as often as cities; New York,
+# Puerto Rico and La Habana name salsa styles and artists' origins far more often than an event's place.)
+_NOT_A_PLACE = re.compile(r"\b(estilo|style|desde|llega de|viene de|sabor)\s+$")
+_SONGS = re.compile(r"\bcali pachanguero\b")
 
 
 def doubtful_city(event: ExtractedEvent, caption: str | None) -> ExtractedEvent:
     """An event Gemini placed in Bogotá ("yes") with no address of its own, from a caption that names another city
     and never Bogotá, becomes "unknown": published with CITY_DOUBT and listed for review, not dropped (a caption
     also names where a guest artist comes from: "llega desde Medellín")."""
-    text = fold(caption)
-    if event.in_bogota != "yes" or event.address or "bogota" in text or not _OTHER_PLACES.search(text):
+    text = _SONGS.sub("", fold(caption))
+    if event.in_bogota != "yes" or event.address or "bogota" in text:
         return event
-    return event.model_copy(update={"in_bogota": "unknown"})
+    named = [
+        m for m in _OTHER_PLACES.finditer(text) if not _NOT_A_PLACE.search(text[max(0, m.start() - 12) : m.start()])
+    ]
+    return event.model_copy(update={"in_bogota": "unknown"}) if named else event
 
 
 COURSE_DOUBT = f"más de {config.MAX_SERIES_SESSIONS} sesiones o más de 4 meses: es un curso"

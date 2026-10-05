@@ -10,7 +10,9 @@ WEEKDAYS = ("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "do
 
 def fold(text: str | None) -> str:
     """Lowercase, no accents, single spaces: 'Salsa  Caleña' → 'salsa calena'. For comparing, not showing."""
-    decomposed = unicodedata.normalize("NFKD", (text or "").casefold())
+    # NFKD first: Instagram's "fancy font" capitals (𝐒𝐀𝐋𝐒𝐀, 𝗦𝗔𝗟𝗦𝗔) have no lowercase of their own and only become
+    # plain letters after it.
+    decomposed = unicodedata.normalize("NFKD", text or "").casefold()
     return " ".join("".join(char for char in decomposed if not unicodedata.combining(char)).split())
 
 

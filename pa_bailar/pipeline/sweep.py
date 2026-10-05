@@ -254,7 +254,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
     def _analyze_new_post(self, account: str, post: Post, published: datetime, triage: bool = True) -> bool:
         """Triage, then extract if it's an event (`triage=False`: extract directly). False when the post must be
         retried next run."""
-        if self._outside_focus(account, post):
+        # A post that had events (triage=False) is read again whatever its caption says now ("CANCELADO").
+        if triage and self._outside_focus(account, post):
             return True
         if not self.extractor.can_analyze():
             return False  # no quota left today: it waits (no download, not an error)
@@ -267,7 +268,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         if triage:
             try:
                 verdict, triage_model = self.extractor.triage(
-                    account, post, published, images, rules=self._rules(account)
+                    account, post, published, images, rules=self._rules(account, post["id"])
                 )
             except QuotaExhaustedError as error:
                 # Flash-Lite out of today's quota: wait for it rather than spend Flash's small one on every post.
@@ -278,18 +279,13 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
                 log.info("     triage unavailable (%s), extracting directly", error)
 
         if verdict is not None and not verdict.is_event_post:
-            self.stats.count(account, "posts_analyzed")
-            self.stats.posts_triaged_out += 1
-            self._record_processed(account, post, False, verdict.reason, triage_model or "-", provisional=False)
-            self._set_outcome(post, "not_event")
-            self._save()
-            log.info("     not an event: %s", verdict.reason)
+            self._record_not_event(account, post, verdict.reason, triage_model or "-")
             return True
 
         try:
             known = self._known_events(account, published)
             analysis, model, provisional = self.extractor.extract(
-                account, post, published, images, known, rules=self._rules(account)
+                account, post, published, images, known, rules=self._rules(account, post["id"])
             )
         except RejectedRequestError as error:
             # Gemini refuses this post itself (e.g. an image it can't read): retrying would spend quota on
@@ -313,15 +309,10 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         none of them is recorded as no event before any Gemini request (free). Read again if its caption is edited;
         a post added by hand isn't filtered."""
         focus = self.options.get(account, AccountOptions()).focus
-        if self.by_hand or mentions_focus(post.get("caption"), focus):
+        if self._by_hand(post["id"]) or mentions_focus(post.get("caption"), focus):
             return False
         reason = f"no menciona {' ni '.join(focus)} (la cuenta es solo para esos estilos)"
-        self.stats.count(account, "posts_analyzed")
-        self.stats.posts_triaged_out += 1
-        self._record_processed(account, post, False, reason, "-", provisional=False)
-        self._set_outcome(post, "not_event")
-        self._save()
-        log.info("     not an event: %s", reason)
+        self._record_not_event(account, post, reason, "-")
         return True
 
     def _upgrade_post(self, account: str, post: Post, published: datetime) -> None:
@@ -330,7 +321,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             images = common.download_images(post)
             known = self._known_events(account, published)
             analysis, model, _ = self.extractor.extract(
-                account, post, published, images, known, allow_provisional=False, rules=self._rules(account)
+                account, post, published, images, known, allow_provisional=False, rules=self._rules(account, post["id"])
             )
         except RejectedRequestError as error:
             log.warning("     Gemini rejected the upgrade, keeping the provisional analysis: %s", error)

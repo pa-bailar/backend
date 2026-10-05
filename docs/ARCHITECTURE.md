@@ -460,7 +460,12 @@ flowchart TD
     for free ("no menciona salsa ni bachata"); the others get `prompts.FOCUS_RULES` too. A caption edited later
     is checked again.
   - A post added by hand (`--post`, PB Admin) gets neither the filter nor the rules: whoever adds it wants it read
-    as it is. Every other account's prompts are unchanged (the rules are an empty string).
+    as it is. Its record keeps `by_hand`, so its later reads (the provisional upgrade, an edited caption) skip them
+    too. Every other account's prompts are unchanged (the rules are an empty string).
+  - The filter only screens posts the triage would: a post that had events and whose caption is edited goes
+    straight to the extraction, which can take its events down ("CANCELADO"), whatever styles it names now.
+  - Captions are folded before matching (`text.fold`: compatibility forms first, then case), so Instagram's "fancy
+    font" capitals (𝐒𝐀𝐋𝐒𝐀) read as plain letters.
 
 ### 6.2 Posts
 
@@ -529,7 +534,10 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
      that names another city or country (`_OTHER_PLACES`: Medellín, Cali, México…) and never Bogotá, becomes
      "unknown" too. On 3 October 2026 Flash-Lite read "Nos vemos en expofitness Medellín 2027" (La Revuelta Latin
      Fest) as a Bogotá event; a caption that says where a guest comes from ("llega desde Medellín") with the
-     venue's address stays in Bogotá.
+     venue's address stays in Bogotá. Not counted: a place after "estilo", "style", "desde", "llega de", "viene
+     de" or "sabor" (a style or a guest's origin), the song "Cali Pachanguero"; and Pasto, Pereira, New York, Puerto
+     Rico and La Habana aren't in the list (a word or a surname, or salsa styles and artists' origins). A bar's
+     events skip the check: they're at the bar.
 
    The site relies on these formats.
 2. **Keep only publishable events** (`Sweep._discard_reasons`): one-time (`is_recurring` false; a workshop
