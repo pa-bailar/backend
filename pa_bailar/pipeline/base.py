@@ -24,13 +24,18 @@ from ..models import (
     ProcessedPost,
     StoredEvent,
 )
-from ..normalize import doubtful_city, normalize_event
+from ..normalize import MULTI_DOUBT, doubtful_city, normalize_event, styles_in_text
 from ..prompts import account_rules
 from ..text import fold
 from . import common
 from .common import Extractor, PostSource, RunStats, caption_hash, has_ended, media_for, unpublishable
 
 log = logging.getLogger(__name__)
+
+
+def _with_doubt(event: ExtractedEvent, doubt: str) -> ExtractedEvent:
+    return event if doubt in event.doubts else event.model_copy(update={"doubts": [*event.doubts, doubt]})
+
 
 # A caption or Gemini's reason saying the event is off (folded text: lowercase, no accents).
 _CANCELLED = re.compile(
@@ -88,6 +93,26 @@ class SweepBase:
         self.started = time.monotonic()
         self.time_up_logged = False
         self.rate_limited = False  # Meta is throttling the app: the remaining accounts wait for the next run
+
+    def _safeguarded(self, account: str, post: Post, event: ExtractedEvent) -> ExtractedEvent:
+        """An event that came back without styles gets the ones its title or caption names, else its account's usual
+        one (styles_in_text, _usual_styles): the dance filters would miss it otherwise. Free, no request."""
+        if event.styles:
+            return event
+        styles = styles_in_text(f"{event.title} {post.get('caption') or ''}") or self._usual_styles(account)
+        return event.model_copy(update={"styles": styles}) if styles else event
+
+    def _usual_styles(self, account: str) -> list[str]:
+        """The styles nearly all of an account's stored events share (at least 3 events, 80% of them): a bachata
+        school's bachata. Empty when the account is varied or new."""
+        events = [event for event in self.events if event.account == account and event.styles]
+        if len(events) < 3:
+            return []
+        counts: dict[str, int] = {}
+        for event in events:
+            for style in event.styles:
+                counts[style] = counts.get(style, 0) + 1
+        return [style for style, count in counts.items() if count >= 0.8 * len(events)]
 
     def _is_bar(self, account: str) -> bool:
         return self.options.get(account, AccountOptions()).bar
@@ -176,7 +201,9 @@ class SweepBase:
             if self._is_bar(account)
             else [doubtful_city(e, post.get("caption")) for e in analysis.events]
         )
-        cleaned = [normalize_event(event) for event in checked]
+        cleaned = [self._safeguarded(account, post, normalize_event(event)) for event in checked]
+        if len(cleaned) > 1 and (provisional or config.LITE_ONLY):
+            cleaned = [_with_doubt(event, MULTI_DOUBT) for event in cleaned]
         publishable: list[ExtractedEvent] = []
         reasons: set[str] = set()  # why the others weren't published, for the post's record
         for event in cleaned if analysis.is_event_post else []:

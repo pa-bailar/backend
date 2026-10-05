@@ -560,6 +560,17 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
      de" or "sabor" (a style or a guest's origin), the song "Cali Pachanguero"; and Pasto, Pereira, New York, Puerto
      Rico and La Habana aren't in the list (a word or a surname, or salsa styles and artists' origins). A bar's
      events skip the check: they're at the bar.
+   - **Safeguards for lighter readings** (`Sweep._safeguarded`; free, no request). Measured on 5 October 2026 on
+     every post Flash had read (20 posts, 35 events), Flash-Lite matched Flash on dates (26/26) but got styles
+     wrong or missing on 7 of 26 events and mixed up times and prices in a post with three workshops. So:
+     - an event that comes back with no styles gets the ones its title or caption names
+       (`normalize.styles_in_text`: the style list and its synonyms, longest first; not "son" or "la", plain
+       words), else its account's usual ones (`_usual_styles`: styles on at least 80% of its 3+ stored events).
+       Styles the model gave are never changed. The dance filters would miss the event otherwise;
+     - a post with several events read only by a lighter model (a provisional reading, or Flash-Lite in lite-only
+       mode) gets the doubt "varios eventos en una publicación, leída por un modelo ligero: confirma horas y
+       precios" (`normalize.MULTI_DOUBT`) on each, which lists them for review (`health.review_reasons`, section
+       11.1). Flash re-reading the post rebuilds its events without it.
 
    The site relies on these formats.
 2. **Keep only publishable events** (`Sweep._discard_reasons`): one-time (`is_recurring` false; a workshop
