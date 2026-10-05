@@ -95,6 +95,33 @@ the owner sees: the old one stays to compare with (`render.py --review` finds it
 `clean.py` recycles older versions once a newer one exists. When a version is posted, copy its renders,
 `public/<video>/` and project files into `archive/<video>/v<version>/` (as teaser v2.3).
 
+## Instagram practices
+
+What every video follows (the owner asked to, 5 Oct 2026). Specs and limits are Meta's; the rest is Instagram's
+announcements or common creator guidance (no official number), marked as such. The `/teaser` skill's pre-post
+checklist repeats them.
+
+- **Hook in the first 1.5–3 s** (creator guidance; Instagram ranks Reels by whether people keep watching): open on the
+  question or the promise, not the logo. The teaser opens on its question at 0 s.
+- **Reel length by goal** (creator guidance): 7–15 s for reach, 15–30 s to explain (the teaser: 21 s). Instagram
+  recommends Reels up to **3 minutes** in Explore and the Reels tab since January 2025 (90 s before;
+  [Social Media Today](https://www.socialmediatoday.com/news/instagram-will-recommend-longer-3-minute-reels/737913/)):
+  `preflight.py` warns past 3 min. The API takes 3 s–15 min.
+- **Captions for silent viewers**: Reels autoplay muted; the opt-in `captions` in `video.json` (below).
+- **Stories**: about 10–15 s per frame (creator guidance; a clip may run 60 s); one clear call to action; the link
+  sticker where the eye lands after the message and never under Instagram's own UI: ours is the band at the top
+  (`STICKER_BAND`) with "Link aquí arriba" and the drawn arrow right under it.
+- **Reels**: words inside the Reel safe zones (`REEL_SAFE`, `review.py reel`); the end card has a narrower layout for
+  `cta="reel"` (v2.5) that keeps clear of the like, comment and share column.
+- **Cover**: 9:16, with what matters inside the centered 3:4 crop (1080×1440) the profile grid shows (`cover.py`).
+- **Original audio and picture**: our own voice and bed, the site's screens; never repost watermarked content
+  (Instagram favors originals and replaces reposts with them in recommendations since its April 2024 originality
+  update, [Gigazine](https://www.gigazine.net/gsc_news/en/20240502-instagram-updated-algorithm-prioritizes-original-content)).
+- **The file** ([IG User Media reference](https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user/media)):
+  MP4/MOV with the moov atom first, H.264 or HEVC 4:2:0, closed GOP, 23–60 fps, ≤1920 px wide, ≤25 Mbps, AAC ≤48 kHz;
+  through the API a Reel ≤300 MB (3 s–15 min) and a Story ≤100 MB (3–60 s). `preflight.py` checks it (`--api`: the
+  API's limits).
+
 ## Tools
 
 Run from the backend root. `.venv` = `.venv/Scripts/python`, whisper = `D:/AI/whisper/.venv/Scripts/python`,
@@ -118,7 +145,7 @@ in the media home unless they start with `projects/`.
 | `node media/tools/stills.mjs <video> [deliverable] --at 1.5,f255,c4:link [--scale --no-blur --out]` | Node | stills from one bundle (reused while nothing changed): seconds, frames, a line's or a word's start | `out/<video>/frames/` |
 | `render.py <video> [deliverables] [--draft] [--review] [--strict]` | .venv | Remotion renders of `video.json`'s `renders`; refuses stale timing, warns past the shelf life (`--strict` refuses); `--review`: Instagram pre-flight, sheet, band check (Stories), Reel safe zones (Reels), side-by-side with the previous version | `out/<video>/<video>-v<version>-<deliverable>[-draft].mp4` |
 | `render.py <video> --frames 90,8.5s,c4:link [deliverable]` | .venv | stills through `stills.mjs` | `out/<video>/frames/` |
-| `preflight.py <mp4 …> [--story \| --reel] [--api]` | .venv | will Instagram take it: MP4/MOV, H.264 or HEVC 4:2:0, 23–60 fps, 9:16, ≤1920 px wide, ≤25 Mbps, a Story clip ≤60 s / a Reel 3 s–15 min, ≤1 GB, AAC (over 128 kbps is a note), the moov atom first; `--api`: a Story ≤8 MB, faststart required. The kind from the name ("reel") unless given; exit 1 on a failure, warnings otherwise | (prints) |
+| `preflight.py <mp4 …> [--story \| --reel] [--api]` | .venv | will Instagram take it: MP4/MOV, H.264 or HEVC 4:2:0, 23–60 fps, 9:16, ≤1920 px wide, ≤25 Mbps, a Story clip ≤60 s / a Reel 3 s–15 min (a warning past 3 min: not recommended in Explore or the Reels tab), ≤1 GB, AAC (over 128 kbps is a note), the moov atom first; `--api` (the Graph API's spec): a Reel ≤300 MB, a Story ≤100 MB and 3–60 s, faststart required, an edit list warned. The kind from the name ("reel") unless given; exit 1 on a failure, warnings otherwise | (prints) |
 | `cover.py <video> --at 19.5\|f585\|c4:link [--deliverable reel] [--grid 1080x1440]` | .venv | a Reel's cover: one frame at full size through `stills.mjs` (from the first Reel deliverable by default), the centered 3:4 crop the profile grid shows (1080×1440), and the Reel safe-zone check on it (warnings) | `out/<video>/<video>-v<version>-cover.png`, `…-cover-grid.png` |
 | `review.py sheet <mp4> [--at 1.5,f255,c4:link --timing <video> \| --every 2]` | .venv | a keyframe strip with the safe zones | `<mp4>-sheet.png` |
 | `review.py compare <a> <b>` | .venv | side by side, labeled, for the owner (a draft against a full render works too) | `<a>-vs-<b>.mp4` |
@@ -219,7 +246,7 @@ Node (`tests/captions.test.mjs`).
 | Piece | What it is |
 |---|---|
 | `VideoShell`, `vertical(settings)` | the paper, the fade-in (no fade-out for Stories), the grain and the soundtrack around a video's scenes; a vertical `<Composition>`'s size, rate and length from its video.json |
-| `EndCard`, `Cta`, `CTA_TOP`, `CTA_BOB` | the end card: "Link aquí arriba" with the `Arrow` right under the sticker band (story) or "Link en mi perfil" (reel), the stripes, the video's icon and record, the wordmark, a sign-off |
+| `EndCard`, `Cta`, `CTA_TOP`, `CTA_BOB`, `REEL_END` | the end card: "Link aquí arriba" with the `Arrow` right under the sticker band (story) or "Link en mi perfil" (reel), the stripes, the video's icon and record, the wordmark, a sign-off; for a Reel, narrower stripes (x 150–930) and a wordmark of at most 140 px, clear of the right-hand buttons |
 | `Record`, `spinAngle(t, start, ramp)` | the logo's record, spinning up like a platter to 33⅓ rpm, with a fixed sheen |
 | `Grain` | paper/offset grain over everything (multiply, 10%, new seed every 2 frames) |
 | `Stripes` | the 70s triple stripe, bands wiping in on springs |
@@ -247,7 +274,7 @@ Node (`tests/captions.test.mjs`).
 
 | Folder | What | Notes |
 |---|---|---|
-| [`teaser-v2`](projects/teaser-v2/) | The 21 s teaser of the site: voice, beat-cut scenes, a thumb driving the live site, three deliverables (Story ×2, Reel) | The worked example of everything. v2.3 (posted 4 Oct 2026, archived in the home) re-captured every screen with `capture.mjs`, rewritten for the site of 4 October (rhythm chips, pinned bar, details drawer), so it no longer matches the original project (`pa-bailar-teaser`) pixel for pixel. v2.4 (not posted) keeps the arrow and the opening title out of the sticker band |
+| [`teaser-v2`](projects/teaser-v2/) | The 21 s teaser of the site: voice, beat-cut scenes, a thumb driving the live site, three deliverables (Story ×2, Reel) | The worked example of everything. v2.3 (posted 4 Oct 2026, archived in the home) re-captured every screen with `capture.mjs`, rewritten for the site of 4 October (rhythm chips, pinned bar, details drawer), so it no longer matches the original project (`pa-bailar-teaser`) pixel for pixel. v2.4 (not posted) keeps the arrow and the opening title out of the sticker band; v2.5 (not posted) fits the Reel's end card inside the Reel safe zones (the Stories render as v2.4) |
 | [`este-finde`](projects/este-finde/) | A 12 s weekly Story of the coming weekend's events, from data only, no voice | `events.py este-finde --weekend`, then `make.py este-finde` (`este-finde-story`). Example, not yet reviewed by the owner |
 
 ## Rules that bite

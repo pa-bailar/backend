@@ -1,4 +1,4 @@
-# Teaser v2 (v2.4)
+# Teaser v2 (v2.5)
 
 The 21 s teaser of the site for an Instagram Story and a Reel. Made 3–4 October 2026 in its own project
 (`C:\Users\Jhoan\Code\pa-bailar-teaser`, local git, kept as the archive with the v1, v2.1, v2.2 and v2.3 renders) and
@@ -61,6 +61,15 @@ the push-in), inside the sticker band, and the opening title y 249. The end card
 a 14 px bob: the tip stays at y ≥ 258), the title starts 8 px lower (y ≥ 257), and `review.py band` passes on every
 frame but the two full-frame transitions `video.json` allows (the iris and the first whip, where the cover's tomato
 sweeps through). The Reel's "Link en mi perfil" moved the same 8 px. Everything else renders as v2.3 (stills: PSNR inf).
+
+**v2.5 (5 October 2026, not posted):** the Reel's end card sat under Instagram's like, comment and share column: its
+stripes and wordmark reached x 1000 (`review.py reel`: content in the right 120 px from 14.8 s to the end). The kit's
+`EndCard` now has a Reel layout (`REEL_END`): stripes x 150–930 and the wordmark at 140 px instead of 168, centered in
+the same slot. `review.py reel` on the half-size Reel draft: nothing in the right margin after 17.10 s (the end card
+starts at 17.14; the right-hand flags left, 14.80–17.10 s, are scene 4's stripes, an image, unchanged). The Stories are
+unchanged (v2.4 against v2.5 drafts: 630 of 630 frames identical, PSNR inf, for both) and so is the Reel up to the end
+card (frames 0–508 identical; 509–513 differ only by the encoder's look-ahead, ~50 dB). The version moved only because
+the Reel changed: the Story renders are named v2.5 too.
 
 When the site changes again, re-run `capture.mjs` first; if it fails, fix its hooks (it names each) and the matching
 beats at the top of `scenes/App.tsx`.

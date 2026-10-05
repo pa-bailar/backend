@@ -2,34 +2,46 @@
 
   .venv/Scripts/python media/tools/preflight.py <video.mp4 …> [--story | --reel] [--api]
       --story / --reel   which limits apply (default: "reel" in the file name means a Reel, anything else a Story)
-      --api              the Graph API's stricter limits too (a Story's file at most 8 MB; the moov atom first)
+      --api              the Graph API's limits too (tools/publish.py): a Reel's file at most 300 MB, a Story's 100 MB
+                         and 3–60 s; the moov atom first; an edit list is a warning
 
 Checks: the container (MP4 or MOV), the video codec (H.264 or HEVC, 4:2:0, progressive), 23–60 fps, 9:16, at most
-1920 px wide, a video bitrate up to 25 Mbps, the length (a Story clip up to 60 s; a Reel 3 s to 15 min), the size
-(up to 1 GB), AAC audio (Instagram plays 128 kbps: more is a note, not a failure), at most 48 kHz and 2 channels, and
-whether the moov atom comes first (faststart). Exit code 1 when something fails; warnings don't.
+1920 px wide, a video bitrate up to 25 Mbps, the length (a Story clip up to 60 s; a Reel 3 s to 15 min, and a warning
+past 3 min, where Instagram stops recommending a Reel in Explore and the Reels tab), the size (up to 1 GB), AAC audio
+(Instagram plays 128 kbps: more is a note, not a failure), at most 48 kHz and 2 channels, and whether the moov atom
+comes first (faststart). Exit code 1 when something fails; warnings don't.
 
-tools/render.py --review runs it on every render. Standard library + ffprobe: any Python runs it.
+tools/render.py --review runs it on every render; tools/publish.py runs it with --api before anything else.
+Standard library + ffprobe: any Python runs it.
 """
 
 import argparse
 import struct
+from collections.abc import Iterator
 from fractions import Fraction
 from pathlib import Path
 
 from common import probe
 
-# Instagram's limits (help center and the Graph API's Reels and Stories specs, Oct 2026). One place to change them.
+# Instagram's limits, one place to change them. The Graph API's video specs for Reels and Stories (Oct 2026):
+# https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user/media
 CODECS = {"h264", "hevc"}
 FPS = (23, 60)
 MAX_WIDTH = 1920
 MAX_VIDEO_BPS = 25_000_000
 AUDIO_BPS = 128_000  # what Instagram plays; a higher bitrate is re-encoded down
 MAX_RATE = 48_000
-STORY_MAX_S = 60.0  # per clip: a longer Story is cut into 60 s clips
+STORY_MAX_S = 60.0  # per clip: the app cuts a longer Story into 60 s clips (the API refuses it)
 REEL_S = (3.0, 15 * 60.0)
+# Recommended in Explore and the Reels tab up to 3 minutes (Instagram, January 2025; 90 s before): a longer Reel
+# reaches followers only. A warning, not a failure.
+REELS_TAB_MAX_S = 180.0
+# Uploading in the app (Meta's Reels sample, github.com/fbsamples/reels_publishing_apis, states 1 GB too).
 MAX_BYTES = 1_000_000_000
-API_STORY_BYTES = 8_000_000
+# The API (tools/publish.py): a Reel's video up to 300 MB; a Story's up to 100 MB and 3–60 s. (8 MB is the API's
+# limit for a Story *image*, a JPEG, not a video.)
+API_BYTES = {"reel": 300_000_000, "story": 100_000_000}
+API_STORY_S = (3.0, 60.0)
 ASPECT = 9 / 16
 
 
@@ -61,6 +73,59 @@ def moov_first(path: Path) -> bool | None:
     if "moov" in seen:
         return True
     return False if "mdat" in seen else None
+
+
+def boxes(data: bytes, start: int = 0, end: int | None = None) -> Iterator[tuple[bytes, int, int]]:
+    """(kind, payload start, payload end) of the boxes in data[start:end]."""
+    end = len(data) if end is None else end
+    at = start
+    while at + 8 <= end:
+        size, kind = struct.unpack(">I4s", data[at : at + 8])
+        head = 8
+        if size == 1 and at + 16 <= end:
+            size, head = struct.unpack(">Q", data[at + 8 : at + 16])[0], 16
+        elif size == 0:
+            size = end - at
+        if size < head:
+            return
+        yield kind, at + head, min(at + size, end)
+        at += size
+
+
+def top_box(path: Path, wanted: bytes) -> bytes | None:
+    """The payload of the first top-level box of a kind (e.g. moov), or None."""
+    with path.open("rb") as f:
+        at = 0
+        while True:
+            f.seek(at)
+            header = f.read(16)
+            if len(header) < 8:
+                return None
+            size, kind = struct.unpack(">I4s", header[:8])
+            head = 8
+            if size == 1 and len(header) == 16:
+                size, head = struct.unpack(">Q", header[8:16])[0], 16
+            if kind == wanted:
+                f.seek(at + head)
+                return f.read(size - head) if size >= head else f.read()
+            if size < 8:
+                return None
+            at += size
+
+
+def edit_lists(path: Path) -> bool | None:
+    """Whether a track has an edit list (moov/trak/edts/elst; the API's spec says "no edit lists"); None without a
+    moov."""
+    moov = top_box(path, b"moov")
+    if moov is None:
+        return None
+    for kind, a, b in boxes(moov):
+        if kind != b"trak":
+            continue
+        for inner, x, y in boxes(moov, a, b):
+            if inner == b"edts" and any(e == b"elst" for e, _, _ in boxes(moov, x, y)):
+                return True
+    return False
 
 
 def video_problems(video: dict, fmt: dict, audio: dict | None, fail: list[str], warn: list[str]) -> None:
@@ -100,7 +165,15 @@ def audio_problems(audio: dict, fail: list[str], warn: list[str]) -> None:
         warn.append(f"{audio.get('channels')} audio channels: Instagram takes mono or stereo")
 
 
-def assess(info: dict, size: int, kind: str, api: bool, faststart: bool | None, suffix: str = ".mp4"):
+def assess(
+    info: dict,
+    size: int,
+    kind: str,
+    api: bool,
+    faststart: bool | None,
+    suffix: str = ".mp4",
+    edit_list: bool | None = None,
+):
     """(failures, warnings) for ffprobe's -show_format -show_streams output of one file."""
     fail: list[str] = []
     warn: list[str] = []
@@ -124,12 +197,22 @@ def assess(info: dict, size: int, kind: str, api: bool, faststart: bool | None, 
         fail.append(f"{duration:.1f} s: a Story clip is at most {STORY_MAX_S:.0f} s (Instagram cuts it)")
     if kind == "reel" and not REEL_S[0] <= duration <= REEL_S[1]:
         fail.append(f"{duration:.1f} s: a Reel is {REEL_S[0]:.0f} s to {REEL_S[1] / 60:.0f} min")
+    elif kind == "reel" and duration > REELS_TAB_MAX_S:
+        warn.append(
+            f"{duration:.1f} s: over {REELS_TAB_MAX_S / 60:.0f} min, Instagram doesn't recommend a Reel in Explore or "
+            "the Reels tab (followers still see it)"
+        )
+    if api and kind == "story" and not API_STORY_S[0] <= duration <= API_STORY_S[1]:
+        fail.append(f"{duration:.1f} s: the API takes a Story video of {API_STORY_S[0]:.0f}–{API_STORY_S[1]:.0f} s")
     if size > MAX_BYTES:
         fail.append(f"{size / 1e6:.0f} MB: Instagram takes up to {MAX_BYTES / 1e9:.0f} GB")
-    if api and kind == "story" and size > API_STORY_BYTES:
-        fail.append(f"{size / 1e6:.1f} MB: the API takes a Story video up to {API_STORY_BYTES / 1e6:.0f} MB")
+    if api and size > API_BYTES[kind]:
+        what = "a Reel" if kind == "reel" else "a Story video"
+        fail.append(f"{size / 1e6:.1f} MB: the API takes {what} up to {API_BYTES[kind] / 1e6:.0f} MB")
     if faststart is False:
         (fail if api else warn).append("the moov atom comes after the media (not faststart): the API wants it first")
+    if api and edit_list:
+        warn.append("a track has an edit list: the API's spec says none (a warning until Instagram refuses one)")
     return fail, warn
 
 
@@ -137,7 +220,7 @@ def check(path: Path, kind: str | None = None, api: bool = False) -> bool:
     """Check one file; prints the verdict and returns whether it passes."""
     kind = kind or ("reel" if "reel" in path.name.lower() else "story")
     info = probe(path)
-    fail, warn = assess(info, path.stat().st_size, kind, api, moov_first(path), path.suffix)
+    fail, warn = assess(info, path.stat().st_size, kind, api, moov_first(path), path.suffix, edit_lists(path))
     video = next((s for s in info.get("streams", []) if s.get("codec_type") == "video"), {})
     audio = next((s for s in info.get("streams", []) if s.get("codec_type") == "audio"), {})
     summary = (

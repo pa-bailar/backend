@@ -220,9 +220,23 @@ def test_preflight_lengths_sizes_and_the_api():
     short = probed()
     short["format"]["duration"] = "2.5"
     assert any("a Reel is" in f for f in preflight.assess(short, 1, "reel", False, True)[0])
-    assert preflight.assess(probed(), 40_000_000, "story", True, True)[0] == [
-        "40.0 MB: the API takes a Story video up to 8 MB"
+    # The API (IG User Media reference): a Story video up to 100 MB and 3–60 s, a Reel up to 300 MB.
+    assert preflight.assess(probed(), 40_000_000, "story", True, True)[0] == []
+    assert preflight.assess(probed(), 150_000_000, "story", True, True)[0] == [
+        "150.0 MB: the API takes a Story video up to 100 MB"
     ]
+    assert preflight.assess(probed(), 150_000_000, "reel", True, True)[0] == []
+    assert preflight.assess(probed(), 400_000_000, "reel", True, True)[0] == [
+        "400.0 MB: the API takes a Reel up to 300 MB"
+    ]
+    assert any("3–60 s" in f for f in preflight.assess(short, 1, "story", True, True)[0])
+    assert preflight.assess(short, 1, "story", False, True)[0] == []  # the app takes a short Story
+    # Past 3 minutes a Reel isn't recommended in Explore or the Reels tab: a warning.
+    long["format"]["duration"] = "200"
+    fail, warn = preflight.assess(long, 1, "reel", False, True)
+    assert not fail and any("Reels tab" in w for w in warn)
+    _, warn = preflight.assess(probed(), 1, "reel", True, True, edit_list=True)
+    assert any("edit list" in w for w in warn)
     fail, warn = preflight.assess(probed(), 1, "story", False, False)
     assert not fail and any("moov" in w for w in warn)
     assert any("moov" in f for f in preflight.assess(probed(), 1, "story", True, False)[0])
@@ -242,6 +256,18 @@ def test_moov_first_walks_the_top_level_boxes(tmp_path):
     assert preflight.moov_first(slow) is False
     (tmp_path / "junk.mp4").write_bytes(b"abc")
     assert preflight.moov_first(tmp_path / "junk.mp4") is None
+
+
+def test_edit_lists_look_inside_each_track(tmp_path):
+    plain, edited = tmp_path / "plain.mp4", tmp_path / "edited.mp4"
+    trak = box(b"trak", box(b"tkhd", b"t" * 8) + box(b"mdia", b"m" * 8))
+    plain.write_bytes(box(b"ftyp", b"isom") + box(b"moov", box(b"mvhd", b"h" * 8) + trak) + box(b"mdat", b"y"))
+    edts = box(b"trak", box(b"tkhd", b"t" * 8) + box(b"edts", box(b"elst", b"e" * 8)))
+    edited.write_bytes(box(b"ftyp", b"isom") + box(b"moov", trak + edts) + box(b"mdat", b"y"))
+    assert preflight.edit_lists(plain) is False
+    assert preflight.edit_lists(edited) is True
+    (tmp_path / "junk.mp4").write_bytes(b"abc")
+    assert preflight.edit_lists(tmp_path / "junk.mp4") is None
 
 
 # ---------- cover ----------

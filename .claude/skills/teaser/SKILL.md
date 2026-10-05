@@ -44,10 +44,16 @@ the tools, the library's building blocks and the workflow, written so you don't 
   deliverable: nothing above y 252 except the full-frame transitions `video.json` lists, each with its reason.
 - **Instagram pre-flight**: `preflight.py` (part of `render.py --review`) passes on every deliverable you hand over
   (codec, 9:16, fps, bitrate, length, size). A half-size draft only warns; hand over full renders. For the API (a
-  Story through the Graph API must be ≤8 MB), run it with `--api`.
+  Reel ≤300 MB, a Story ≤100 MB and 3–60 s: Meta's IG User Media reference), run it with `--api`.
+- **Instagram practices** (`media/README.md` → "Instagram practices", with sources): a hook in the first 1.5–3 s (the
+  question or the promise, not the logo); a Reel's length fits its goal (7–15 s reach, 15–30 s explain; past 3 min
+  Instagram stops recommending it, and `preflight.py` warns); captions for silent viewers when the owner wants them;
+  a Story frame about 10–15 s, one clear call to action, the link sticker where the eye lands after the message and
+  never under Instagram's UI (our band at the top, "Link aquí arriba"); the Reel's cover 9:16 with its words inside
+  the centered 3:4 grid crop; our own audio and picture, never a watermarked repost.
 - **Reel safe zones**: `review.py reel` (part of `render.py --review` for Reel deliverables) lists content in the
   margins the Reel's UI covers (108 top, 320 bottom, 60 left, 120 right). Images may run into them; check that no
-  word does (the sheet draws them in magenta).
+  word does (the sheet draws them in magenta). The end card takes `cta="reel"` for its Reel layout (`REEL_END`).
 - **Reel cover**: for a Reel, `cover.py <video> --at <moment>` exports the cover (1080×1920) and the profile grid's
   centered crop; pick a frame whose words survive the crop and sit outside the Reel's margins, and hand both over.
 - **Loudness**: `mix.py` passed (true peak ≤ −1 dBTP, within 1 LU of −15 voice-only / −14 with music / −16 music
