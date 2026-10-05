@@ -35,8 +35,8 @@ type only, ≥3:1 for AA large); cream-50 on tomato 4.9:1.
 | Face | Use | Size at 1080 wide |
 |---|---|---|
 | Shrikhand | Titles, wordmark, the sticker | 112–168 px (wordmark 168) |
-| Bodoni Moda italic 500 | The second line of a thought, tagline, sign-off | 64–76 px |
-| Instrument Sans 600 | The end card's call to action (no URL on screen) | 64 px |
+| Bodoni Moda italic 600, `opsz` 18 | The second line of a thought, tagline, sign-off; never digits (its italic 4 reads as a 1) | 64–76 px |
+| Instrument Sans 600 | The end card's call to action (no URL on screen), and anything with digits (dates, times, prices, counts) | 30–68 px |
 
 Fonts are the Google Fonts files (OFL) in `public/fonts/`, loaded locally. Titles get the period-heading treatment
 from the site: a 6 px offset shadow in `cream300` (the site's 2 px × 3).

@@ -4,9 +4,11 @@ A 12 s Story of the coming weekend's events, built only from the site's data, wi
 Instagram's music and a link sticker. It's an example of a data-driven video from the kit. It hasn't been reviewed
 by the owner and was never posted.
 
-It opens on the page head (stripes and "Este finde", the dates and the count), then shows up to four events, one per
-beat (flyer, day, title, time · price · area · @account). The cards leave on a downbeat, and the app icon, the
-record, the wordmark and "Link aquí abajo 👇" follow.
+It opens on the page head (stripes and "Este finde", the dates and the count, in the sans: no digits in the Bodoni),
+then shows up to four events, one per beat (flyer, day, title, time · price · @account). The cards leave on a
+downbeat, and the end card follows, laid out like the teaser's: "Link aquí arriba" with the drawn arrow right under
+the band at the top where the owner puts the link sticker (nothing enters y < 250 on any frame), the app icon and the
+record, the wordmark and "Nos vemos bailando." It fades in and doesn't fade out (a Story).
 
 ## Each week
 

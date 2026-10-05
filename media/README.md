@@ -166,7 +166,7 @@ start). **`lib/fonts`**: loads the faces (`fontsReady` resolves when they're in)
 
 | Folder | What | Notes |
 |---|---|---|
-| [`teaser-v2`](projects/teaser-v2/) | The 21 s teaser of the site: voice, beat-cut scenes, a thumb driving the live site, three deliverables (Story ×2, Reel) | The worked example of everything; renders pixel-identical to the original project (`pa-bailar-teaser`, kept as the archive). Its `capture.mjs` predates the Oct 4 site (filter bar, drawer, no account filter): rewrite it before re-capturing (its README lists what changed) |
+| [`teaser-v2`](projects/teaser-v2/) | The 21 s teaser of the site: voice, beat-cut scenes, a thumb driving the live site, three deliverables (Story ×2, Reel) | The worked example of everything. v2.3 (posted 4 Oct 2026) re-captured every screen with `capture.mjs`, rewritten for the site of 4 October (rhythm chips, pinned bar, details drawer), so it no longer matches the original project (`pa-bailar-teaser`, the archive of v1–v2.3 renders) pixel for pixel |
 | [`este-finde`](projects/este-finde/) | A 12 s weekly Story of the coming weekend's events, from data only, no voice | `events.py este-finde --weekend --live`, then render (`este-finde-story`). Example, not yet reviewed by the owner |
 
 ## Rules that bite

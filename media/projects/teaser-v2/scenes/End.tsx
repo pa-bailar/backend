@@ -46,13 +46,15 @@ export const End: React.FC<{ cta: Cta }> = ({ cta }) => {
   return (
     <AbsoluteFill style={{ background: C.paper }}>
       <AbsoluteFill style={cam(0.6)}>
-        {/* The call to action, right under the sticker's band: the arrow points up at the link. */}
+        {/* The call to action, right under the sticker's band: the arrow points up at the link. At top 276 with a
+            14 px bob, the push-in and the spring's overshoot, the arrow's tip stays at y ≥ 258 on every frame
+            (measured; at 268 with a 20 px bob it reached y 244, inside the band). */}
         <div
           style={{
             position: "absolute",
             left: 80,
             right: 80,
-            top: 268,
+            top: 276,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -60,7 +62,7 @@ export const End: React.FC<{ cta: Cta }> = ({ cta }) => {
             ...rise(frame, link, { distance: 40 }),
           }}
         >
-          {cta === "story" ? <Arrow size={132} weight={3.2} style={{ translate: `0px ${-20 * bob}px` }} /> : null}
+          {cta === "story" ? <Arrow size={132} weight={3.2} style={{ translate: `0px ${-14 * bob}px` }} /> : null}
           <div style={{ ...TYPE.sans(68), textAlign: "center" }}>
             {cta === "story" ? "Link aquí arriba" : "Link en mi perfil"}
           </div>

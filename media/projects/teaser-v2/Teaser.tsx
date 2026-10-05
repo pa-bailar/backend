@@ -111,8 +111,8 @@ export const Teaser: React.FC<TeaserProps> = ({ soundtrack, cta, blur = true }) 
 
 /**
  * Three deliverables: the Story without music (Instagram's music goes under it) and with the bed, both ending on
- * "Link aquí abajo 👇" over an empty band for the link sticker; and the Reel (no link stickers on Reels), with
- * music, ending on "Link en mi perfil".
+ * "Link aquí arriba" with a drawn arrow, right under the band at the top that the link sticker covers; and the Reel
+ * (no link stickers on Reels), with music, ending on "Link en mi perfil".
  */
 export const TeaserV2: React.FC = () => {
   const common = { component: Teaser, durationInFrames: DURATION_S * FPS, fps: FPS, width: WIDTH, height: HEIGHT };
