@@ -189,7 +189,7 @@ Every service the system depends on. All of them are on free plans.
 |---|---|
 | **What for** | Hosting the admin page (Worker `pa-bailar-admin`, at `https://pa-bailar-admin.jzamorac-9.workers.dev`) and its server side: the sign-in with GitHub (the `pa-bailar-admin` GitHub App), reading the status, and keeping story screenshots for a few days (Workers KV, namespace bound as `UPLOADS`, 7-day expiry) until the sweep workflow downloads them with GitHub's identity token (OIDC, no secret). GitHub Pages can't: it's not free for a private repository and has no server side |
 | **How** | Cloudflare's build (Workers Builds) deploys `admin-web/` (`wrangler.jsonc`) from this repository on every push to `main`, no preview builds. Its GitHub connection is limited to this repository. Every answer carries security headers, with a strict Content Security Policy: `public/_headers` for the page's files, `src/index.js` for the Worker's own (ADMIN.md, "The admin page") |
-| **Status** | Sign-in with GitHub, the status dashboard and the admin tools. Installable on Android, where it receives posts and story screenshots shared from Instagram (a service worker, `public/sw.js`). Described in [`docs/ADMIN.md`](ADMIN.md) |
+| **Status** | Sign-in with GitHub, then two tabs: Estadísticas (the status) and Herramientas (the admin tools). Installable on Android, where it receives posts and story screenshots shared from Instagram (a service worker, `public/sw.js`). Described in [`docs/ADMIN.md`](ADMIN.md) |
 | **Cost** | Free (KV's free plan: 1,000 writes a day, one per screenshot) |
 
 ### 3.7 Instagram's public post pages (fallback)
