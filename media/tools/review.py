@@ -5,8 +5,13 @@
       1580 px at 1080×1920: brand.json's "safe"). Default: every 2 s. → next to the video, <name>-sheet.png
   python media/tools/review.py compare <a.mp4> <b.mp4> [--labels v1,v2] [--from 0 --to 4.6] [--out ab.mp4]
       Side by side at half size, labeled, with b's sound: for the owner to see what changed.
-  python media/tools/review.py diff <a.mp4> <b.mp4>
-      PSNR per frame (∞ = identical): the worst frames first. After a refactor, renders should match.
+  python media/tools/review.py diff <reference.mp4> <new.mp4> [--no-vmaf]
+      PSNR (∞ = identical), SSIM (1 = identical) and VMAF (0–100; about 6 points is one just-noticeable difference;
+      identical frames score 97–100, not exactly 100: a still frame has no motion term) per frame, the worst first.
+      After a refactor, renders should match (PSNR ∞); for an encode (Instagram's, a smaller file), VMAF says
+      whether it visibly damaged the picture. VMAF needs an
+      ffmpeg built with libvmaf (winget's Gyan.FFmpeg full_build has it); without it, PSNR and SSIM, and a note.
+      Works on stills (PNG) too; a different size is scaled to the reference's.
   python media/tools/review.py band <story.mp4 | still.png …> [--video <name>] [--allow 4.2-4.3,5.75-6.45]
       The Stories' sticker band (brand.json "stickerBand": y 0–250 at 1920 tall, plus a 2 px margin) must stay
       empty on every frame: anything that isn't the frame's background above y 252 fails, with the frames and how
@@ -24,6 +29,7 @@ Standard library + ffmpeg: any Python runs it.
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -114,32 +120,84 @@ def compare(a: Path, b: Path, labels: list[str], start: float, end: float | None
     print(out.as_posix())
 
 
-def diff(a: Path, b: Path) -> None:
-    log = a.parent / f".psnr-{a.stem}.log"
-    # Run in the log's folder and name it bare: a drive letter's colon would end the filter option.
-    a, b = a.resolve(), b.resolve()
-    ffmpeg(
-        "-i",
-        str(a),
-        "-i",
-        str(b),
-        "-lavfi",
-        f"[0:v][1:v]psnr=stats_file='{log.name}'",
-        "-f",
-        "null",
-        "-",
-        cwd=log.parent,
-    )
+VMAF_MISSING = (
+    "VMAF: this ffmpeg has no libvmaf filter (`ffmpeg -filters | findstr vmaf` lists none), so PSNR and SSIM only. "
+    "Get a build with it: winget's Gyan.FFmpeg full_build is configured --enable-libvmaf (winget install Gyan.FFmpeg; "
+    "tools/common.py finds it off PATH too)."
+)
+
+
+def has_filter(name: str) -> bool:
+    """Whether this ffmpeg has the filter `name` (libvmaf needs a build with --enable-libvmaf)."""
+    out = subprocess.run(
+        [tool("ffmpeg"), "-hide_banner", "-filters"], capture_output=True, text=True, encoding="utf-8", errors="replace"
+    ).stdout
+    return re.search(rf"^\s*\S+\s+{re.escape(name)}\s", out, re.M) is not None
+
+
+def per_frame(text: str, field: str) -> list[tuple[float, int]]:
+    """(value, frame) from a psnr or ssim stats file ("n:1 … psnr_avg:41.2 …", "n:1 … All:0.991 (20.5)"), frames from
+    0."""
     rows = []
-    for line in log.read_text().splitlines():
+    for line in text.splitlines():
         n = re.search(r"n:(\d+)", line)
-        p = re.search(r"psnr_avg:(\S+)", line)
-        if n and p:
-            rows.append((float(p.group(1)), int(n.group(1))))
-    log.unlink()
-    rows.sort()
-    same = sum(1 for p, _ in rows if p == float("inf"))
-    print(f"{len(rows)} frames, {same} identical; worst (PSNR dB, frame): {rows[:8]}")
+        v = re.search(rf"{field}:(\S+)", line)
+        if n and v:
+            rows.append((float(v.group(1)), int(n.group(1)) - 1))
+    return rows
+
+
+def vmaf_frames(report: dict) -> list[tuple[float, int]]:
+    """(VMAF, frame) from libvmaf's JSON log."""
+    return [(float(f["metrics"]["vmaf"]), int(f["frameNum"])) for f in report.get("frames", [])]
+
+
+def diff(a: Path, b: Path, vmaf: bool = True) -> dict:
+    """Compare `b` (a new render, or an encode) with `a` (the reference), frame by frame: PSNR (∞ = identical), SSIM
+    (1 = identical) and, when this ffmpeg has libvmaf, VMAF (0–100; identical frames score 97–100; about 6 points is
+    one just-noticeable difference). `b` is scaled to `a`'s size when they differ (a draft against a full render).
+    Prints and returns the summary."""
+    a, b = a.resolve(), b.resolve()
+    size = lambda p: next((s["width"], s["height"]) for s in probe(p)["streams"] if s["codec_type"] == "video")  # noqa: E731
+    (wa, ha), (wb, hb) = size(a), size(b)
+    fit = f"scale={wa}:{ha}:flags=bicubic," if (wa, ha) != (wb, hb) else ""
+    available = has_filter("libvmaf")
+    vmaf = vmaf and available
+    work = Path(tempfile.mkdtemp(prefix="diff-"))
+    # Run in the logs' folder and name them bare: a drive letter's colon would end the filter option.
+    graph = f"[0:v]setpts=PTS-STARTPTS,split={2 + vmaf}[r1][r2]{'[r3]' if vmaf else ''};"
+    graph += f"[1:v]{fit}setpts=PTS-STARTPTS,split={2 + vmaf}[d1][d2]{'[d3]' if vmaf else ''};"
+    graph += "[d1][r1]psnr=stats_file=psnr.log;[d2][r2]ssim=stats_file=ssim.log"
+    if vmaf:  # libvmaf: the distorted input first, then the reference
+        threads = max(1, (os.cpu_count() or 4) - 1)
+        graph += f";[d3][r3]libvmaf=log_fmt=json:log_path=vmaf.json:n_threads={threads}"
+    try:
+        ffmpeg("-i", str(a), "-i", str(b), "-lavfi", graph, "-f", "null", "-", cwd=work)
+        psnr = sorted(per_frame((work / "psnr.log").read_text(), "psnr_avg"))
+        ssim = sorted(per_frame((work / "ssim.log").read_text(), "All"))
+        scores = sorted(vmaf_frames(json.loads((work / "vmaf.json").read_text()))) if vmaf else []
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    same = sum(1 for p, _ in psnr if p == float("inf"))
+    summary = {
+        "frames": len(psnr),
+        "identical": same,
+        "psnr_worst": psnr[:8],
+        "ssim_mean": sum(s for s, _ in ssim) / len(ssim) if ssim else None,
+        "ssim_worst": ssim[:3],
+        "vmaf_mean": sum(s for s, _ in scores) / len(scores) if scores else None,
+        "vmaf_worst": scores[:3],
+    }
+    scaled = f" ({b.name} scaled from {wb}×{hb} to {wa}×{ha})" if fit else ""
+    print(f"{len(psnr)} frames, {same} identical{scaled}; worst (PSNR dB, frame): {psnr[:8]}")
+    if ssim:
+        print(f"SSIM mean {summary['ssim_mean']:.6f}; worst (SSIM, frame): {[(round(s, 6), f) for s, f in ssim[:3]]}")
+    if scores:
+        worst = [(round(s, 2), f) for s, f in scores[:3]]
+        print(f"VMAF mean {summary['vmaf_mean']:.2f}; worst (VMAF, frame): {worst}")
+    elif not available:
+        print(VMAF_MISSING)
+    return summary
 
 
 def background(sample: bytes, bucket: int = 6) -> int:
@@ -311,6 +369,7 @@ def main() -> None:
     d = sub.add_parser("diff")
     d.add_argument("a", type=Path)
     d.add_argument("b", type=Path)
+    d.add_argument("--no-vmaf", action="store_true", help="PSNR and SSIM only (VMAF takes longer)")
     b = sub.add_parser("band")
     b.add_argument("files", type=Path, nargs="+")
     b.add_argument("--video")
@@ -344,7 +403,7 @@ def main() -> None:
         out = args.out or args.b.with_name(f"{args.a.stem}-vs-{args.b.stem}.mp4")
         compare(args.a, args.b, args.labels.split(","), args.start, args.end, out)
     else:
-        diff(args.a, args.b)
+        diff(args.a, args.b, vmaf=not args.no_vmaf)
 
 
 if __name__ == "__main__":

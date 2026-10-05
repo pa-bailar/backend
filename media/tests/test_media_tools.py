@@ -153,6 +153,15 @@ def test_band_runs_and_spans():
     assert common.BRAND["stickerBand"]["bottom"] + common.BRAND["stickerBand"]["margin"] == review.LIMIT
 
 
+def test_diff_reads_psnr_ssim_and_vmaf_logs():
+    psnr = "n:1 mse_avg:0.00 psnr_avg:inf psnr_y:inf\nn:2 mse_avg:1.2 psnr_avg:41.37 psnr_y:40.1\n"
+    assert review.per_frame(psnr, "psnr_avg") == [(float("inf"), 0), (41.37, 1)]
+    ssim = "n:1 Y:1.000000 U:1.000000 V:1.000000 All:1.000000 (inf)\nn:2 Y:0.98 U:0.99 V:0.99 All:0.985000 (18.2)\n"
+    assert review.per_frame(ssim, "All") == [(1.0, 0), (0.985, 1)]
+    report = {"frames": [{"frameNum": 0, "metrics": {"vmaf": 97.43}}, {"frameNum": 1, "metrics": {"vmaf": 88.1}}]}
+    assert review.vmaf_frames(report) == [(97.43, 0), (88.1, 1)]
+
+
 def test_edge_strips_read_from_each_edge_inward():
     # A 4×3 frame: values are 10·row + column.
     frame = bytes(10 * r + c for r in range(3) for c in range(4))

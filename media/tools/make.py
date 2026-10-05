@@ -204,6 +204,11 @@ def checks() -> list[tuple[str, bool, str]]:
             out.append(("need", True, f"{exe}: {tool(exe)}"))
         except SystemExit as error:
             out.append(("need", False, str(error)))
+    if all(ok for _, ok, _ in out):
+        import review
+
+        vmaf = review.has_filter("libvmaf")
+        out.append(("nice", vmaf, f"ffmpeg's libvmaf (review.py diff): {'yes' if vmaf else 'no: PSNR and SSIM only'}"))
     found = chrome()
     out.append(("need", bool(found), f"Chrome (captures): {found or 'not found'}"))
     out.append(("need", bool(shutil.which("node")), f"node: {shutil.which('node') or 'not on PATH'}"))

@@ -50,6 +50,9 @@ the tools, the library's building blocks and the workflow, written so you don't 
   centered crop; pick a frame whose words survive the crop and sit outside the Reel's margins, and hand both over.
 - **Loudness**: `mix.py` passed (true peak ≤ −1 dBTP, within 1 LU of −15 voice-only / −14 with music / −16 music
   only); `mix.py <video> --check` measures what's there.
+- **Refactors and encodes**: after a change that shouldn't move a pixel, `review.py diff <old> <new>` must say every
+  frame is identical (PSNR ∞). To judge an encode (Instagram's copy, a smaller file), read its VMAF (~6 points is one
+  just-noticeable difference) and its worst frames.
 - **Version**: the render's name carries the `version` you'll report, and the previous one is there to compare.
 - **Type**: digits (dates, times, prices, counts) in the sans, never the Bodoni italic (its 4 reads as a 1).
 
