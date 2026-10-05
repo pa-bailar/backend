@@ -38,7 +38,8 @@ D:\AI\pa-bailar-media\
 ├── public/<video>/              screens, flyers, audio: Remotion's public folder (staticFile, assets(video))
 ├── out/<video>/                 renders (<video>-v<version>-<deliverable>.mp4), drafts, frames, sheets, comparisons
 ├── out/.bundle/, out/check/     the stills bundle (made again when the code changes), npm run check's stills
-└── archive/<video>/v<version>/  each posted version, whole: its renders, public/ as it was, its project files
+├── archive/<video>/v<version>/  each posted version, whole: its renders, public/ as it was, its project files
+└── publish_state.json           what tools/publish.py sent, per render (its sha256), account and kind
 ```
 
 The checkout's old `media/cache`, `media/public/<video>` and `media/out/<video>` are copies from before the home;
@@ -152,6 +153,7 @@ in the media home unless they start with `projects/`.
 | `review.py diff <reference> <new> [--no-vmaf]` | .venv | PSNR (∞ = identical), SSIM (1 = identical) and VMAF per frame, worst first: a refactor must not change a render (PSNR ∞); VMAF says whether an encode visibly damaged it (0–100, ~6 points is one just-noticeable difference; identical still frames score ~97, not 100). Stills too; a smaller one is scaled up. VMAF needs ffmpeg's libvmaf (winget's Gyan.FFmpeg full_build has it; without it, PSNR and SSIM and a note) | (prints) |
 | `review.py band <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | nothing but the background above y 252 (the sticker band + 2 px) on any frame; `--video` allows its `sticker_band.allow` spans; exit 1 when something enters | (prints) |
 | `review.py reel <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | the Reel's safe zones (108 top, 320 bottom, 60 left, 120 right): content in those margins is a warning per side, with the frames and how close to the edge it gets (images may run into them, words never); `--video` allows its `reel_safe.allow` spans | (prints) |
+| `publish.py <video> <deliverable> [--story \| --reel] [--caption-file --no-feed --thumb-offset --video-url --dry-run --confirm]` | .venv | **disabled** (below): posts a full render through Meta's Graph API: preflight `--api`, the quota, a container, the resumable upload, polling, `media_publish`, the permalink; once per render (its sha256), resumable after a crash, never twice. Without `PA_BAILAR_PUBLISH_ENABLED=1` and `--confirm` it only prints the requests (token redacted) | `publish_state.json` |
 | `clean.py [--yes]` | .venv | lists older versions, drafts, stills, sheets, comparisons and scratch folders in the home's `out/`, the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, the archive and anything git tracks stay | (the Recycle Bin) |
 | `npm run check` (in `media/`) | Node | `tsc`, every composition registers, one still per video | `out/check/` |
 | `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json`, and the captions' pages | (prints) |
@@ -276,6 +278,41 @@ Node (`tests/captions.test.mjs`).
 |---|---|---|
 | [`teaser-v2`](projects/teaser-v2/) | The 21 s teaser of the site: voice, beat-cut scenes, a thumb driving the live site, three deliverables (Story ×2, Reel) | The worked example of everything. v2.3 (posted 4 Oct 2026, archived in the home) re-captured every screen with `capture.mjs`, rewritten for the site of 4 October (rhythm chips, pinned bar, details drawer), so it no longer matches the original project (`pa-bailar-teaser`) pixel for pixel. v2.4 (not posted) keeps the arrow and the opening title out of the sticker band; v2.5 (not posted) fits the Reel's end card inside the Reel safe zones (the Stories render as v2.4) |
 | [`este-finde`](projects/este-finde/) | A 12 s weekly Story of the coming weekend's events, from data only, no voice | `events.py este-finde --weekend`, then `make.py este-finde` (`este-finde-story`). Example, not yet reviewed by the owner |
+
+## Publishing (disabled)
+
+`tools/publish.py` posts a render through Meta's official [Content Publishing
+API](https://developers.facebook.com/docs/instagram-platform/content-publishing) (the Instagram API with Facebook
+Login, graph.facebook.com, the backend's `v26.0`), the flow of Meta's sample
+[fbsamples/reels_publishing_apis](https://github.com/fbsamples/reels_publishing_apis): no instagrapi, no browser, no
+private endpoints. It's built and tested against a fake Graph API, and **off**: it calls Meta only when the
+environment (or the backend's `.env`) has `PA_BAILAR_PUBLISH_ENABLED=1` **and** the command has `--confirm`. Anything
+else is a dry run that prints each request with the token as `***`.
+
+What it does, in order, saving `publish_state.json` (media home) before and after every step: `preflight.py --api`
+(refuses on a failure); the render's sha256 + account + kind as the key (a published render is never posted again; a
+container already made is polled, not made again); `content_publishing_limit` (refuses when the quota is used up);
+a container (`REELS` with the caption from `--caption-file`, `share_to_feed` unless `--no-feed`, `thumb_offset`; or
+`STORIES`) with `upload_type=resumable`, then the file to `rupload.facebook.com` (or, with `--video-url`, a public
+URL Meta fetches: it must serve exactly this render); `status_code` polled 5 s to a minute apart for about 5 minutes
+(`ERROR`/`EXPIRED`: stops with Meta's error; still `IN_PROGRESS`: run it again); `media_publish`; the permalink and
+time read back. A lost publish answer is checked against the container and the account's recent posts before any
+retry.
+
+To turn it on (the owner, once):
+1. In the Meta app (developers.facebook.com, the app the sweep uses, Facebook Login for Business): add
+   `instagram_content_publish` next to `instagram_basic` and `pages_read_engagement` (plus `ads_management` or
+   `ads_read` if the Page role comes through Business Manager), then make a new token with them. Keep using
+   `META_ACCESS_TOKEN`, or put a token only for publishing in `PA_BAILAR_PUBLISH_TOKEN` (it wins when set).
+2. Add `PA_BAILAR_PUBLISH_ENABLED=1` to the backend's `.env` (on this PC only; never in CI).
+3. First a dry run: `.venv/Scripts/python media/tools/publish.py teaser-v2 reel --caption-file caption.txt`: it
+   says whether the token and `IG_USER_ID` are set and lists the requests.
+4. Then the same with `--confirm`. Running it again prints where the post is; it never posts it twice.
+
+Limits (Oct 2026): 100 API posts per 24 h by the publishing guide, 50 by the `content_publishing_limit` reference (the
+tool reads the real number from the API), 400 containers per 24 h, a container expires after 24 h. **Stories with a
+link sticker stay manual**: the API can't add stickers (link, poll, location), so `--story` suits only a Story
+without one (none of ours today).
 
 ## Rules that bite
 

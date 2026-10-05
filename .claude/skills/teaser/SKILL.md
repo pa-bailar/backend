@@ -51,6 +51,10 @@ the tools, the library's building blocks and the workflow, written so you don't 
   a Story frame about 10–15 s, one clear call to action, the link sticker where the eye lands after the message and
   never under Instagram's UI (our band at the top, "Link aquí arriba"); the Reel's cover 9:16 with its words inside
   the centered 3:4 grid crop; our own audio and picture, never a watermarked repost.
+- **Posting**: the owner posts by hand. `media/tools/publish.py` (the Graph API) exists but is disabled
+  (`media/README.md` → "Publishing (disabled)"); never enable it, add `--confirm` or touch the Meta app yourself. A
+  dry run (`publish.py <video> <deliverable>`) is fine: it calls nothing and shows the requests. Stories with a link
+  sticker always stay manual (the API can't add stickers).
 - **Reel safe zones**: `review.py reel` (part of `render.py --review` for Reel deliverables) lists content in the
   margins the Reel's UI covers (108 top, 320 bottom, 60 left, 120 right). Images may run into them; check that no
   word does (the sheet draws them in magenta). The end card takes `cta="reel"` for its Reel layout (`REEL_END`).
