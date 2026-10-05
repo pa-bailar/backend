@@ -24,7 +24,16 @@ BRAND: dict = json.loads((MEDIA / "brand.json").read_text(encoding="utf-8"))
 # The media home: everything generated (the TTS and music cache, each video's public/ binaries, renders and working
 # files, the archive of posted versions) lives outside any checkout, so every worktree shares it and removing a
 # worktree can't delete it. PA_BAILAR_MEDIA_HOME overrides it (tools/paths.mjs and remotion.config.ts read the same).
-HOME = Path(os.environ.get("PA_BAILAR_MEDIA_HOME") or r"D:\AI\pa-bailar-media")
+DEFAULT_HOME = r"D:\AI\pa-bailar-media"
+
+
+def media_home(raw: str | None) -> Path:
+    """PA_BAILAR_MEDIA_HOME as a path: a relative one is relative to the backend's root, whatever the working folder
+    (tools/paths.mjs mediaHome() and remotion.config.ts resolve it the same way)."""
+    return (BACKEND / raw).resolve() if raw else Path(DEFAULT_HOME)
+
+
+HOME = media_home(os.environ.get("PA_BAILAR_MEDIA_HOME"))
 CACHE = HOME / "cache"
 # The site's three faces (OFL), committed; src/lib/fonts.ts imports them.
 FONTS = MEDIA / "fonts"
@@ -73,9 +82,37 @@ def probe(path: Path) -> dict:
     return json.loads(out)
 
 
+def main_checkout() -> Path:
+    """The repository's main checkout. In a git worktree (which has no .venv or .env of its own) it's the folder of the
+    shared .git (`git rev-parse --git-common-dir`); elsewhere, or without git, the backend itself."""
+    try:
+        done = subprocess.run(
+            ["git", "-C", str(BACKEND), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return BACKEND
+    common_dir = Path(done.stdout.strip())
+    return common_dir.parent if common_dir.name == ".git" else BACKEND
+
+
+def backend_path(*parts: str) -> Path:
+    """A path in the backend (`.env`, `.venv/…`): this checkout's when it exists, else the main checkout's (a git
+    worktree shares them with it); when neither exists, this checkout's."""
+    here = BACKEND.joinpath(*parts)
+    if here.exists():
+        return here
+    main = main_checkout().joinpath(*parts)
+    return main if main.exists() else here
+
+
 def load_env() -> None:
-    """The backend's .env (MEDIA_GEMINI_API_KEY lives there), without printing anything from it."""
-    env = BACKEND / ".env"
+    """The backend's .env (MEDIA_GEMINI_API_KEY lives there; a worktree uses the main checkout's), without printing
+    anything from it. Variables already in the environment win."""
+    env = backend_path(".env")
     if not env.exists():
         return
     for raw in env.read_text(encoding="utf-8").splitlines():
@@ -259,14 +296,18 @@ def voice_key(settings: dict) -> str | None:
 
 
 def _norm(word: str) -> str:
-    """A word as makeTiming() compares it (src/lib/timing.ts): no accents, no punctuation, lower case."""
-    plain = "".join(c for c in unicodedata.normalize("NFD", word.lower()) if not unicodedata.combining(c))
+    """A word as the Node side compares it (src/lib/words.ts plain()): no accents (any combining mark), no punctuation,
+    lower case. tests/timing-cases.json holds the cases both pass."""
+    plain = "".join(
+        c for c in unicodedata.normalize("NFD", word.lower()) if not unicodedata.category(c).startswith("M")
+    )
     return re.sub(r"[^a-z']", "", plain)
 
 
 def at_seconds(spec: str, timing: dict | None, fps: int = 30) -> float:
-    """A moment as tools/stills.mjs takes it: seconds ("8.5" or "8.5s"), a frame ("f255"), a line's start ("c4") or a
-    word's start ("c4:link", the nth with "c4:link:1"), from a video's data/timing.json."""
+    """A moment as tools/stills.mjs takes it (src/lib/words.ts secondsAt(), the same cases in tests/timing-cases.json):
+    seconds ("8.5" or "8.5s"), a frame ("f255"), a line's start ("c4") or a word's start ("c4:link", the nth with
+    "c4:link:1"), from a video's data/timing.json."""
     spec = spec.strip()
     if re.fullmatch(r"f\d+", spec):
         return int(spec[1:]) / fps

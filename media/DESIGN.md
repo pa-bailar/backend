@@ -18,8 +18,8 @@ Scene numbers below are teaser v2's (`projects/teaser-v2`), as examples.
 - **Reel safe zones:** a Reel's UI covers other margins than a Story's: 108 px at the top (the header), 320 at the
   bottom (the caption, the audio line), 60 on the left and 120 on the right (the like, comment and share column)
   (`REEL_SAFE`). Words stay inside both: x 80–960, y 250–1580 on a Reel (`TEXT_ZONE.reel`). `review.py reel` warns
-  about content in those margins (images may run into them). The teaser's end card (v2.4) reaches x 1000 with the
-  wordmark and the stripes: inside the right column on the Reel.
+  about content in those margins (images may run into them). The end card has a Reel layout (`REEL_END`, teaser
+  v2.5): its stripes and wordmark reached x 1000, inside the right column, and now stop at x 946 at most.
 - **Title band:** scene titles sit at y 280–520, the same place in every scene, so the eye never hunts.
 
 ## Colors (v2: "Fania de día", the site's light theme, plus the logo's tomato for the cover)
@@ -76,7 +76,8 @@ white sheen that doesn't turn) so the turning reads.
 - **The end card** is the kit's `EndCard` (`src/brand/end.tsx`): "Link aquí arriba" with the drawn `Arrow` right under
   the sticker band (`CTA_TOP` = 276, bobbing `CTA_BOB` = 14 px) for a Story, "Link en mi perfil" for a Reel; the
   stripes at y 500; the app icon and the record around a spot (the video brings its own: a match cut, a pop); the
-  wordmark 300 px below it and an optional sign-off 490 px below.
+  wordmark 300 px below it and an optional sign-off 490 px below. On a Reel (`cta="reel"`) the stripes run x 150–930
+  and the wordmark is at most 140 px (centered in the same slot), clear of the like, comment and share column.
 
 ## Captions (opt-in)
 

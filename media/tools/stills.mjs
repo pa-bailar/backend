@@ -7,15 +7,16 @@
 //
 // Times: seconds (1.5), a frame (f300), a line's start (c4) or a word's start (c4:link, the nth with c4:link:1), from
 // the video's data/timing.json (the same lookups as makeTiming() in src/lib/timing.ts). The deliverable is one of
-// video.json's "renders" (default: the first). The bundle lives in out/.bundle/ with a key of every file it reads
+// video.json's "renders" (default: the first). The bundle lives in out/.bundle-<checkout>/ with a key of every file it reads
 // (src/, projects/, the public files): a second run with nothing changed starts rendering in a second or two.
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { arg, flag, positionals } from "./capture.mjs";
-import { MEDIA, OUT, PUBLIC } from "./paths.mjs";
+import { secondsAt } from "../src/lib/words.ts";
+import { bundleDir, MEDIA, OUT, PUBLIC } from "./paths.mjs";
 
 /** Every file under `dir` (recursively), skipping node_modules. */
 async function files(dir) {
@@ -48,41 +49,38 @@ async function sourceKey() {
   return hash.digest("hex").slice(0, 16);
 }
 
-/** The bundle's folder: the cached one when its key matches, else a fresh bundle. */
+/**
+ * The bundle's folder (one per checkout: bundleDir()): the cached one when its key matches, else a fresh bundle,
+ * built in a temporary folder and moved into place whole, so a reader never sees half a bundle.
+ */
 export async function bundled() {
-  const dir = path.join(OUT, ".bundle");
+  const dir = bundleDir();
   const key = await sourceKey();
   const keyFile = path.join(dir, "key.txt");
   if ((await readFile(keyFile, "utf8").catch(() => "")) === key && existsSync(path.join(dir, "index.html"))) {
     return dir;
   }
   const { bundle } = await import("@remotion/bundler");
-  await rm(dir, { recursive: true, force: true });
+  const tmp = `${dir}.tmp-${process.pid}`;
+  await rm(tmp, { recursive: true, force: true });
   const t0 = Date.now();
-  await bundle({ entryPoint: path.join(MEDIA, "src", "index.ts"), outDir: dir, publicDir: PUBLIC });
-  await writeFile(keyFile, key);
+  await bundle({ entryPoint: path.join(MEDIA, "src", "index.ts"), outDir: tmp, publicDir: PUBLIC });
+  await writeFile(path.join(tmp, "key.txt"), key);
+  await rm(dir, { recursive: true, force: true });
+  try {
+    await rename(tmp, dir);
+  } catch {
+    console.log(`   (kept the bundle in ${path.basename(tmp)}: ${path.basename(dir)} was busy)`);
+    return tmp;
+  }
   console.log(`   bundled in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   return dir;
 }
 
-const norm = (s) =>
-  s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z']/g, "");
-
-/** "1.5" → seconds, "f300" → frame, "c4" → a line's start, "c4:link[:n]" → a word's start; returns the frame. */
+/** "1.5" or "1.5s" → seconds, "f300" → frame, "c4" → a line's start, "c4:link[:n]" → a word's start (src/lib/words.ts,
+ * as tools/common.py at_seconds); returns the frame. */
 export function frameAt(spec, fps, timing) {
-  if (/^f\d+$/.test(spec)) return Number(spec.slice(1));
-  if (/^\d+(\.\d+)?$/.test(spec)) return Math.round(Number(spec) * fps);
-  const [id, word, nth = "0"] = spec.split(":");
-  const line = timing?.lines.find((l) => l.id === id);
-  if (!line) throw new Error(`no line "${id}" in data/timing.json (times are seconds, f<frame>, <line> or <line>:<word>)`);
-  if (!word) return Math.round(line.start * fps);
-  const hit = line.words.filter((w) => norm(w.word) === norm(word))[Number(nth)];
-  if (!hit) throw new Error(`no word "${word}" (#${nth}) in ${id}`);
-  return Math.round(hit.start * fps);
+  return Math.round(secondsAt(spec, timing, fps) * fps);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

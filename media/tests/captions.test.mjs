@@ -3,7 +3,18 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { captionPages, captionsOn, currentToken, pageAt, splitPhrase, toCaptions } from "../src/lib/captions.ts";
+import {
+  CAPTION_LEAD_MS,
+  captionAt,
+  captionPages,
+  captionRuns,
+  captionsOn,
+  currentToken,
+  formatOf,
+  pageAt,
+  splitPhrase,
+  toCaptions,
+} from "../src/lib/captions.ts";
 
 const teaser = JSON.parse(readFileSync(new URL("../projects/teaser-v2/data/timing.json", import.meta.url), "utf8"));
 const words = (...list) => list.map(([word, start, end]) => ({ word, start, end }));
@@ -76,4 +87,43 @@ test("the teaser's voice makes short pages, only for the lines and deliverables 
   assert.equal(captionsOn({ style: "minimal" }, "teaser-v2-reel"), true);
   assert.equal(captionsOn({ style: "minimal", deliverables: ["reel"] }, "teaser-v2-with-music"), false);
   assert.equal(captionsOn({ style: "minimal", deliverables: ["reel"] }, "teaser-v2-reel"), true);
+  assert.equal(formatOf("teaser-v2-reel"), "reel");
+  assert.equal(formatOf("reels-recap-story"), "story"); // "reel" inside a name isn't a Reel
+});
+
+test("the card fades in and out with a page on it, and stays up through a run's short gaps", () => {
+  const fade = 100; // 3 frames at 30 fps
+  const t = timing([
+    { id: "a", text: "", start: 0, end: 1, words: words(["Uno.", 1, 1.4]) },
+    { id: "b", text: "", start: 1, end: 2, words: words(["Dos.", 1.95, 2.25]) }, // Uno.'s page ends at 1850
+  ]);
+  const pages = captionPages(t, { style: "minimal" });
+  assert.equal(captionRuns(pages).length, 1);
+  const start = 1000 - CAPTION_LEAD_MS;
+  assert.equal(captionAt(pages, start - fade - 1, fade), null);
+  const fadingIn = captionAt(pages, start - fade / 2, fade);
+  assert.equal(fadingIn.page.text, "Uno.");
+  assert.ok(fadingIn.opacity > 0.4 && fadingIn.opacity < 0.6);
+  assert.equal(captionAt(pages, start, fade).opacity, 1);
+  assert.equal(pageAt(pages, 1865), null); // between the pages (Dos. shows from 1880): no page of its own…
+  assert.deepEqual(captionAt(pages, 1865, fade), { page: pages[0], opacity: 1 }); // …but the card keeps Uno.
+  const end = pages[1].endMs;
+  const fadingOut = captionAt(pages, end + fade / 2, fade);
+  assert.equal(fadingOut.page.text, "Dos.");
+  assert.ok(fadingOut.opacity > 0.4 && fadingOut.opacity < 0.6);
+  assert.equal(captionAt(pages, end + fade, fade), null);
+});
+
+test("on the teaser's voice, frames at partial opacity exist, each with a page", () => {
+  const pages = captionPages(teaser, { style: "minimal" });
+  const fps = 30;
+  let partial = 0;
+  for (let f = 0; f < teaser.duration * fps; f++) {
+    const shown = captionAt(pages, (f / fps) * 1000, (3 * 1000) / fps);
+    if (shown && shown.opacity < 1) {
+      partial++;
+      assert.ok(shown.page.text.length > 0);
+    }
+  }
+  assert.ok(partial >= 2 * captionRuns(pages).length - 2, `${partial} frames fading`);
 });

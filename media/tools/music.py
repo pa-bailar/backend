@@ -109,7 +109,9 @@ def main(name: str) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(res.audios[0]["path"], path)
         made = provenance(label, prompt, seed, bpm, duration, revision, date.today().isoformat())
-        path.with_suffix(".json").write_text(json.dumps(made, indent=1, ensure_ascii=False), encoding="utf-8")
+        path.with_suffix(".json").write_text(
+            json.dumps(made, indent=1, ensure_ascii=False), encoding="utf-8", newline="\n"
+        )
         print(f"{shown(path)}: {time.time() - t1:.0f} s", flush=True)
 
 

@@ -1,6 +1,7 @@
 """The media tools' pure functions: the weekend rule, occurrences, version names, the sticker-band math, loudness
 parsing, shelf lives, stale stages, TTS errors. Standard library only (no ffmpeg, no network)."""
 
+import filecmp
 import json
 import os
 import time
@@ -14,6 +15,7 @@ import events
 import make
 import mix
 import music
+import new
 import preflight
 import pytest
 import render
@@ -220,9 +222,23 @@ def test_preflight_lengths_sizes_and_the_api():
     short = probed()
     short["format"]["duration"] = "2.5"
     assert any("a Reel is" in f for f in preflight.assess(short, 1, "reel", False, True)[0])
-    assert preflight.assess(probed(), 40_000_000, "story", True, True)[0] == [
-        "40.0 MB: the API takes a Story video up to 8 MB"
+    # The API (IG User Media reference): a Story video up to 100 MB and 3–60 s, a Reel up to 300 MB.
+    assert preflight.assess(probed(), 40_000_000, "story", True, True)[0] == []
+    assert preflight.assess(probed(), 150_000_000, "story", True, True)[0] == [
+        "150.0 MB: the API takes a Story video up to 100 MB"
     ]
+    assert preflight.assess(probed(), 150_000_000, "reel", True, True)[0] == []
+    assert preflight.assess(probed(), 400_000_000, "reel", True, True)[0] == [
+        "400.0 MB: the API takes a Reel up to 300 MB"
+    ]
+    assert any("3–60 s" in f for f in preflight.assess(short, 1, "story", True, True)[0])
+    assert preflight.assess(short, 1, "story", False, True)[0] == []  # the app takes a short Story
+    # Past 3 minutes a Reel isn't recommended in Explore or the Reels tab: a warning.
+    long["format"]["duration"] = "200"
+    fail, warn = preflight.assess(long, 1, "reel", False, True)
+    assert not fail and any("Reels tab" in w for w in warn)
+    _, warn = preflight.assess(probed(), 1, "reel", True, True, edit_list=True)
+    assert any("edit list" in w for w in warn)
     fail, warn = preflight.assess(probed(), 1, "story", False, False)
     assert not fail and any("moov" in w for w in warn)
     assert any("moov" in f for f in preflight.assess(probed(), 1, "story", True, False)[0])
@@ -242,6 +258,18 @@ def test_moov_first_walks_the_top_level_boxes(tmp_path):
     assert preflight.moov_first(slow) is False
     (tmp_path / "junk.mp4").write_bytes(b"abc")
     assert preflight.moov_first(tmp_path / "junk.mp4") is None
+
+
+def test_edit_lists_look_inside_each_track(tmp_path):
+    plain, edited = tmp_path / "plain.mp4", tmp_path / "edited.mp4"
+    trak = box(b"trak", box(b"tkhd", b"t" * 8) + box(b"mdia", b"m" * 8))
+    plain.write_bytes(box(b"ftyp", b"isom") + box(b"moov", box(b"mvhd", b"h" * 8) + trak) + box(b"mdat", b"y"))
+    edts = box(b"trak", box(b"tkhd", b"t" * 8) + box(b"edts", box(b"elst", b"e" * 8)))
+    edited.write_bytes(box(b"ftyp", b"isom") + box(b"moov", trak + edts) + box(b"mdat", b"y"))
+    assert preflight.edit_lists(plain) is False
+    assert preflight.edit_lists(edited) is True
+    (tmp_path / "junk.mp4").write_bytes(b"abc")
+    assert preflight.edit_lists(tmp_path / "junk.mp4") is None
 
 
 # ---------- cover ----------
@@ -380,6 +408,70 @@ def test_stale_when_missing_or_older_than_an_input(tmp_path):
     assert make.stale([], [src])
 
 
+TIMES = json.loads((Path(__file__).parent / "timing-cases.json").read_text(encoding="utf-8"))
+
+
+def test_words_and_moments_read_as_the_node_side_reads_them():
+    """The same table as tests/words.test.mjs (src/lib/words.ts)."""
+    for word, expected in TIMES["words"]:
+        assert common._norm(word) == expected, word
+    for spec, seconds in TIMES["times"]:
+        assert common.at_seconds(spec, TIMES["timing"], TIMES["fps"]) == pytest.approx(seconds), spec
+    for spec in TIMES["errors"]:
+        with pytest.raises(SystemExit):
+            common.at_seconds(spec, TIMES["timing"], TIMES["fps"])
+
+
+def test_a_stage_that_runs_makes_every_later_one_run():
+    fresh = dict.fromkeys(make.STAGES)
+    assert make.schedule(fresh, [], False) == [(s, None) for s in make.STAGES]
+    # A new voice line: timing, mix, render and the review follow, though their plan said up to date.
+    chain = make.schedule(fresh | {"tts": "1 line(s) not cached"}, [], False)
+    assert [s for s, why in chain if why] == list(make.STAGES)
+    assert dict(chain)["render"] == "mix ran before it"
+    # A new render: its review runs (the sheet's plan, made before the render, said up to date).
+    assert make.schedule(fresh | {"render": "stale"}, [], False)[-1] == ("sheet", "render ran before it")
+    # Stages that don't apply (no voice) are skipped; asked-for stages only.
+    assert make.schedule({"render": "stale", "sheet": None}, ["render"], False) == [("render", "stale")]
+    assert make.schedule({"mix": None, "render": None, "sheet": None}, [], True)[0] == ("mix", "forced")
+
+
+def test_a_review_is_done_only_when_it_passed(tmp_path, monkeypatch):
+    dest = touch(tmp_path / "x-v1-story.mp4")
+    marker = render.passed_marker(dest)
+    v = common.Video("x-review-test", {"duration": 4, "version": "1", "renders": {"story": "x-story"}})
+    v.settings["sticker_band"] = {"deliverables": ["story"]}
+    monkeypatch.setattr(review, "duration_of", lambda p: 4.0)
+    monkeypatch.setattr(review, "sheet", lambda *a, **k: touch(dest.with_name(f"{dest.stem}-sheet.png")))
+    monkeypatch.setattr(review, "allowed_spans", lambda *a: [])
+    monkeypatch.setattr(preflight, "check", lambda *a, **k: True)
+    monkeypatch.setattr(review, "band", lambda *a: True)
+    assert render.review(v, "story", dest) and marker.exists()
+    monkeypatch.setattr(review, "band", lambda *a: False)  # something entered the sticker band
+    assert not render.review(v, "story", dest)
+    assert not marker.exists() and dest.with_name(f"{dest.stem}-sheet.png").exists()  # a sheet, but not passed
+    monkeypatch.setattr(review, "band", lambda *a: True)
+    monkeypatch.setattr(preflight, "check", lambda *a, **k: False)  # Instagram would refuse it
+    assert not render.review(v, "story", dest) and not marker.exists()
+
+
+def test_a_worktree_uses_the_main_checkouts_venv_and_env(tmp_path, monkeypatch):
+    worktree, main = tmp_path / "worktree", tmp_path / "main"
+    touch(main / ".env")
+    touch(main / ".venv" / "Scripts" / "python.exe")
+    monkeypatch.setattr(common, "BACKEND", worktree)
+    monkeypatch.setattr(common, "main_checkout", lambda: main)
+    assert common.backend_path(".env") == main / ".env"
+    assert common.backend_path(".venv", "Scripts", "python.exe") == main / ".venv" / "Scripts" / "python.exe"
+    touch(worktree / ".env")  # its own wins
+    assert common.backend_path(".env") == worktree / ".env"
+    assert common.backend_path("nothing") == worktree / "nothing"
+
+
+def test_the_main_checkout_is_where_the_shared_git_folder_is():
+    assert (common.main_checkout() / ".git").is_dir()
+
+
 # ---------- tts ----------
 
 
@@ -387,6 +479,100 @@ class FakeError(Exception):
     def __init__(self, code, text):
         super().__init__(text)
         self.code = code
+
+
+def test_diff_scales_the_smaller_up_and_refuses_other_frame_rates():
+    assert review.fit((1080, 1920), (540, 960)) == ("", "scale=1080:1920:flags=bicubic,")
+    assert review.fit((540, 960), (1080, 1920)) == ("scale=1080:1920:flags=bicubic,", "")
+    assert review.fit((1080, 1920), (1080, 1920)) == ("", "")
+    a, b = probed(), probed(avg_frame_rate="25/1")
+    assert review.rate_mismatch(a, a) is None
+    assert review.rate_mismatch(a, b) == "frame rates differ (30/1 vs 25/1 fps)"
+    still = {"format": {"format_name": "png_pipe"}, "streams": [{"codec_type": "video", "avg_frame_rate": "25/1"}]}
+    assert review.rate_mismatch(still, a) is None
+
+
+def test_preflight_reads_the_picture_as_displayed():
+    turned = probed(width=1920, height=1080, side_data_list=[{"side_data_type": "Display Matrix", "rotation": -90}])
+    assert preflight.displayed_size(turned["streams"][0]) == (1080, 1920)
+    assert preflight.assess(turned, 1, "story", False, True)[0] == []
+    flat = probed(width=1920, height=1080)
+    assert any("isn't 9:16" in f for f in preflight.assess(flat, 1, "story", False, True)[0])
+    assert preflight.displayed_size(probed(tags={"rotate": "90"}, width=1920, height=1080)["streams"][0]) == (
+        1080,
+        1920,
+    )
+
+
+def test_a_relative_media_home_is_relative_to_the_backend():
+    assert common.media_home(None) == Path(r"D:\AI\pa-bailar-media")
+    assert common.media_home("../media-home") == (common.BACKEND.parent / "media-home").resolve()
+    elsewhere = Path(__file__).resolve().parent  # an absolute path stays as it is
+    assert common.media_home(str(elsewhere)) == elsewhere
+
+
+def test_new_registers_a_video_once(tmp_path):
+    root = (
+        'import "./lib/fonts";\nimport { AVideo } from "../projects/a/A";\n\n'
+        "export const Root = () => (\n  <>\n    <AVideo />\n  </>\n);\n"
+    )
+    once = new.register(root, "b-c", "BC")
+    assert 'import { BCVideo } from "../projects/b-c/BC";' in once and "    <BCVideo />\n  </>" in once
+    assert new.register(once, "b-c", "BC") == once  # idempotent
+    with pytest.raises(ValueError):
+        new.register("no anchors here", "b-c", "BC")
+
+
+def test_clean_recycles_the_teaser_projects_versions_only_when_archived(tmp_path, monkeypatch):
+    monkeypatch.setattr(clean, "HOME", tmp_path / "home")
+    old = tmp_path / "teaser-v2.2-reel.mp4"
+    old.write_bytes(b"v2.2")
+    assert not clean.in_home_archive(old)
+    kept = tmp_path / "home" / "archive" / "teaser-v2" / "v2.2" / "teaser-v2-v2.2-reel.mp4"
+    kept.parent.mkdir(parents=True)
+    kept.write_bytes(b"v2.3")  # same size, other bytes: not a copy
+    assert not clean.in_home_archive(old)
+    kept.write_bytes(b"v2.2")
+    filecmp.clear_cache()  # filecmp remembers by size and mtime, which a rewrite this fast may not change
+    assert clean.in_home_archive(old)
+
+
+def test_clean_skips_what_the_recycle_bin_would_delete_for_good(tmp_path, monkeypatch):
+    item = touch(tmp_path / "x.mp4")
+    real_exists = Path.exists
+    monkeypatch.setattr(Path, "exists", lambda p: False if p.name == "$Recycle.Bin" else real_exists(p))
+    assert "no Recycle Bin" in clean.unrecyclable(item)
+    monkeypatch.setattr(Path, "exists", lambda p: True if p.name == "$Recycle.Bin" else real_exists(p))
+    assert clean.unrecyclable(item) is None
+    monkeypatch.setattr(clean, "BIN_SHARE", 0)
+    item.write_bytes(b"x")
+    assert "more than" in clean.unrecyclable(item)
+
+
+def test_soundtracks_are_replaced_together_or_not_at_all(tmp_path):
+    def pending(name, problem=None):
+        dest = touch(tmp_path / f"{name}.wav")
+        dest.write_text("old")
+        tmp = tmp_path / f".{name}.tmp.wav"
+        tmp.write_text("new")
+        return mix.Pending(tmp, dest, tmp_path / f"rejected-{name}.wav", problem)
+
+    both = [pending("voice-only"), pending("with-music", "with-music.wav: true peak -0.2 dBTP")]
+    assert mix.settle(both) == ["with-music.wav: true peak -0.2 dBTP"]
+    assert (tmp_path / "voice-only.wav").read_text() == "old"  # it passed, but its partner didn't: kept as a set
+    assert (tmp_path / "rejected-voice-only.wav").read_text() == "new"
+    assert (tmp_path / "with-music.wav").read_text() == "old"
+    assert mix.settle([pending("voice-only"), pending("with-music")]) == []
+    assert (tmp_path / "voice-only.wav").read_text() == "new" and (tmp_path / "with-music.wav").read_text() == "new"
+
+
+def test_tts_stops_clearly_without_a_key(monkeypatch):
+    monkeypatch.setattr(tts, "load_env", lambda: None)
+    monkeypatch.delenv("MEDIA_GEMINI_API_KEY", raising=False)
+    with pytest.raises(SystemExit, match="MEDIA_GEMINI_API_KEY isn't set"):
+        tts.api_key()
+    monkeypatch.setenv("MEDIA_GEMINI_API_KEY", " k ")
+    assert tts.api_key() == "k"
 
 
 def test_tts_retries_only_transient_errors():

@@ -9,7 +9,10 @@
                 music/mix settings changed (the mix.key mix.py leaves next to them)
         render  a render is older than the code, the data, the public files or brand   .venv (+ node)
         sheet   the review (Instagram pre-flight, keyframe sheet, sticker band, Reel   .venv
-                safe zones, side-by-side with the previous version) is older than its render
+                safe zones, side-by-side with the previous version) hasn't passed since the render
+                (render.py leaves <render>-review.ok only when it passes)
+      Once a stage runs, every later one runs too (a new voice line means new timing, a new mix, a new render and
+      its review).
       --draft renders half size without motion blur; --force runs the named stages anyway; --dry-run only says
       what would run; --strict makes mix and render refuse a bed without provenance, and render refuse material
       past its shelf life.
@@ -26,6 +29,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from collections.abc import Callable
 from pathlib import Path
 
@@ -37,6 +41,7 @@ from common import (
     HOME,
     MEDIA,
     Video,
+    backend_path,
     load_env,
     mix_key,
     shown,
@@ -44,9 +49,18 @@ from common import (
     video,
     voice_key,
 )
+from render import passed_marker
+
+
+def venv_python() -> Path:
+    """The backend's .venv Python: this checkout's, else the main checkout's (a git worktree has none), else the
+    Python running make.py (started from the .venv, as the docs say)."""
+    exe = backend_path(".venv", "Scripts", "python.exe")
+    return exe if exe.exists() else Path(sys.executable)
+
 
 PYTHON = {
-    "venv": BACKEND / ".venv" / "Scripts" / "python.exe",
+    "venv": venv_python(),
     "whisper": Path(os.environ.get("PA_BAILAR_WHISPER_PYTHON", r"D:\AI\whisper\.venv\Scripts\python.exe")),
     "ace": Path(os.environ.get("PA_BAILAR_ACE_PYTHON", r"D:\AI\ace-step\.venv\Scripts\python.exe")),
 }
@@ -118,8 +132,9 @@ def plan(v: Video, draft: bool) -> dict[str, str | None]:
         out["mix"] = mix_reason(v, tracks)
     renders = [v.render(d, draft) for d in v.settings["renders"]]
     out["render"] = "a render is missing or older than its inputs" if stale(renders, render_inputs(v)) else None
-    sheets = [r.with_name(f"{r.stem}-sheet.png") for r in renders]
-    out["sheet"] = "a review is missing or older than its render" if stale(sheets, renders) else None
+    # A review is done when it passed (render.review leaves the marker only then), not when it drew a sheet.
+    passed = [passed_marker(r) for r in renders]
+    out["sheet"] = "a passing review is missing or older than its render" if stale(passed, renders) else None
     return out
 
 
@@ -131,6 +146,21 @@ def run(python: str, *args: str) -> None:
     done = subprocess.run([str(exe), *args], cwd=BACKEND)
     if done.returncode:
         raise SystemExit(f"stage failed: {' '.join(args)}")
+
+
+def schedule(todo: dict[str, str | None], wanted: list[str], force: bool) -> list[tuple[str, str | None]]:
+    """(stage, why it runs or None when it's up to date), in order. Once a stage runs, every later one runs too: its
+    output is a later stage's input (tts → timing → mix → render → sheet), so a plan made before it ran is stale."""
+    out: list[tuple[str, str | None]] = []
+    upstream: str | None = None
+    for stage in STAGES:
+        if stage not in todo or (wanted and stage not in wanted):
+            continue
+        reason = todo[stage] or ("forced" if force else None) or (f"{upstream} ran before it" if upstream else None)
+        if reason:
+            upstream = stage
+        out.append((stage, reason))
+    return out
 
 
 def make(name: str, wanted: list[str], draft: bool, force: bool, dry: bool, strict: bool) -> None:
@@ -149,10 +179,7 @@ def make(name: str, wanted: list[str], draft: bool, force: bool, dry: bool, stri
         ),
         "sheet": lambda: review_all(v, draft),
     }
-    for stage in STAGES:
-        if stage not in todo or (wanted and stage not in wanted):
-            continue
-        reason = todo[stage] or ("forced" if force else None)
+    for stage, reason in schedule(todo, wanted, force):
         if reason is None:
             print(f"  {stage}: up to date")
             continue

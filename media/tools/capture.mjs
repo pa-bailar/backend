@@ -45,7 +45,6 @@ export function positionals(withValue) {
   return out;
 }
 
-/** The coming Saturday at 19:00 Bogotá (UTC−5, no DST); today if it's Saturday before 19:00. */
 /** Today in Bogotá (UTC−5, no daylight saving), YYYY-MM-DD. */
 export const bogotaToday = (now = Date.now()) => new Date(now - 5 * 3600e3).toISOString().slice(0, 10);
 

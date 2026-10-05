@@ -33,6 +33,7 @@ import os
 import subprocess
 import sys
 from array import array
+from dataclasses import dataclass
 from pathlib import Path
 
 from common import BRAND, HOME, Video, ffmpeg, mix_key, probe, provenance_problems, shown, tool, video
@@ -107,23 +108,39 @@ def problems(integrated: float, peak: float, target: float) -> list[str]:
     return out
 
 
-def normalize(v: Video, src: Path, name: str, target: float, fade: float) -> str | None:
-    """Normalize `src` into public/<video>/audio/<name>.wav through a temporary file, replaced only when the result
-    passes (else it goes to out/<video>/rejected-<name>.wav). Returns the problem, if any."""
+@dataclass
+class Pending:
+    """A normalized soundtrack in a temporary file, not yet in place: `problem` says why it can't be."""
+
+    tmp: Path
+    dest: Path
+    rejected: Path
+    problem: str | None
+
+
+def normalize(v: Video, src: Path, name: str, target: float, fade: float) -> Pending:
+    """Normalize `src` into a temporary file next to public/<video>/audio/<name>.wav and measure it; settle() puts
+    the soundtracks in place together, or none of them."""
     dest = v.public / "audio" / f"{name}.wav"
-    rejected = v.out / f"rejected-{name}.wav"
     tmp = dest.with_name(f".{dest.stem}.tmp.wav")
     kind = loudnorm(src, tmp, target, v.duration, fade)
     integrated, peak = measure(tmp)
     wrong = problems(integrated, peak, target)
     line = f"{shown(dest)}: {integrated:.1f} LUFS (target {target}), true peak {peak:+.1f} dBTP, loudnorm {kind}"
-    if wrong:
-        os.replace(tmp, rejected)
-        print(f"{line}  REJECTED → {shown(rejected)}")
-        return f"{dest.name}: {'; '.join(wrong)}"
-    os.replace(tmp, dest)
-    print(line)
-    return None
+    print(f"{line}{'  REJECTED' if wrong else ''}")
+    problem = f"{dest.name}: {'; '.join(wrong)}" if wrong else None
+    return Pending(tmp, dest, v.out / f"rejected-{name}.wav", problem)
+
+
+def settle(pending: list[Pending]) -> list[str]:
+    """All or nothing: when every soundtrack passes, each replaces its old one; when one fails, none does (the old
+    ones stay a matching set) and each new one goes to out/<video>/rejected-<name>.wav. Returns the problems."""
+    failed = [p.problem for p in pending if p.problem]
+    for p in pending:
+        os.replace(p.tmp, p.rejected if failed else p.dest)
+        if failed:
+            print(f"  kept the previous {p.dest.name}; the new one is {shown(p.rejected)}")
+    return failed
 
 
 def targets(v: Video) -> dict[str, float]:
@@ -286,7 +303,7 @@ def main(name: str, strict: bool = False) -> None:
     v.out.mkdir(parents=True, exist_ok=True)
     music = v.settings.get("music", {})
     goals = targets(v)
-    wrong: list[str | None] = []
+    made: list[Pending] = []
     if "music-only" in goals:
         if not music.get("bed"):
             raise SystemExit("no voice and no music bed in video.json: nothing to mix")
@@ -295,20 +312,20 @@ def main(name: str, strict: bool = False) -> None:
         fade_out = f"afade=t=out:st={duration - 1.2}:d=1.2"
         ffmpeg("-i", str(HOME / music["bed"]), "-af", f"{trim},{fade_out}", "-t", str(duration), str(raw))
         # −16 by default: a bed alone at −14 reaches 0 dBTP (no voice to make the loudness).
-        wrong.append(normalize(v, raw, "music-only", goals["music-only"], fade))
+        made.append(normalize(v, raw, "music-only", goals["music-only"], fade))
     else:
         if not voice.exists():
             raise SystemExit(f"no {shown(voice)}: run tools/timing.py {name} first")
         tmp = v.out / "voice-48k.wav"
         ffmpeg("-i", str(voice), "-af", "aresample=48000", "-ac", "2", str(tmp))
-        wrong.append(normalize(v, tmp, "voice-only", goals["voice-only"], fade))
+        made.append(normalize(v, tmp, "voice-only", goals["voice-only"], fade))
         if "with-music" in goals:
             raw, ducked = v.out / "with-music-raw.wav", v.out / "music-ducked.wav"
             mix_music(v, voice, HOME / music["bed"], raw, ducked)
-            wrong.append(normalize(v, raw, "with-music", goals["with-music"], fade))
+            made.append(normalize(v, raw, "with-music", goals["with-music"], fade))
             print(f"{shown(ducked)}: the bed alone after ducking (not normalized)")
             phone_check(v)
-    failed = [w for w in wrong if w]
+    failed = settle(made)
     if failed:
         raise SystemExit("mix failed (the previous soundtracks stay):\n  " + "\n  ".join(failed))
     (public / "mix.key").write_text(mix_key(v))  # what these were made from (tools/make.py)

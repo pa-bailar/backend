@@ -14,6 +14,7 @@ lower case with dashes ("este-finde"); the composition ids are <video>-story (an
 import argparse
 import json
 import re
+import shutil
 
 from common import MEDIA
 
@@ -147,13 +148,18 @@ def pascal(name: str) -> str:
 
 
 def register(root: str, video: str, name: str) -> str:
-    """src/Root.tsx with the video's import (after the last project import) and element (before the closing `</>`)."""
+    """src/Root.tsx with the video's import (after the last project import) and element (before the closing `</>`).
+    Idempotent: what's there already isn't added again. Raises ValueError when Root.tsx lacks its anchors."""
     line = f'import {{ {name}Video }} from "../projects/{video}/{name}";\n'
-    imports = list(re.finditer(r'^import .* from "\.\./projects/.*";\n', root, re.MULTILINE))
-    at = imports[-1].end() if imports else root.index("\n", root.index('import "./lib/fonts";')) + 1
-    root = root[:at] + line + root[at:]
-    close = root.rindex("  </>")
-    return root[:close] + f"    <{name}Video />\n" + root[close:]
+    if line not in root:
+        imports = list(re.finditer(r'^import .* from "\.\./projects/.*";\n', root, re.MULTILINE))
+        at = imports[-1].end() if imports else root.index("\n", root.index('import "./lib/fonts";')) + 1
+        root = root[:at] + line + root[at:]
+    element = f"<{name}Video />"
+    if element not in root:
+        close = root.rindex("  </>")
+        root = root[:close] + f"    {element}\n" + root[close:]
+    return root
 
 
 def main() -> None:
@@ -186,16 +192,27 @@ def main() -> None:
     )
     from datetime import date
 
-    (folder / "data").mkdir(parents=True)
-    (folder / "video.json").write_text(json.dumps(settings, indent=2) + "\n", encoding="utf-8", newline="\n")
-    (folder / f"{name}.tsx").write_text(
-        TSX.format(title=title, video=video, name=name, compositions=compositions), encoding="utf-8", newline="\n"
-    )
+    # Root.tsx's new text first (it may lack its anchors): nothing is written until it's known.
+    root = MEDIA / "src" / "Root.tsx"
+    try:
+        registered = register(root.read_text(encoding="utf-8"), video, name)
+    except ValueError as error:
+        raise SystemExit(f"src/Root.tsx: can't find where to register the video ({error}); nothing written") from None
     readme = README.format(title=title, duration=args.duration, deliverables=", ".join(renders), video=video)
     readme = readme.replace("{date}", date.today().isoformat())
-    (folder / "README.md").write_text(readme, encoding="utf-8", newline="\n")
-    root = MEDIA / "src" / "Root.tsx"
-    root.write_text(register(root.read_text(encoding="utf-8"), video, name), encoding="utf-8", newline="\n")
+    files = {
+        "video.json": json.dumps(settings, indent=2) + "\n",
+        f"{name}.tsx": TSX.format(title=title, video=video, name=name, compositions=compositions),
+        "README.md": readme,
+    }
+    try:
+        (folder / "data").mkdir(parents=True)
+        for file, text in files.items():
+            (folder / file).write_text(text, encoding="utf-8", newline="\n")
+        root.write_text(registered, encoding="utf-8", newline="\n")
+    except OSError:
+        shutil.rmtree(folder, ignore_errors=True)  # only the folder made here (it didn't exist): no half a video
+        raise
     print(f"projects/{video}/: README.md, video.json, {name}.tsx; src/Root.tsx registers {name}Video")
     print(f"next: write the brief, then node media/tools/stills.mjs {video} --at 1,{args.duration - 1:g}")
 

@@ -11,7 +11,8 @@
       After a refactor, renders should match (PSNR ∞); for an encode (Instagram's, a smaller file), VMAF says
       whether it visibly damaged the picture. VMAF needs an
       ffmpeg built with libvmaf (winget's Gyan.FFmpeg full_build has it); without it, PSNR and SSIM, and a note.
-      Works on stills (PNG) too; a different size is scaled to the reference's.
+      Works on stills (PNG) too; the smaller picture is scaled up to the larger's size; different frame rates are
+      refused.
   python media/tools/review.py band <story.mp4 | still.png …> [--video <name>] [--allow 4.2-4.3,5.75-6.45]
       The Stories' sticker band (brand.json "stickerBand": y 0–250 at 1920 tall, plus a 2 px margin) must stay
       empty on every frame: anything that isn't the frame's background above y 252 fails, with the frames and how
@@ -152,21 +153,48 @@ def vmaf_frames(report: dict) -> list[tuple[float, int]]:
     return [(float(f["metrics"]["vmaf"]), int(f["frameNum"])) for f in report.get("frames", [])]
 
 
+def fit(size_a: tuple[int, int], size_b: tuple[int, int]) -> tuple[str, str]:
+    """Filter prefixes that bring both pictures to the larger one's size (the smaller is scaled up), "" when equal."""
+    if size_a == size_b:
+        return "", ""
+    w, h = max(size_a, size_b, key=lambda s: s[0] * s[1])
+    up = f"scale={w}:{h}:flags=bicubic,"
+    return ("" if size_a == (w, h) else up), ("" if size_b == (w, h) else up)
+
+
+IMAGE_FORMATS = {"image2", "png_pipe", "jpeg_pipe", "webp_pipe", "bmp_pipe"}
+
+
+def rate_mismatch(info_a: dict, info_b: dict) -> str | None:
+    """Two videos at different frame rates can't be compared frame by frame: why, or None (stills have no rate)."""
+    rates = []
+    for info in (info_a, info_b):
+        if set(str(info.get("format", {}).get("format_name", "")).split(",")) & IMAGE_FORMATS:
+            return None
+        stream = next((s for s in info.get("streams", []) if s.get("codec_type") == "video"), {})
+        rates.append(str(stream.get("avg_frame_rate") or stream.get("r_frame_rate") or ""))
+    return None if rates[0] == rates[1] else f"frame rates differ ({rates[0]} vs {rates[1]} fps)"
+
+
 def diff(a: Path, b: Path, vmaf: bool = True) -> dict:
     """Compare `b` (a new render, or an encode) with `a` (the reference), frame by frame: PSNR (∞ = identical), SSIM
     (1 = identical) and, when this ffmpeg has libvmaf, VMAF (0–100; identical frames score 97–100; about 6 points is
-    one just-noticeable difference). `b` is scaled to `a`'s size when they differ (a draft against a full render).
-    Prints and returns the summary."""
+    one just-noticeable difference). The smaller of the two is scaled up to the larger's size (a draft against a full
+    render); different frame rates are refused (frame n wouldn't be the same moment). Prints and returns the
+    summary."""
     a, b = a.resolve(), b.resolve()
-    size = lambda p: next((s["width"], s["height"]) for s in probe(p)["streams"] if s["codec_type"] == "video")  # noqa: E731
-    (wa, ha), (wb, hb) = size(a), size(b)
-    fit = f"scale={wa}:{ha}:flags=bicubic," if (wa, ha) != (wb, hb) else ""
+    info_a, info_b = probe(a), probe(b)
+    if problem := rate_mismatch(info_a, info_b):
+        raise SystemExit(f"can't compare {a.name} and {b.name} frame by frame: {problem}")
+    size = lambda info: next((s["width"], s["height"]) for s in info["streams"] if s["codec_type"] == "video")  # noqa: E731
+    (wa, ha), (wb, hb) = size(info_a), size(info_b)
+    fit_a, fit_b = fit((wa, ha), (wb, hb))
     available = has_filter("libvmaf")
     vmaf = vmaf and available
     work = Path(tempfile.mkdtemp(prefix="diff-"))
     # Run in the logs' folder and name them bare: a drive letter's colon would end the filter option.
-    graph = f"[0:v]setpts=PTS-STARTPTS,split={2 + vmaf}[r1][r2]{'[r3]' if vmaf else ''};"
-    graph += f"[1:v]{fit}setpts=PTS-STARTPTS,split={2 + vmaf}[d1][d2]{'[d3]' if vmaf else ''};"
+    graph = f"[0:v]{fit_a}setpts=PTS-STARTPTS,split={2 + vmaf}[r1][r2]{'[r3]' if vmaf else ''};"
+    graph += f"[1:v]{fit_b}setpts=PTS-STARTPTS,split={2 + vmaf}[d1][d2]{'[d3]' if vmaf else ''};"
     graph += "[d1][r1]psnr=stats_file=psnr.log;[d2][r2]ssim=stats_file=ssim.log"
     if vmaf:  # libvmaf: the distorted input first, then the reference
         threads = max(1, (os.cpu_count() or 4) - 1)
@@ -188,7 +216,9 @@ def diff(a: Path, b: Path, vmaf: bool = True) -> dict:
         "vmaf_mean": sum(s for s, _ in scores) / len(scores) if scores else None,
         "vmaf_worst": scores[:3],
     }
-    scaled = f" ({b.name} scaled from {wb}×{hb} to {wa}×{ha})" if fit else ""
+    small, (ws, hs) = (a.name, (wa, ha)) if fit_a else (b.name, (wb, hb))
+    big = (wb, hb) if fit_a else (wa, ha)
+    scaled = f" ({small} scaled up from {ws}×{hs} to {big[0]}×{big[1]})" if fit_a or fit_b else ""
     print(f"{len(psnr)} frames, {same} identical{scaled}; worst (PSNR dB, frame): {psnr[:8]}")
     if ssim:
         print(f"SSIM mean {summary['ssim_mean']:.6f}; worst (SSIM, frame): {[(round(s, 6), f) for s, f in ssim[:3]]}")

@@ -29,16 +29,18 @@ media/
 ### The media home
 
 Everything generated lives outside the checkout, in **`D:\AI\pa-bailar-media`** (`PA_BAILAR_MEDIA_HOME` overrides
-it; `tools/common.py`, `tools/paths.mjs` and `remotion.config.ts` read it), so every worktree shares it and removing a
-worktree can't delete it:
+it; `tools/common.py`, `tools/paths.mjs` and `remotion.config.ts` read it, and a relative one is relative to the
+backend's root in all three), so every worktree shares it and removing a worktree can't delete it:
 
 ```
 D:\AI\pa-bailar-media\
 ├── cache/tts/, cache/music/     TTS lines and music beds, by content hash (the bed can't be made again by chance)
 ├── public/<video>/              screens, flyers, audio: Remotion's public folder (staticFile, assets(video))
 ├── out/<video>/                 renders (<video>-v<version>-<deliverable>.mp4), drafts, frames, sheets, comparisons
-├── out/.bundle/, out/check/     the stills bundle (made again when the code changes), npm run check's stills
-└── archive/<video>/v<version>/  each posted version, whole: its renders, public/ as it was, its project files
+├── out/.bundle-<checkout>/      the stills bundle, one per checkout (made again when its code changes)
+├── out/check/                   npm run check's stills
+├── archive/<video>/v<version>/  each posted version, whole: its renders, public/ as it was, its project files
+└── publish_state.json           what tools/publish.py sent, per render (its sha256), account and kind
 ```
 
 The checkout's old `media/cache`, `media/public/<video>` and `media/out/<video>` are copies from before the home;
@@ -59,7 +61,9 @@ in `media/out/`.
 | Gemini TTS key | `MEDIA_GEMINI_API_KEY` in the backend's `.env` (a separate free-tier project; images and Veo aren't free) |
 | The media home | `D:\AI\pa-bailar-media` (made by the tools), or set `PA_BAILAR_MEDIA_HOME` |
 
-Then `.venv/Scripts/python media/tools/make.py doctor` checks all of it (the key: set or not, never shown).
+Then `.venv/Scripts/python media/tools/make.py doctor` checks all of it (the key: set or not, never shown). In a git
+worktree (no `.venv` or `.env` of its own) the tools use the main checkout's (`common.backend_path`, through
+`git rev-parse --git-common-dir`); `make.py` falls back to the Python running it.
 
 The Remotion agent skills load when working in `media/`. They aren't committed: install them once with
 `cd media && npx skills add remotion-dev/skills` (the versions used are pinned in `skills-lock.json`).
@@ -95,6 +99,33 @@ the owner sees: the old one stays to compare with (`render.py --review` finds it
 `clean.py` recycles older versions once a newer one exists. When a version is posted, copy its renders,
 `public/<video>/` and project files into `archive/<video>/v<version>/` (as teaser v2.3).
 
+## Instagram practices
+
+What every video follows (the owner asked to, 5 Oct 2026). Specs and limits are Meta's; the rest is Instagram's
+announcements or common creator guidance (no official number), marked as such. The `/teaser` skill's pre-post
+checklist repeats them.
+
+- **Hook in the first 1.5–3 s** (creator guidance; Instagram ranks Reels by whether people keep watching): open on the
+  question or the promise, not the logo. The teaser opens on its question at 0 s.
+- **Reel length by goal** (creator guidance): 7–15 s for reach, 15–30 s to explain (the teaser: 21 s). Instagram
+  recommends Reels up to **3 minutes** in Explore and the Reels tab since January 2025 (90 s before;
+  [Social Media Today](https://www.socialmediatoday.com/news/instagram-will-recommend-longer-3-minute-reels/737913/)):
+  `preflight.py` warns past 3 min. The API takes 3 s–15 min.
+- **Captions for silent viewers**: Reels autoplay muted; the opt-in `captions` in `video.json` (below).
+- **Stories**: about 10–15 s per frame (creator guidance; a clip may run 60 s); one clear call to action; the link
+  sticker where the eye lands after the message and never under Instagram's own UI: ours is the band at the top
+  (`STICKER_BAND`) with "Link aquí arriba" and the drawn arrow right under it.
+- **Reels**: words inside the Reel safe zones (`REEL_SAFE`, `review.py reel`); the end card has a narrower layout for
+  `cta="reel"` (v2.5) that keeps clear of the like, comment and share column.
+- **Cover**: 9:16, with what matters inside the centered 3:4 crop (1080×1440) the profile grid shows (`cover.py`).
+- **Original audio and picture**: our own voice and bed, the site's screens; never repost watermarked content
+  (Instagram favors originals and replaces reposts with them in recommendations since its April 2024 originality
+  update, [Gigazine](https://www.gigazine.net/gsc_news/en/20240502-instagram-updated-algorithm-prioritizes-original-content)).
+- **The file** ([IG User Media reference](https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user/media)):
+  MP4/MOV with the moov atom first, H.264 or HEVC 4:2:0, closed GOP, 23–60 fps, ≤1920 px wide, ≤25 Mbps, AAC ≤48 kHz;
+  through the API a Reel ≤300 MB (3 s–15 min) and a Story ≤100 MB (3–60 s). `preflight.py` checks it (`--api`: the
+  API's limits).
+
 ## Tools
 
 Run from the backend root. `.venv` = `.venv/Scripts/python`, whisper = `D:/AI/whisper/.venv/Scripts/python`,
@@ -103,7 +134,7 @@ in the media home unless they start with `projects/`.
 
 | Tool | Python | Does | Writes |
 |---|---|---|---|
-| `make.py <video> [stage …] [--draft --force --dry-run --strict]` | .venv | runs tts → timing → mix → render → sheet, only the stale ones, each with its Python | what each stage writes |
+| `make.py <video> [stage …] [--draft --force --dry-run --strict]` | .venv | runs tts → timing → mix → render → sheet, only the stale ones and everything after a stage that ran, each with its Python; the sheet stage is done only when the review passed (`<render>-review.ok`) | what each stage writes |
 | `make.py doctor` | .venv | checks ffmpeg (and its libvmaf), Chrome, node and the packages, the three Pythons, the fonts, the key (set or not), each music bed, the media home | (prints) |
 | `new.py <video> [--title --duration --reel]` | .venv | a new video's folder: brief, `video.json`, a composition on the kit, its line in `src/Root.tsx` | `projects/<video>/`, `src/Root.tsx` |
 | `tts.py <video> [ids]` | .venv | Gemini TTS per line (voice, direction, `take` per line), retries timeouts and busy; stops at once on a refused key, skips a model on its daily quota | `cache/tts/<hash>.wav` |
@@ -118,16 +149,17 @@ in the media home unless they start with `projects/`.
 | `node media/tools/stills.mjs <video> [deliverable] --at 1.5,f255,c4:link [--scale --no-blur --out]` | Node | stills from one bundle (reused while nothing changed): seconds, frames, a line's or a word's start | `out/<video>/frames/` |
 | `render.py <video> [deliverables] [--draft] [--review] [--strict]` | .venv | Remotion renders of `video.json`'s `renders`; refuses stale timing, warns past the shelf life (`--strict` refuses); `--review`: Instagram pre-flight, sheet, band check (Stories), Reel safe zones (Reels), side-by-side with the previous version | `out/<video>/<video>-v<version>-<deliverable>[-draft].mp4` |
 | `render.py <video> --frames 90,8.5s,c4:link [deliverable]` | .venv | stills through `stills.mjs` | `out/<video>/frames/` |
-| `preflight.py <mp4 …> [--story \| --reel] [--api]` | .venv | will Instagram take it: MP4/MOV, H.264 or HEVC 4:2:0, 23–60 fps, 9:16, ≤1920 px wide, ≤25 Mbps, a Story clip ≤60 s / a Reel 3 s–15 min, ≤1 GB, AAC (over 128 kbps is a note), the moov atom first; `--api`: a Story ≤8 MB, faststart required. The kind from the name ("reel") unless given; exit 1 on a failure, warnings otherwise | (prints) |
+| `preflight.py <mp4 …> [--story \| --reel] [--api]` | .venv | will Instagram take it: MP4/MOV, H.264 or HEVC 4:2:0, 23–60 fps, 9:16 and ≤1920 px wide as displayed (rotation metadata honored), ≤25 Mbps, a Story clip ≤60 s / a Reel 3 s–15 min (a warning past 3 min: not recommended in Explore or the Reels tab), ≤1 GB, AAC (over 128 kbps is a note), the moov atom first; `--api` (the Graph API's spec): a Reel ≤300 MB, a Story ≤100 MB and 3–60 s, faststart required, an edit list warned. The kind from the name ("reel") unless given; exit 1 on a failure, warnings otherwise | (prints) |
 | `cover.py <video> --at 19.5\|f585\|c4:link [--deliverable reel] [--grid 1080x1440]` | .venv | a Reel's cover: one frame at full size through `stills.mjs` (from the first Reel deliverable by default), the centered 3:4 crop the profile grid shows (1080×1440), and the Reel safe-zone check on it (warnings) | `out/<video>/<video>-v<version>-cover.png`, `…-cover-grid.png` |
 | `review.py sheet <mp4> [--at 1.5,f255,c4:link --timing <video> \| --every 2]` | .venv | a keyframe strip with the safe zones | `<mp4>-sheet.png` |
 | `review.py compare <a> <b>` | .venv | side by side, labeled, for the owner (a draft against a full render works too) | `<a>-vs-<b>.mp4` |
 | `review.py diff <reference> <new> [--no-vmaf]` | .venv | PSNR (∞ = identical), SSIM (1 = identical) and VMAF per frame, worst first: a refactor must not change a render (PSNR ∞); VMAF says whether an encode visibly damaged it (0–100, ~6 points is one just-noticeable difference; identical still frames score ~97, not 100). Stills too; a smaller one is scaled up. VMAF needs ffmpeg's libvmaf (winget's Gyan.FFmpeg full_build has it; without it, PSNR and SSIM and a note) | (prints) |
 | `review.py band <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | nothing but the background above y 252 (the sticker band + 2 px) on any frame; `--video` allows its `sticker_band.allow` spans; exit 1 when something enters | (prints) |
 | `review.py reel <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | the Reel's safe zones (108 top, 320 bottom, 60 left, 120 right): content in those margins is a warning per side, with the frames and how close to the edge it gets (images may run into them, words never); `--video` allows its `reel_safe.allow` spans | (prints) |
-| `clean.py [--yes]` | .venv | lists older versions, drafts, stills, sheets, comparisons and scratch folders in the home's `out/`, the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, the archive and anything git tracks stay | (the Recycle Bin) |
+| `publish.py <video> <deliverable> [--story \| --reel] [--caption-file --no-feed --thumb-offset --video-url --dry-run --confirm]` | .venv | **disabled** (below): posts a full render through Meta's Graph API: preflight `--api`, the quota, a container, the resumable upload, polling, `media_publish`, the permalink; once per render (its sha256), resumable after a crash, never twice. Without `PA_BAILAR_PUBLISH_ENABLED=1` and `--confirm` it only prints the requests (token redacted) | `publish_state.json` |
+| `clean.py [--yes]` | .venv | (skips what can't go to a Recycle Bin: a drive without one, an item too big for it) lists older versions, drafts, stills, sheets, comparisons and scratch folders in the home's `out/`, the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, the archive and anything git tracks stay | (the Recycle Bin) |
 | `npm run check` (in `media/`) | Node | `tsc`, every composition registers, one still per video | `out/check/` |
-| `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json`, and the captions' pages | (prints) |
+| `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json`, words and moments against `tests/timing-cases.json` (as the Python tests), the captions' pages and fades, the media home's paths | (prints) |
 
 The Python tests (`media/tests`, standard library only) run with the backend's: `.venv/Scripts/python -m pytest -q`.
 CI's `media` job (in `.github/workflows/ci.yml`) runs `npm ci`, `tsc` and `npm test` when `media/` changes.
@@ -206,20 +238,24 @@ digits), `TYPE.sans(size, color?)` (anything with numbers).
 - Match cuts: share one function between the two scenes (the teaser's `flight`).
 
 **`lib/timing`**: `makeTiming(timingJson)` gives `line(id)` (start/end) and `word(id, "dónde", nth)` (a word's
-start). **`lib/fonts`**: loads the faces from `media/fonts/` (`fontsReady` resolves when they're in);
+start). **`lib/words`**: the one word normalizer (`plain`) and time parser (`secondsAt`: "1.5", "1.5s", "f45", "c4",
+"c4:link:1") of the Node side, `stills.mjs` included; `tools/common.py` has the Python twins, and both pass the same
+table (`tests/timing-cases.json`). **`lib/fonts`**: loads the faces from `media/fonts/` (`fontsReady` resolves when they're in);
 `assets(video)(path)` is a `staticFile` in the home's `public/<video>/`.
 
 **`lib/captions`**: `captionPages(timing, settings)` turns a timing.json into pages with `@remotion/captions`'
 `createTikTokStyleCaptions()` (a page per phrase: breaks at punctuation, at each line's end, at pauses over 0.3 s,
-and before `maxChars`, without leaving a lone short word); `pageAt`, `currentToken`, `captionsOn`. Pure, tested in
-Node (`tests/captions.test.mjs`).
+and before `maxChars`, without leaving a lone short word); `captionAt` (the page and the card's opacity: it fades in
+and out over 3 frames per run of pages, keeping the first or last page on the card while it fades), `pageAt`,
+`currentToken`, `captionsOn`, `formatOf` (a composition id ending in "-reel" is a Reel). Pure, tested in Node
+(`tests/captions.test.mjs`).
 
 **`brand/`**:
 
 | Piece | What it is |
 |---|---|
 | `VideoShell`, `vertical(settings)` | the paper, the fade-in (no fade-out for Stories), the grain and the soundtrack around a video's scenes; a vertical `<Composition>`'s size, rate and length from its video.json |
-| `EndCard`, `Cta`, `CTA_TOP`, `CTA_BOB` | the end card: "Link aquí arriba" with the `Arrow` right under the sticker band (story) or "Link en mi perfil" (reel), the stripes, the video's icon and record, the wordmark, a sign-off |
+| `EndCard`, `Cta`, `CTA_TOP`, `CTA_BOB`, `REEL_END` | the end card: "Link aquí arriba" with the `Arrow` right under the sticker band (story) or "Link en mi perfil" (reel), the stripes, the video's icon and record, the wordmark, a sign-off; for a Reel, narrower stripes (x 150–930) and a wordmark of at most 140 px, clear of the right-hand buttons |
 | `Record`, `spinAngle(t, start, ramp)` | the logo's record, spinning up like a platter to 33⅓ rpm, with a fixed sheen |
 | `Grain` | paper/offset grain over everything (multiply, 10%, new seed every 2 frames) |
 | `Stripes` | the 70s triple stripe, bands wiping in on springs |
@@ -247,8 +283,43 @@ Node (`tests/captions.test.mjs`).
 
 | Folder | What | Notes |
 |---|---|---|
-| [`teaser-v2`](projects/teaser-v2/) | The 21 s teaser of the site: voice, beat-cut scenes, a thumb driving the live site, three deliverables (Story ×2, Reel) | The worked example of everything. v2.3 (posted 4 Oct 2026, archived in the home) re-captured every screen with `capture.mjs`, rewritten for the site of 4 October (rhythm chips, pinned bar, details drawer), so it no longer matches the original project (`pa-bailar-teaser`) pixel for pixel. v2.4 (not posted) keeps the arrow and the opening title out of the sticker band |
+| [`teaser-v2`](projects/teaser-v2/) | The 21 s teaser of the site: voice, beat-cut scenes, a thumb driving the live site, three deliverables (Story ×2, Reel) | The worked example of everything. v2.3 (posted 4 Oct 2026, archived in the home) re-captured every screen with `capture.mjs`, rewritten for the site of 4 October (rhythm chips, pinned bar, details drawer), so it no longer matches the original project (`pa-bailar-teaser`) pixel for pixel. v2.4 (not posted) keeps the arrow and the opening title out of the sticker band; v2.5 (not posted) fits the Reel's end card inside the Reel safe zones (the Stories render as v2.4) |
 | [`este-finde`](projects/este-finde/) | A 12 s weekly Story of the coming weekend's events, from data only, no voice | `events.py este-finde --weekend`, then `make.py este-finde` (`este-finde-story`). Example, not yet reviewed by the owner |
+
+## Publishing (disabled)
+
+`tools/publish.py` posts a render through Meta's official [Content Publishing
+API](https://developers.facebook.com/docs/instagram-platform/content-publishing) (the Instagram API with Facebook
+Login, graph.facebook.com, the backend's `v26.0`), the flow of Meta's sample
+[fbsamples/reels_publishing_apis](https://github.com/fbsamples/reels_publishing_apis): no instagrapi, no browser, no
+private endpoints. It's built and tested against a fake Graph API, and **off**: it calls Meta only when the
+environment (or the backend's `.env`) has `PA_BAILAR_PUBLISH_ENABLED=1` **and** the command has `--confirm`. Anything
+else is a dry run that prints each request with the token as `***`.
+
+What it does, in order, saving `publish_state.json` (media home) before and after every step: `preflight.py --api`
+(refuses on a failure); the render's sha256 + account + kind as the key (a published render is never posted again; a
+container already made is polled, not made again); `content_publishing_limit` (refuses when the quota is used up);
+a container (`REELS` with the caption from `--caption-file`, `share_to_feed` unless `--no-feed`, `thumb_offset`; or
+`STORIES`) with `upload_type=resumable`, then the file to `rupload.facebook.com` (or, with `--video-url`, a public
+URL Meta fetches: it must serve exactly this render); `status_code` polled 5 s to a minute apart for about 5 minutes
+(`ERROR`/`EXPIRED`: stops with Meta's error; still `IN_PROGRESS`: run it again); `media_publish`; the permalink and
+time read back. A lost publish answer is checked against the container and the account's recent posts before any
+retry.
+
+To turn it on (the owner, once):
+1. In the Meta app (developers.facebook.com, the app the sweep uses, Facebook Login for Business): add
+   `instagram_content_publish` next to `instagram_basic` and `pages_read_engagement` (plus `ads_management` or
+   `ads_read` if the Page role comes through Business Manager), then make a new token with them. Keep using
+   `META_ACCESS_TOKEN`, or put a token only for publishing in `PA_BAILAR_PUBLISH_TOKEN` (it wins when set).
+2. Add `PA_BAILAR_PUBLISH_ENABLED=1` to the backend's `.env` (on this PC only; never in CI).
+3. First a dry run: `.venv/Scripts/python media/tools/publish.py teaser-v2 reel --caption-file caption.txt`: it
+   says whether the token and `IG_USER_ID` are set and lists the requests.
+4. Then the same with `--confirm`. Running it again prints where the post is; it never posts it twice.
+
+Limits (Oct 2026): 100 API posts per 24 h by the publishing guide, 50 by the `content_publishing_limit` reference (the
+tool reads the real number from the API), 400 containers per 24 h, a container expires after 24 h. **Stories with a
+link sticker stay manual**: the API can't add stickers (link, poll, location), so `--story` suits only a Story
+without one (none of ours today).
 
 ## Rules that bite
 

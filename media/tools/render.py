@@ -11,7 +11,7 @@
               Instagram would refuse), the keyframe sheet (…-sheet.png), the sticker-band check for the Story
               deliverables (video.json "sticker_band"), the Reel safe-zone check for the Reel ones (warnings:
               tools/review.py reel), and a side-by-side with the previous version (…-vs-v<previous>.mp4, from out/ or
-              the archive). Fails when something enters the band.
+              the archive). Fails when something enters the band; leaves <render>-review.ok only when it all passes.
   --strict    refuse (instead of warning) when the material is past its shelf life or the bed has no provenance
 
 "version" in video.json names every render: bump it for each cut the owner sees, so the old one stays to compare.
@@ -125,12 +125,20 @@ def latest_link(v: Video, deliverable: str, dest: Path) -> None:
         print(f"(no {link.name} link: {error})")
 
 
+def passed_marker(dest: Path) -> Path:
+    """<render>-review.ok: written only when a render's review passed (make.py's sheet stage is up to date only when
+    it's newer than the render; the sheet is written whether the review passes or not)."""
+    return dest.with_name(f"{dest.stem}-review.ok")
+
+
 def review(v: Video, deliverable: str, dest: Path) -> bool:
     """Instagram's pre-flight, the keyframe sheet, the sticker band (Story deliverables), the Reel's safe zones (Reel
-    deliverables) and a side-by-side with the previous version."""
+    deliverables) and a side-by-side with the previous version. Leaves passed_marker() only when it all passes."""
     import preflight
     import review as rv
 
+    marker = passed_marker(dest)
+    marker.unlink(missing_ok=True)
     total = rv.duration_of(dest)
     is_reel = deliverable in rv.reel_deliverables(v.settings)
     ok = preflight.check(dest, "reel" if is_reel else "story")
@@ -149,6 +157,8 @@ def review(v: Video, deliverable: str, dest: Path) -> bool:
         rv.compare(path, dest, [f"v{before}", f"v{v.version}"], 0.0, None, out)
     else:
         print(f"(no earlier version of {deliverable} to compare with)")
+    if ok:
+        marker.write_text(f"{datetime.now().isoformat(timespec='seconds')}\n", encoding="utf-8")
     return ok
 
 
