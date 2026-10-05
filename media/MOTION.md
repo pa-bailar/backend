@@ -43,6 +43,24 @@ the site's visual language and its ONE motion system, but makes it physical.
   The 2026 write-ups agree the agent executes taste it's given and doesn't invent it, so these rules are
   written down here and implemented once, in `src/lib/motion.ts`.
 
+## The motion vocabulary (5 Oct 2026)
+
+The most common complaint about AI-made Remotion videos is too many moving parts: everything enters with its own
+effect, every cut is a clever transition, and nothing gets looked at. So:
+
+1. **A small vocabulary.** Entrances: `rise` (and the kinetic `Word`, which is a rise per word). Things with weight:
+   a toss or a pop on a `weight`/`pop` spring. Exits: `leave` (or the scene's own move out). Transitions: the iris,
+   the whip, the match cut. Ambient: the camera's push-in and drift, the record's spin, the grain. A new kind of
+   motion goes into `src/lib` or `src/brand` with a reason, or not at all.
+2. **One thing moving at a time per region.** In a part of the frame (the title band, the phone, the pile, the
+   captions), one element makes its move while the others hold; the next starts as it settles (staggers overlap by a
+   few frames, not by whole moves). The ambient layer doesn't count: it's slow and moves everything together.
+3. **No motion for its own sake.** Each move shows something arriving, leaving, being pointed at or being chosen.
+   No looping wiggles, no pulses on things nobody is looking at (rule 9: one accent at a time), no transition that
+   what's on screen doesn't motivate (rule 10's come out of the record's spot, the scroll, the sticker's shape).
+   Captions don't move at all.
+4. **Fewer effects, not more, when in doubt.** If a still of the moment reads well, the motion only has to get there.
+
 ## The rules v2 applies
 
 1. **Springs, not curves, for things arriving.** The configs, measured (`src/lib/motion.ts`):

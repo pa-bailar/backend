@@ -58,7 +58,8 @@ v2's rules, with the research behind them, are in `MOTION.md` and in code in `sr
 one entrance ("rise") on a `snap` spring with a little overshoot, exits accelerating out; springs with weight
 for flyers, the record and the sticker; kinetic type word by word with the voice; irregular staggers; a slow
 camera push-in and parallax on every scene; beat accents on downbeats only; motivated transitions (iris,
-whips, a match cut, one continuous phone shot) instead of hard cuts; motion blur on fast moves.
+whips, a match cut, one continuous phone shot) instead of hard cuts; motion blur on fast moves. And a small motion
+vocabulary: one thing moving at a time per region, no motion for its own sake.
 
 ## The record (the motif)
 

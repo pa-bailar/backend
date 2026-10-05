@@ -32,7 +32,9 @@ the tools, the library's building blocks and the workflow, written so you don't 
    project files), as teaser v2.3.
 6. **Keep the format free.** No fixed template: every video can differ in length, structure and pieces. Follow the
    motion rules (springs, irregular staggers, a camera that never stops, accents on downbeats only, motivated
-   transitions, blur on fast moves), and break one only on purpose.
+   transitions, blur on fast moves), and break one only on purpose. Keep to MOTION.md's motion vocabulary: a few
+   kinds of motion, one thing moving at a time per region, nothing moving for its own sake (too many moving parts
+   is what makes AI-made videos look AI-made).
 
 ## Before handing a cut over (the pre-post checklist)
 

@@ -10,7 +10,7 @@ brand building blocks.
 
 ```
 media/
-├── README.md, MOTION.md, DESIGN.md   this catalog, the motion rules, the design tokens for video
+├── README.md, MOTION.md, DESIGN.md   this catalog, the motion rules (and the motion vocabulary), the design tokens for video
 ├── brand.json        the canvas, safe zones, sticker band, Reel safe zones, default tempo, loudness targets (TS and
 │                     Python read it)
 ├── tools/            the utilities (Python and Node), each takes a video's name
