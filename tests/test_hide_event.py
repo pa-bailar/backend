@@ -8,8 +8,9 @@ import pytest
 from pa_bailar import config, inbox, status, storage, why
 from pa_bailar.commands.admin import answer
 from pa_bailar.commands.sweep import hidden_event_markdown
+from pa_bailar.models import PostAnalysis
 from pa_bailar.pipeline import AddPostError, Sweep
-from tests.factories import EVENT_DATE, event_id, make_image
+from tests.factories import EVENT_DATE, event_id, extracted, make_image
 from tests.test_series import DAYS, series, sessions
 from tests.test_sweep import FakeExtractor, FakeInstagram, event_post, post, read, run
 
@@ -88,6 +89,36 @@ def test_hiding_a_series_from_a_post_takes_it_off_and_later_sweeps_leave_it_off(
     processed = storage.load_processed_posts()
     assert processed["p1"].outcome == "hidden" and processed["p2"].outcome == "hidden"
     assert processed["p3"].outcome == "event"
+
+
+def test_hiding_one_event_of_a_post_keeps_its_sibling_on_the_same_day_when_the_post_is_read_again():
+    """A post with a workshop at 16:00 and a social at 21:00 the same day: hiding the workshop leaves the social, also
+    when the post is read again (an edited caption) (review finding)."""
+    p1 = post("p1", days_ago=3)
+    two_events = PostAnalysis(
+        is_event_post=True,
+        reason="",
+        events=[
+            extracted(title="Taller de bachata", event_type="workshop", start_time="16:00"),
+            extracted(title="Social de bachata", start_time="21:00"),
+        ],
+    )
+    run(FakeInstagram({"academia": [p1], "otra": []}), FakeExtractor({"p1": two_events}))
+    taller, social = event_id("Taller de bachata"), event_id("Social de bachata")
+    sweep_with([p1], {}).hide_event(taller)
+    assert storage.load_processed_posts()["p1"].event_ids == [social]
+
+    edited = {**p1, "caption": "caption editado"}
+    run(FakeInstagram({"academia": [edited], "otra": []}), FakeExtractor({"p1": two_events}))
+    assert [event["id"] for event in read(config.EVENTS_FILE)] == [social]
+    assert taller in storage.load_hidden_events()
+    reworded = PostAnalysis(  # read again: the workshop reworded, at its time, is still the hidden one
+        is_event_post=True,
+        reason="",
+        events=[extracted(title="Taller", event_type="workshop", start_time="16:00"), *two_events.events[1:]],
+    )
+    run(FakeInstagram({"academia": [{**p1, "caption": "otra vez"}], "otra": []}), FakeExtractor({"p1": reworded}))
+    assert [event["id"] for event in read(config.EVENTS_FILE)] == [social]
 
 
 def test_adding_one_of_its_posts_by_hand_publishes_it_again_with_its_id():

@@ -219,9 +219,14 @@ def find_existing(
 
 def matches_hidden(hidden: StoredEvent, account: str, candidate: ExtractedEvent, post_id: str) -> bool:
     """Whether an extracted event is one taken off the site by hand (models.HiddenEvent): read again from one of
-    its posts (a day in common), linked to it by Gemini, or the same event by the merging rules (a later reminder
-    of it, another account's post of it). Anything else is a new event, even from the same account."""
-    if post_id in {media.post_id for media in hidden.media} and _overlap(hidden, candidate):
+    its posts (the same event by the same-account rules: a post can announce several events on one day, a workshop
+    at 16:00 and a social at 21:00, and hiding one keeps the other), linked to it by Gemini (with a day in common),
+    or the same event by the merging rules (a later reminder of it, another account's post of it). Anything else is
+    a new event, even from the same account."""
+    same_post = post_id in {media.post_id for media in hidden.media} and _overlap(hidden, candidate)
+    if same_post and (
+        looks_like_same_event(hidden, hidden.account, candidate) or fold(hidden.title) == fold(candidate.title)
+    ):
         return True
     if candidate.same_as == hidden.id and hidden.account == account:
         return True
