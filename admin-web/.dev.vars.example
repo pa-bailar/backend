@@ -1,6 +1,6 @@
 # The admin page's secrets for local development (`npx wrangler dev`): copy this file to `.dev.vars`
 # (git-ignored, never commit it). In production they're Worker secrets set in the Cloudflare dashboard
-# (docs/ADMIN.md, "Setup"); the plain settings (ALLOWED_USER, REPO, STATE_BRANCH, OIDC_AUDIENCE) are in wrangler.jsonc.
+# (docs/ADMIN.md, "Sign-in setup (done once)"); the plain settings (ALLOWED_USER, REPO, STATE_BRANCH, OIDC_AUDIENCE) are in wrangler.jsonc.
 
 # The GitHub App's OAuth client (sign-in with GitHub).
 GITHUB_CLIENT_ID=

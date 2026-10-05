@@ -6,9 +6,10 @@
 # - The site repository is reached with the pa-bailar-bot GitHub App (vars.APP_ID, secrets.APP_PRIVATE_KEY).
 #   Its pull requests trigger the site's ci like anyone's, and its merges trigger the deploy.
 # - Days without new events open no PR; the site is still republished with the time of the check.
-# - The sweep's state (analyzed posts, accounts' turns and first-sweep progress, today's Gemini usage, the
-#   run history, the admin page's status) lives in this repository's sweep-state branch: read before the
-#   run, written back after it, so posts aren't sent to Gemini twice and the two daily runs share the quotas.
+# - The sweep's state (analyzed posts, accounts' turns and first-sweep progress, today's Gemini usage and the last
+#   resort's, the run history, the events hidden by hand, the admin page's status) lives in this repository's
+#   sweep-state branch: read before the run, written back after it, so posts aren't sent to Gemini twice and the
+#   two daily runs share the quotas.
 # - Started with `post_url` (by the admin workflow, docs/ADMIN.md), it adds that one post by hand instead of
 #   sweeping (`sweep --post`), then answers on the admin issue. Such runs don't count for the health checks.
 #   With `again` ("Volver a leer"), the post is read again even if it was read before and hasn't changed.
@@ -337,9 +338,11 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           BOT: ${{ steps.app.outputs.app-slug }}[bot]
+          # `hide` is a story's id (story-…) or an event's: the request job checked which shapes it takes.
           WHAT: >-
             ${{ inputs.post_url && 'post added by hand' || inputs.story && 'story added by hand' ||
-            inputs.hide && 'story hidden by hand' || 'daily sweep' }}
+            startsWith(inputs.hide, 'story-') && 'story hidden by hand' || inputs.hide && 'event hidden by hand' ||
+            'daily sweep' }}
         run: |
           # Only events and flyers count as a change: meta.json is rewritten every run (with the check time).
           if [ -z "$(git status --porcelain -- data/events.json data/flyers)" ]; then

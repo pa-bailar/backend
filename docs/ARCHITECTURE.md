@@ -91,7 +91,8 @@ In words:
 4. **Every run** reports to **healthchecks.io**, and is checked by rules against the previous runs
    (section 11).
 5. **State** stays in this repository's `sweep-state` branch: which posts were already analyzed, how far
-   each new account's first sweep got, and today's Gemini usage.
+   each new account's first sweep got, today's Gemini usage and the last resort's (`external_usage.json`), and
+   the events hidden by hand (`hidden_events.json`); section 10.1 lists every file.
 
 ---
 
@@ -246,7 +247,7 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 
 | Name | Kind | Where | Used by | Notes |
 |---|---|---|---|---|
-| `GEMINI_API_KEY` | Secret | GitHub Actions secret, local `.env` | Sweep step, `discover` | Google AI Studio API key |
+| `GEMINI_API_KEY` | Secret | GitHub Actions secret, local `.env` | Sweep step, `discover`, `admin bakeoff` | Google AI Studio API key |
 | `META_ACCESS_TOKEN` | Secret | GitHub Actions secret, local `.env` | Sweep step, the status step, the admin workflow's Answer step (`admin why`, `admin add-account`, the status), `discover`, `refresh-token` | Non-expiring Page token (section 3.1) |
 | `IG_USER_ID` | Secret | GitHub Actions secret, local `.env` | The same as `META_ACCESS_TOKEN` | Id of our Instagram professional account |
 | `META_APP_ID`, `META_APP_SECRET` | Secret | Local `.env` only | `refresh-token` | Never on GitHub: only the token command needs them |
@@ -1254,7 +1255,7 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 | Risk | Mitigation |
 |---|---|
 | A compromised dependency reading the repository token during the sweep | No checkout keeps credentials (`persist-credentials: false`). The write token is only handed to the steps that write (the state save, the account commit, issues), and the App token is minted after the sweep |
-| Secrets exposed to steps that don't need them | The Gemini and Meta secrets are only in the sweep step's environment. The Meta app secret isn't on GitHub at all |
+| Secrets exposed to steps that don't need them | The Gemini secrets (and Groq's and OpenRouter's) are only in the sweep step's environment; the Meta token and the Instagram user id, in the sweep step, the status step after it (`admin status --json`) and the admin workflow's Answer step (section 4). The Meta app secret isn't on GitHub at all |
 | A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. Adding a post or a story by hand (`post_url`, `story`) or hiding a story or an event (`hide`) needs an open `admin` issue by `jzamora5` (the `request` job, section 5.2), `story` and `hide` must have their exact shapes, and inputs never reach shell code directly, so the token can't publish or hide anything or run commands |
 | The Meta token in error text | It's sent in the URL; `instagram.redact` removes it (and the app secret and exchanged tokens of `refresh-token`) from every error before logs, `status.json` or admin answers (section 8) |
 | Odd text in a link or a public page reaching files, accounts or issues | Post codes match ASCII letters, digits, `_` and `-` only (`patterns.POST_LINK`, like the site's `check-data.mjs`); a public page's author must be a valid username; the admin page only accepts a value that is one post link and nothing else (`POST_LINK` in `admin-web/public/patterns.js`, which the Worker imports: anchored at both ends, no spaces or new lines) |
@@ -1272,12 +1273,12 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 
 ## 14. Quotas and capacity
 
-With **95 followed accounts** (4 October 2026) and two runs a day (each account read about once a day:
-section 5, "Whose turn it is"):
+With **123 followed accounts** (5 October 2026, `accounts.txt`) and two runs a day (each account read about once a
+day, quiet ones less often: section 5, "Whose turn it is"):
 
 | Resource | Limit | Use per run | Use per day | Headroom |
 |---|---|---|---|---|
-| Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | About 53 (half the accounts, plus up to 5 late ones) | About 100 | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
+| Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | At most 67 (half the accounts, plus up to 5 late ones) | About 123 at most (fewer with quiet and dormant accounts) | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
 | Gemini Flash-Lite | 500 / day (498 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
@@ -1383,6 +1384,7 @@ flowchart LR
 | `gemini.py` | `ModelPool`: model order, pacing, daily budgets shared across runs, retries, error classes |
 | `prompts.py` | The triage and extraction prompts, and the story prompt |
 | `stories.py` | Stories from screenshots: their id and perceptual hash, when a screenshot was taken, dates (and a workshop series' sessions) worked out from what's printed, the flyer's crop, the account's name |
+| `account_options.py` | What an `accounts.txt` line says besides the name: `bar` (only special nights) and `solo:<styles>` (the caption filter's words, `FOCUS_KEYWORDS`, from `normalize.TEXT_STYLE_WORDS` plus looser ones), parsed strictly (a typo fails) |
 | `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback and the last resort (extraction only), and no request after the run's time budget |
 | `external.py` | `ExternalTier`: the last resort on OpenAI-compatible chat APIs (Groq, OpenRouter): order, budgets, Groq's token pacing, per-run quarantine, JSON checked against the schemas |
 | `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; OpenRouter's free vision models |
