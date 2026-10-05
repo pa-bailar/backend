@@ -60,6 +60,10 @@ the tools, the library's building blocks and the workflow, written so you don't 
   and `render.py` warn without it; use `make.py <video> --strict` for anything you hand over to post.
 - **Version**: the render's name carries the `version` you'll report, and the previous one is there to compare.
 - **Type**: digits (dates, times, prices, counts) in the sans, never the Bodoni italic (its 4 reads as a 1).
+- **Captions** (when the owner wants them; off by default): `"captions": {"style": "minimal" | "kinetic", …}` in
+  `video.json` and `<Captions video={settings} timing={timingJson} format={cta} />` after the scenes. Look at stills
+  (`stills.mjs --at c2:vale`): no line twice (skip with `lines` the ones the picture writes out), nothing they cover
+  that matters, inside the safe zones of each deliverable.
 
 ## Rules
 

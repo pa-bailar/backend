@@ -16,14 +16,14 @@ media/
 ├── tools/            the utilities (Python and Node), each takes a video's name
 ├── src/
 │   ├── kit.ts        the library in one import
-│   ├── lib/          tokens, motion, scene clock, motion blur, transitions, voice timing, fonts
-│   ├── brand/        the shell and end card, record, stripes, period titles, kinetic type, phone + thumb, flyers
+│   ├── lib/          tokens, motion, scene clock, motion blur, transitions, voice timing, captions, fonts
+│   ├── brand/        the shell and end card, record, stripes, period titles, kinetic type, phone + thumb, flyers, captions
 │   ├── data/         helpers over a snapshot of the site's events
 │   └── Root.tsx      registers every video's compositions
 ├── projects/<video>/ one folder per video: video.json (settings for the tools), its compositions, its notes,
 │                     data/ (small JSON the composition imports: timing, captures, events; committed)
 ├── fonts/            the site's three faces (committed, bundled with the code)
-└── tests/            the tools' pure functions (pytest) and the weekend rule in JS (node --test)
+└── tests/            the tools' pure functions (pytest) and the weekend rule and the captions in JS (node --test)
 ```
 
 ### The media home
@@ -127,7 +127,7 @@ in the media home unless they start with `projects/`.
 | `review.py reel <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | the Reel's safe zones (108 top, 320 bottom, 60 left, 120 right): content in those margins is a warning per side, with the frames and how close to the edge it gets (images may run into them, words never); `--video` allows its `reel_safe.allow` spans | (prints) |
 | `clean.py [--yes]` | .venv | lists older versions, drafts, stills, sheets, comparisons and scratch folders in the home's `out/`, the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, the archive and anything git tracks stay | (the Recycle Bin) |
 | `npm run check` (in `media/`) | Node | `tsc`, every composition registers, one still per video | `out/check/` |
-| `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json` | (prints) |
+| `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json`, and the captions' pages | (prints) |
 
 The Python tests (`media/tests`, standard library only) run with the backend's: `.venv/Scripts/python -m pytest -q`.
 CI's `media` job (in `.github/workflows/ci.yml`) runs `npm ci`, `tsc` and `npm test` when `media/` changes.
@@ -146,6 +146,7 @@ CI's `media` job (in `.github/workflows/ci.yml`) runs `npm ci`, `tsc` and `npm t
   "mix": { "fade": 0.3, "voice_only_lufs": -15, "with_music_lufs": -14, "bed_db": -8 },
   "sticker_band": { "deliverables": ["voice-only"], "allow": [[4.2, 4.3, "why: a full-frame transition"]] },
   "reel_safe": { "deliverables": ["reel"], "allow": [] },   // optional: default, every render named "…reel…"
+  "captions": { "style": "minimal", "emphasis": ["gratis"], "lines": ["c1", "c2"], "deliverables": ["reel"] },  // optional, off without it
   "renders": { "voice-only": "<composition id>", "reel": "…" }   // file name → composition id
 }
 ```
@@ -159,7 +160,10 @@ next to each new bed (`<bed>.json`) to copy in. `mix.py` and `render.py` warn wh
 (also `make.py --strict`) refuses. `sticker_band` names the Story
 deliverables the band check applies to, and the spans (seconds) where a full-frame transition sweeps the background
 through it. `reel_safe` names the Reel deliverables the Reel safe-zone check applies to (default: every render whose
-name contains "reel") and spans to skip. Composition ids are `<video>-<deliverable>`, inside a `<Folder>` named after the video. Every composition
+name contains "reel") and spans to skip. `captions` turns on the voice's captions (`Captions`, below): `style`
+"minimal" (a phrase at a time, the `emphasis` words in marigold) or "kinetic" (the word being said lights up);
+optional `lines` (which voice lines; skip one the picture already writes out), `deliverables`, `maxChars` (24),
+`place` ("low", or "high"). Without it nothing changes: the teaser's renders are pixel-identical. Composition ids are `<video>-<deliverable>`, inside a `<Folder>` named after the video. Every composition
 takes a `blur` prop (motion blur on or off; `render.py --draft` turns it off).
 
 ## The library (`src/kit.ts`)
@@ -205,6 +209,11 @@ digits), `TYPE.sans(size, color?)` (anything with numbers).
 start). **`lib/fonts`**: loads the faces from `media/fonts/` (`fontsReady` resolves when they're in);
 `assets(video)(path)` is a `staticFile` in the home's `public/<video>/`.
 
+**`lib/captions`**: `captionPages(timing, settings)` turns a timing.json into pages with `@remotion/captions`'
+`createTikTokStyleCaptions()` (a page per phrase: breaks at punctuation, at each line's end, at pauses over 0.3 s,
+and before `maxChars`, without leaving a lone short word); `pageAt`, `currentToken`, `captionsOn`. Pure, tested in
+Node (`tests/captions.test.mjs`).
+
 **`brand/`**:
 
 | Piece | What it is |
@@ -224,6 +233,7 @@ start). **`lib/fonts`**: loads the faces from `media/fonts/` (`fontsReady` resol
 | `Flyer`, `toss()` | a real flyer (whole, the site's border, a shadow that lifts); a throw onto a pile with weight |
 | `Sticker`, `AppIcon` | the round tomato sticker; the app icon's squircle |
 | `Arrow` | a drawn arrow (up, down, left, right) in the brand's ink weight, for calls to action that point at something |
+| `Captions` | the voice's captions from video.json's `captions` (nothing without it): Instrument Sans 54 px, cream on an ink card like the site's selected chips, above the safe zone's bottom inside the format's `TEXT_ZONE`; the card fades in and out over 3 frames per run of phrases, phrases swap in place. `<Captions video={settings} timing={timingJson} format={cta} />` after the scenes (the teaser has it) |
 
 **`data/events`**:
 - `VideoEvent` and `EventsSnapshot` are the shape of `events.json`; show `day`/`day_start`, not `date`/`start_time`.

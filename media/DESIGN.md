@@ -77,6 +77,23 @@ white sheen that doesn't turn) so the turning reads.
   stripes at y 500; the app icon and the record around a spot (the video brings its own: a match cut, a pop); the
   wordmark 300 px below it and an optional sign-off 490 px below.
 
+## Captions (opt-in)
+
+Off unless a video's `video.json` has `"captions"` (the kit's `Captions`). For viewers with the sound off, and for
+Reels that autoplay muted. The words are the voice's, timed by Whisper (`data/timing.json`).
+
+- **Type and card:** Instrument Sans 600 at 54 px (it carries digits; the Bodoni's don't read), cream-50 on a flat
+  wine-900 card, 18 px radius, like the site's selected chips. A paper card vanished over the site's own cream screens.
+- **Place:** inside the format's words zone (`TEXT_ZONE`), the card's bottom 40 px above the safe zone's bottom
+  (y 1540), centered: a Story's x 80–1000, a Reel's x 80–960 (clear of the like/share column). `"place": "high"` puts
+  it right under y 250 (below the sticker band), for a scene whose lower half carries the content.
+- **Styles:** "minimal": a phrase at a time (breaks at punctuation, lines and pauses, ≤24 characters), the words in
+  `emphasis` in marigold-400 at 700. "kinetic": the same phrases, the word being said in marigold-400 (it lights over
+  2 frames, ~2 frames before it's said, as the kinetic type does). Nothing bounces, slides or scales.
+- **Motion:** the card fades in over 3 frames when a run of phrases starts and out when it ends; inside a run the
+  phrase swaps in place. Skip a line (`lines`) when the picture already writes those words (the teaser's opening
+  question and its "Nos vemos bailando." sign-off).
+
 ## Texture
 
 - **Grain:** an SVG fractal-noise layer multiplied over everything (paper texture), 10% opacity, its seed changing every 2 frames (a 15 fps

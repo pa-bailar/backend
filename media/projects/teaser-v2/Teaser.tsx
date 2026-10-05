@@ -3,7 +3,19 @@
 // over everything, and one soundtrack.
 import React from "react";
 import { AbsoluteFill, Composition, Folder, useCurrentFrame } from "remotion";
-import { samplesFor, Scene, sec, Shutter, vertical, VideoShell, whip, WHIP_LEAD, whipBlur } from "../../src/kit";
+import {
+  Captions,
+  samplesFor,
+  Scene,
+  sec,
+  Shutter,
+  vertical,
+  VideoShell,
+  whip,
+  WHIP_LEAD,
+  whipBlur,
+} from "../../src/kit";
+import timingJson from "./data/timing.json";
 import { App, APP_BLUR } from "./scenes/App";
 import { Cover, IRIS_FRAMES } from "./scenes/Cover";
 import { type Cta, End } from "./scenes/End";
@@ -89,6 +101,8 @@ export const Teaser: React.FC<TeaserProps> = ({ soundtrack, cta, blur = true }) 
       <Shutter samples={blur ? samplesFor(frame, BLUR, WHIPS) : 1}>
         <Scenes cta={cta} />
       </Shutter>
+      {/* Off unless video.json has "captions" (src/brand/captions.tsx). */}
+      <Captions video={settings} timing={timingJson} format={cta} />
     </VideoShell>
   );
 };
