@@ -22,7 +22,7 @@ SERIES_ID = event_id(SERIES_TITLE)
 def accounts_and_images(isolated_files, monkeypatch):
     config.ACCOUNTS_FILE.write_text("academia\notra\n", encoding="utf-8")
     monkeypatch.setattr(config, "PRIVATE_DIR", isolated_files / "private")
-    monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: make_image())
+    monkeypatch.setattr("pa_bailar.pipeline.common.download_image", lambda url: make_image())
 
 
 def series_post(post_id: str):

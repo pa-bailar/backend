@@ -22,9 +22,9 @@ def no_public_page(code):
 
 @pytest.fixture(autouse=True)
 def accounts(isolated_files, monkeypatch):
-    monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: b"")
-    monkeypatch.setattr("pa_bailar.pipeline._download_images", lambda post: [])
-    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", no_public_page)  # never the network
+    monkeypatch.setattr("pa_bailar.pipeline.common.download_image", lambda url: b"")
+    monkeypatch.setattr("pa_bailar.pipeline.common.download_images", lambda post: [])
+    monkeypatch.setattr("pa_bailar.public_post.fetch_public_post", no_public_page)  # never the network
     config.ACCOUNTS_FILE.write_text(
         "# Academies\nacademia\n\n# ----\n# Salsa bars: not swept\n# bar_salsero\n", encoding="utf-8"
     )
@@ -326,7 +326,7 @@ def public_page(author: str):
 
 
 def test_a_personal_accounts_post_is_read_from_its_public_page(monkeypatch):
-    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", public_page("personal"))
+    monkeypatch.setattr("pa_bailar.public_post.fetch_public_post", public_page("personal"))
     not_visible = InstagramError("Invalid user id", code=110)
     added = sweep({"personal": not_visible}, {"public-p1": event_post("public-p1")}).add_post(LINK, "personal")
     assert added.public and not added.readable and added.outcome == "event"
@@ -334,13 +334,13 @@ def test_a_personal_accounts_post_is_read_from_its_public_page(monkeypatch):
 
 
 def test_the_public_page_names_the_author_when_the_link_doesnt(monkeypatch):
-    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", public_page("academia"))
+    monkeypatch.setattr("pa_bailar.public_post.fetch_public_post", public_page("academia"))
     added = sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK)
     assert added.account == "academia" and not added.public  # found through the API, once the author is known
 
 
 def test_a_collaboration_is_its_authors_post(monkeypatch):
-    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", public_page("organizador"))
+    monkeypatch.setattr("pa_bailar.public_post.fetch_public_post", public_page("organizador"))
     added = sweep({"academia": [], "organizador": []}, {"public-p1": event_post("public-p1")}).add_post(
         LINK, "academia"
     )
@@ -433,7 +433,7 @@ def test_a_post_the_filter_called_not_an_event_is_read_when_added():
 def test_a_post_added_from_its_public_page_is_the_same_post_for_the_sweeps(monkeypatch):
     from tests.test_sweep import FakeExtractor, FakeInstagram, run
 
-    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", public_page("academia"))
+    monkeypatch.setattr("pa_bailar.public_post.fetch_public_post", public_page("academia"))
     added = sweep({"academia": RATE_LIMITED}, {"public-p1": event_post("public-p1")}).add_post(LINK, "academia")
     assert added.public and "public-p1" in storage.load_processed_posts()
 
@@ -447,7 +447,7 @@ def test_a_post_added_from_its_public_page_is_the_same_post_for_the_sweeps(monke
 
 def test_a_post_read_through_the_api_keeps_its_id_when_read_from_its_public_page(monkeypatch):
     sweep({"academia": [post("p1")]}, {"p1": event_post("p1")}).add_post(LINK, "academia")
-    monkeypatch.setattr("pa_bailar.pipeline.public_post.fetch_public_post", public_page("academia"))
+    monkeypatch.setattr("pa_bailar.public_post.fetch_public_post", public_page("academia"))
     again = sweep({"academia": RATE_LIMITED}, {})
     added = again.add_post(LINK, "academia")
     assert added.public and added.unchanged and again.extractor.extracted_posts == []

@@ -2,7 +2,8 @@
 
 import pytest
 
-from pa_bailar import clips, config, instagram, pipeline
+from pa_bailar import clips, config, instagram, storage
+from pa_bailar.pipeline import common
 from tests.factories import make_image
 from tests.test_sweep import FakeExtractor, FakeInstagram, event_post, post, read, run
 
@@ -10,7 +11,7 @@ from tests.test_sweep import FakeExtractor, FakeInstagram, event_post, post, rea
 @pytest.fixture(autouse=True)
 def two_accounts_and_fake_images(isolated_files, monkeypatch):
     config.ACCOUNTS_FILE.write_text("academia\notra\n", encoding="utf-8")
-    monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: make_image())
+    monkeypatch.setattr("pa_bailar.pipeline.common.download_image", lambda url: make_image())
 
 
 def carousel(post_id: str = "c1") -> dict:
@@ -53,7 +54,7 @@ def fake_clips(monkeypatch):
         made.append(name)
         return clips.clip_path(name)
 
-    monkeypatch.setattr("pa_bailar.pipeline.clips.make_clip", make)
+    monkeypatch.setattr("pa_bailar.clips.make_clip", make)
     return made
 
 
@@ -72,12 +73,12 @@ def test_a_flyer_from_a_photo_slide_gets_no_clip(fake_clips):
 
 
 def test_posts_stored_before_clips_get_them_when_seen_again(fake_clips, monkeypatch):
-    monkeypatch.setattr("pa_bailar.pipeline.clips.make_clip", lambda url, name: None)
+    monkeypatch.setattr("pa_bailar.clips.make_clip", lambda url, name: None)
     instagram_posts = FakeInstagram({"academia": [carousel()], "otra": []})
     run(instagram_posts, FakeExtractor({"c1": event_post("c1", image_index=0)}))  # no clip then
     assert read(config.EVENTS_FILE)[0]["media"][0]["preview"] is None
 
-    monkeypatch.setattr("pa_bailar.pipeline.clips.make_clip", lambda url, name: clips.clip_path(name))
+    monkeypatch.setattr("pa_bailar.clips.make_clip", lambda url, name: clips.clip_path(name))
     run(instagram_posts, FakeExtractor({}))  # already analyzed: not sent to Gemini again
     assert read(config.EVENTS_FILE)[0]["media"][0]["preview"] == "previews/c1-0.mp4"
 
@@ -85,10 +86,10 @@ def test_posts_stored_before_clips_get_them_when_seen_again(fake_clips, monkeypa
 def test_unused_clips_are_deleted_with_their_events(isolated_files):
     config.PREVIEWS_DIR.mkdir(parents=True)
     (config.PREVIEWS_DIR / "old-0.mp4").write_bytes(b"x")
-    assert pipeline.storage.remove_unused_flyers([]) == 1
+    assert storage.remove_unused_flyers([]) == 1
     assert not list(config.PREVIEWS_DIR.glob("*.mp4"))
 
 
 def test_old_flyer_names_point_to_the_first_slide():
-    assert pipeline._flyer_slide("flyers/123-4.webp") == 4
-    assert pipeline._flyer_slide("flyers/123.webp") == 0
+    assert common.flyer_slide("flyers/123-4.webp") == 4
+    assert common.flyer_slide("flyers/123.webp") == 0

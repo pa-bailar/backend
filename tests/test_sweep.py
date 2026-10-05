@@ -112,7 +112,7 @@ class FakeExtractor:
 def two_accounts_and_fake_images(isolated_files, monkeypatch):
     """On top of the shared isolation (conftest.py): two accounts, and images without the network."""
     config.ACCOUNTS_FILE.write_text("academia\n# comment\n@otra\n", encoding="utf-8")
-    monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: make_image())
+    monkeypatch.setattr("pa_bailar.pipeline.common.download_image", lambda url: make_image())
 
 
 def run(instagram, extractor, days=7, all_accounts=True):
@@ -369,7 +369,7 @@ def test_a_flyer_that_cant_be_saved_leaves_the_post_pending(monkeypatch):
     def broken_disk(*args, **kwargs):
         raise OSError("disk full")
 
-    monkeypatch.setattr("pa_bailar.pipeline._save_flyers", broken_disk)
+    monkeypatch.setattr("pa_bailar.pipeline.common.save_flyers", broken_disk)
     stats = run(FakeInstagram({"academia": [post("p1")], "otra": []}), FakeExtractor({"p1": event_post("p1")}))
     assert stats.pending == 1 and "p1" not in storage.load_processed_posts()
     assert read(config.ACCOUNT_STATE_FILE)["academia"]["backfill_done"] is False

@@ -44,7 +44,7 @@ def series(
 @pytest.fixture(autouse=True)
 def accounts_and_images(isolated_files, monkeypatch):
     config.ACCOUNTS_FILE.write_text("academia\notra\n", encoding="utf-8")
-    monkeypatch.setattr("pa_bailar.pipeline.download_image", lambda url: make_image())
+    monkeypatch.setattr("pa_bailar.pipeline.common.download_image", lambda url: make_image())
 
 
 # ---------- the rules (models.series_problems, StoredEvent) ----------
