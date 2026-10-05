@@ -246,7 +246,6 @@ class SweepBase:
         if provisional:
             self.stats.provisional += 1
             log.info("     extracted by %s (provisional: Flash out of quota, upgraded on a later run)", model)
-        self._record_processed(account, post, analysis.is_event_post, analysis.reason, model, provisional)
         # If this post was analyzed before, forget what it contributed and add it again below. Events that
         # only this post announced give their ids back, so a re-extraction keeps the events' URLs.
         reusable = [event for event in self.events if {media.post_id for media in event.media} == {post["id"]}]
@@ -261,18 +260,23 @@ class SweepBase:
             for candidate, flyer in zip(publishable, flyers, strict=True)
         ]
         results = [result for result in added if result]
+        outcome: tuple[PostOutcome, list[str], str | None]
         if results:
             merged_only = all(merged for _, merged in results)
-            self._set_outcome(post, "merged" if merged_only else "event", [event_id for event_id, _ in results])
+            outcome = ("merged" if merged_only else "event", [event_id for event_id, _ in results], None)
         elif added:  # every event it announces was hidden by hand
-            self._set_outcome(post, "hidden", detail="oculto a mano")
+            outcome = ("hidden", [], "oculto a mano")
         elif cancelled:  # it announced events, and now says they're cancelled ("CANCELADO")
             self._take_down_cancelled(account, announced)
-            self._set_outcome(post, "discarded", detail="cancelado")
+            outcome = ("discarded", [], "cancelado")
         elif analysis.is_event_post and analysis.events:
-            self._set_outcome(post, "discarded", detail=", ".join(sorted(reasons)))
+            outcome = ("discarded", [], ", ".join(sorted(reasons)))
         else:
-            self._set_outcome(post, "not_event")
+            outcome = ("not_event", [], None)
+        # The record last: if anything above fails, the post isn't recorded as analyzed (with its events detached and
+        # not added again), so it's read again next run.
+        self._record_processed(account, post, analysis.is_event_post, analysis.reason, model, provisional)
+        self._set_outcome(post, *outcome)
         self._save()
         return True
 

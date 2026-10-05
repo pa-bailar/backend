@@ -93,3 +93,48 @@ def test_unused_clips_are_deleted_with_their_events(isolated_files):
 def test_old_flyer_names_point_to_the_first_slide():
     assert common.flyer_slide("flyers/123-4.webp") == 4
     assert common.flyer_slide("flyers/123.webp") == 0
+
+
+# ---------- _complete_media: what older stored media get from a fresh copy of their post ----------
+
+
+def stored_media(post_id: str, media_type: str, flyer: str | None, preview: str | None = None, slides=None):
+    from tests.factories import media, stored
+
+    item = media(post_id, media_type).model_copy(update={"flyer": flyer, "preview": preview, "slides": slides})
+    return stored(f"{post_id}-event", posts=[item])
+
+
+def complete(events, posts):
+    from pa_bailar.pipeline import Sweep
+
+    sweep = Sweep(lookback_days=7, instagram=FakeInstagram({}), extractor=FakeExtractor({}))
+    sweep.events = events
+    sweep._complete_media(posts)
+    return sweep.events
+
+
+def test_older_media_get_the_slide_count_and_the_clip_of_their_flyers_slide(fake_clips):
+    [event] = complete([stored_media("c1", "CAROUSEL_ALBUM", "flyers/c1-0.webp")], [carousel()])
+    assert (event.media[0].slides, event.media[0].preview) == (3, "previews/c1-0.mp4")
+    assert storage.load_events() == [event]  # saved
+
+
+def test_a_flyer_from_a_photo_slide_or_a_photo_post_gets_no_clip(fake_clips):
+    photo = {**post("p1"), "media_type": "IMAGE"}
+    events = [
+        stored_media("c1", "CAROUSEL_ALBUM", "flyers/c1-1.webp"),  # the photo slide
+        stored_media("c2", "CAROUSEL_ALBUM", "flyers/c2-2.webp"),  # a video Instagram gives no file for
+        stored_media("p1", "IMAGE", "flyers/p1-0.webp"),
+    ]
+    complete(events, [carousel("c1"), carousel("c2"), photo])
+    assert fake_clips == [] and [e.media[0].preview for e in events] == [None, None, None]
+    assert [e.media[0].slides for e in events] == [3, 3, None]
+
+
+def test_media_already_complete_or_not_fetched_now_are_left_alone(fake_clips):
+    done = stored_media("c1", "CAROUSEL_ALBUM", "flyers/c1-0.webp", preview="previews/c1-0.mp4", slides=3)
+    unseen = stored_media("c9", "CAROUSEL_ALBUM", "flyers/c9-0.webp")
+    complete([done, unseen], [carousel("c1")])
+    assert fake_clips == [] and unseen.media[0].slides is None
+    assert storage.load_events() == []  # nothing changed: nothing saved

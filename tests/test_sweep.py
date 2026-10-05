@@ -867,3 +867,29 @@ def test_an_edited_caption_that_cant_be_read_now_keeps_the_account_due(monkeypat
     stats = run(instagram, extractor)
     assert stats.pending == 1 and stats.reanalyzed == 0
     assert read(config.ACCOUNT_STATE_FILE)["academia"]["last_swept_at"] == before  # still due: read next run
+
+
+@pytest.mark.parametrize("edited", [False, True])
+def test_a_failure_while_storing_a_post_leaves_it_to_be_read_again(monkeypatch, edited):
+    """The post's record is written last: a failure after its old events were detached must not leave it recorded as
+    analyzed (its events lost for good). Another account's post saves the run's state after the failure."""
+    first = post("p1", days_ago=3)
+    if edited:  # read before, then its caption edited
+        run(FakeInstagram({"academia": [first], "otra": []}), FakeExtractor({"p1": event_post("p1")}))
+        first = {**first, "caption": "Ahora con lugar"}
+    before = storage.load_processed_posts().get("p1")
+    original = Sweep._add_event
+
+    def failing(self, account, post, *args, **kwargs):
+        if post["id"] == "p1":
+            raise RuntimeError("disk gone")
+        return original(self, account, post, *args, **kwargs)
+
+    monkeypatch.setattr(Sweep, "_add_event", failing)
+    analyses = {"p1": event_post("p1"), "p2": event_post("p2", title="Otra")}
+    stats = run(FakeInstagram({"academia": [first], "otra": [post("p2")]}), FakeExtractor(analyses))
+    assert stats.errors == 1 and storage.load_processed_posts().get("p1") == before  # not recorded as read
+
+    monkeypatch.setattr(Sweep, "_add_event", original)
+    run(FakeInstagram({"academia": [first], "otra": [post("p2")]}), FakeExtractor(analyses))
+    assert sorted(event["id"] for event in read(config.EVENTS_FILE)) == sorted([event_id("Social"), event_id("Otra")])
