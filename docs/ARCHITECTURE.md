@@ -436,6 +436,29 @@ flowchart TD
   have been analyzed; if the quota or the time runs out, it continues in the next run.
 - **Saved after every post:** `events.json` and `processed_posts.json` are written after each post, so an
   interrupted run keeps everything it did.
+- **Bars and accounts limited to some styles** (`accounts.txt`, `account_options.py`). A line is the username,
+  then optional words, and `#` starts a comment anywhere on it (an unknown word stops the run, so a typo can't
+  sweep an account without its limits):
+
+  ```
+  galeriacafelibro        bar                      # emblematic salsa bar
+  ritmomoderno            bar solo:salsa,bachata   # general bar: only its salsa and bachata nights
+  ```
+
+  - `bar`: a bar or club, open every week (the owner, 5 October 2026: salsa bars hold special nights, but most of
+    their posts are their regular ones). The triage and the extraction get `prompts.BAR_RULES` after the caption:
+    its regular nights aren't events, only special one-time occasions (a live band, a guest artist or DJ billed
+    by name, an anniversary, a holiday party, a workshop, a competition or show); when unsure, it isn't. Its
+    events carry `bar: true` (`StoredEvent.bar`, docs/DATA.md in the site), set from `accounts.txt` on every run,
+    so marking or unmarking an account updates its stored events. Its first sweep is a regular one (10 posts, the
+    lookback): a bar's older posts are past nights.
+  - `solo:<styles>` (salsa, bachata, merengue, kizomba, tango): a general bar, club or cultural space that also
+    holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`: "salsa",
+    "salser", "timba", "bachat"…, accents and case ignored) is recorded as no event before any Gemini request,
+    for free ("no menciona salsa ni bachata"); the others get `prompts.FOCUS_RULES` too. A caption edited later
+    is checked again.
+  - A post added by hand (`--post`, PB Admin) gets neither the filter nor the rules: whoever adds it wants it read
+    as it is. Every other account's prompts are unchanged (the rules are an empty string).
 
 ### 6.2 Posts
 
@@ -499,7 +522,12 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
      condition), since the site shows 0 as free: it's dropped, with a doubt ("Precio en otra moneda: VIP
      (1,000.00 MXN)"), unless it reads as free (gratis, libre, free);
    - an event Gemini isn't sure is in Bogotá (`in_bogota` "unknown") gets the doubt "ciudad sin confirmar: ¿es
-     en Bogotá?", which lists it for review (section 11.1).
+     en Bogotá?", which lists it for review (section 11.1). Before that, a free check in code
+     (`normalize.doubtful_city`): an event Gemini placed in Bogotá, with no address of its own, from a caption
+     that names another city or country (`_OTHER_PLACES`: Medellín, Cali, México…) and never Bogotá, becomes
+     "unknown" too. On 3 October 2026 Flash-Lite read "Nos vemos en expofitness Medellín 2027" (La Revuelta Latin
+     Fest) as a Bogotá event; a caption that says where a guest comes from ("llega desde Medellín") with the
+     venue's address stays in Bogotá.
 
    The site relies on these formats.
 2. **Keep only publishable events** (`Sweep._discard_reasons`): one-time (`is_recurring` false; a workshop

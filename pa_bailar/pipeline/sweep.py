@@ -7,6 +7,7 @@ from dataclasses import asdict
 from datetime import UTC, date, datetime, timedelta
 
 from .. import config, links, storage
+from ..account_options import AccountOptions, mentions_focus
 from ..gemini import GeminiKeyError, QuotaExhaustedError, RejectedRequestError
 from ..instagram import InstagramError, Post, is_rate_limited, published_at, slide_count
 from ..models import AccountState, ProcessedPost
@@ -135,6 +136,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
 
     def _process_account(self, account: str) -> None:
         state = self.accounts.setdefault(account, AccountState(first_seen=config.now_bogota().date().isoformat()))
+        if self._is_bar(account) and not state.backfill_done:
+            state.backfill_done = True  # a bar's old posts are past nights: no deeper first sweep (account_options)
         backfill = not state.backfill_done
         account_stats = self.stats.account(account)
         account_stats.backfill = backfill
@@ -249,6 +252,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
     def _analyze_new_post(self, account: str, post: Post, published: datetime, triage: bool = True) -> bool:
         """Triage, then extract if it's an event (`triage=False`: extract directly). False when the post must be
         retried next run."""
+        if self._outside_focus(account, post):
+            return True
         if not self.extractor.can_analyze():
             return False  # no quota left today: it waits (no download, not an error)
         try:
@@ -259,7 +264,9 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         verdict, triage_model = None, None
         if triage:
             try:
-                verdict, triage_model = self.extractor.triage(account, post, published, images)
+                verdict, triage_model = self.extractor.triage(
+                    account, post, published, images, rules=self._rules(account)
+                )
             except QuotaExhaustedError as error:
                 # Flash-Lite out of today's quota: wait for it rather than spend Flash's small one on every post.
                 log.info("     waits for the next run (triage): %s", error)
@@ -279,7 +286,9 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
 
         try:
             known = self._known_events(account, published)
-            analysis, model, provisional = self.extractor.extract(account, post, published, images, known)
+            analysis, model, provisional = self.extractor.extract(
+                account, post, published, images, known, rules=self._rules(account)
+            )
         except RejectedRequestError as error:
             # Gemini refuses this post itself (e.g. an image it can't read): retrying would spend quota on
             # every run and keep a new account's first sweep from ever finishing. Record it and move on.
@@ -297,13 +306,29 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
 
         return self._store_analysis(account, post, images, analysis, model, provisional)
 
+    def _outside_focus(self, account: str, post: Post) -> bool:
+        """An account limited to some styles (accounts.txt `solo:`, account_options): a post whose caption names
+        none of them is recorded as no event before any Gemini request (free). Read again if its caption is edited;
+        a post added by hand isn't filtered."""
+        focus = self.options.get(account, AccountOptions()).focus
+        if self.by_hand or mentions_focus(post.get("caption"), focus):
+            return False
+        reason = f"no menciona {' ni '.join(focus)} (la cuenta es solo para esos estilos)"
+        self.stats.count(account, "posts_analyzed")
+        self.stats.posts_triaged_out += 1
+        self._record_processed(account, post, False, reason, "-", provisional=False)
+        self._set_outcome(post, "not_event")
+        self._save()
+        log.info("     not an event: %s", reason)
+        return True
+
     def _upgrade_post(self, account: str, post: Post, published: datetime) -> None:
         """Re-extract a provisional post with Flash; keep the provisional result if that fails."""
         try:
             images = common.download_images(post)
             known = self._known_events(account, published)
             analysis, model, _ = self.extractor.extract(
-                account, post, published, images, known, allow_provisional=False
+                account, post, published, images, known, allow_provisional=False, rules=self._rules(account)
             )
         except RejectedRequestError as error:
             log.warning("     Gemini rejected the upgrade, keeping the provisional analysis: %s", error)

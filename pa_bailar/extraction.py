@@ -27,12 +27,13 @@ TRIAGE_IMAGE_SIZE = (512, 512)  # triage only needs a glance at the flyer
 TRIAGE_JPEG_QUALITY = 80
 
 
-def _format_context(account: str, post: Post, published: datetime) -> dict[str, str]:
+def _format_context(account: str, post: Post, published: datetime, rules: str) -> dict[str, str]:
     return {
         "account": account,
         "published": published.astimezone(config.BOGOTA_TZ).strftime("%Y-%m-%d %A"),
         "today": config.now_bogota().strftime("%Y-%m-%d %A"),
         "caption": post.get("caption") or "(sin texto)",
+        "account_rules": rules,
     }
 
 
@@ -74,9 +75,12 @@ class EventExtractor:
     def requests_this_run(self) -> dict[str, int]:
         return dict(self.pool.requests_this_run)
 
-    def triage(self, account: str, post: Post, published: datetime, images: list[bytes]) -> tuple[Triage, str]:
-        """Cheap yes/no on the caption and one small image."""
-        contents: list[types.PartUnionDict] = [TRIAGE_PROMPT.format(**_format_context(account, post, published))]
+    def triage(
+        self, account: str, post: Post, published: datetime, images: list[bytes], rules: str = ""
+    ) -> tuple[Triage, str]:
+        """Cheap yes/no on the caption and one small image. `rules`: the account's own (prompts.account_rules)."""
+        context = _format_context(account, post, published, rules)
+        contents: list[types.PartUnionDict] = [TRIAGE_PROMPT.format(**context)]
         if images:
             contents.insert(0, types.Part.from_bytes(data=_small_jpeg(images[0]), mime_type="image/jpeg"))
         # A yes/no on one small image: little reasoning needed (extraction keeps the default).
@@ -90,14 +94,17 @@ class EventExtractor:
         images: list[bytes],
         known_events: list[StoredEvent],
         allow_provisional: bool = True,
+        rules: str = "",
     ) -> tuple[PostAnalysis, str, bool]:
         """Every detail of the post's events: (analysis, model, provisional).
 
         `known_events` are this account's stored events, so Gemini can tell when a post (e.g. a video)
-        announces one of them again. Provisional means a Flash-Lite answer, to be redone with Flash.
+        announces one of them again. Provisional means a Flash-Lite answer, to be redone with Flash. `rules`: the
+        account's own (prompts.account_rules).
         """
         known = _known_list(known_events)
-        prompt = EXTRACTION_PROMPT.format(**_format_context(account, post, published), known_events=known or "(none)")
+        context = _format_context(account, post, published, rules)
+        prompt = EXTRACTION_PROMPT.format(**context, known_events=known or "(none)")
         contents: list[types.PartUnionDict] = []
         for index, image in enumerate(images):
             contents += [f"Image {index}:", types.Part.from_bytes(data=image, mime_type="image/jpeg")]

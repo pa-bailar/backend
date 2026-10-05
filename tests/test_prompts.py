@@ -2,7 +2,13 @@
 
 from pa_bailar.prompts import EXTRACTION_PROMPT, STORY_PROMPT, TRIAGE_PROMPT
 
-CONTEXT = {"account": "profe_x", "published": "2026-10-04 Sunday", "today": "2026-10-04 Sunday", "caption": "{x}"}
+CONTEXT = {
+    "account": "profe_x",
+    "published": "2026-10-04 Sunday",
+    "today": "2026-10-04 Sunday",
+    "caption": "{x}",
+    "account_rules": "",
+}
 
 
 def test_prompts_format_with_the_post_context():

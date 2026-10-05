@@ -10,7 +10,33 @@ Post published: {published} (Bogotá time)
 Today: {today}
 
 Caption:
-\"\"\"{caption}\"\"\""""
+\"\"\"{caption}\"\"\"{account_rules}"""
+
+# Added to the post's context only for the accounts accounts.txt marks (account_options): every other account's
+# prompt stays as it is. Strict on purpose: a bar posts its regular nights all the time, and each post read
+# spends quota.
+BAR_RULES = """
+
+This account is a BAR or club, open every week. Its regular nights are NOT events: the nights it holds every week
+or most weeks ("viernes de salsa", "noche de…" with its resident DJs, "todos los jueves", "este sábado rumba",
+"hoy abrimos"), happy hours, menus and drink offers. Only a special one-time occasion counts: a live band or
+orchestra, a guest artist or DJ announced by name as the night's draw, the bar's anniversary, a holiday party
+(Halloween, Navidad, Año Nuevo…), a workshop or class with a guest teacher, a competition or a show. When unsure
+whether a night is special, it isn't."""
+
+FOCUS_RULES = """
+
+Only events for dancing {styles} count for this account: the music or the class is mainly {styles}. Its other
+nights (reggaeton, electronic, crossover, rock, pop…) don't."""
+
+
+def account_rules(bar: bool, focus: tuple[str, ...]) -> str:
+    """The prompts' extra rules for an account accounts.txt marks as a bar or limits to some styles ("" otherwise)."""
+    rules = BAR_RULES if bar else ""
+    if focus:
+        rules += FOCUS_RULES.format(styles=" or ".join(focus))
+    return rules
+
 
 _EVENT_DEFINITION = """An event is a single DANCE occasion on a specific date that anyone can attend. An event over
 several consecutive days (a congress, a festival weekend, an intensive "del 7 al 11", "10, 11 y 12 de octubre")
