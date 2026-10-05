@@ -164,6 +164,28 @@ def mix_key(v: "Video") -> str:
     return key(music.get("bed"), music.get("first_hit", 0), v.settings.get("mix", {}), v.duration)
 
 
+# What video.json's "music"."provenance"[<bed>] records for every published bed (ACE-Step's rights to generated
+# output are an open question upstream, so each bed keeps how it was made): the model and its revision, the prompt,
+# the seed, the reference audio (null for none) and the day it was generated.
+PROVENANCE_FIELDS = ("model", "revision", "prompt", "seed", "reference_audio", "generated")
+
+
+def provenance_problems(music: dict) -> list[str]:
+    """What's missing from the provenance of the bed a video uses (video.json's "music"); [] without a bed."""
+    bed = music.get("bed")
+    if not bed:
+        return []
+    entry = music.get("provenance", {}).get(bed)
+    if entry is None:
+        return [
+            f'no "music"."provenance" for {bed} in video.json (model, revision, prompt, seed, reference audio, date)'
+        ]
+    out = [f"{bed}: provenance has no {field!r}" for field in PROVENANCE_FIELDS if field not in entry]
+    if "generated" in entry and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(entry["generated"])):
+        out.append(f'{bed}: provenance "generated" should be a date like 2026-10-04 (got {entry["generated"]!r})')
+    return out
+
+
 def version_tuple(text: str) -> tuple[int, ...]:
     return tuple(int(p) for p in text.split("."))
 

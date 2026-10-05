@@ -11,7 +11,8 @@
         sheet   the review (Instagram pre-flight, keyframe sheet, sticker band, Reel   .venv
                 safe zones, side-by-side with the previous version) is older than its render
       --draft renders half size without motion blur; --force runs the named stages anyway; --dry-run only says
-      what would run.
+      what would run; --strict makes mix and render refuse a bed without provenance, and render refuse material
+      past its shelf life.
   .venv/Scripts/python media/tools/make.py doctor
       Checks the machine: ffmpeg, Chrome, node and the packages, the three Pythons, the fonts, the Gemini key (set or
       not, never shown), each video's music bed, and the media home.
@@ -142,7 +143,7 @@ def make(name: str, wanted: list[str], draft: bool, force: bool, dry: bool, stri
     commands: dict[str, Callable[[], None]] = {
         "tts": lambda: run("venv", tool("tts.py"), name),
         "timing": lambda: run("whisper", tool("timing.py"), name),
-        "mix": lambda: run("venv", tool("mix.py"), name),
+        "mix": lambda: run("venv", tool("mix.py"), name, *(["--strict"] if strict else [])),
         "render": lambda: run(
             "venv", tool("render.py"), name, *(["--draft"] if draft else []), *(["--strict"] if strict else [])
         ),

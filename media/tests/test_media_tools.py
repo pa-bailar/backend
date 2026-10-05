@@ -13,6 +13,7 @@ import cover
 import events
 import make
 import mix
+import music
 import preflight
 import pytest
 import render
@@ -307,6 +308,28 @@ def test_masking_measures_voice_over_music_where_the_voice_speaks():
     ratio, share, masked = mix.masking(voice, [1.0, 80.0, 1.0, 1.0], [0, 1, 2])
     assert round(ratio, 1) == 5.6 and share == pytest.approx(1 / 3) and masked == [1]
     assert mix.masking(voice, voice, []) == (float("inf"), 0.0, [])
+
+
+def test_provenance_is_required_for_the_bed_in_use():
+    assert common.provenance_problems({}) == []
+    bed = "cache/music/x.wav"
+    assert "no " in common.provenance_problems({"bed": bed})[0]
+    made = music.provenance("fania", "salsa dura…", 7, 98, 30, "ace-step/ACE-Step-1.5@ca1e85f", "2026-10-04")
+    assert set(common.PROVENANCE_FIELDS) <= set(made)
+    assert common.provenance_problems({"bed": bed, "provenance": {bed: made}}) == []
+    partial = {k: v for k, v in made.items() if k not in ("seed", "reference_audio")} | {"generated": "4 Oct"}
+    found = common.provenance_problems({"bed": bed, "provenance": {bed: partial}})
+    assert len(found) == 3 and any("'seed'" in p for p in found) and any("date like" in p for p in found)
+
+
+def test_every_video_with_a_bed_records_its_provenance():
+    for folder in sorted((common.MEDIA / "projects").iterdir()):
+        if (folder / "video.json").exists():
+            settings = common.video(folder.name).settings
+            assert common.provenance_problems(settings.get("music", {})) == [], folder.name
+            entry = settings.get("music", {}).get("provenance", {}).get(settings.get("music", {}).get("bed"))
+            if entry and "prompt_name" in entry:
+                assert entry["prompt"] == settings["music"]["prompts"][entry["prompt_name"]]
 
 
 def test_last_json_takes_loudnorms_report():

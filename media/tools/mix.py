@@ -6,6 +6,8 @@
     out/<video>/music-ducked.wav          the bed alone after ducking (to check the balance by ear)
   .venv/Scripts/python media/tools/mix.py <video> --check
       Measures the soundtracks already there against their targets, without mixing.
+  --strict   refuse (instead of warning) when the bed has no provenance in video.json ("music"."provenance"[<bed>]:
+             model, revision, prompt, seed, reference audio, date)
 
 Reads out/<video>/voice-track.wav (tools/timing.py) and video.json's "music"."bed" (a file in the media home, e.g.
 one of tools/music.py's candidates) and "mix": "voice_only_lufs", "with_music_lufs" (default −15 and −14:
@@ -33,7 +35,7 @@ import sys
 from array import array
 from pathlib import Path
 
-from common import BRAND, HOME, Video, ffmpeg, mix_key, probe, shown, tool, video
+from common import BRAND, HOME, Video, ffmpeg, mix_key, probe, provenance_problems, shown, tool, video
 
 LOUD = BRAND["loudness"]
 TP = LOUD["true_peak_target"]
@@ -264,8 +266,18 @@ def phone_check(v: Video) -> list[str]:
     return warnings
 
 
-def main(name: str) -> None:
+def provenance_gate(v: Video, strict: bool) -> None:
+    """A bed without its provenance (video.json "music"."provenance"): a warning, or with --strict a refusal."""
+    missing = provenance_problems(v.settings.get("music", {}))
+    if missing and strict:
+        raise SystemExit("refusing to mix (--strict): " + "; ".join(missing))
+    for line in missing:
+        print(f"WARNING: {line}", file=sys.stderr)
+
+
+def main(name: str, strict: bool = False) -> None:
     v = video(name)
+    provenance_gate(v, strict)
     duration = v.duration
     fade = float(v.settings.get("mix", {}).get("fade", 0.3))
     voice = v.out / "voice-track.wav"
@@ -304,11 +316,15 @@ def main(name: str) -> None:
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    if not args or args[0] in ("-h", "--help") or len(args) > 2 or (len(args) == 2 and args[1] != "--check"):
+    flags = {a for a in args if a.startswith("-")}
+    names = [a for a in args if not a.startswith("-")]
+    if len(names) != 1 or flags - {"--check", "--strict"}:
         raise SystemExit(__doc__)
-    if len(args) == 2:
-        problems_found = check(video(args[0]))
+    if "--check" in flags:
+        v = video(names[0])
+        provenance_gate(v, "--strict" in flags)
+        problems_found = check(v)
         if problems_found:
             raise SystemExit("\n".join(problems_found))
     else:
-        main(args[0])
+        main(names[0], "--strict" in flags)

@@ -110,9 +110,9 @@ in the media home unless they start with `projects/`.
 | `tts.py --audition "<text>" --voices …` | .venv | one sample per voice | `out/auditions/` |
 | `timing.py <video>` | whisper | trims and joins the lines (`lead`, `gap`, `max_pause`), Whisper word times, and a `voice_key` of what they were made from | `out/<video>/voice-track.wav`, `projects/<video>/data/timing.json` |
 | `timing.py --transcribe <wav>` | whisper | what Whisper hears in a take (QA) | (prints) |
-| `music.py <video>` | ace | ACE-Step beds for every prompt × seed (cached) | `cache/music/<prompt>-s<seed>-<hash>.wav` |
+| `music.py <video>` | ace | ACE-Step beds for every prompt × seed (cached), each with its provenance | `cache/music/<prompt>-s<seed>-<hash>.wav` and `.json` |
 | `analyze.py <wavs>` | whisper | bpm, beats, first hit, loudness, a spectrogram strip | `out/music/music-analysis.{png,json}` |
-| `mix.py <video> [--check]` | .venv | voice-only (−15 LUFS) and with-music (−14, bed ducked by the voice), fades, exact length; no voice: music-only (−16). Fails when a soundtrack's true peak is over −1 dBTP or its loudness 1 LU off (the old one stays); `--check` only measures. With music, a **phone-speaker check** too: the voice track and the ducked bed folded to mono and band-limited like a phone (300 Hz–6 kHz), voice over music in the voice band (1–4 kHz) over the spoken words; a warning under +10 dB, or when over 10% of the speech (50 ms windows) is under +3 dB (teaser v2.4: +22.7 dB, 2%) | `public/<video>/audio/`, `mix.key` |
+| `mix.py <video> [--check] [--strict]` | .venv | voice-only (−15 LUFS) and with-music (−14, bed ducked by the voice), fades, exact length; no voice: music-only (−16). Fails when a soundtrack's true peak is over −1 dBTP or its loudness 1 LU off (the old one stays); `--check` only measures. With music, a **phone-speaker check** too: the voice track and the ducked bed folded to mono and band-limited like a phone (300 Hz–6 kHz), voice over music in the voice band (1–4 kHz) over the spoken words; a warning under +10 dB, or when over 10% of the speech (50 ms windows) is under +3 dB (teaser v2.4: +22.7 dB, 2%) | `public/<video>/audio/`, `mix.key` |
 | `events.py <video> --from --to \| --weekend [date] [--styles] [--limit n] [--checkout] [--allow-empty]` | .venv | the events on those days from the published data (the site checkout with `--checkout` or offline, with its age), sorted by the day the video shows (`day`, `day_start`, `day_end`), + their cover flyers; written whole or not at all | `projects/<video>/data/events.json`, `public/<video>/flyers/` |
 | `node media/tools/capture.mjs <video> <name> [--path --now --theme --full --scroll --click --wait]` | Node | one screen of the live site on a phone, clock frozen (default: the weekend rule's Saturday at 19:00); also the library for scripted walks | `public/<video>/screens/`, `projects/<video>/data/screens.json` |
 | `node media/tools/stills.mjs <video> [deliverable] --at 1.5,f255,c4:link [--scale --no-blur --out]` | Node | stills from one bundle (reused while nothing changed): seconds, frames, a line's or a word's start | `out/<video>/frames/` |
@@ -140,7 +140,9 @@ CI's `media` job (in `.github/workflows/ci.yml`) runs `npm ci`, `tsc` and `npm t
   "voice": { "name": "Achird", "direction": "(optional; common.py has the owner's chosen one)", "lead": 0.55,
              "max_pause": 0.32, "lines": [{ "id": "a1", "text": "…", "gap": 0.3, "take": 0 }] },
   "music": { "bpm": 98, "duration": 30, "seeds": [7], "prompts": { "name": "…" },
-             "bed": "cache/music/….wav", "bed_source": "which prompt and seed", "first_hit": 0.07 },
+             "bed": "cache/music/….wav", "bed_source": "which prompt and seed", "first_hit": 0.07,
+             "provenance": { "cache/music/….wav": { "model": "…", "revision": "…", "prompt": "…", "seed": 7,
+                             "reference_audio": null, "generated": "2026-10-04" } } },
   "mix": { "fade": 0.3, "voice_only_lufs": -15, "with_music_lufs": -14, "bed_db": -8 },
   "sticker_band": { "deliverables": ["voice-only"], "allow": [[4.2, 4.3, "why: a full-frame transition"]] },
   "reel_safe": { "deliverables": ["reel"], "allow": [] },   // optional: default, every render named "…reel…"
@@ -150,7 +152,11 @@ CI's `media` job (in `.github/workflows/ci.yml`) runs `npm ci`, `tsc` and `npm t
 
 `duration`, `version` and `renders` are required; compositions import `video.json` for their length
 (`vertical(settings)`), so `mix.py` and the picture agree, and `gridOf(settings)` builds the beat grid from
-`music.bpm` (brand.json's 98 without one). `bed` is relative to the media home. `sticker_band` names the Story
+`music.bpm` (brand.json's 98 without one). `bed` is relative to the media home. **`provenance`** records how each
+published bed was made (ACE-Step's rights to generated output are an open question upstream, discussion #1256): the
+model, its revision, the prompt, the seed, the reference audio (`null` for none) and the day; `music.py` writes it
+next to each new bed (`<bed>.json`) to copy in. `mix.py` and `render.py` warn when the bed in use lacks it; `--strict`
+(also `make.py --strict`) refuses. `sticker_band` names the Story
 deliverables the band check applies to, and the spans (seconds) where a full-frame transition sweeps the background
 through it. `reel_safe` names the Reel deliverables the Reel safe-zone check applies to (default: every render whose
 name contains "reel") and spans to skip. Composition ids are `<video>-<deliverable>`, inside a `<Folder>` named after the video. Every composition

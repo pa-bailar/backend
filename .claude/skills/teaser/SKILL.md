@@ -55,6 +55,9 @@ the tools, the library's building blocks and the workflow, written so you don't 
 - **Refactors and encodes**: after a change that shouldn't move a pixel, `review.py diff <old> <new>` must say every
   frame is identical (PSNR ∞). To judge an encode (Instagram's copy, a smaller file), read its VMAF (~6 points is one
   just-noticeable difference) and its worst frames.
+- **Music provenance**: a video with a generated bed records it in `video.json`'s `music.provenance` (model,
+  revision, prompt, seed, reference audio, date; `music.py` leaves a `.json` next to each bed to copy in). `mix.py`
+  and `render.py` warn without it; use `make.py <video> --strict` for anything you hand over to post.
 - **Version**: the render's name carries the `version` you'll report, and the previous one is there to compare.
 - **Type**: digits (dates, times, prices, counts) in the sans, never the Bodoni italic (its 4 reads as a 1).
 
