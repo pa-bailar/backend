@@ -460,7 +460,12 @@ flowchart TD
 ```
 
 A re-analyzed post "had events" when its record's outcome is `event` or `merged`, or, for records kept before
-outcomes existed (no `outcome`), when Gemini called it an event post. When Flash-Lite is out of today's quota,
+outcomes existed (no `outcome`), when Gemini called it an event post. When it had events and now has none, and
+its caption or Gemini's reason says they're cancelled or postponed ("CANCELADO", aplazado, pospuesto…;
+`pipeline._says_cancelled`), its events leave the site even when other posts announce them too, if they're its
+own account's (the account that announced them first); another account's event stays, with low confidence and
+a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for review (section 11.1)
+(`Sweep._take_down_cancelled`). When Flash-Lite is out of today's quota,
 new posts wait for the next run instead of going straight to Flash: skipping the filter would spend Flash's
 20 requests on posts that mostly aren't events. A triage that fails for another reason (busy, a timeout) lets
 the extraction decide.
@@ -483,11 +488,21 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
      Sessions on consecutive days are an event over several days instead, and more than
      `MAX_SERIES_SESSIONS` (12) sessions or more than `MAX_SERIES_DAYS` (123, about 4 months) is a course:
      recurring, so discarded ("más de 12 sesiones o más de 4 meses: es un curso");
-   - prices and text cleaned.
+   - prices and text cleaned (`normalize.clean_prices`): a label, no negative amounts, and no 0 that is an
+     amount in another currency (USD, US$, MXN, EUR, €, dólares, pesos mexicanos…, in the label or the
+     condition), since the site shows 0 as free: it's dropped, with a doubt ("Precio en otra moneda: VIP
+     (1,000.00 MXN)"), unless it reads as free (gratis, libre, free);
+   - an event Gemini isn't sure is in Bogotá (`in_bogota` "unknown") gets the doubt "ciudad sin confirmar: ¿es
+     en Bogotá?", which lists it for review (section 11.1).
 
    The site relies on these formats.
-2. **Keep only publishable events:** one-time (`is_recurring` false; a workshop series counts) and with a
-   valid date. The rest count as "discarded".
+2. **Keep only publishable events** (`Sweep._discard_reasons`): one-time (`is_recurring` false; a workshop
+   series counts), with a valid date, in Bogotá (`in_bogota` isn't "no": an internal field of the extraction,
+   never stored), and not over: an event whose last day (`end_date`, a series' last session, else `date`) is
+   before today in Bogotá is published only if it's already stored (another post of it, or this post read
+   again). A new account's first sweep reads posts a month old, and on 4 October 2026 a tour post of 17
+   September published two past concerts in México. The rest count as "discarded", and the post's record says
+   why (`recurrente`, `sin fecha`, `fuera de Bogotá`, `ya pasó`).
 3. **Save flyers** (`storage.save_flyer`): the image Gemini says shows each event (`image_index`),
    shrunk to at most 1080×1350 and saved as WebP (quality 80) in `data/flyers/<post id>-<slide>.webp`.
    When that slide is a video (a reel, or a carousel's video slide), `clips.make_clip` cuts its first 6
@@ -512,7 +527,7 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 | Step | Model(s) | Input | Output (schema) | Thinking |
 |---|---|---|---|---|
 | Triage | `gemini-3.5-flash-lite` | Caption, account, publication date, today's date, first image as a 512 px JPEG | `Triage`: `is_event_post`, `reason` | Low |
-| Extraction | `gemini-3.8-flash`, then `gemini-3.5-flash` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day and a series' sessions, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `sessions`, `image_index` and `same_as`) | Model default |
+| Extraction | `gemini-3.8-flash`, then `gemini-3.5-flash` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day and a series' sessions, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `sessions`, `image_index`, `same_as` and `in_bogota`, the last three never stored) | Model default |
 | Provisional extraction | `gemini-3.5-flash-lite` | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
 | Story (admin tools) | Extraction's models, Flash-Lite when Flash is out (kept as it is) | Up to 4 screenshots of one story (numbered), when the screenshot was taken, the admin's notes and account, the account's known events | `StoryAnalysis`: the header's account, a reshared post's author, mentions, location sticker, the story's age, a `content_box` per screenshot, `events[]` (`StoryEvent`: dates as printed, a series' sessions too (`StorySession`), worked out in code by `stories.resolve_date`) | Model default |
 | Discovery | `gemini-3.5-flash-lite` | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, whether it announces one-time events, reason | Model default |
@@ -532,8 +547,11 @@ Notes on the prompts and parameters:
     social or partner dancing (electronic, rock, pop, indie, reggaeton or urbano mass concerts, general music
     festivals: a concert or festival counts only for salsa, bachata, merengue, son, timba, kizomba, tango,
     champeta… dancing), nor events the post places in another city or
-    country (teachers and artists travel; no city stated means Bogotá). It quotes the words academies use
+    country (teachers and artists travel; no city stated means Bogotá), nor an event a post about something
+    else (a song release, a profile) only mentions in passing. It quotes the words academies use
     ("social", "taller", "todos los jueves", "así se vivió"…), which helps the lighter model most;
+  - `in_bogota` for every event ("yes", "no" or "unknown"), checked in code (section 6.3), since the prompt
+    alone let a tour's concerts abroad through;
   - how to pick the event type (social, workshop, concert, congress, festival, competition, show, other: a
     multi-day dance congress is a `congress`, its workshops included) and the styles (from a fixed list);
   - dates: `date` is the event's day or its first day, `end_date` its last day over several consecutive days
@@ -544,8 +562,10 @@ Notes on the prompts and parameters:
     sessions is that series; a post presenting a teacher or one night of a festival is that festival. Times
     over several days: the first day's start and the last day's end;
   - how to resolve dates without a year;
+  - prices: `amount_cop` only in Colombian pesos, 0 only when free; a price in another currency goes to the
+    doubts, never as 0 (the code drops one anyway, section 6.3);
   - how to rate confidence (high, medium or low);
-  - when to set `same_as` (section 9).
+  - when to set `same_as` (section 9): only for a post that announces the event itself, on its date.
 
 ### 7.2 `ModelPool`: staying inside the free quotas
 
@@ -563,7 +583,8 @@ flowchart TD
     CALL -->|"invalid JSON"| RETRY{"Attempt < 3?"}
     CALL -->|"5xx busy, a timeout or<br/>a dropped connection"| BACK["Back off 5 s × attempt"] --> RETRY
     CALL -->|"429 per-minute"| WAIT["Wait 60 s"] --> RETRY
-    CALL -->|"429 daily, or<br/>429 again"| EXH["Mark model used up for today"] --> M
+    CALL -->|"429 per-minute again"| BUSY["Next model (counts as a failure;<br/>today's budget untouched)"] --> M
+    CALL -->|"429 per-day<br/>(its message or quota id says so)"| EXH["Mark model used up for today"] --> M
     CALL -->|"403 or 404: model not<br/>available to this key"| UNAV["Listed as unavailable<br/>(health warning)"] --> EXH
     CALL -->|"blocked answer<br/>(safety filter…)"| REJ["RejectedRequestError:<br/>post recorded as rejected"]
     CALL -->|"key invalid, expired or revoked<br/>(401, or 400/403 naming the API key)"| KEY["GeminiKeyError:<br/>the run stops, no post recorded"]
@@ -597,6 +618,11 @@ flowchart TD
   final (not provisional) results (`config.LITE_ONLY`). It's the switch for a Flash cutoff. With no provisional
   fallback, an extraction's error stands as it is: a rejected post is recorded as rejected, and a failure is an
   error retried next run (not "no quota left").
+- **Which 429:** only one whose message or quota id names the daily quota ("per day",
+  `GenerateRequestsPerDay…`; `gemini._is_daily_quota_error`) marks the model used up for the day. A per-minute
+  429 waits 60 seconds and retries; a second one moves on to the next model without touching the day's budget,
+  and if no model answers, the post is an error retried next run (until 2026-10-04 a second per-minute 429
+  counted as daily, so two in a row lost a model for the whole quota day).
 - **Pace:** calls to the same model are spaced to its per-minute limit.
 - **Timeout:** each request gives up after 120 seconds, so a stuck call can't hang the run. The SDK raises
   timeouts and dropped connections as httpx's own errors (`httpx.TransportError`, neither an `APIError` nor an
@@ -639,8 +665,8 @@ all of them in `media`. `pa_bailar/merging.py`. None of this costs a Gemini requ
 ```mermaid
 flowchart TD
     C["Extracted event from post P"] --> L{"Gemini set same_as<br/>to a known event of this account?"}
-    L -->|"yes, and that event<br/>doesn't already contain P"| MERGE["Merge into it"]
-    L -->|no| RULE{"Rule: same account, a day in common, and<br/>same start time (or same title when a time<br/>is missing; over several days: the title)?"}
+    L -->|"yes, that event doesn't already<br/>contain P, and they share a day"| MERGE["Merge into it"]
+    L -->|"no, or no day in common<br/>(then a new event gets a doubt)"| RULE{"Rule: same account, a day in common, and<br/>same start time (or same title when a time<br/>is missing; over several days: the title)?"}
     RULE -->|yes| MERGE
     RULE -->|no| SHARED{"Rule: another account's event,<br/>a day in common, no clash in time or venue,<br/>and one names the other's account,<br/>or the same venue (never titles alone)?"}
     SHARED -->|yes| MERGE
@@ -652,6 +678,12 @@ flowchart TD
 - **Gemini links first:** the extraction prompt lists the account's known upcoming events (id, date or
   first → last day and a workshop series' sessions, time, title), and Gemini sets `same_as` when the post
   announces one of them again. The rule-based match is the fallback.
+- **A link needs a day in common** (`merging.refused_link`): `same_as` is accepted only when the post's event
+  and the linked one share a day, as the rules require. Otherwise the event goes through the rules like any
+  other, and if it's stored as new it carries the doubt "posible cambio de fecha: Gemini lo une a <id>", which
+  lists it for review. Trusting the link alone moved an event to another post's date (a song release that
+  mentioned a concert), its id still naming the old day, and could have cost a series its sessions. A real
+  reschedule then shows as two events, the new one flagged, until the old one is hidden.
 - **Days in common:** an event covers `date` to `end_date` (or just `date`), and two events match only if
   their days overlap. A post about one night or one teacher of a festival falls within the festival's days.
   A workshop series covers only its session days, not the days between them.
@@ -787,11 +819,11 @@ memory between runs; the site never sees it.
 
 | File | Content | Why it matters |
 |---|---|---|
-| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha` or `ya pasó`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined. Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
+| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha`, `fuera de Bogotá`, `ya pasó` or `cancelado`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined. Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
 | `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post` | Whether the account still gets the deeper first sweep, and when its next turn is |
 | `gemini_usage.json` | Today's quota day (Pacific) and requests per model | The day's runs share the daily budgets |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
-| `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load (if the data PR that hid one didn't merge). Adding one of its posts by hand publishes it again |
+| `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts (the same event read again: a sibling from the same post, another event that day, stays published) nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load (if the data PR that hid one didn't merge). Adding one of its posts by hand publishes it again |
 | `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests and models the key couldn't use; warning keys | The health rules compare a run with the previous ones (section 11) |
 
 ```mermaid
@@ -860,7 +892,7 @@ They run after every sweep. No AI, no quota.
 | No events in a week | **Warning** | 14 runs with at least 10 posts analyzed and not a single event: are triage or extraction rejecting everything? |
 | Flash's quota ran out | Notice | Posts were extracted provisionally |
 | Account inactive | Notice | No post in 45 days (or none at all) |
-| Events to review | Listed | Upcoming events (until their last day) with medium or low confidence, or whose doubts mention the date (`fecha`, `día`), and congresses or festivals with a single day ("un solo día: ¿faltan fechas?": their other days may be missing) |
+| Events to review | Listed | Upcoming events (until their last day) with medium or low confidence, or whose doubts mention the date (`fecha`, `día`; a refused `same_as` link too), Bogotá (a city Gemini couldn't confirm) or a cancellation (`cancelado`, `aplazado`: another account's post said so), and congresses or festivals with a single day ("un solo día: ¿faltan fechas?": their other days may be missing) |
 
 ### 11.2 Where it shows
 
@@ -1161,10 +1193,10 @@ flowchart LR
 | `prompts.py` | The triage and extraction prompts, and the story prompt |
 | `stories.py` | Stories from screenshots: their id and perceptual hash, when a screenshot was taken, dates (and a workshop series' sessions) worked out from what's printed, the flyer's crop, the account's name |
 | `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback |
-| `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions |
+| `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions; prices in another currency never shown as free |
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |
 | `ids.py` | Readable, stable event ids (the event's URL) |
-| `pipeline.py` | `Sweep`: accounts, posts, storing, retention, run statistics; the admin tools' add a post or a story, hide a story or an event |
+| `pipeline.py` | `Sweep`: accounts, posts, storing (only upcoming events in Bogotá; a cancelled post's events taken down), retention, run statistics; the admin tools' add a post or a story, hide a story or an event |
 | `clips.py` | Videos' preview clips: download, cut 6 silent seconds with ffmpeg |
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, `accounts.txt` |
 | `health.py` | Run history, health rules, events to review, the report and its fingerprint |
