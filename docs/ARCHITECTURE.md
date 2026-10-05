@@ -234,7 +234,7 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 | **What for** | Reading posts when Gemini can't: every Gemini model for the step is out of today's quota or not available to the key. Triage when Flash-Lite is out; extraction when Flash and Flash-Lite are. Never before Gemini, and never for stories or upgrades (section 7.3) |
 | **API** | Both are OpenAI-compatible: `POST …/chat/completions` with the prompt's text and the images as base64 data URLs (`pa_bailar/external.py`, `config.EXTERNAL_PROVIDERS`). Plain `httpx`, no SDK |
 | **Keys** | `GROQ_API_KEY` (console.groq.com) and `OPENROUTER_API_KEY` (openrouter.ai). Both optional: a provider without its key is skipped, so without either the sweep works as before |
-| **Models** | Groq: `qwen/qwen3.8-27b`, its only vision model, in JSON mode with the schema in the prompt. OpenRouter: `qwen/qwen3.8-27b:free` (structured output: the schema as `response_format`, strict, with `provider.require_parameters`), then `google/gemma-4-31b-it:free` (JSON mode). Every answer is checked against the same Pydantic schemas as Gemini's |
+| **Models** | Groq: `qwen/qwen3.8-27b`, its only vision model, in JSON mode with the schema in the prompt. OpenRouter: `google/gemma-4-31b-it:free` and `google/gemma-4-26b-a4b-it:free` (JSON mode, the schema in the prompt; one request with its `models` list), then `openrouter/free`, a router to a random free model that takes the schema (structured output: the schema as `response_format`, strict, with `provider.require_parameters`). Every answer is checked against the same Pydantic schemas as Gemini's |
 | **Free limits** | Groq (2026-10-05): 30 requests/minute and 1,000/day, but 8,000 tokens/minute and 200,000/day; each image counts as 2,048 input tokens, at most 3 images per request. OpenRouter without credit: 20 requests/minute and 50/day for all free models together. Daily limits reset at midnight UTC (7:00 p.m. Bogotá) |
 | **Our budgets** | Groq: 900 requests and 180,000 tokens a day. OpenRouter: 40 requests a day. Kept under the free limits, for manual runs and the bake-off |
 | **Cost** | Free. Free models get pulled or paywalled without notice: `admin bakeoff` re-checks them (section 12.3) |
@@ -715,7 +715,7 @@ flowchart TD
   changes. Lite-only mode keeps them as the last resort after Flash-Lite.
 - **Always provisional:** an extraction from the last resort is stored like Flash-Lite's provisional ones, and
   upgraded with Flash on a later run when there's quota (section 6.2). Its record names the model with its
-  provider, `groq:qwen/qwen3.8-27b` or `openrouter:qwen/qwen3.8-27b:free`, and `admin why` shows it.
+  provider, `groq:qwen/qwen3.8-27b` or `openrouter:google/gemma-4-31b-it:free`, and `admin why` shows it.
 - **Fail fast:** one request per model and post, a 60-second timeout (`EXTERNAL_TIMEOUT_SECONDS`), no retries and no
   waiting on a busy model. On OpenRouter one request names the models of the same output mode (`models`), and
   OpenRouter itself tries the next one when a model is rate-limited or down; the answer says which one replied.
@@ -736,7 +736,9 @@ flowchart TD
   ([`docs/ADMIN.md`](ADMIN.md)). The list in `config.EXTERNAL_PROVIDERS` stays explicit: nothing switches by itself.
   On 5 October 2026, on 15 posts, OpenRouter's free qwen read about as well as Flash-Lite but failed or was
   rate-limited upstream often, and gemma never answered: why OpenRouter comes last. The same day OpenRouter
-  answered 404 for `qwen/qwen3.8-27b:free` ("unavailable for free"): the list needs that re-check.
+  answered 404 for `qwen/qwen3.8-27b:free` ("unavailable for free"): it went paid-only, so it left the list
+  (a 404 sets a model aside at once). `--discover` lists only models that answer in text: Google's Lyria shows a
+  zero token price but is a paid music model.
 
 ---
 

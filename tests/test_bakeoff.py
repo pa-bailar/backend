@@ -98,12 +98,12 @@ def test_running_a_model_caches_answers_and_retries_only_failures(tmp_path):
     assert bakeoff.load_cache(bakeoff.cache_file("m", tmp_path))["a"]["answer"]["reason"] == "ok"
 
 
-def test_discover_lists_free_models_with_image_input():
+def test_discover_lists_free_models_with_image_input_and_text_answers():
     listing = {
         "data": [
             {
-                "id": "qwen/qwen3.8-27b:free",
-                "architecture": {"input_modalities": ["text", "image"]},
+                "id": "google/gemma-4-31b-it:free",  # in config.EXTERNAL_PROVIDERS: starred
+                "architecture": {"input_modalities": ["text", "image"], "output_modalities": ["text"]},
                 "supported_parameters": ["response_format", "structured_outputs"],
                 "context_length": 131072,
             },
@@ -114,15 +114,21 @@ def test_discover_lists_free_models_with_image_input():
             },
             {"id": "text/only:free", "architecture": {"input_modalities": ["text"]}},
             {"id": "paid/vision", "architecture": {"input_modalities": ["image"]}, "pricing": {"prompt": "0.1"}},
+            # Lyria: a zero token price, but paid per clip and answering in audio: never a reader of posts.
+            {
+                "id": "google/lyria-3-clip-preview",
+                "architecture": {"input_modalities": ["text", "image"], "output_modalities": ["text", "audio"]},
+                "pricing": {"prompt": "0", "completion": "0"},
+            },
         ]
     }
     found = bakeoff.free_vision_models(listing)
     assert [(model["id"], model["structured"]) for model in found] == [
-        ("qwen/qwen3.8-27b:free", True),
+        ("google/gemma-4-31b-it:free", True),
         ("new/vision:free", False),
     ]
     text = bakeoff.discover_text(found)
-    assert " * qwen/qwen3.8-27b:free  (structured" in text and "   new/vision:free  (json_object" in text
+    assert " * google/gemma-4-31b-it:free  (structured" in text and "   new/vision:free  (json_object" in text
 
 
 def test_the_default_models_are_flash_lite_and_every_external_one():

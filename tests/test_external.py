@@ -55,6 +55,17 @@ class FakeAPI:
         return [body["model"] for body in self.bodies]
 
 
+@pytest.fixture(autouse=True)
+def fixed_models(monkeypatch):
+    """The tests' own model lists, so changing config.EXTERNAL_PROVIDERS's models (free models come and go) doesn't
+    change them: OpenRouter with a structured model then a JSON-mode one."""
+    groq, openrouter = config.EXTERNAL_PROVIDERS
+    pinned = openrouter.__class__(
+        **{**openrouter.__dict__, "models": (config.ExternalModel(QWEN, structured=True), config.ExternalModel(GEMMA))}
+    )
+    monkeypatch.setattr(config, "EXTERNAL_PROVIDERS", (groq, pinned))
+
+
 @pytest.fixture
 def sleeps(monkeypatch):
     """Every pause the tier takes (none for real), with pacing margins off."""

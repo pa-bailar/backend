@@ -188,7 +188,7 @@ report shows them failing) check them against Gemini Flash:
   model and post, **from the same daily quotas as the sweeps** (Gemini's, Groq's and OpenRouter's 50 a day). Run it
   between sweeps, not on a day the quotas are tight.
 - Models are named as the sweep records them: `gemini-3.5-flash-lite`, `groq:qwen/qwen3.8-27b`,
-  `openrouter:qwen/qwen3.8-27b:free`. A provider's model needs its key in `.env` (`GROQ_API_KEY`,
+  `openrouter:google/gemma-4-31b-it:free`. A provider's model needs its key in `.env` (`GROQ_API_KEY`,
   `OPENROUTER_API_KEY`).
 - Answers are cached in `state/bakeoff/` (git-ignored): a second run spends nothing on what was answered and
   retries only the failures.

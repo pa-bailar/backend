@@ -307,8 +307,11 @@ def free_vision_models(listing: dict[str, Any]) -> list[dict[str, Any]]:
         free = str(model.get("id", "")).endswith(":free") or (
             pricing.get("prompt") in ("0", 0) and pricing.get("completion") in ("0", 0)
         )
-        inputs = (model.get("architecture") or {}).get("input_modalities") or []
-        if not free or "image" not in inputs:
+        architecture = model.get("architecture") or {}
+        inputs = architecture.get("input_modalities") or []
+        outputs = architecture.get("output_modalities") or ["text"]
+        # Text answers only: Lyria's music models list a zero token price but are paid per clip, and answer in audio.
+        if not free or "image" not in inputs or outputs != ["text"]:
             continue
         parameters = model.get("supported_parameters") or []
         found.append(

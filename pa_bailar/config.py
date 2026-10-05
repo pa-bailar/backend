@@ -151,12 +151,18 @@ EXTERNAL_PROVIDERS = (
         max_images=3,
     ),
     # OpenRouter's free models without credit on the account: 20 requests/minute and 50/day, all free models
-    # together. The bake-off of 2026-10-05: qwen takes json_schema, gemma only json_object.
+    # together. Free models come and go: qwen/qwen3.8-27b:free went paid-only on 2026-10-05 (it answered 404), so
+    # check with `admin bakeoff --discover`. Gemma takes only json_object; `openrouter/free` routes to a random free
+    # model that takes the schema (strict json_schema with require_parameters): the very last try.
     ExternalProvider(
         name="openrouter",
         url="https://openrouter.ai/api/v1/chat/completions",
         key_env="OPENROUTER_API_KEY",
-        models=(ExternalModel("qwen/qwen3.8-27b:free", structured=True), ExternalModel("google/gemma-4-31b-it:free")),
+        models=(
+            ExternalModel("google/gemma-4-31b-it:free"),
+            ExternalModel("google/gemma-4-26b-a4b-it:free"),
+            ExternalModel("openrouter/free", structured=True),
+        ),
         requests_per_minute=20,
         daily_requests=40,
         routing=True,
