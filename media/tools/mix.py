@@ -25,7 +25,7 @@ import os
 import sys
 from pathlib import Path
 
-from common import BRAND, HOME, Video, ffmpeg, shown, video
+from common import BRAND, HOME, Video, ffmpeg, mix_key, shown, video
 
 LOUD = BRAND["loudness"]
 TP = LOUD["true_peak_target"]
@@ -184,6 +184,7 @@ def main(name: str) -> None:
     failed = [w for w in wrong if w]
     if failed:
         raise SystemExit("mix failed (the previous soundtracks stay):\n  " + "\n  ".join(failed))
+    (public / "mix.key").write_text(mix_key(v))  # what these were made from (tools/make.py)
 
 
 if __name__ == "__main__":

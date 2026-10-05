@@ -24,6 +24,8 @@ BRAND: dict = json.loads((MEDIA / "brand.json").read_text(encoding="utf-8"))
 # media home, outside any checkout.
 HOME = MEDIA
 CACHE = HOME / "cache"
+# The site's three faces (OFL), committed.
+FONTS = MEDIA / "public" / "fonts"
 # winget's Gyan.FFmpeg package (D:\AI\README.md), any version: <package>\ffmpeg-<version>-full_build\bin
 WINGET_PACKAGES = Path.home() / "AppData" / "Local" / "Microsoft" / "WinGet" / "Packages"
 TTS_RATE = 24000  # Gemini TTS: 24 kHz 16-bit mono PCM
@@ -151,6 +153,12 @@ class Video:
                 if parsed and parsed[1] == deliverable:
                     found.setdefault(parsed[0], path)
         return sorted(found.items())
+
+
+def mix_key(v: "Video") -> str:
+    """A key of what the soundtracks are made from in video.json (music, mix, length): tools/mix.py writes it next to
+    them, tools/make.py re-mixes when it changes."""
+    return key(v.settings.get("music", {}), v.settings.get("mix", {}), v.duration, v.settings.get("voice"))
 
 
 def version_tuple(text: str) -> tuple[int, ...]:
