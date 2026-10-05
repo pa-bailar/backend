@@ -143,6 +143,27 @@ def parse_end_date(start: str | None, end: str | None, doubts: list[str]) -> str
 
 # Gemini couldn't tell whether the event is in Bogotá (ExtractedEvent.in_bogota "unknown"; "no" isn't published).
 CITY_DOUBT = "ciudad sin confirmar: ¿es en Bogotá?"
+
+# Places a caption can name when an event is elsewhere (folded: text.fold). Checked in code after Gemini, for free:
+# "Nos vemos en expofitness Medellin 2027" came out as a Bogotá event (La Revuelta, read by Flash-Lite, Oct 2026).
+_OTHER_PLACES = re.compile(
+    r"\b(medellin|cali|barranquilla|cartagena|bucaramanga|pereira|manizales|armenia|villavicencio|ibague|tunja|"
+    r"santa marta|cucuta|neiva|pasto|popayan|monteria|sincelejo|valledupar|riohacha|quibdo|envigado|rionegro|"
+    r"mexico|cdmx|miami|new york|nueva york|madrid|barcelona|lima|quito|guayaquil|panama|caracas|santiago de chile|"
+    r"buenos aires|puerto rico|santo domingo|la habana)\b"
+)
+
+
+def doubtful_city(event: ExtractedEvent, caption: str | None) -> ExtractedEvent:
+    """An event Gemini placed in Bogotá ("yes") with no address of its own, from a caption that names another city
+    and never Bogotá, becomes "unknown": published with CITY_DOUBT and listed for review, not dropped (a caption
+    also names where a guest artist comes from: "llega desde Medellín")."""
+    text = fold(caption)
+    if event.in_bogota != "yes" or event.address or "bogota" in text or not _OTHER_PLACES.search(text):
+        return event
+    return event.model_copy(update={"in_bogota": "unknown"})
+
+
 COURSE_DOUBT = f"más de {config.MAX_SERIES_SESSIONS} sesiones o más de 4 meses: es un curso"
 
 

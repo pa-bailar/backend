@@ -239,6 +239,9 @@ class StoredEvent(EventDetails):
     id: str  # readable and never changed once set, e.g. "social-de-halloween-24-oct" (ids.py); the event's URL
     account: str
     media: list[EventMedia]  # main post first: flyers before videos, newest first (merging.ordered_media)
+    # Its account is a bar or club (accounts.txt `bar`, account_options): open every week, so the site can set these
+    # apart. Follows accounts.txt on every run (Sweep's start), not what the account was when the event was stored.
+    bar: bool = False
 
     @model_validator(mode="after")
     def _valid_series(self) -> Self:

@@ -74,6 +74,7 @@ class FakeExtractor:
         self.unavailable = unavailable  # models Gemini says this key can't use
         self.known_seen: dict[str, list[str]] = {}
         self.extracted_posts: list[str] = []
+        self.rules_seen: dict[str, str] = {}  # post id → the account's extra prompt rules (prompts.account_rules)
 
     def can_extract_with_flash(self) -> bool:
         return self.flash_available
@@ -87,12 +88,13 @@ class FakeExtractor:
     def requests_this_run(self) -> dict[str, int]:
         return {"fake-flash": len(self.extracted_posts)}
 
-    def triage(self, account, post, published, images):
+    def triage(self, account, post, published, images, rules=""):
+        self.rules_seen[post["id"]] = rules
         if self.out_of_quota:
             raise QuotaExhaustedError("no quota")
         return Triage(is_event_post=post["id"] not in self.not_events, reason="triage"), "fake-lite"
 
-    def extract(self, account, post, published, images, known_events, allow_provisional=True):
+    def extract(self, account, post, published, images, known_events, allow_provisional=True, rules=""):
         if self.out_of_quota:
             raise QuotaExhaustedError("no quota")
         if post["id"] in self.failing:
@@ -100,6 +102,7 @@ class FakeExtractor:
         if post["id"] in self.rejected:
             raise RejectedRequestError("400 bad image")
         self.known_seen[post["id"]] = [event.id for event in known_events]
+        self.rules_seen[post["id"]] = rules
         self.extracted_posts.append(post["id"])
         if self.flash_available:
             return self.analyses[post["id"]], "fake-flash", False
@@ -469,6 +472,12 @@ def test_quiet_accounts_take_their_turn_every_other_day_but_never_drop_out():
     quiet = config.QUIET_AFTER_DAYS + 5
     assert turn({"academia": swept(30, latest_post_days_ago=quiet), "otra": swept(30)}) == ["otra"]
     assert turn({"academia": swept(50, latest_post_days_ago=quiet), "otra": swept(3)}) == ["academia"]
+
+
+def test_dormant_accounts_take_their_turn_once_a_week():
+    dormant = config.DORMANT_AFTER_DAYS + 5
+    assert turn({"academia": swept(100, latest_post_days_ago=dormant), "otra": swept(3)}) == []  # 4 days: not yet
+    assert turn({"academia": swept(170, latest_post_days_ago=dormant), "otra": swept(3)}) == ["academia"]
 
 
 def test_reading_an_account_starts_its_next_turn():

@@ -370,8 +370,10 @@ about **once a day**, half of them in each sweep, instead of every account twice
 (`Sweep._due_accounts`, `pipeline.hours_overdue`):
 
 - **Each account's turn:** 20 hours after a sweep last read it (`SWEEP_EVERY_HOURS`: the same sweep the next
-  day finds it due). Quiet accounts, with no post in 45 days (`QUIET_AFTER_DAYS`), every 44 hours: lower
-  priority, never dropped. `accounts.json` keeps `last_swept_at` and `latest_post` (its day in Bogotá).
+  day finds it due). Quiet accounts, with no post in 45 days (`QUIET_AFTER_DAYS`), every 44 hours, and dormant
+  ones, with no post in 180 days (`DORMANT_AFTER_DAYS`), once a week (164 hours): lower priority, never dropped
+  (each read is an Instagram call that rarely finds anything new). An account silent for over a year is better
+  commented out in `accounts.txt`, with a note. `accounts.json` keeps `last_swept_at` and `latest_post` (its day in Bogotá).
 - **Order:** due accounts in their regular sweep before new ones (a new account's first, deeper sweep can
   take days of quota); within each, those that waited longest first.
 - **A sweep's share:** half the accounts plus 5 (`EXTRA_ACCOUNTS_PER_RUN`), and it stops earlier at 90% of
@@ -412,7 +414,7 @@ Section 11 covers how those are reported.
 ```mermaid
 flowchart TD
     A["Check the Instagram token<br/>(cheap call: our username)"] -->|invalid| X["Stop: run fails"]
-    A --> B["Accounts whose turn it is<br/>(20 h since last read, 44 h if quiet),<br/>regular ones first, new ones last;<br/>this run's share: half plus 5"]
+    A --> B["Accounts whose turn it is<br/>(20 h since last read, 44 h if quiet,<br/>a week if dormant),<br/>regular ones first, new ones last;<br/>this run's share: half plus 5"]
     B --> C{"Instagram rate limit hit,<br/>or 90% of its quota used?"}
     C -->|yes| R["Stop calling Instagram:<br/>the rest wait for the next run"]
     C -->|no| D{"Account's first sweep<br/>done? (state/accounts.json)"}
@@ -436,6 +438,29 @@ flowchart TD
   have been analyzed; if the quota or the time runs out, it continues in the next run.
 - **Saved after every post:** `events.json` and `processed_posts.json` are written after each post, so an
   interrupted run keeps everything it did.
+- **Bars and accounts limited to some styles** (`accounts.txt`, `account_options.py`). A line is the username,
+  then optional words, and `#` starts a comment anywhere on it (an unknown word stops the run, so a typo can't
+  sweep an account without its limits):
+
+  ```
+  galeriacafelibro        bar                      # emblematic salsa bar
+  ritmomoderno            bar solo:salsa,bachata   # general bar: only its salsa and bachata nights
+  ```
+
+  - `bar`: a bar or club, open every week (the owner, 5 October 2026: salsa bars hold special nights, but most of
+    their posts are their regular ones). The triage and the extraction get `prompts.BAR_RULES` after the caption:
+    its regular nights aren't events, only special one-time occasions (a live band, a guest artist or DJ billed
+    by name, an anniversary, a holiday party, a workshop, a competition or show); when unsure, it isn't. Its
+    events carry `bar: true` (`StoredEvent.bar`, docs/DATA.md in the site), set from `accounts.txt` on every run,
+    so marking or unmarking an account updates its stored events. Its first sweep is a regular one (10 posts, the
+    lookback): a bar's older posts are past nights.
+  - `solo:<styles>` (salsa, bachata, merengue, kizomba, tango): a general bar, club or cultural space that also
+    holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`: "salsa",
+    "salser", "timba", "bachat"…, accents and case ignored) is recorded as no event before any Gemini request,
+    for free ("no menciona salsa ni bachata"); the others get `prompts.FOCUS_RULES` too. A caption edited later
+    is checked again.
+  - A post added by hand (`--post`, PB Admin) gets neither the filter nor the rules: whoever adds it wants it read
+    as it is. Every other account's prompts are unchanged (the rules are an empty string).
 
 ### 6.2 Posts
 
@@ -499,7 +524,12 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
      condition), since the site shows 0 as free: it's dropped, with a doubt ("Precio en otra moneda: VIP
      (1,000.00 MXN)"), unless it reads as free (gratis, libre, free);
    - an event Gemini isn't sure is in Bogotá (`in_bogota` "unknown") gets the doubt "ciudad sin confirmar: ¿es
-     en Bogotá?", which lists it for review (section 11.1).
+     en Bogotá?", which lists it for review (section 11.1). Before that, a free check in code
+     (`normalize.doubtful_city`): an event Gemini placed in Bogotá, with no address of its own, from a caption
+     that names another city or country (`_OTHER_PLACES`: Medellín, Cali, México…) and never Bogotá, becomes
+     "unknown" too. On 3 October 2026 Flash-Lite read "Nos vemos en expofitness Medellín 2027" (La Revuelta Latin
+     Fest) as a Bogotá event; a caption that says where a guest comes from ("llega desde Medellín") with the
+     venue's address stays in Bogotá.
 
    The site relies on these formats.
 2. **Keep only publishable events** (`Sweep._discard_reasons`): one-time (`is_recurring` false; a workshop
@@ -985,8 +1015,9 @@ flowchart TD
 - **Adding an account** means adding a line to `accounts.txt` through a PR, in its section (academies, dance
   companies, event organizers, teachers and artists). The next sweep treats it as new and loads its older
   posts.
-- **Salsa bars and restaurants** are kept in `accounts.txt` as commented-out notes, with what discovery
-  found about each. They're not swept for now.
+- **Salsa bars and restaurants** are swept with `bar` after the name in `accounts.txt` (general bars and clubs
+  with `bar solo:salsa,bachata`), so only their special nights count (section 6.1). The ones not swept stay at
+  the end of the file as commented-out notes, with what discovery found about each.
 
 ### 12.2 `refresh-token`: a Meta token that doesn't expire
 

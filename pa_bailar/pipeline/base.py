@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import Any, cast
 
 from .. import config, links, public_post, storage
+from ..account_options import AccountOptions
 from ..extraction import EventExtractor
 from ..ids import new_event_id
 from ..instagram import InstagramClient, Post
@@ -23,7 +24,8 @@ from ..models import (
     ProcessedPost,
     StoredEvent,
 )
-from ..normalize import normalize_event
+from ..normalize import doubtful_city, normalize_event
+from ..prompts import account_rules
 from ..text import fold
 from . import common
 from .common import Extractor, PostSource, RunStats, caption_hash, has_ended, media_for, unpublishable
@@ -69,8 +71,15 @@ class SweepBase:
         self.hidden = storage.load_hidden_events()
         # An event hidden by hand stays off the site, even if the data PR of the run that hid it wasn't merged.
         stored = storage.load_events()
-        self.events = [event for event in stored if event.id not in self.hidden]
-        if len(self.events) != len(stored):
+        self.options = storage.read_account_options()
+        # An event is a bar's when its account is one now (accounts.txt): marking or unmarking an account updates
+        # its stored events too.
+        self.events = [
+            event if event.bar == self._is_bar(event.account) else event.model_copy(update={"bar": not event.bar})
+            for event in stored
+            if event.id not in self.hidden
+        ]
+        if self.events != stored:
             storage.save_events(self.events)
         self.processed = storage.load_processed_posts()
         self.by_hand = False  # adding a post or story by hand: it may publish again what was hidden
@@ -79,6 +88,15 @@ class SweepBase:
         self.started = time.monotonic()
         self.time_up_logged = False
         self.rate_limited = False  # Meta is throttling the app: the remaining accounts wait for the next run
+
+    def _is_bar(self, account: str) -> bool:
+        return self.options.get(account, AccountOptions()).bar
+
+    def _rules(self, account: str) -> str:
+        """The prompts' extra rules for this account (a bar, a style focus), from accounts.txt. None for a post added
+        by hand: whoever adds it wants it read as it is."""
+        options = self.options.get(account, AccountOptions())
+        return "" if self.by_hand else account_rules(options.bar, options.focus)
 
     def _hidden_match(self, account: str, candidate: ExtractedEvent, post_id: str) -> HiddenEvent | None:
         return next(
@@ -146,7 +164,7 @@ class SweepBase:
         count_as_new: bool = True,
     ) -> bool:
         """Store the post's events. False when it must be retried next run (a flyer couldn't be saved)."""
-        cleaned = [normalize_event(event) for event in analysis.events]
+        cleaned = [normalize_event(doubtful_city(event, post.get("caption"))) for event in analysis.events]
         publishable: list[ExtractedEvent] = []
         reasons: set[str] = set()  # why the others weren't published, for the post's record
         for event in cleaned if analysis.is_event_post else []:
@@ -274,7 +292,9 @@ class SweepBase:
             log.info("     same event as an earlier post, merged: %s %s", _days(existing), existing.title)
             return existing.id, True
         event_id = hidden.event.id if hidden else self._event_id(candidate, reusable)
-        event = StoredEvent(**_details(candidate), id=event_id, account=account, media=[media])
+        event = StoredEvent(
+            **_details(candidate), id=event_id, account=account, media=[media], bar=self._is_bar(account)
+        )
         self.events.append(event)
         if count:
             self.stats.count(account, "events_new")

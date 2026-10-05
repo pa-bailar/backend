@@ -41,7 +41,7 @@ sondehabana
 sonrumbero
 # Rechecked 4 Oct 2026 (marked personal before, readable now): Bogotá academies that announce workshops and events.
 bailaderia
-bailo.formacion
+# bailo.formacion  # silent: no posts in 651 days (5 Oct 2026): not swept; re-add if it posts
 efadanza
 originalstepdance
 fogal_arte
@@ -83,21 +83,21 @@ arrollando.dc
 # Alpaso Jam: salsa and timba socials, competitions and training.
 alpasojam
 # Ashé: salsa and bachata improvisation championships and socials.
-ashe_impro
+# ashe_impro  # silent: no posts in 718 days (5 Oct 2026): not swept; re-add if it posts
 # Salseros Clandestinos: events, intensives and workshops.
-salseros_clandestinos
+# salseros_clandestinos  # silent: no posts in 1474 days (5 Oct 2026): not swept; re-add if it posts
 # Val Kandela: urban dance parties (Los Kandelazos Bailables).
 valkandela
 # Rechecked 4 Oct 2026: Clan Disfrute (dance experiences and parties) and LaFem Congress (yearly salsa and
 # bachata congress in Bogotá, with parties and bootcamps).
 clandisfrute
-lafemcongress
+# lafemcongress  # silent: no posts in 559 days (5 Oct 2026): not swept; re-add if it posts
 # Competitions: one-time dated events with workshops and socials around them (events placed in another
 # city are left out by the prompts' city rule). Discovery, 4 Oct 2026.
 dreamcupco
 jackandjilloficial
 # Grosso Impro: salsa and bachata improvisation workshops and competitions (city not stated).
-grossoimpro
+# grossoimpro  # silent: no posts in 727 days (5 Oct 2026): not swept; re-add if it posts
 # Puntalpie: international Latin-rhythm congresses and competitions (city not stated).
 puntalpie
 
@@ -138,78 +138,61 @@ lanenamagdalena
 jaleocompetencia_
 dlivingstudio
 
+# Salsa bars and salsotecas: open every week. `bar`: only their special occasions count (live bands, guest
+# artists, anniversaries, holiday parties, workshops), their events are tagged so the site can set them apart,
+# and their first sweep isn't deeper than the others (docs/ARCHITECTURE.md, section 6.1). Discovery, 2-4 Oct
+# 2026, and the best-known salsa bars in Bogotá (5 Oct 2026).
+galeriacafelibro        bar  # Emblematic salsa bar with live music and dance events
+casaquiebracanto        bar  # Casa Quiebra Canto (Cra 5 # 17-76, since 1979): emblematic salsa venue, live orchestras
+salsacamaraoficial      bar  # Salsa restaurant-bar with live music and rumba
+elgocepagano            bar  # Salsa bar (salsoteca) with rumba and live salsa concerts
+sandunguera.salsabar    bar  # Sandunguera (Calle 64 # 13-52, Chapinero): classic salsa and Cuban music
+salsaysonoficial        bar  # Salsa y Son (Calle 83 # 14-13): salsa every night, live music and DJs
+boogaloop.candelaria    bar  # Boogaloop La Candelaria: live traditional and salsa music
+el_panteon_de_la_salsa  bar  # Salsa bar (Carrera 71d # 2a-13 sur): vinyl and digital salsa nights
+habana93                bar  # Gastrobar with live music and salsa, special events
+babou_candelaria        bar  # Salsa restaurant-bar in La Candelaria, live music
+pachanga_y_pochola      bar  # Bar with live music, DJs and room to dance salsa and other genres
+bulevarsalsabar         bar  # Salsa bar (Calle 51 # 7-57, Chapinero). Same owners as bulevarsalsarooftop
+bulevarsalsarooftop     bar  # Salsa bar (Cra 13 # 82-37, Zona T). Same owners as bulevarsalsabar
+bilongocolombia         bar  # Fuente de soda and bar with live salsa music and events
+elratonsalsaclub        bar  # Salsa rooftop club (Zona T), New York style salsa; Thursday to Saturday
+oronegroclub            bar  # Salsa bar and club (Modelia) with frequent parties
+casavander_             bar  # Restaurant-bar with music events and salsa tributes
+chanchanlatino          bar  # Caribbean restaurant (Carrera 14 # 93-14) with live salsa
+el_bochinche_cafe_      bar  # Café-bar with regular salsa nights and parties
+callejonsalsa           bar  # Restaurant-bar (Calle 12D # 3-84): live music, promotes salsa culture and dance gatherings
+tributo.salsayjazz      bar  # Bar: live music, salsa and jazz, food, craft beer
+terrazasalsera          bar  # Salsa bar (4th floor) that also teaches salsa, bachata and tango; live shows and orchestras
+ilhehabana              bar  # Cuban-themed restaurant, bar and gallery with live music
+restaurantecasadecitas  bar  # Peruvian restaurant with live music and rumba
+ladiezluxury_outlet     bar  # Night venue focused on salsa music and dancing
+quemaquequema           bar  # Restaurant-bar with live music and salsa
+
+# General bars, clubs and cultural spaces that also hold salsa or bachata nights: only those count. `solo:`: a
+# post whose caption names neither style is left out before any Gemini request.
+ritmomoderno         bar solo:salsa,bachata  # Alternative bar (Cr 4 # 17-39, Centro): cocktails, parties with dancing
+sonorasocialclub_    bar solo:salsa,bachata  # Night club with reggaeton and dancehall parties
+discojaguar.bta      bar solo:salsa,bachata  # Disco (Cra 7 # 59-30, Chapinero): salsa, merengue, dancehall, afro
+acaparchamos         bar solo:salsa,bachata  # Bar and event venue in Chapinero: salsa nights and social dancing
+lamecanica_original  bar solo:salsa,bachata  # Cultural center, stage and bar (Cra 25 # 63f-21): concerts and salsa parties
+aseismanos           bar solo:salsa,bachata  # Bar and cultural center: events, concerts and dance classes
+mundanobaroficial    bar solo:salsa,bachata  # Bar with live music, food and occasional dance classes and events
+
 # ---------------------------------------------------------------------------------------------------
-# Salsa bars and restaurants: NOT swept for now (every line below is a comment).
-# They contribute differently from academies (nightly rumba, live bands, weekly salsa nights more than
-# one-time events), to be handled later in their own way. Kept here so the discovery analysis isn't
-# lost: what each one is, according to its profile (discovery run, 2 October 2026). To sweep one, remove
-# the "# " in front of its username.
+# Other bars and clubs: NOT swept (every line below is a comment). The swept bars are above; to sweep one of
+# these, move it there with `bar` (or `bar solo:salsa,bachata` when it isn't a salsa bar).
 # ---------------------------------------------------------------------------------------------------
-# tributo.salsayjazz
-#   Bar: live music, salsa and jazz, food, craft beer.
-# ritmomoderno
-#   Alternative bar (Cr 4 # 17-39, Centro): cocktails, parties with dancing.
-# terrazasalsera
-#   Salsa bar (4th floor) that also teaches salsa, bachata and tango; live shows with dancers and
-#   orchestras. Closest to an academy of the group.
-# discojaguar.bta
-#   Disco (Cra 7 # 59-30, Chapinero): salsa, merengue, dancehall, afro.
-# callejonsalsa
-#   Restaurant-bar (Calle 12D # 3-84): live music, promotes salsa culture and dance gatherings.
-# bulevarsalsabar
-#   Salsa bar (Calle 51 # 7-57, Chapinero). Same owners as bulevarsalsarooftop.
-# bulevarsalsarooftop
-#   Salsa bar (Cra 13 # 82-37, Zona T). Same owners as bulevarsalsabar.
-# elratonsalsaclub
-#   Salsa rooftop club (Zona T), New York style salsa; Thursday to Saturday.
-# el_panteon_de_la_salsa
-#   Salsa bar (Carrera 71d # 2a-13 sur): vinyl and digital salsa nights.
-# chanchanlatino
-#   Caribbean restaurant (Carrera 14 # 93-14) with live salsa.
-# babou_candelaria
-#   Salsa restaurant-bar in La Candelaria, live music.
 # zokalobohemiooficial
-#   Salsa bar with dance classes and special events.
-# lamecanica_original
-#   Cultural center, stage and bar (Cra 25 # 63f-21): concerts and salsa parties.
-# restaurantecasadecitas
-#   Peruvian restaurant with live music and rumba.
-# acaparchamos
-#   Bar and event venue in Chapinero: salsa nights and social dancing. (discovery, 4 Oct 2026)
-# aseismanos
-#   Bar and cultural center: events, concerts and dance classes. (discovery, 4 Oct 2026)
-# bilongocolombia
-#   Fuente de soda and bar with live salsa music and events. (discovery, 4 Oct 2026)
-# el_bochinche_cafe_
-#   Café-bar with regular salsa nights and parties. (discovery, 4 Oct 2026)
-# galeriacafelibro
-#   Emblematic salsa bar with live music and dance events. (discovery, 4 Oct 2026)
-# ilhehabana
-#   Cuban-themed restaurant, bar and gallery with live music. (discovery, 4 Oct 2026)
-# ladiezluxury_outlet
-#   Night venue focused on salsa music and dancing. (discovery, 4 Oct 2026)
-# casavander_
-#   Restaurant-bar with music events and salsa tributes. (discovery, 4 Oct 2026)
-# elgocepagano
-#   Salsa bar (salsoteca) with rumba and live salsa concerts. (discovery, 4 Oct 2026)
-# habana93
-#   Gastrobar with live music and salsa, special events. (discovery, 4 Oct 2026)
-# pachanga_y_pochola
-#   Bar with live music, DJs and room to dance salsa and other genres. (discovery, 4 Oct 2026)
+#   Salsa bar with dance classes and special events. Silent: no posts since 13 Dec 2024 (checked 5 Oct 2026).
+# elbembebar
+#   El Bembé (Calle 27B, La Macarena), salsa bar. Silent: no posts since 17 Mar 2020 (checked 5 Oct 2026).
+# salszburgobarbogota
+#   Salzburgo (Chapinero), salsa bar. Silent: no posts since 16 Mar 2019 (checked 5 Oct 2026).
 # perdidobarvecino
 #   Bar (Zona G) with occasional salsa nights and DJ sets. (discovery, 4 Oct 2026)
-# mundanobaroficial
-#   Bar with live music, food and occasional dance classes and events. (discovery, 4 Oct 2026)
 # cacaoblunt
 #   Night club with dancehall and afro parties. (discovery, 4 Oct 2026)
-# oronegroclub
-#   Salsa bar and club (Modelia) with frequent parties. (discovery, 4 Oct 2026)
-# salsacamaraoficial
-#   Salsa restaurant-bar with live music and rumba. (discovery, 4 Oct 2026)
-# quemaquequema
-#   Restaurant-bar with live music and salsa. (discovery, 4 Oct 2026)
-# sonorasocialclub_
-#   Night club with reggaeton and dancehall parties. (discovery, 4 Oct 2026)
 
 # ---------------------------------------------------------------------------------------------------
 # Candidates: NOT swept (every line below is a comment). Teachers and dancers who announce workshops,

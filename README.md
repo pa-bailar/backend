@@ -74,7 +74,8 @@ node --test "admin-web/test/*.test.mjs"       # the admin page's tests
 ```
 
 - Accounts to follow: `accounts.txt` (one username per line, by section: academies, dance companies,
-  event organizers, teachers and artists). Add as many as you like at once:
+  event organizers, teachers and artists, salsa bars). A bar's line says `bar` after the name, and a general bar
+  or club `bar solo:salsa,bachata` (only those nights count): docs/ARCHITECTURE.md, section 6.1. Add as many as you like at once:
   a new account's first sweep reads its last 30 posts (30 days), and when the free Gemini quota runs
   out the rest waits for the next day. Accounts already in their regular sweep always go first, so a
   backlog never delays today's events.

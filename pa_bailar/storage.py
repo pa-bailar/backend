@@ -12,6 +12,7 @@ from PIL import Image
 from pydantic import TypeAdapter
 
 from . import config
+from .account_options import AccountOptions, parse_line
 from .merging import ordered_media
 from .models import AccountState, HiddenEvent, ProcessedPost, StoredEvent
 
@@ -119,8 +120,13 @@ def save_gemini_usage(usage: dict[str, Any]) -> None:
 
 def read_accounts() -> list[str]:
     """Usernames from accounts.txt: one per line, '@' optional, '#' starts a comment."""
+    return list(read_account_options())
+
+
+def read_account_options() -> dict[str, AccountOptions]:
+    """Each account in accounts.txt with what its line says besides the name (`bar`, `solo:…`: account_options)."""
     lines = config.ACCOUNTS_FILE.read_text(encoding="utf-8").splitlines()
-    return [line.strip().lstrip("@") for line in lines if line.strip() and not line.strip().startswith("#")]
+    return dict(parsed for line in lines if (parsed := parse_line(line)))
 
 
 ADDED_BY_ADMIN = "# Added with the admin tools (admin add-account, sweep --post)"
