@@ -370,8 +370,10 @@ about **once a day**, half of them in each sweep, instead of every account twice
 (`Sweep._due_accounts`, `pipeline.hours_overdue`):
 
 - **Each account's turn:** 20 hours after a sweep last read it (`SWEEP_EVERY_HOURS`: the same sweep the next
-  day finds it due). Quiet accounts, with no post in 45 days (`QUIET_AFTER_DAYS`), every 44 hours: lower
-  priority, never dropped. `accounts.json` keeps `last_swept_at` and `latest_post` (its day in Bogotá).
+  day finds it due). Quiet accounts, with no post in 45 days (`QUIET_AFTER_DAYS`), every 44 hours, and dormant
+  ones, with no post in 180 days (`DORMANT_AFTER_DAYS`), once a week (164 hours): lower priority, never dropped
+  (each read is an Instagram call that rarely finds anything new). An account silent for over a year is better
+  commented out in `accounts.txt`, with a note. `accounts.json` keeps `last_swept_at` and `latest_post` (its day in Bogotá).
 - **Order:** due accounts in their regular sweep before new ones (a new account's first, deeper sweep can
   take days of quota); within each, those that waited longest first.
 - **A sweep's share:** half the accounts plus 5 (`EXTRA_ACCOUNTS_PER_RUN`), and it stops earlier at 90% of
@@ -412,7 +414,7 @@ Section 11 covers how those are reported.
 ```mermaid
 flowchart TD
     A["Check the Instagram token<br/>(cheap call: our username)"] -->|invalid| X["Stop: run fails"]
-    A --> B["Accounts whose turn it is<br/>(20 h since last read, 44 h if quiet),<br/>regular ones first, new ones last;<br/>this run's share: half plus 5"]
+    A --> B["Accounts whose turn it is<br/>(20 h since last read, 44 h if quiet,<br/>a week if dormant),<br/>regular ones first, new ones last;<br/>this run's share: half plus 5"]
     B --> C{"Instagram rate limit hit,<br/>or 90% of its quota used?"}
     C -->|yes| R["Stop calling Instagram:<br/>the rest wait for the next run"]
     C -->|no| D{"Account's first sweep<br/>done? (state/accounts.json)"}

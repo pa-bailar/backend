@@ -24,11 +24,13 @@ def hours_overdue(state: AccountState | None, now: datetime) -> float:
     """How long past its turn an account is (negative: not its turn yet). Never read: always due."""
     if state is None or state.last_swept_at is None:
         return float("inf")
-    quiet = (
-        state.latest_post is not None
-        and (now.date() - date.fromisoformat(state.latest_post)).days >= config.QUIET_AFTER_DAYS
-    )
-    every = config.QUIET_SWEEP_EVERY_HOURS if quiet else config.SWEEP_EVERY_HOURS
+    silent = (now.date() - date.fromisoformat(state.latest_post)).days if state.latest_post else 0
+    if silent >= config.DORMANT_AFTER_DAYS:
+        every = config.DORMANT_SWEEP_EVERY_HOURS
+    elif silent >= config.QUIET_AFTER_DAYS:
+        every = config.QUIET_SWEEP_EVERY_HOURS
+    else:
+        every = config.SWEEP_EVERY_HOURS
     return (now - datetime.fromisoformat(state.last_swept_at)).total_seconds() / 3600 - every
 
 

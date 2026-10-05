@@ -474,6 +474,12 @@ def test_quiet_accounts_take_their_turn_every_other_day_but_never_drop_out():
     assert turn({"academia": swept(50, latest_post_days_ago=quiet), "otra": swept(3)}) == ["academia"]
 
 
+def test_dormant_accounts_take_their_turn_once_a_week():
+    dormant = config.DORMANT_AFTER_DAYS + 5
+    assert turn({"academia": swept(100, latest_post_days_ago=dormant), "otra": swept(3)}) == []  # 4 days: not yet
+    assert turn({"academia": swept(170, latest_post_days_ago=dormant), "otra": swept(3)}) == ["academia"]
+
+
 def test_reading_an_account_starts_its_next_turn():
     assert turn({"academia": swept(30), "otra": swept(30)}) == ["academia", "otra"]
     assert turn(storage.read_json(config.ACCOUNT_STATE_FILE, {})) == []  # just read: their turn is tomorrow

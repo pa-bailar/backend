@@ -147,6 +147,8 @@ casaquiebracanto        bar  # Casa Quiebra Canto (Cra 5 # 17-76, since 1979): e
 salsacamaraoficial      bar  # Salsa restaurant-bar with live music and rumba
 elgocepagano            bar  # Salsa bar (salsoteca) with rumba and live salsa concerts
 sandunguera.salsabar    bar  # Sandunguera (Calle 64 # 13-52, Chapinero): classic salsa and Cuban music
+salsaysonoficial        bar  # Salsa y Son (Calle 83 # 14-13): salsa every night, live music and DJs
+boogaloop.candelaria    bar  # Boogaloop La Candelaria: live traditional and salsa music
 el_panteon_de_la_salsa  bar  # Salsa bar (Carrera 71d # 2a-13 sur): vinyl and digital salsa nights
 habana93                bar  # Gastrobar with live music and salsa, special events
 babou_candelaria        bar  # Salsa restaurant-bar in La Candelaria, live music
@@ -161,7 +163,6 @@ chanchanlatino          bar  # Caribbean restaurant (Carrera 14 # 93-14) with li
 el_bochinche_cafe_      bar  # Café-bar with regular salsa nights and parties
 callejonsalsa           bar  # Restaurant-bar (Calle 12D # 3-84): live music, promotes salsa culture and dance gatherings
 tributo.salsayjazz      bar  # Bar: live music, salsa and jazz, food, craft beer
-zokalobohemiooficial    bar  # Salsa bar with dance classes and special events
 terrazasalsera          bar  # Salsa bar (4th floor) that also teaches salsa, bachata and tango; live shows and orchestras
 ilhehabana              bar  # Cuban-themed restaurant, bar and gallery with live music
 restaurantecasadecitas  bar  # Peruvian restaurant with live music and rumba
@@ -182,6 +183,12 @@ mundanobaroficial    bar solo:salsa,bachata  # Bar with live music, food and occ
 # Other bars and clubs: NOT swept (every line below is a comment). The swept bars are above; to sweep one of
 # these, move it there with `bar` (or `bar solo:salsa,bachata` when it isn't a salsa bar).
 # ---------------------------------------------------------------------------------------------------
+# zokalobohemiooficial
+#   Salsa bar with dance classes and special events. Silent: no posts since 13 Dec 2024 (checked 5 Oct 2026).
+# elbembebar
+#   El Bembé (Calle 27B, La Macarena), salsa bar. Silent: no posts since 17 Mar 2020 (checked 5 Oct 2026).
+# salszburgobarbogota
+#   Salzburgo (Chapinero), salsa bar. Silent: no posts since 16 Mar 2019 (checked 5 Oct 2026).
 # perdidobarvecino
 #   Bar (Zona G) with occasional salsa nights and DJ sets. (discovery, 4 Oct 2026)
 # cacaoblunt
