@@ -17,7 +17,7 @@ import {
   FPS,
   Flyer,
   Grain,
-  grid,
+  gridOf,
   HEIGHT,
   jit,
   kick,
@@ -45,7 +45,7 @@ import settings from "./video.json";
 
 const file = assets("este-finde");
 const DURATION_S = settings.duration;
-const { BEAT, beats, downbeats } = grid(98);
+const { BEAT, beats, downbeats } = gridOf(settings); // brand.json's default tempo (no music here)
 const data = snapshot as EventsSnapshot;
 const MAX = 4; // cards that fit above the safe zone's bottom; the subtitle gives the total
 const events = data.events.slice(0, MAX);

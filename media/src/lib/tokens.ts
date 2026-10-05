@@ -1,18 +1,32 @@
-// The canvas and the brand's design tokens for video. Colors come from pa-bailar-web/frontend/src/styles/tokens.css,
-// the light theme "Fania de día" (the owner prefers it for video). Values that only one video uses belong in its
-// own folder (projects/<name>/), not here.
+// The canvas and the brand's design tokens for video. The canvas, safe zones, sticker band and default tempo come from
+// media/brand.json (shared with the Python tools); colors from pa-bailar-web/frontend/src/styles/tokens.css, the
+// light theme "Fania de día" (the owner prefers it for video). Values that only one video uses belong in its own
+// folder (projects/<name>/), not here.
 import type React from "react";
+import brand from "../../brand.json";
 
 /** Instagram Stories and Reels: 1080×1920 at 30 fps. */
-export const FPS = 30;
-export const WIDTH = 1080;
-export const HEIGHT = 1920;
+export const FPS = brand.canvas.fps;
+export const WIDTH = brand.canvas.width;
+export const HEIGHT = brand.canvas.height;
 
 /**
  * Safe zones (Instagram's UI covers the rest): no text above `top` (progress bar, account) or below `bottom` (reply
- * bar, link sticker, Reel caption), nor closer than `side` to the edges. Images may run into them; words never do.
+ * bar, Reel caption), nor closer than `side` to the edges. Images may run into them; words never do.
  */
-export const SAFE = { top: 250, bottom: HEIGHT - 340, side: 80 };
+export const SAFE = { top: brand.safe.top, bottom: brand.safe.bottom, side: brand.safe.side };
+
+/**
+ * Stories: the band the owner keeps for Instagram's link sticker, at the top, all through the video. No element enters
+ * it on any frame (tools/review.py band measures it, allowing nothing above `bottom + margin`).
+ */
+export const STICKER_BAND = { top: brand.stickerBand.top, bottom: brand.stickerBand.bottom, margin: brand.stickerBand.margin };
+
+/** Scene titles sit here in every scene, so the eye never hunts. */
+export const TITLE_BAND = { top: brand.titleBand.top, bottom: brand.titleBand.bottom };
+
+/** The tempo of a video's beat grid when its video.json has no music.bpm. */
+export const DEFAULT_BPM = brand.beat.bpm;
 
 /** Seconds → frames (rounded). */
 export const sec = (s: number, fps = FPS) => Math.round(s * fps);

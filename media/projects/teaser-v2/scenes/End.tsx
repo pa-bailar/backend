@@ -27,8 +27,6 @@ import { beats, downbeats, line, SCENES, word } from "../theme";
 import { flight, RECORD_SPOT, STICKER } from "./Free";
 
 export type Cta = "story" | "reel";
-/** The band the owner keeps for Instagram's link sticker in the Story, all through the video: no element enters it. */
-export const STICKER_BAND = { top: 0, bottom: 250 };
 
 export const End: React.FC<{ cta: Cta }> = ({ cta }) => {
   const { frame, t } = useScene();

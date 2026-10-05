@@ -16,6 +16,8 @@ from pathlib import Path
 
 MEDIA = Path(__file__).resolve().parent.parent
 BACKEND = MEDIA.parent
+# The canvas, safe zones, sticker band, default tempo and loudness targets, shared with src/lib/tokens.ts.
+BRAND: dict = json.loads((MEDIA / "brand.json").read_text(encoding="utf-8"))
 CACHE = MEDIA / "cache"
 # winget's Gyan.FFmpeg package (D:\AI\README.md), any version: <package>\ffmpeg-<version>-full_build\bin
 WINGET_PACKAGES = Path.home() / "AppData" / "Local" / "Microsoft" / "WinGet" / "Packages"
@@ -107,7 +109,7 @@ class Video:
 
     @property
     def fps(self) -> int:
-        return int(self.settings.get("fps", 30))
+        return int(self.settings.get("fps", BRAND["canvas"]["fps"]))
 
     @property
     def duration(self) -> float:

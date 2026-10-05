@@ -2,7 +2,7 @@
 
   python media/tools/review.py sheet <video.mp4> [--at 1.5,4,9.2 | --every 2] [--out sheet.png]
       One row of keyframes (360 px wide each) with the safe zones drawn in cyan (no text above 250 px or below
-      1580 px at 1080×1920). Default: every 2 s. → next to the video, <name>-sheet.png
+      1580 px at 1080×1920: brand.json's "safe"). Default: every 2 s. → next to the video, <name>-sheet.png
   python media/tools/review.py compare <a.mp4> <b.mp4> [--labels v1,v2] [--from 0 --to 4.6] [--out ab.mp4]
       Side by side at half size, labeled, with b's sound: for the owner to see what changed.
   python media/tools/review.py diff <a.mp4> <b.mp4>
@@ -17,10 +17,11 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from common import ffmpeg, probe
+from common import BRAND, ffmpeg, probe
 
 FONT = "C\\:/Windows/Fonts/arial.ttf"
-SAFE = (250, 1580)  # px at 1920 tall
+HEIGHT = BRAND["canvas"]["height"]
+SAFE = (BRAND["safe"]["top"], BRAND["safe"]["bottom"])  # px at the canvas's height
 
 
 def duration_of(path: Path) -> float:
@@ -46,8 +47,8 @@ def _sheet(path: Path, at: list[float], out: Path, tmp: Path) -> None:
         files.append(f)
     inputs = sum((["-i", str(f)] for f in files), [])
     lines = (
-        f"drawbox=y=ih*{SAFE[0] / 1920:.4f}:w=iw:h=1:color=cyan@0.8:t=fill,"
-        f"drawbox=y=ih*{SAFE[1] / 1920:.4f}:w=iw:h=1:color=cyan@0.8:t=fill"
+        f"drawbox=y=ih*{SAFE[0] / HEIGHT:.4f}:w=iw:h=1:color=cyan@0.8:t=fill,"
+        f"drawbox=y=ih*{SAFE[1] / HEIGHT:.4f}:w=iw:h=1:color=cyan@0.8:t=fill"
     )
     label = f"drawtext=fontfile='{FONT}':fontsize=22:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=6:x=8:y=8"
     graph = ";".join(f"[{i}]scale=360:-1,{lines},{label}:text='{t:.2f} s'[p{i}]" for i, t in enumerate(at))

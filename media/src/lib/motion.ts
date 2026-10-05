@@ -3,7 +3,7 @@
 // choosing among them, not by inventing new curves.
 import type React from "react";
 import { Easing, interpolate, random, spring } from "remotion";
-import { FPS } from "./tokens";
+import { DEFAULT_BPM, FPS } from "./tokens";
 
 /**
  * The springs (Remotion's spring(): mass, damping, stiffness). Overshoot and settle time measured with
@@ -89,6 +89,10 @@ export function grid(bpm: number) {
   };
   return { bpm, BEAT, BAR, beats: every(BEAT), downbeats: every(BAR) };
 }
+
+/** A video's grid from its video.json: `music.bpm`, or brand.json's default tempo. */
+export const gridOf = (settings: object) =>
+  grid((settings as { music?: { bpm?: number } }).music?.bpm ?? DEFAULT_BPM);
 
 /** A kick after each time in `at` (seconds): 0 → 1 in ~2 frames, back to 0 in ~10. For beat accents. */
 export function kick(tSec: number, at: number[]): number {

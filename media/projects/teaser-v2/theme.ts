@@ -1,6 +1,6 @@
 // This video's clock: the voice's timing (data/timing.json, tools/timing.py), its 98 bpm grid, and where the scenes
 // cut. Everything else comes from the kit.
-import { assets, grid, makeTiming } from "../../src/kit";
+import { assets, gridOf, makeTiming } from "../../src/kit";
 import timingJson from "./data/timing.json";
 import settings from "./video.json";
 
@@ -12,7 +12,7 @@ export const DURATION_S = settings.duration; // video.json: tools/mix.py pads th
 const timing = makeTiming(timingJson);
 export const { line, word } = timing;
 
-export const { BEAT, BAR, beats, downbeats } = grid(98);
+export const { BEAT, BAR, beats, downbeats } = gridOf(settings); // video.json's music.bpm (98)
 
 // Scene boundaries (video seconds) on the 98 bpm grid. The list and the detail are one continuous phone scene.
 export const SCENES = {
