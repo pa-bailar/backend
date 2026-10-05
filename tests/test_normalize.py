@@ -79,6 +79,46 @@ def test_invalid_date_becomes_none_so_the_event_is_not_published():
     assert normalize_event(extracted(date="sábado")).date is None
 
 
+@pytest.mark.parametrize(
+    ("label", "condition"),
+    [
+        ("VIP", "1,000.00 MXN"),
+        ("General", "USD 25"),
+        ("Full pass", "US$ 120"),
+        ("Entrada 15 €", None),
+        ("Preventa", "30 euros"),
+        ("Taquilla", "20 dólares"),
+        ("Boleta", "500 pesos mexicanos"),
+    ],
+)
+def test_a_zero_price_in_another_currency_is_dropped_and_noted_instead_of_shown_as_free(label, condition):
+    """Gemini stored {"label": "VIP", "amount_cop": 0, "condition": "1,000.00 MXN"} for a concert abroad, and the
+    site shows all-zero prices as free (review finding)."""
+    event = normalize_event(extracted(prices=[Price(label=label, amount_cop=0, condition=condition)]))
+    assert event.prices == []
+    assert event.doubts == [f"Precio en otra moneda: {label}" + (f" ({condition})" if condition else "")]
+
+
+@pytest.mark.parametrize(
+    ("label", "condition"),
+    [
+        ("Gratis", None),
+        ("Entrada libre", "antes de las 10 p. m."),
+        ("General", None),
+        ("Free", "hasta 10 USD en consumo"),  # it reads as free
+        ("Mujeres", "hasta las 9 p. m."),
+    ],
+)
+def test_a_zero_price_that_reads_as_free_or_has_no_other_amount_is_kept(label, condition):
+    event = normalize_event(extracted(prices=[Price(label=label, amount_cop=0, condition=condition)]))
+    assert [price.label for price in event.prices] == [label] and event.doubts == []
+
+
+def test_a_price_in_pesos_is_kept_whatever_its_condition_says():
+    price = Price(label="Extranjeros", amount_cop=100000, condition="o 25 USD")
+    assert normalize_event(extracted(prices=[price])).prices == [price]
+
+
 def test_negative_prices_are_removed():
     prices = [Price(label="General", amount_cop=20000), Price(label="Error", amount_cop=-1)]
     assert [p.label for p in normalize_event(extracted(prices=prices)).prices] == ["General"]

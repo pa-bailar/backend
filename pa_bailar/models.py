@@ -46,7 +46,9 @@ STYLES: tuple[str, ...] = get_args(Style)
 
 class Price(BaseModel):
     label: str = Field(description="As written, e.g. 'Preventa', 'Taquilla', 'Alumnos', 'General'")
-    amount_cop: int = Field(description="Colombian pesos. '15K' or '15 mil' = 15000")
+    amount_cop: int = Field(
+        description="Colombian pesos only. '15K' or '15 mil' = 15000; 0 = free. Never a price in another currency"
+    )
     condition: str | None = Field(None, description="e.g. 'hasta el 24 de septiembre', 'solo 50 cupos'")
 
 

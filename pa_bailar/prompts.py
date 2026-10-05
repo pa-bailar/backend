@@ -144,7 +144,9 @@ Rules:
 - A workshop series that has already started (some sessions passed) still lists every session.
 - Dates without a year: pick the occurrence closest after the publication date.
 - If the weekday and the date disagree, trust the date written with numbers and set confidence to low.
-- Prices: '15K' or '15 mil' = 15000.
+- Prices: '15K' or '15 mil' = 15000. amount_cop is only for Colombian pesos, and 0 only when it's free: a
+  price in another currency (USD, US$, MXN, EUR, €, dólares…) is never written as 0 nor converted; leave it
+  out of prices and put it in doubts (e.g. "precio en otra moneda: 1.000 MXN").
 - contact: an @username, a website or a phone number. If the flyer or the caption marks the number
   as WhatsApp (the word, or the green WhatsApp icon next to it), write 'WhatsApp ' before it, e.g.
   'WhatsApp 3001234567'; the site then opens a chat. Otherwise just the number.
@@ -212,7 +214,9 @@ Dates: copy what's printed, don't work them out (that's done later):
 Rules:
 - A story can announce several events (e.g. a weekend's schedule): return each one, each with image_index,
   the screenshot that shows it best.
-- Prices: '15K' or '15 mil' = 15000.
+- Prices: '15K' or '15 mil' = 15000. amount_cop is only for Colombian pesos, and 0 only when it's free: a
+  price in another currency (USD, US$, MXN, EUR, €, dólares…) is never written as 0 nor converted; leave it
+  out of prices and put it in doubts (e.g. "precio en otra moneda: 1.000 MXN").
 - contact: an @username, a website or a phone number ('WhatsApp ' before a number marked as WhatsApp).
 - Write extracted text (title, activities, doubts) in Spanish as it appears.
 - Never invent data. Leave unknown fields empty.

@@ -6,7 +6,7 @@ from datetime import date, time
 from itertools import pairwise
 
 from . import config
-from .models import STYLES, ExtractedEvent, Session
+from .models import STYLES, ExtractedEvent, Price, Session
 from .text import WEEKDAYS, fold
 
 _TIME_PATTERN = re.compile(r"^(\d{1,2}):(\d{2})$")
@@ -196,9 +196,41 @@ def fit_sessions(update: dict[str, object], sessions: list[Session] | None, doub
     }
 
 
+# A currency other than Colombian pesos (folded text: lowercase, no accents). "$" alone is pesos too: not here.
+_OTHER_CURRENCY = re.compile(
+    r"[€£]|\b(?:us|u|mx)\$"
+    r"|\b(?:usd|mxn|eur|euros?|gbp|dolar(?:es)?|dollars?|clp|ars|brl|reales|libras)\b"
+    r"|\bpesos? (?:mexicanos?|argentinos?|chilenos?|dominicanos?|cubanos?|uruguayos?)\b"
+)
+_FREE = re.compile(r"\b(?:gratis|gratuit[oa]s?|libre|free|sin costo)\b")
+
+
+def _in_other_currency(price: Price) -> bool:
+    """A price of 0 that is really an amount in another currency ("VIP", "1,000.00 MXN"), not free: the site shows
+    0 as free. A label or condition that reads as free ("Entrada libre") keeps it."""
+    text = fold(f"{price.label} {price.condition or ''}")
+    return any(char.isdigit() for char in text) and bool(_OTHER_CURRENCY.search(text)) and not _FREE.search(text)
+
+
+def clean_prices(prices: Sequence[Price], doubts: list[str]) -> list[Price]:
+    """The prices the site can show: a label (its check-data.mjs requires one), no negative amounts, and no 0 that
+    is an amount in another currency (noted as a doubt instead: "Precio en otra moneda: VIP (1,000.00 MXN)")."""
+    kept = []
+    for price in prices:
+        if price.amount_cop < 0 or not price.label.strip():
+            continue
+        if price.amount_cop == 0 and _in_other_currency(price):
+            condition = " ".join((price.condition or "").split())
+            written = " ".join(price.label.split()) + (f" ({condition})" if condition else "")
+            doubts.append(f"Precio en otra moneda: {written}")
+            continue
+        kept.append(price)
+    return kept
+
+
 def normalize_event(event: ExtractedEvent) -> ExtractedEvent:
-    """A copy with valid dates and times (invalid ones become None), clean styles and no negative prices. A workshop
-    series' dates and times follow its sessions (fit_sessions)."""
+    """A copy with valid dates and times (invalid ones become None), clean styles and prices the site can show
+    (clean_prices). A workshop series' dates and times follow its sessions (fit_sessions)."""
     doubts = list(event.doubts)
     start_time, end_time = parse_time(event.start_time), parse_time(event.end_time)
     if event.start_time and not start_time:
@@ -212,13 +244,13 @@ def normalize_event(event: ExtractedEvent) -> ExtractedEvent:
         "end_time": end_time,
     }
     fit_sessions(days, sessions, doubts)
+    prices = clean_prices(event.prices, doubts)
     return event.model_copy(
         update={
             "title": " ".join(event.title.split()),
             **days,
             "styles": normalize_styles(event.styles),
-            # The site's check-data.mjs requires a label: a price without one isn't shown.
-            "prices": [price for price in event.prices if price.amount_cop >= 0 and price.label.strip()],
+            "prices": prices,
             "contact": normalize_contact(event.contact),
             "doubts": doubts,
         }
