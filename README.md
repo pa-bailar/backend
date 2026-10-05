@@ -21,6 +21,7 @@ pa_bailar/            the collector (one Python package; every module in docs/AR
   merging.py, ids.py, normalize.py, clips.py, storage.py, models.py, config.py
   health.py, status.py, why.py, inbox.py, links.py, patterns.py, sweep_state.py, discovery.py, text.py, logs.py
 tests/                unit and end-to-end tests (no network); fixtures/patterns.json is shared with admin-web/test
+.github/              the workflows (ci, admin, daily-sweep), the answer-issue action, the admin issue form
 docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, monitoring (start here)
 docs/ADMIN.md         the admin tools: the admin page, the inbox, the commands
 docs/PLAN.md          the original go-live plan, kept for its decisions
@@ -39,6 +40,7 @@ sweep writes into `..\pa-bailar-web\data`; set `DATA_DIR` to change it).
 ## Requirements
 
 - Python 3.12 (`.python-version`)
+- Node.js (24 on CI), for the admin page's tests and the video toolkit in `media/`
 
 ## Setup
 
@@ -68,6 +70,7 @@ Lint, format, type check and tests:
 .venv\Scripts\python -m ruff format .
 .venv\Scripts\python -m mypy                  # type check (strict)
 .venv\Scripts\python -m pytest -q              # tests
+node --test "admin-web/test/*.test.mjs"       # the admin page's tests
 ```
 
 - Accounts to follow: `accounts.txt` (one username per line, by section: academies, dance companies,
@@ -104,8 +107,8 @@ Everything runs on GitHub Actions:
 
 | Workflow | When | What |
 |---|---|---|
-| `ci` | Every pull request and push to `main` | Lint, format check, types (mypy) and tests. |
-| `admin` | A new issue or comment from `jzamora5` (the admin page opens such issues) | The admin inbox (only issues labelled `admin`, or texts with a request): answers with a comment (check a post, add an account, the status); adding a post, or reading one again, starts `daily-sweep` in single-post mode. See [docs/ADMIN.md](docs/ADMIN.md) |
+| `ci` | Every pull request and push to `main` | Lint, format check, types (mypy), tests and the admin page's Worker tests. Its `media` job type-checks the video toolkit and runs its Node tests, only when `media/` changes. |
+| `admin` | A new issue or comment from `jzamora5` (the admin page opens such issues) | The admin inbox (only issues labelled `admin`, or texts with a request): answers with a comment (check a post, add an account, the status); adding a post (or reading one again) or a story, and hiding a story or an event, start `daily-sweep` for that one request. See [docs/ADMIN.md](docs/ADMIN.md) |
 | `daily-sweep` | Every day at 9:00 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (each about once a day, half per sweep), writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is then saved to the `sweep-state` branch (if the data PR couldn't be opened, the run's posts stay unread for the next run, and `site/data` is kept as the run's artifact). With `post_url` (from `admin`), it adds that one post instead (with `again`, even if it was read before and hasn't changed) and answers on the admin issue; with `story` or `hide`, it adds a story or takes a story or an event off the site. |
 
 `main` is **not protected**: rulesets on private repositories need a paid GitHub plan (Pro or Team).

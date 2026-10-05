@@ -5,7 +5,7 @@ How the whole system works, from an academy posting a flyer on Instagram to that
 `pa-bailar/backend`) in depth, and every service around it. The site's side is in the site
 repository's `docs/ARCHITECTURE.md` (`pa-bailar/pa-bailar.github.io`).
 
-Last reviewed: 4 October 2026.
+Last reviewed: 5 October 2026.
 
 Contents:
 
@@ -240,7 +240,7 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 | `APP_ID` | Variable | GitHub Actions variable | "Get a token" step | `5164772` |
 | `GEMINI_LITE_ONLY` | Variable | GitHub Actions variable (optional) | Sweep step | `1`: Flash-Lite also extracts, as final results (`config.LITE_ONLY`). For when Flash isn't available to the key; unset otherwise |
 | `HEALTHCHECK_URL` | Secret | GitHub Actions secret | "Report to the health check" step | The check's ping URL. Optional: without it the step does nothing |
-| `GITHUB_TOKEN` | Automatic | Created by GitHub per run | daily-sweep: the `request` job (reads the admin issue, answers it if adding can't start), the open-PR check (reads the public site), the state save, the account commit (`main`), the health issue, the answer on the admin issue. admin: labels and answers the issue, commits an added account, starts the sweep | daily-sweep: `contents: write` and `issues: write` (`request`: `issues: write` only). admin: `contents: write`, `issues: write`, `actions: write`. Only handed to the steps that need it |
+| `GITHUB_TOKEN` | Automatic | Created by GitHub per run | daily-sweep: the `request` job (reads the admin issue, answers it if adding can't start), `story-images` (answers if the screenshots can't be downloaded), the open-PR check (reads the public site), the state save, the account commit (`main`), the health issue, the answer on the admin issue. admin: labels and answers the issue, commits an added account, starts the sweep | daily-sweep: `contents: write` and `issues: write` (`request` and `story-images`: `contents: read` and `issues: write`). admin: `contents: write`, `issues: write`, `actions: write`. Only handed to the steps that need it |
 | GitHub's identity token (OIDC) | Automatic | Minted per job by GitHub, only in daily-sweep's `story-images` and `story-cleanup` jobs (`id-token: write`) | Downloading and deleting story screenshots on the admin page's Worker | Short-lived, audience `pa-bailar-admin`; the Worker checks GitHub's signature, the repository, `main` and the workflow. Nothing to store or rotate |
 | cron-job.org token | Secret | cron-job.org only | The two cron jobs | Fine-grained PAT, Actions read/write on this repository only |
 
@@ -335,7 +335,7 @@ sequenceDiagram
 | 6a | Get the story's screenshots | `story` | Downloads the `story-images` job's artifact into `stories/` | |
 | 6b | Make sure ffmpeg is installed | Always | For videos' preview clips (`clips.py`); usually already on the runner | |
 | 6c | Make sure the last data PR merged | Always | Fails if a `data` PR is still open in the site repository: the sweep reads the events from the site's `main`, so sweeping past an unmerged PR would lose its events for good (their posts are already marked analyzed). Merge or fix it first | `GITHUB_TOKEN` (reads the public site repository) |
-| 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x] [--again]`, one post by hand (`--again` from the `again` input, "Volver a leer"). With `story`: `sweep --story <ids> --story-dir stories [--account=x] --notes=…` (the screenshots from `story-images`, step 6a). With `hide`: `sweep --hide-story <story id>`, or `sweep --hide-event <event id>`. Otherwise `python -m pa_bailar sweep --days N` (N from the `days` input, 7 by default, at most 30). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
+| 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x] [--again]`, one post by hand (`--again` from the `again` input, "Volver a leer"). With `story`: `sweep --story <ids> --story-dir stories [--account=x] --notes=…` (the screenshots from `story-images`, step 6a). With `hide`: `sweep --hide-story <story id>`, or `sweep --hide-event <event id>`. Otherwise `python -m pa_bailar sweep --days N [--all]` (N from the `days` input, 7 by default, at most 30; `--all` from `all_accounts`). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 8 | Write the status for the admin page | Unless cancelled; its failure doesn't fail the run | `python -m pa_bailar admin status --json` → `state/status.json`, saved with the state (one Graph API call, no Gemini). The admin page reads it | `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 9 | Get a token for the site repository | Unless cancelled | Mints a pa-bailar-bot installation token for the site repository only | `APP_ID`, `APP_PRIVATE_KEY` |
 | 10 | Open a data PR | Unless cancelled | Only if `data/events.json` or `data/flyers` changed (clips change `events.json` too) (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled. It runs before the state is saved, so the state never marks posts as analyzed whose events didn't leave the runner | App token |
@@ -1066,7 +1066,9 @@ They read what the sweeps record (no AI, no Gemini requests). [`docs/ADMIN.md`](
 - `ruff format --check`;
 - `mypy` (strict, with the Pydantic plugin);
 - `pytest`;
-- the admin page's Worker tests (`node --test "admin-web/test/*.test.mjs"`, Node 24).
+- the admin page's Worker tests (`node --test "admin-web/test/*.test.mjs"`, Node 24);
+- a second job, `media`, for the video toolkit: `npm ci`, `tsc --noEmit` and its Node tests (`media/tests`), only
+  when `media/` or `ci.yml` changed (its Python tests run with the rest under `pytest`).
 
 Both test suites check the shapes the admin tools accept (`pa_bailar/patterns.py`, `admin-web/public/patterns.js`)
 against the same examples, `tests/fixtures/patterns.json`, so the inbox and the admin page can't drift apart.

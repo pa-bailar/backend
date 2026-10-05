@@ -235,7 +235,7 @@ start). **`lib/fonts`**: loads the faces from `media/fonts/` (`fontsReady` resol
   says "Link aquí arriba" with a drawn up arrow, `Arrow` in the kit, never an emoji hand; Reel: "Link en mi perfil");
   Stories: fade in, no fade-out (the owner, 5 Oct 2026; the audio still ramps 0.3 s at both ends, against clicks);
   the Bodoni at `opsz` 18 / 600, never for digits.
-- Screens and events date a video: post it before its shelf life ends (`app.json` / `events.json` record it;
-  `render.py` warns past it).
+- Screens and events date a video: post it before its shelf life ends (`app.json`, `events.json` and `screens.json`'s
+  clocks record it; `render.py` warns past it).
 - Gemini TTS times out at times: the tool retries, and a cached line never calls it again.
 - Don't regenerate what exists: change a line's `take` for a new reading; keep the cache (in the media home).
