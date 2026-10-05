@@ -439,6 +439,23 @@ def test_a_review_is_done_only_when_it_passed(tmp_path, monkeypatch):
     assert not render.review(v, "story", dest) and not marker.exists()
 
 
+def test_a_worktree_uses_the_main_checkouts_venv_and_env(tmp_path, monkeypatch):
+    worktree, main = tmp_path / "worktree", tmp_path / "main"
+    touch(main / ".env")
+    touch(main / ".venv" / "Scripts" / "python.exe")
+    monkeypatch.setattr(common, "BACKEND", worktree)
+    monkeypatch.setattr(common, "main_checkout", lambda: main)
+    assert common.backend_path(".env") == main / ".env"
+    assert common.backend_path(".venv", "Scripts", "python.exe") == main / ".venv" / "Scripts" / "python.exe"
+    touch(worktree / ".env")  # its own wins
+    assert common.backend_path(".env") == worktree / ".env"
+    assert common.backend_path("nothing") == worktree / "nothing"
+
+
+def test_the_main_checkout_is_where_the_shared_git_folder_is():
+    assert (common.main_checkout() / ".git").is_dir()
+
+
 # ---------- tts ----------
 
 
@@ -446,6 +463,15 @@ class FakeError(Exception):
     def __init__(self, code, text):
         super().__init__(text)
         self.code = code
+
+
+def test_tts_stops_clearly_without_a_key(monkeypatch):
+    monkeypatch.setattr(tts, "load_env", lambda: None)
+    monkeypatch.delenv("MEDIA_GEMINI_API_KEY", raising=False)
+    with pytest.raises(SystemExit, match="MEDIA_GEMINI_API_KEY isn't set"):
+        tts.api_key()
+    monkeypatch.setenv("MEDIA_GEMINI_API_KEY", " k ")
+    assert tts.api_key() == "k"
 
 
 def test_tts_retries_only_transient_errors():

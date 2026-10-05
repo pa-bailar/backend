@@ -73,9 +73,37 @@ def probe(path: Path) -> dict:
     return json.loads(out)
 
 
+def main_checkout() -> Path:
+    """The repository's main checkout. In a git worktree (which has no .venv or .env of its own) it's the folder of the
+    shared .git (`git rev-parse --git-common-dir`); elsewhere, or without git, the backend itself."""
+    try:
+        done = subprocess.run(
+            ["git", "-C", str(BACKEND), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return BACKEND
+    common_dir = Path(done.stdout.strip())
+    return common_dir.parent if common_dir.name == ".git" else BACKEND
+
+
+def backend_path(*parts: str) -> Path:
+    """A path in the backend (`.env`, `.venv/…`): this checkout's when it exists, else the main checkout's (a git
+    worktree shares them with it); when neither exists, this checkout's."""
+    here = BACKEND.joinpath(*parts)
+    if here.exists():
+        return here
+    main = main_checkout().joinpath(*parts)
+    return main if main.exists() else here
+
+
 def load_env() -> None:
-    """The backend's .env (MEDIA_GEMINI_API_KEY lives there), without printing anything from it."""
-    env = BACKEND / ".env"
+    """The backend's .env (MEDIA_GEMINI_API_KEY lives there; a worktree uses the main checkout's), without printing
+    anything from it. Variables already in the environment win."""
+    env = backend_path(".env")
     if not env.exists():
         return
     for raw in env.read_text(encoding="utf-8").splitlines():

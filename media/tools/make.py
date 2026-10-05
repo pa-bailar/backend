@@ -29,6 +29,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from collections.abc import Callable
 from pathlib import Path
 
@@ -40,6 +41,7 @@ from common import (
     HOME,
     MEDIA,
     Video,
+    backend_path,
     load_env,
     mix_key,
     shown,
@@ -49,8 +51,16 @@ from common import (
 )
 from render import passed_marker
 
+
+def venv_python() -> Path:
+    """The backend's .venv Python: this checkout's, else the main checkout's (a git worktree has none), else the
+    Python running make.py (started from the .venv, as the docs say)."""
+    exe = backend_path(".venv", "Scripts", "python.exe")
+    return exe if exe.exists() else Path(sys.executable)
+
+
 PYTHON = {
-    "venv": BACKEND / ".venv" / "Scripts" / "python.exe",
+    "venv": venv_python(),
     "whisper": Path(os.environ.get("PA_BAILAR_WHISPER_PYTHON", r"D:\AI\whisper\.venv\Scripts\python.exe")),
     "ace": Path(os.environ.get("PA_BAILAR_ACE_PYTHON", r"D:\AI\ace-step\.venv\Scripts\python.exe")),
 }

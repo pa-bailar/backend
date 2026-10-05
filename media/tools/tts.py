@@ -35,12 +35,24 @@ def classify(error: Exception) -> str:
     return "retry"
 
 
+def api_key() -> str:
+    """MEDIA_GEMINI_API_KEY from the environment or the backend's .env (a worktree: the main checkout's); a clear stop
+    when it's missing (only new lines need it: cached ones never call Gemini)."""
+    load_env()
+    value = os.environ.get("MEDIA_GEMINI_API_KEY", "").strip()
+    if not value:
+        raise SystemExit(
+            "MEDIA_GEMINI_API_KEY isn't set: add it to the backend's .env (a free-tier Gemini key; README.md, Setup). "
+            "Only lines not in the cache need it."
+        )
+    return value
+
+
 def say(text: str, voice: str, direction: str) -> tuple[bytes, str]:
     from google import genai
     from google.genai import types
 
-    load_env()
-    client = genai.Client(api_key=os.environ["MEDIA_GEMINI_API_KEY"], http_options=types.HttpOptions(timeout=90_000))
+    client = genai.Client(api_key=api_key(), http_options=types.HttpOptions(timeout=90_000))
     last = ""
     for model in MODELS:
         for attempt in range(3):

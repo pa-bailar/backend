@@ -60,7 +60,9 @@ in `media/out/`.
 | Gemini TTS key | `MEDIA_GEMINI_API_KEY` in the backend's `.env` (a separate free-tier project; images and Veo aren't free) |
 | The media home | `D:\AI\pa-bailar-media` (made by the tools), or set `PA_BAILAR_MEDIA_HOME` |
 
-Then `.venv/Scripts/python media/tools/make.py doctor` checks all of it (the key: set or not, never shown).
+Then `.venv/Scripts/python media/tools/make.py doctor` checks all of it (the key: set or not, never shown). In a git
+worktree (no `.venv` or `.env` of its own) the tools use the main checkout's (`common.backend_path`, through
+`git rev-parse --git-common-dir`); `make.py` falls back to the Python running it.
 
 The Remotion agent skills load when working in `media/`. They aren't committed: install them once with
 `cd media && npx skills add remotion-dev/skills` (the versions used are pinned in `skills-lock.json`).
