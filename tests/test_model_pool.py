@@ -76,6 +76,23 @@ def test_per_minute_limit_waits_and_retries_the_same_model(pool):
     assert model == "gemini-3.8-flash" and fake.calls == ["gemini-3.8-flash", "gemini-3.8-flash"]
 
 
+def test_a_repeated_per_minute_limit_is_retried_next_run_without_using_up_the_day(pool):
+    """Two per-minute 429s in a row are a busy model, not a spent one: the day's budget stays (review finding)."""
+    per_minute = client_error(429, "Quota exceeded for metric GenerateRequestsPerMinutePerProjectPerModel-FreeTier")
+    with_models(pool, {"gemini-3.8-flash": [per_minute, per_minute]})
+    with pytest.raises(gemini.ExtractionError) as raised:
+        pool.generate(["gemini-3.8-flash"], [], Triage)
+    assert not isinstance(raised.value, gemini.QuotaExhaustedError)  # an error, retried next run
+    assert pool.has_budget("gemini-3.8-flash") and pool.used("gemini-3.8-flash") == 2
+
+
+def test_a_per_day_quota_id_marks_the_model_spent_at_once(pool):
+    daily = client_error(429, "Quota exceeded for metric GenerateRequestsPerDayPerProjectPerModel-FreeTier")
+    fake = with_models(pool, {"gemini-3.8-flash": [daily], "gemini-3.5-flash": [ANSWER]})
+    assert pool.generate(["gemini-3.8-flash", "gemini-3.5-flash"], [], Triage)[1] == "gemini-3.5-flash"
+    assert not pool.has_budget("gemini-3.8-flash") and fake.calls == ["gemini-3.8-flash", "gemini-3.5-flash"]
+
+
 def test_models_without_budget_are_skipped_without_a_request(pool):
     pool._used["gemini-3.8-flash"] = config.MODEL_LIMITS["gemini-3.8-flash"].requests_per_day
     fake = with_models(pool, {"gemini-3.5-flash": [ANSWER]})

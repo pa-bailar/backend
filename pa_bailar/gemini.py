@@ -95,6 +95,8 @@ def _blocked(response: types.GenerateContentResponse) -> str | None:
 
 
 def _is_daily_quota_error(error: errors.ClientError) -> bool:
+    """A 429 for the per-day quota: its message or quota id says so ("GenerateRequestsPerDay…"). Any other 429 is
+    the per-minute limit, however often it repeats."""
     text = str(error).lower()
     return "per day" in text or "perday" in text or "daily" in text
 
@@ -198,9 +200,15 @@ class ModelPool:
                         self.unavailable.add(model)
                         self._exhaust(model)
                         break
-                    if error.code == 429 and (attempt > 1 or _is_daily_quota_error(error)):
+                    if error.code == 429 and _is_daily_quota_error(error):
                         log.info("    %s daily quota used up, trying the next model", model)
                         self._exhaust(model)
+                        break
+                    if error.code == 429 and attempt > 1:
+                        # Per-minute again after waiting: busy, not spent. The day's budget stays (a run that
+                        # marked it spent would lose the model for the whole quota day); the post is retried.
+                        log.info("    %s per-minute limit again, trying the next model", model)
+                        failed = True
                         break
                     if error.code == 429:
                         log.info("    %s per-minute limit, waiting %ss", model, RATE_LIMIT_WAIT_SECONDS)
