@@ -2,7 +2,8 @@
 
 Two repositories under this folder:
 - `pa-bailar/`: the private backend (`pa-bailar/backend`): the sweep (Instagram → Gemini → events), discovery,
-  health checks, admin tools. Python 3.12.
+  health checks, admin tools (the admin page in `admin-web/`), and the video toolkit in `media/` (its own
+  `README.md`). Python 3.12.
 - `pa-bailar-web/`: the public site (`pa-bailar/pa-bailar.github.io`): Astro in `frontend/`, the data in `data/`.
 
 Each has `README.md` and `docs/ARCHITECTURE.md`. The backend also has `docs/ADMIN.md` (the admin tools) and
