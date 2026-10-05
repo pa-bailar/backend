@@ -25,7 +25,8 @@ tests/                unit and end-to-end tests (no network); fixtures/patterns.
 docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, monitoring (start here)
 docs/ADMIN.md         the admin tools: the admin page, the inbox, the commands
 docs/PLAN.md          the original go-live plan, kept for its decisions
-admin-web/            the admin page, a Cloudflare Worker (docs/ADMIN.md); its tests in admin-web/test
+admin-web/            the admin page, a Cloudflare Worker (docs/ADMIN.md); its tests in admin-web/test;
+                      .dev.vars.example: its secrets' names for local development
 media/                the video toolkit for Instagram Stories and Reels: tools, a Remotion library, one folder
                       per video (media/README.md is its catalog; nothing in it runs in the sweep)
 accounts.txt          the accounts to follow: academies, companies, organizers, artists
@@ -44,8 +45,11 @@ sweep writes into `..\pa-bailar-web\data`; set `DATA_DIR` to change it).
 
 ## Setup
 
-Secrets live in `.env` (repository root, git-ignored, never commit it):
-`GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `META_APP_ID`, `META_APP_SECRET`.
+Secrets live in `.env` (repository root, git-ignored, never commit it): copy `.env.example`, which lists the keys
+with what each is for (`GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `META_APP_ID`, `META_APP_SECRET`,
+`MEDIA_GEMINI_API_KEY`, `OPENROUTER_API_KEY`), and below them, commented out, the optional settings that only change
+a default. The admin page's secrets for local development go in `admin-web/.dev.vars` (copy
+`admin-web/.dev.vars.example`).
 
 First time (from the repository root):
 
