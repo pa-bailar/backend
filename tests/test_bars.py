@@ -177,3 +177,51 @@ def test_every_word_that_names_a_focus_style_passes_its_filter():
     old_words |= {"bachata": ("bachatero",), "kizomba": ("semba", "urban kiz"), "tango": ("milonga",)}
     for style, words in old_words.items():  # the hand-written list before: still found
         assert all(mentions_focus(word, (style,)) for word in words), style
+
+
+# ---------- a bar's night is a party ("Rumba"), not a dancers' social (the owner, 6 Oct 2026) ----------
+
+
+def test_the_party_rule_keeps_socials_announced_as_such_and_other_types():
+    from pa_bailar.normalize import party_at_a_bar
+
+    assert party_at_a_bar("social", "Halloween en el bar · DJ invitado") == "party"
+    assert party_at_a_bar("social", "Gran SOCIAL de bachata con la academia") == "social"
+    assert party_at_a_bar("social", "Sociales de salsa todos invitados") == "social"
+    assert party_at_a_bar("concert", "Orquesta en vivo") == "concert"
+    assert party_at_a_bar("workshop", "Taller con invitado") == "workshop"
+
+
+def test_a_bars_night_read_as_a_social_is_stored_as_a_party_and_an_academys_stays_a_social():
+    instagram = FakeInstagram(
+        {
+            "academia": [captioned("a1", "Fiesta Neón de la academia")],
+            "salsabar": [captioned("b1", "Halloween con DJ"), captioned("b2", "Social de bachata con @academia")],
+            "club": [],
+        }
+    )
+    extractor = FakeExtractor(
+        {
+            "a1": one_event("a1", "Fiesta Neón"),
+            "b1": one_event("b1", "Halloween en el bar"),
+            "b2": one_event("b2", "Noche de bachata"),
+        }
+    )
+    run(instagram, extractor)
+    types = {event["title"]: event["event_type"] for event in read(config.EVENTS_FILE)}
+    assert types == {"Fiesta Neón": "social", "Halloween en el bar": "party", "Noche de bachata": "social"}
+
+
+def test_a_bars_social_stored_before_the_type_existed_becomes_a_party_on_the_next_run():
+    from tests.factories import media, stored
+
+    old = [
+        stored("halloween", account="salsabar", title="Halloween en el bar", bar=True, posts=[media("h1")]),
+        stored("social-bachata", account="salsabar", title="Social de bachata", bar=True, posts=[media("s1")]),
+        stored("concierto", account="salsabar", title="Orquesta", event_type="concert", bar=True, posts=[media("c1")]),
+        stored("fiesta-neon", account="academia", title="Fiesta Neón", posts=[media("f1")]),
+    ]
+    storage.save_events(old)
+    run(FakeInstagram({"academia": [], "salsabar": [], "club": []}), FakeExtractor({}))
+    types = {event["id"]: event["event_type"] for event in read(config.EVENTS_FILE)}
+    assert types == {"halloween": "party", "social-bachata": "social", "concierto": "concert", "fiesta-neon": "social"}

@@ -22,7 +22,8 @@ or most weeks ("viernes de salsa", "noche de…" with its resident DJs, "todos l
 "hoy abrimos"), happy hours, menus and drink offers. Only a special one-time occasion counts: a live band or
 orchestra, a guest artist or DJ announced by name as the night's draw, the bar's anniversary, a holiday party
 (Halloween, Navidad, Año Nuevo…), a workshop or class with a guest teacher, a competition or a show. When unsure
-whether a night is special, it isn't."""
+whether a night is special, it isn't. Its nights are a "party" (type), not a "social", unless the post announces a
+dancers' social; a live band or orchestra's night is a "concert"."""
 
 FOCUS_RULES = """
 
@@ -85,8 +86,13 @@ A post can mix both (e.g. the weekly schedule plus one special social): only the
 count."""
 
 _TYPES_AND_STYLES = f"""Event type, by the main purpose of the event:
-- social: socials, parties, "noche de…", anniversaries, Halloween/fiestas. A social that starts with a
-  short class is still a social.
+- social: a night for dancers (a "social"): an academy's, a dance teacher's or a dance organizer's socials and
+  "noches de salsa/bachata…", and their anniversaries and themed, Halloween or holiday "fiestas" (their crowd is
+  dancers, whatever they call it). A social that starts with a short class is still a social.
+- party: a night out rather than a dancers' social: a bar's or club's special night (a holiday party, a DJ
+  announced by name, its anniversary), and a general public party that isn't about partner dancing (a brand's
+  or a festival's party, a crossover night). A bar's night announced as a "social" (for dancers, often hosted
+  by an academy) is a social; one billed for a live band or orchestra is a concert.
 - workshop: taller, masterclass, clase especial or única, bootcamp, intensivo, class with a guest teacher,
   and a workshop series.
 - concert: live band or orchestra.

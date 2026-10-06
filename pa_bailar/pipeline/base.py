@@ -37,6 +37,7 @@ from ..normalize import (
     MULTI_DOUBT,
     doubtful_city,
     normalize_event,
+    party_at_a_bar,
     style_family,
     styles_in_text,
 )
@@ -94,11 +95,7 @@ class SweepBase:
         self.options = storage.read_account_options()
         # An event is a bar's when its account is one now (accounts.txt): marking or unmarking an account updates
         # its stored events too.
-        self.events = [
-            event if event.bar == self._is_bar(event.account) else event.model_copy(update={"bar": not event.bar})
-            for event in stored
-            if event.id not in self.hidden
-        ]
+        self.events = [self._as_bar_says(event) for event in stored if event.id not in self.hidden]
         self.processed = storage.load_processed_posts()
         self._merge_duplicates()
         if self.events != stored:
@@ -128,6 +125,25 @@ class SweepBase:
         if not styles:
             return event
         return event.model_copy(update={"styles": styles, "doubts": [*event.doubts, GUESSED_STYLES_DOUBT]})
+
+    def _as_bar_says(self, event: StoredEvent) -> StoredEvent:
+        """A stored event as its account's options say now: `bar` follows accounts.txt, and a bar's social is a
+        party unless its title or posts announce a social (stored before the type existed: normalize.party_at_a_bar)."""
+        bar = self._is_bar(event.account)
+        updates: dict[str, object] = {} if event.bar == bar else {"bar": bar}
+        if bar:
+            text = " ".join([event.title, *(media.caption or "" for media in event.media)])
+            kind = party_at_a_bar(event.event_type, text)
+            if kind != event.event_type:
+                updates["event_type"] = kind
+        return event.model_copy(update=updates) if updates else event
+
+    def _typed(self, account: str, post: Post, event: ExtractedEvent) -> ExtractedEvent:
+        """A bar's night read as a social is a party unless it announces one (normalize.party_at_a_bar)."""
+        if not self._is_bar(account):
+            return event
+        kind = party_at_a_bar(event.event_type, f"{event.title} {post.get('caption') or ''}")
+        return event if kind == event.event_type else event.model_copy(update={"event_type": kind})
 
     def _usual_styles(self, account: str) -> list[str]:
         """The styles nearly all of an account's stored events share (at least 3 events, 80% of them): a bachata
@@ -233,7 +249,10 @@ class SweepBase:
             else [doubtful_city(e, post.get("caption")) for e in analysis.events]
         )
         several = len(checked) > 1
-        cleaned = [self._safeguarded(account, post, normalize_event(event), several) for event in checked]
+        cleaned = [
+            self._typed(account, post, self._safeguarded(account, post, normalize_event(event), several))
+            for event in checked
+        ]
         light = provisional or config.LITE_ONLY  # read by a lighter model (Flash-Lite, the last resort)
         if several and light:
             cleaned = [_with_doubt(event, MULTI_DOUBT) for event in cleaned]

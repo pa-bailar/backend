@@ -6,7 +6,7 @@ from datetime import date, time
 from itertools import pairwise
 
 from . import config
-from .models import STYLES, ExtractedEvent, Price, Session
+from .models import STYLES, EventType, ExtractedEvent, Price, Session
 from .patterns import HANDLE
 from .text import WEEKDAYS, fold
 
@@ -344,3 +344,16 @@ def normalize_event(event: ExtractedEvent) -> ExtractedEvent:
             "doubts": doubts,
         }
     )
+
+
+# A dancers' social, said in words: a bar's night that says so stays a social.
+_SOCIAL_WORD = re.compile(r"\bsociale?s?\b")
+
+
+def party_at_a_bar(event_type: EventType, text: str) -> EventType:
+    """A bar's night read as a "social" is a party ("Rumba"), unless its title or caption announces a social (the
+    owner, 6 Oct 2026: a salsa bar's party isn't a dancers' social). A fixed rule, so it holds whatever model read the
+    post; other types (a concert, a workshop) stay as read."""
+    if event_type != "social" or _SOCIAL_WORD.search(fold(text)):
+        return event_type
+    return "party"
