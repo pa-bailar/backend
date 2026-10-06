@@ -8,6 +8,7 @@ from pa_bailar.merging import (
     find_existing,
     looks_like_same_event,
     looks_like_shared_event,
+    merge_duplicates,
     merge_into,
     ordered_media,
     refused_link,
@@ -353,3 +354,53 @@ def test_the_same_party_at_the_same_venue_and_time_still_merges_across_accounts(
     party = stored(account="academia", title="Fiesta de Halloween", start_time="21:00", venue="Casa Latina")
     venue_post = extracted(title="Halloween Party", start_time="21:00", venue="Casa Latina")
     assert looks_like_shared_event(party, "casalatina_bar", venue_post)
+
+
+# ---------- one title inside the other (@elgocepagano, 5 Oct 2026) ----------
+
+
+def test_a_series_name_around_the_nights_act_is_the_same_event():
+    """Two month schedules listed each night twice: "Salsoteca DC - Acere" (a carousel) and "Acere" (a video)."""
+    night = stored("salsoteca-dc-acere", title="Salsoteca DC - Acere", venue="El Goce Pagano", start_time=None)
+    candidate = extracted(title="Acere", venue="El Goce Pagano", start_time=None)
+    assert looks_like_same_event(night, "academia", candidate)
+    assert find_existing([night], "academia", candidate, "video-post") is night
+
+
+def test_one_title_inside_the_other_still_needs_the_same_account_day_and_venue():
+    night = stored("salsoteca-dc-acere", title="Salsoteca DC - Acere", venue="El Goce Pagano", start_time=None)
+    assert not looks_like_same_event(night, "otra", extracted(title="Acere", start_time=None))
+    assert not looks_like_same_event(night, "academia", extracted(title="Acere", start_time=None, date=OTHER_DATE))
+    elsewhere = extracted(title="Acere", venue="Casa Quiebra Canto", start_time=None)
+    assert not looks_like_same_event(night, "academia", elsewhere)
+
+
+def test_a_different_kind_of_event_with_the_same_guest_stays_apart():
+    social = stored("social-juan", title="Social con Juan", start_time=None)
+    assert not looks_like_same_event(social, "academia", extracted(title="Masterclass con Juan", start_time=None))
+    # "Social" alone has no distinctive word of its own: nothing to find inside the other title.
+    assert not looks_like_same_event(social, "academia", extracted(title="Social", start_time=None))
+
+
+def test_stored_duplicates_are_merged_into_the_fuller_one():
+    with_address = stored(
+        "salsoteca-dc-acere",
+        posts=[media("carousel")],
+        title="Salsoteca DC - Acere",
+        address="Diagonal 20A",
+        start_time=None,
+    )
+    bare = stored("acere", posts=[media("video", "VIDEO")], title="Acere", start_time=None)
+    other_night = stored("cumbia", posts=[media("video", "VIDEO")], title="Noche de Pambelé", start_time=None)
+    events, pairs = merge_duplicates([bare, with_address, other_night])
+    assert [event.id for event in events] == ["salsoteca-dc-acere", "cumbia"]
+    assert {m.post_id for m in events[0].media} == {"carousel", "video"}
+    assert pairs == [("salsoteca-dc-acere", "acere")]
+
+
+def test_two_events_of_one_post_are_never_merged():
+    """A post announcing two nights with similar titles: two events, as when it was read."""
+    first = stored("acere", posts=[media("schedule")], title="Acere", start_time=None)
+    second = stored("salsoteca-acere", posts=[media("schedule")], title="Salsoteca Acere", start_time=None)
+    events, pairs = merge_duplicates([first, second])
+    assert len(events) == 2 and not pairs

@@ -226,8 +226,11 @@ def test_a_series_is_kept_until_its_last_session_has_passed_long_enough():
     def ago(days: int) -> str:
         return (today - timedelta(days=days)).isoformat()
 
+    # Two different series (the same title and a day in common would be one: merging.merge_duplicates).
     started_long_ago = series("still", days=[ago(retention + 30), ago(retention + 10), ago(retention - 1)])
-    over = series("over", days=[ago(retention + 30), ago(retention + 1)], posts=[media("b")])
+    over = series(
+        "over", days=[ago(retention + 30), ago(retention + 1)], posts=[media("b")], title="Intensivo de salsa caleña"
+    )
     storage.save_events([started_long_ago, over])
     Sweep(lookback_days=7, instagram=FakeInstagram({"academia": [], "otra": []}), extractor=FakeExtractor({})).run()
     assert [event["id"] for event in read(config.EVENTS_FILE)] == ["still"]
