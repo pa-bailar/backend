@@ -65,13 +65,13 @@ def upgrade_urgency(event_ids: list[str], events: dict[str, StoredEvent], today:
     return (0, min(upcoming)) if upcoming else (1, "")
 
 
-
 def _bad_key(error: GeminiKeyError) -> SystemExit:
-    """The run's end when the Gemini key doesn't work: every request would fail, so it fails loudly, saying what to do."""
+    """The run's end when the Gemini key doesn't work: every request would fail, so it fails loudly, saying why."""
     return SystemExit(
         f"Gemini API key doesn't work ({error}). Create a new key in Google AI Studio and update "
         "GEMINI_API_KEY (.env and the GitHub secret)."
     )
+
 
 class Sweep(ManualPosts, StoryAdmin, Hiding):
     """The sweep (`run`) and the admin tools' operations (`add_post`, `add_story`, `hide_story`, `hide_event`), over
