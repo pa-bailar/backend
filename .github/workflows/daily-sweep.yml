@@ -81,6 +81,7 @@ env:
   MEDIA_REPO: media # the flyers and clips (pa_bailar/media_store.py)
   STATE_FILES: state # where the code keeps its state (config.STATE_DIR); copied to/from the sweep-state branch
   MERGE_TIMEOUT_MINUTES: 20
+  OPEN_DATA_PR_WAIT_MINUTES: 10 # a data PR still in the site's ci when the next run starts (step 6c)
   HEALTH_REPORT_FILE: ${{ github.workspace }}/health.md # written by the sweep (pa_bailar/health.py)
   NOTIFY: jzamora5 # mentioned in the health issue, so GitHub emails them
   ADMIN_URL: https://pa-bailar-admin.jzamorac-9.workers.dev # the admin page's Worker: story screenshots
@@ -283,15 +284,23 @@ jobs:
       # The sweep reads the events from the site's main: if an earlier data PR never merged (its ci failed,
       # or it timed out), sweeping now would leave its events behind for good (their posts are already marked
       # as analyzed). Stop until it's merged or fixed; the failed run emails, like any failure.
+      # A scheduled sweep doesn't wait for its own data PR (below): a run right after one (an owner's request) waits here
+      # for it, a few minutes at most, and fails only if it's still open after OPEN_DATA_PR_WAIT_MINUTES.
       - name: Make sure the last data PR merged
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          open="$(gh pr list --repo "$SITE_OWNER/$SITE_REPO" --label data --state open --json url --jq '.[].url')"
-          if [ -n "$open" ]; then
-            echo "::error::A data PR hasn't merged: ${open}. Merge or fix it first (its events aren't on main)."
-            exit 1
-          fi
+          deadline=$(( $(date +%s) + OPEN_DATA_PR_WAIT_MINUTES * 60 ))
+          while true; do
+            open="$(gh pr list --repo "$SITE_OWNER/$SITE_REPO" --label data --state open --json url --jq '.[].url')"
+            if [ -z "$open" ]; then break; fi
+            if [ "$(date +%s)" -gt "$deadline" ]; then
+              echo "::error::A data PR hasn't merged: ${open}. Merge or fix it first (its events aren't on main)."
+              exit 1
+            fi
+            echo "Waiting for ${open} to merge…"
+            sleep 30
+          done
 
       - name: Run the sweep
         id: sweep
@@ -493,9 +502,12 @@ jobs:
             gh issue comment "$issue" --body-file comment.md
           fi
 
-      # Its merge triggers the site's deploy (with meta.json's time, which is this sweep's).
+      # Its merge triggers the site's deploy (with meta.json's time, which is this sweep's). Only for the owner's requests,
+      # whose answer on the issue should come once the events are live: a scheduled sweep doesn't wait (about 5 minutes
+      # of this private repository's Actions minutes, twice a day, waiting on the site's own ci; 6 Oct 2026). A data PR
+      # that doesn't merge still stops the next run ("Make sure the last data PR merged"), which fails and emails.
       - name: Wait for the data PR to merge
-        if: ${{ !cancelled() && steps.pr.outputs.url != '' }}
+        if: ${{ !cancelled() && steps.pr.outputs.url != '' && inputs.issue != '' }}
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           PR_URL: ${{ steps.pr.outputs.url }}
