@@ -83,6 +83,9 @@ class FakeExtractor:
     def can_extract_with_flash(self) -> bool:
         return self.flash_available
 
+    def reserve_flash(self, share: float) -> None:
+        self.flash_reserved = share
+
     def can_upgrade(self) -> bool:
         return self.flash_available
 

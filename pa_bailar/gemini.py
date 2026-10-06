@@ -157,6 +157,7 @@ class ModelPool:
         self.requests_this_run: Counter[str] = Counter()
         self.unavailable: set[str] = set()  # models Gemini said this key can't use (this run)
         self._paused_until: dict[str, float] = {}  # time.monotonic() until which a busy model is skipped
+        self._reserved: dict[str, int] = {}  # requests left for later runs today (`reserve`)
         # time.monotonic() after which no request starts (OutOfTimeError): the run's time budget, set by EventExtractor.
         self.deadline: float | None = None
 
@@ -165,7 +166,12 @@ class ModelPool:
         return self._used[model]
 
     def has_budget(self, model: str) -> bool:
-        return self._used[model] < daily_budget(model)
+        return self._used[model] < daily_budget(model) - self._reserved.get(model, 0)
+
+    def reserve(self, models: tuple[str, ...], share: float) -> None:
+        """Leave `share` of each model's daily budget unused by this run, for later runs of the same quota day."""
+        for model in models:
+            self._reserved[model] = int(daily_budget(model) * share)
 
     def any_budget(self, models: tuple[str, ...]) -> bool:
         return any(self.has_budget(model) for model in models)

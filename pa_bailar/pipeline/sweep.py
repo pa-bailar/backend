@@ -5,13 +5,14 @@ import logging
 import time
 from dataclasses import asdict
 from datetime import UTC, date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from .. import config, links, storage
 from ..account_options import AccountOptions, mentions_focus
 from ..external import is_external
 from ..gemini import GeminiKeyError, OutOfTimeError, QuotaExhaustedError, RejectedRequestError, UnreadableAnswerError
 from ..instagram import InstagramError, Post, is_rate_limited, published_at, slide_count
-from ..models import AccountState, ProcessedPost
+from ..models import AccountState, ProcessedPost, StoredEvent
 from . import common
 from .common import RETRYABLE_ERRORS, RunStats, caption_hash, clip_for, flyer_slide
 from .hiding import Hiding
@@ -35,6 +36,35 @@ def hours_overdue(state: AccountState | None, now: datetime) -> float:
     return (now - datetime.fromisoformat(state.last_swept_at)).total_seconds() / 3600 - every
 
 
+def later_sweeps_in_quota_day(now: datetime) -> int:
+    """How many scheduled sweeps (config.SWEEP_TIMES, Bogotá) still start in `now`'s Gemini quota day (Pacific), past
+    the margin that makes a sweep starting late this run."""
+    quota = ZoneInfo(config.QUOTA_TIMEZONE)
+    day = now.astimezone(quota).date()
+    soonest = now + timedelta(minutes=config.LATER_SWEEP_MARGIN_MINUTES)
+    today = now.astimezone(config.BOGOTA_TZ).date()
+    later = 0
+    for offset in (0, 1):
+        on = today + timedelta(days=offset)
+        for clock in config.SWEEP_TIMES:
+            hour, minute = (int(part) for part in clock.split(":"))
+            starts = datetime(on.year, on.month, on.day, hour, minute, tzinfo=config.BOGOTA_TZ)
+            if starts > soonest and starts.astimezone(quota).date() == day:
+                later += 1
+    return later
+
+
+def upgrade_urgency(event_ids: list[str], events: dict[str, StoredEvent], today: str) -> tuple[int, str]:
+    """Where a provisional post stands in the line for Flash: its soonest upcoming event first (one under way counts
+    as today), then those without one (not an event, discarded, past), which a Flash read may still correct."""
+    upcoming = [
+        max(event.date, today)
+        for event_id in event_ids
+        if (event := events.get(event_id)) and event.date and (event.last_day or event.date) >= today
+    ]
+    return (0, min(upcoming)) if upcoming else (1, "")
+
+
 class Sweep(ManualPosts, StoryAdmin, Hiding):
     """The sweep (`run`) and the admin tools' operations (`add_post`, `add_story`, `hide_story`, `hide_event`), over
     one shared state (SweepBase)."""
@@ -49,6 +79,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             ) from error
         log.info("Instagram token OK (@%s)", username)
 
+        self._share_flash()
+        self._to_upgrade: list[tuple[str, Post, datetime]] = []
         due = self._due_accounts()
         self.stats.due_accounts = due
         share = self._share_per_run()
@@ -77,6 +109,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
                 log.exception("   unexpected error with @%s, continuing with the next account", account)
                 self.stats.count(account, "errors")
 
+        self._upgrade_by_urgency()
         self._apply_retention()
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
         self.stats.gemini_requests = self.extractor.requests_this_run()
@@ -88,6 +121,38 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         storage.save_account_state(self.accounts)
         storage.save_meta(asdict(self.stats))
         return self.stats
+
+    def _share_flash(self) -> None:
+        """Leave the later sweeps of this Gemini quota day their share of Flash (config.LATER_SWEEP_MARGIN_MINUTES)."""
+        later = later_sweeps_in_quota_day(datetime.now(UTC))
+        if later:
+            share = later / (later + 1)
+            self.extractor.reserve_flash(share)
+            log.info("Flash: %d%% of today's requests left for %d later sweep(s) today", share * 100, later)
+
+    def _upgrade_by_urgency(self) -> None:
+        """Re-read the provisional posts seen this run with Flash, while it has requests and time: the soonest events
+        first, the ones visitors look at now (before, in the accounts' order, whatever came first took them)."""
+        if not self._to_upgrade:
+            return
+        today = config.now_bogota().date().isoformat()
+        events = {event.id: event for event in self.events}
+
+        def urgency(item: tuple[str, Post, datetime]) -> tuple[int, str]:
+            record = self.processed.get(item[1]["id"])
+            return upgrade_urgency(record.event_ids if record else [], events, today)
+
+        queue = sorted(self._to_upgrade, key=urgency)
+        log.info("%d provisional posts to re-read with Flash, the soonest events first", len(queue))
+        for done, (account, post, published) in enumerate(queue):
+            record = self.processed.get(post["id"])
+            if not record or not record.provisional:
+                continue  # read again meanwhile (e.g. its caption was edited)
+            if not self.extractor.can_upgrade() or self._out_of_time():
+                log.info("   no Flash (or time) left: %d wait for a later run", len(queue) - done)
+                break
+            log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
+            self._upgrade_post(account, post, published)
 
     def _share_per_run(self) -> int:
         """How many accounts one sweep reads: its share of the day's sweeps, plus a margin for late ones."""
@@ -217,9 +282,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
                 self.stats.reanalyzed += 1
             else:  # no quota or time left, or an error: the account stays due, so the edit ("CANCELADO") is read soon
                 self.stats.count(account, "pending")
-        elif record.provisional and self.extractor.can_upgrade() and not self._out_of_time():
-            log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
-            self._upgrade_post(account, post, published)
+        elif record.provisional:
+            self._to_upgrade.append((account, post, published))  # re-read after every account, by urgency
 
     def _adopt_public_record(self, post: Post) -> ProcessedPost | None:
         """A post added by hand from its public page, now among the account's posts: the same post, not a new

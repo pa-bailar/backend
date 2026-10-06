@@ -261,6 +261,9 @@ class FakeStoryExtractor:
     def can_extract_with_flash(self) -> bool:
         return True
 
+    def reserve_flash(self, share: float) -> None:
+        self.flash_reserved = share
+
     def can_upgrade(self) -> bool:
         return True
 
