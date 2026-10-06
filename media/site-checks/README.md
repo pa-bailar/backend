@@ -11,7 +11,7 @@ changes to this folder, so they cost no Actions minutes. No dependencies of thei
 
 ```
 node media/site-checks/run.mjs [scenario…|all] [--live | --url <u>] [--engine chrome,webkit]
-  [--device desktop,phone,iphone] [--theme light,dark] [--now <iso>] [--shots] [--verbose]
+  [--device desktop,phone,iphone] [--size 1100x800] [--theme light,dark] [--now <iso>] [--shots] [--verbose]
 node media/site-checks/run.mjs --help        the scenarios and what each covers
 ```
 
@@ -24,7 +24,8 @@ node media/site-checks/run.mjs --help        the scenarios and what each covers
   (the page's state in one line). Exit code 1 on any failure.
 - **Devices:** `desktop` 1280 × 800; `phone` an Android phone at 375 × 812 (touch); `iphone` Playwright's
   "iPhone SE (3rd gen)" (375 × 667, Safari's user agent, touch). `--engine webkit --device iphone` is the closest to
-  an iPhone here.
+  an iPhone here. `--size 1100x800` gives the device another window size (a half screen, a short laptop: the side
+  panel needs 900 × 600).
 - **The page:** es-CO, Bogotá's zone, the first-visit hint and the install offer already dismissed, every third
   party blocked but Google Fonts (so no analytics), the theme forced. `--now` freezes the clock (an ISO date, e.g.
   `2026-10-10T19:00:00-05:00`). Each step waits up to 8 s, each run 4 min: nothing hangs.
@@ -46,8 +47,8 @@ skip a part, saying why, when the data has none.
 ## Probe: one-off debugging
 
 ```
-node media/site-checks/probe.mjs [--live | --url <u>] [--engine e] [--device d] [--theme t] [--now <iso>] [--fresh]
-  [--path /calendario/] --do "<action>" --do "<action>" …
+node media/site-checks/probe.mjs [--live | --url <u>] [--engine e] [--device d] [--size WxH] [--theme t] [--now <iso>]
+  [--fresh] [--path /calendario/] --do "<action>" --do "<action>" …
 ```
 
 Prints the page's state after each action, then the errors. Actions: `click:<selector>`, `tap:<selector>`,
