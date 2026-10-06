@@ -81,7 +81,7 @@ env:
   MEDIA_REPO: media # the flyers and clips (pa_bailar/media_store.py)
   STATE_FILES: state # where the code keeps its state (config.STATE_DIR); copied to/from the sweep-state branch
   MERGE_TIMEOUT_MINUTES: 20
-  OPEN_DATA_PR_WAIT_MINUTES: 10 # a data PR still in the site's ci when the next run starts (step 6c)
+  OPEN_DATA_PR_WAIT_MINUTES: 20 # a data PR still in the site's ci when the next run starts (step 6c): as long as the old wait
   HEALTH_REPORT_FILE: ${{ github.workspace }}/health.md # written by the sweep (pa_bailar/health.py)
   NOTIFY: jzamora5 # mentioned in the health issue, so GitHub emails them
   ADMIN_URL: https://pa-bailar-admin.jzamorac-9.workers.dev # the admin page's Worker: story screenshots
