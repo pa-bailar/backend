@@ -188,6 +188,11 @@ def test_the_party_rule_keeps_socials_announced_as_such_and_other_types():
     assert party_at_a_bar("social", "Halloween en el bar · DJ invitado") == "party"
     assert party_at_a_bar("social", "Gran SOCIAL de bachata con la academia") == "social"
     assert party_at_a_bar("social", "Sociales de salsa todos invitados") == "social"
+    # The word's other uses don't make a bar's night a social (bug-squash, 6 Oct 2026).
+    assert party_at_a_bar("social", "Halloween con DJ · síguenos en nuestras redes sociales") == "party"
+    assert party_at_a_bar("social", "Noche de Halloween en Sonora Social Club") == "party"
+    assert party_at_a_bar("social", "Aniversario del bar por una causa social") == "party"
+    assert party_at_a_bar("social", "Social de bachata · síguenos en redes sociales") == "social"
     assert party_at_a_bar("concert", "Orquesta en vivo") == "concert"
     assert party_at_a_bar("workshop", "Taller con invitado") == "workshop"
 
@@ -225,3 +230,12 @@ def test_a_bars_social_stored_before_the_type_existed_becomes_a_party_on_the_nex
     run(FakeInstagram({"academia": [], "salsabar": [], "club": []}), FakeExtractor({}))
     types = {event["id"]: event["event_type"] for event in read(config.EVENTS_FILE)}
     assert types == {"halloween": "party", "social-bachata": "social", "concierto": "concert", "fiesta-neon": "social"}
+
+
+def test_the_answer_schemas_tell_a_party_from_a_social_like_the_prompt():
+    """Bug-squash, 6 Oct 2026: the schema's description still said "social = socials, parties", against the prompt."""
+    from pa_bailar.models import EventDetails, StoryEvent
+
+    for model in (EventDetails, StoryEvent):
+        description = model.model_fields["event_type"].description or ""
+        assert "party = " in description and "social = socials, parties" not in description

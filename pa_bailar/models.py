@@ -105,7 +105,8 @@ class EventDetails(BaseModel):
 
     title: str
     event_type: EventType = Field(
-        description="social = socials, parties, dance nights, anniversaries; "
+        description="social = a night for dancers (an academy's or a dance organizer's socials, dance nights, "
+        "anniversaries); party = a night out (a bar's or club's special night, a general public party); "
         "workshop = one-time workshops, masterclasses and special classes with guest teachers, and workshop series "
         "(see sessions)"
     )
@@ -322,7 +323,8 @@ class StoryEvent(BaseModel):
 
     title: str
     event_type: EventType = Field(
-        description="social = socials, parties, dance nights, anniversaries; "
+        description="social = a night for dancers (an academy's or a dance organizer's socials, dance nights, "
+        "anniversaries); party = a night out (a bar's or club's special night, a general public party); "
         "workshop = one-time workshops, masterclasses and special classes with guest teachers"
     )
     is_recurring: bool = Field(
