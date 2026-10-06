@@ -30,7 +30,8 @@ docs/PLAN.md          the original go-live plan, kept for its decisions
 admin-web/            the admin page, a Cloudflare Worker (docs/ADMIN.md); its tests in admin-web/test;
                       .dev.vars.example: its secrets' names for local development
 media/                the video toolkit for Instagram Stories and Reels: tools, a Remotion library, one folder
-                      per video (media/README.md is its catalog; nothing in it runs in the sweep)
+                      per video (media/README.md is its catalog; nothing in it runs in the sweep); also
+                      media/site-checks/, Claude's local browser checks of the site (never run in CI)
 accounts.txt          the accounts to follow: academies, companies, organizers, artists
 state/                local sweep state (git-ignored; on GitHub: the sweep-state branch)
 .claude/              Claude Code: workspace instructions, skills, hooks (Working with Claude Code, below)
@@ -117,8 +118,8 @@ Everything runs on GitHub Actions:
 
 | Workflow | When | What |
 |---|---|---|
-| `ci` | Every pull request, and Mondays on `main` (to keep the pip cache warm) | Lint, format check, types (mypy), tests and the admin page's Worker tests. Not again on `main` after a merge: the PR already ran it (Actions minutes). |
-| `media` | Pull requests that change `media/` | Type-checks the video toolkit and runs its Node tests (`media-ci.yml`; its own workflow, so it doesn't start, and bill a minute, when `media/` is untouched). |
+| `ci` | Every pull request (but one touching only `media/site-checks/`, local-only checks), and Mondays on `main` (to keep the pip cache warm) | Lint, format check, types (mypy), tests and the admin page's Worker tests. Not again on `main` after a merge: the PR already ran it (Actions minutes). |
+| `media` | Pull requests that change `media/` (not `media/site-checks/`) | Type-checks the video toolkit and runs its Node tests (`media-ci.yml`; its own workflow, so it doesn't start, and bill a minute, when `media/` is untouched). |
 | `admin` | A new issue or comment from `jzamora5` (the admin page opens such issues) | The admin inbox (only issues labelled `admin`, or texts with a request): answers with a comment (check a post, add an account, the status); adding a post (or reading one again) or a story, and hiding a story or an event, start `daily-sweep` for that one request. See [docs/ADMIN.md](docs/ADMIN.md) |
 | `daily-sweep` | Every day at 9:00 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (each about once a day, half per sweep), writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is then saved to the `sweep-state` branch (if the data PR couldn't be opened, the run's posts stay unread for the next run, and `site/data` is kept as the run's artifact). With `post_url` (from `admin`), it adds that one post instead (with `again`, even if it was read before and hasn't changed) and answers on the admin issue; with `story` or `hide`, it adds a story or takes a story or an event off the site. |
 
@@ -221,6 +222,7 @@ looks for instructions, skills and hooks. The files themselves are versioned her
 | `.claude/WORKSPACE.md` | The instructions for every session: the two repositories, how changes are made, the review process, what never to touch |
 | `.claude/CONTEXT.md` | The context for a new session: where each truth lives, how the pieces connect, what bites on this machine, the lessons. Durable facts only; the current state is the handoff (`Code/handoff/HANDOFF.md`, not versioned). Kept by the `handoff` skill |
 | `.claude/skills/<name>/SKILL.md` | Skills: step-by-step procedures Claude follows. `sync-docs` updates the docs to match a branch before its pull request (architecture, behavior and decisions only, never pixel-level detail; it also checks the whole repository for drift on request or before a launch); `code-quality` reviews code against the project's standards (design tokens, shared utilities and components, types, tests, house style) and fixes what falls short; `bug-squash` hunts for bugs in the whole feature a change belongs to (not just its new lines), by this project's known bug classes, proves each with a test or a reproduction, fixes it and adds a guard; `handoff` leaves the state for the next session (the handoff, `CONTEXT.md`, memory); `teaser` makes or changes a video with `media/`. Each pass is recorded in the handoff, so the next one starts from there |
+| `media/site-checks/` | Claude's browser checks of the site, run on this machine only (never in GitHub Actions): `run.mjs` runs scenarios on Chrome and WebKit (Safari's engine), desktop, phone and iPhone sizes, both themes, and prints only the failures; `probe.mjs` prints the page's state after each action, for one-off debugging. Its `README.md` has the commands |
 | `.claude/hooks/require-docs-sync.mjs` | Blocks opening a pull request (`gh pr create`) until `sync-docs` has run at the branch's latest commit, which it records in `.git/docs-synced` |
 
 The `Code` folder points at them (set up once per computer):

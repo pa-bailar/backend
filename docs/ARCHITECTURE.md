@@ -225,7 +225,9 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
   free-tier project, only in the local `.env`), Whisper and ACE-Step from `D:\AI`, Remotion and ffmpeg; what they
   generate lives in a media home outside the checkout (`D:\AI\pa-bailar-media`). Nothing there runs in the sweep;
   CI lints and unit-tests its Python tools with the rest of the repository, and `media-ci.yml` type-checks the
-  Remotion code on pull requests that change `media/` (no secrets).
+  Remotion code on pull requests that change `media/` (no secrets). `media/site-checks/`, Claude's browser checks of
+  the site (Playwright, Chrome and WebKit), runs only on this machine: both workflows ignore it (the owner, 6 Oct
+  2026: no Actions minutes for them).
 
 ### 3.10 Groq and OpenRouter: the last resort
 
@@ -1214,7 +1216,7 @@ guide.
 
 ### 13.1 Checks
 
-`ci.yml` runs on every pull request (not again on `main` after a merge: the PR ran the same checks; a Monday run on
+`ci.yml` runs on every pull request but those that only touch `media/site-checks/` (local only; not again on `main` after a merge: the PR ran the same checks; a Monday run on
 `main` keeps the pip cache where every branch can use it, since a PR's cache stays with that PR):
 - `ruff check` (lint, including a complexity cap: no function over 12, `C901`);
 - `ruff format --check`;
@@ -1222,7 +1224,8 @@ guide.
 - `pytest`;
 - the admin page's Worker tests (`node --test "admin-web/test/*.test.mjs"`, Node 24);
 - and, in its own workflow `media-ci.yml`, the video toolkit: `npm ci`, `tsc --noEmit` and its Node tests
-  (`media/tests`), only on pull requests that change `media/` (its Python tests run with the rest under `pytest`).
+  (`media/tests`), only on pull requests that change `media/` outside `media/site-checks/` (its Python tests run
+  with the rest under `pytest`).
 
 **Actions minutes** (private repository: 2,000 a month free; each job bills at least a whole minute): from 1 to 5
 October 2026 CI took 246 of 533 minutes (177 runs in a busy week of pull requests), the sweeps about 180. So CI

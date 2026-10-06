@@ -10,6 +10,8 @@ name: ci
 
 on:
   pull_request:
+    paths-ignore:
+      - "media/site-checks/**" # the site checks run on this machine only, never here (media/site-checks/README.md)
   schedule:
     - cron: "17 11 * * 1" # Mondays 06:17 Bogotá, clear of the sweeps
   workflow_dispatch:

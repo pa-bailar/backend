@@ -101,8 +101,11 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
   `git -C <path>`.
 - **Worktrees** for parallel agents. A site or media worktree has a `node_modules` junction: `cmd //c rmdir` it
   BEFORE `git worktree remove`, or the real folder goes with it.
-- **Browser checks:** Playwright through `pa-bailar/media/tools/capture.mjs` (`openPhone({ now, theme })`: a phone
-  with a frozen clock, the analytics blocked); preview servers through `Code/.claude/launch.json` and the
+- **Browser checks:** first `pa-bailar/media/site-checks/` (its README): `run.mjs` runs the scenarios (`tour`,
+  `arrows`, `walk`, `panel`, `stage`) on chrome or webkit, desktop, phone or iPhone, both themes, against the local
+  preview or `--live`, printing only failures; `probe.mjs --do "tap:…" --do back …` prints the page's state after
+  each action, for one-off debugging. Add a scenario there instead of a throwaway script. Local only, never in CI
+  (the owner, 6 Oct 2026). For videos, `media/tools/capture.mjs` (`openPhone({ now, theme })`). Preview servers through `Code/.claude/launch.json` and the
   `preview_start` tool, not Bash. `astro preview` refuses a second instance ("already running": reuse its port).
 - **GitHub Actions:** a job cancelled after ~15 min with no steps run is GitHub not assigning a runner (incidents
   happen), not a failure of ours: re-run it. The backend is private: 2,000 minutes a month.

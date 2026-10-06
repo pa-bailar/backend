@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
       - "media/**"
+      - "!media/site-checks/**" # the site checks run on this machine only, never here (media/site-checks/README.md)
       - ".github/workflows/media-ci.yml"
   workflow_dispatch:
 
