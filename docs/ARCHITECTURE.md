@@ -665,6 +665,7 @@ flowchart TD
     M -->|"none left after<br/>failures"| E["ExtractionError:<br/>post retried, counted as an error"]
     M --> B{"Daily budget left?<br/>(limit − 2, shared by<br/>today's runs)"}
     B -->|no| M
+    B -->|"paused: busy on every<br/>attempt in the last 15 min"| M
     B -->|yes| PACE["Wait for its pace<br/>(60 / RPM + 0.5 s)"] --> CALL["Call (counted as spent)"]
     CALL -->|"valid JSON"| OK["Return answer + model"]
     CALL -->|"invalid JSON"| RETRY2{"First invalid answer<br/>from this model?"}
@@ -679,7 +680,7 @@ flowchart TD
     CALL -->|"key invalid, expired or revoked<br/>(401, or 400/403 naming the API key)"| KEY["GeminiKeyError:<br/>the run stops, no post recorded"]
     CALL -->|"other 4xx"| REJ
     RETRY -->|yes| B
-    RETRY -->|no| M
+    RETRY -->|"no (still busy: the model<br/>is paused 15 min)"| M
 ```
 
 - **Budget:** each model's daily limit minus 2, kept free for manual runs and retries
@@ -723,6 +724,10 @@ flowchart TD
   timeouts and dropped connections as httpx's own errors (`httpx.TransportError`, neither an `APIError` nor an
   `OSError`): the pool retries them like a busy server, and if no model answers, the post waits like any
   failure (`pipeline.RETRYABLE_ERRORS`; an add-post request answers "Inténtalo de nuevo en un rato").
+- **A model busy on every attempt is paused** for 15 minutes (`BUSY_PAUSE_SECONDS`): skipped like a busy one, its
+  budget kept, and no provisional post is upgraded while Flash is paused (`EventExtractor.can_upgrade`). On 6 Oct
+  2026 Flash answered 503 all morning, and 3 attempts per model per post spent its whole day (36 requests, all
+  counted, since Google may count them) without a single answer; now an outage costs 3 per model per pause.
 
 ### 7.3 The last resort: Groq and OpenRouter
 

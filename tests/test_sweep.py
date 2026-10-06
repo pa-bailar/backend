@@ -83,6 +83,9 @@ class FakeExtractor:
     def can_extract_with_flash(self) -> bool:
         return self.flash_available
 
+    def can_upgrade(self) -> bool:
+        return self.flash_available
+
     def can_analyze(self) -> bool:
         return not self.out_of_quota
 

@@ -284,3 +284,39 @@ def test_unreadable_flash_answers_stay_unreadable_when_flash_lite_is_out(pool, m
     post = {"id": "p1", "timestamp": "2026-10-01T12:00:00+0000", "permalink": "x", "media_type": "IMAGE"}
     with pytest.raises(gemini.UnreadableAnswerError):
         extractor.extract("academia", post, datetime(2026, 10, 1, 12, tzinfo=UTC), [], [])
+
+
+# ---------- a busy model is paused, not retried on every post (6 Oct 2026: Flash's day spent on 503s) ----------
+
+
+def test_a_model_busy_on_every_attempt_is_skipped_for_a_while_with_its_budget_kept(pool):
+    busy = errors.ServerError(503, {"error": {"code": 503, "message": "busy", "status": "UNAVAILABLE"}})
+    attempts = gemini.ATTEMPTS_PER_MODEL
+    fake = with_models(pool, {"gemini-3.8-flash": [busy] * attempts + [ANSWER], "gemini-3.5-flash": [ANSWER, ANSWER]})
+    flash = ("gemini-3.8-flash", "gemini-3.5-flash")
+    assert pool.generate(flash, [], Triage) == (ANSWER, "gemini-3.5-flash")
+    assert pool.paused("gemini-3.8-flash") and not pool.any_ready(("gemini-3.8-flash",))
+    assert pool.any_ready(flash) and pool.has_budget("gemini-3.8-flash")
+
+    assert pool.generate(flash, [], Triage) == (ANSWER, "gemini-3.5-flash")  # the busy one isn't asked again
+    assert fake.calls == ["gemini-3.8-flash"] * attempts + ["gemini-3.5-flash", "gemini-3.5-flash"]
+
+    pool._paused_until["gemini-3.8-flash"] = 0.0  # the pause is over
+    assert pool.generate(flash, [], Triage) == (ANSWER, "gemini-3.8-flash")
+
+
+def test_only_paused_models_left_is_a_busy_failure_not_a_quota_wait(pool):
+    """So the extraction falls back to a provisional read, and the post isn't treated as out of quota."""
+    pool._paused_until["gemini-3.8-flash"] = gemini.time.monotonic() + 60
+    fake = with_models(pool, {"gemini-3.8-flash": [ANSWER]})
+    with pytest.raises(gemini.ExtractionError) as raised:
+        pool.generate(("gemini-3.8-flash",), [], Triage)
+    assert not isinstance(raised.value, gemini.QuotaExhaustedError | gemini.UnreadableAnswerError)
+    assert fake.calls == []
+
+
+def test_a_one_off_busy_answer_doesnt_pause_the_model(pool):
+    busy = errors.ServerError(503, {"error": {"code": 503, "message": "busy", "status": "UNAVAILABLE"}})
+    with_models(pool, {"gemini-3.8-flash": [busy, ANSWER]})
+    pool.generate(("gemini-3.8-flash",), [], Triage)
+    assert not pool.paused("gemini-3.8-flash")

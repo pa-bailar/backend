@@ -217,7 +217,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
                 self.stats.reanalyzed += 1
             else:  # no quota or time left, or an error: the account stays due, so the edit ("CANCELADO") is read soon
                 self.stats.count(account, "pending")
-        elif record.provisional and self.extractor.can_extract_with_flash() and not self._out_of_time():
+        elif record.provisional and self.extractor.can_upgrade() and not self._out_of_time():
             log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
             self._upgrade_post(account, post, published)
 

@@ -12,7 +12,8 @@ twice: the sweep gives the post up after a few runs of this, pipeline/sweep.py).
 read until it's replaced. It isn't an `ExtractionError`, so no post is marked as rejected because of it.
 
 A timeout or a dropped connection (httpx's `TransportError`, raised as is by the SDK) is retried like a busy
-server (5xx).
+server (5xx). A model still busy on its last attempt is paused (`BUSY_PAUSE_SECONDS`): skipped like a busy one, its
+budget kept, so an overloaded Flash doesn't take the day's few requests in retries post after post.
 
 A model Gemini says isn't available to this key (404 or 403, e.g. if Google took it out of the free tier) is
 skipped for the rest of the day like a spent one, and listed in `unavailable` for the health checks.
@@ -37,6 +38,9 @@ log = logging.getLogger(__name__)
 ATTEMPTS_PER_MODEL = 3
 INVALID_ANSWER_ATTEMPTS = 2  # an answer that isn't valid JSON is asked again once per model, not ATTEMPTS_PER_MODEL
 SERVER_ERROR_BACKOFF_SECONDS = 5  # multiplied by the attempt number
+# A model busy on every attempt is skipped this long. On 6 Oct 2026 Flash answered 503 all morning, and 3 attempts
+# per model per post spent its whole daily budget (36 requests, each counted: Google may count them) on nothing.
+BUSY_PAUSE_SECONDS = 15 * 60
 RATE_LIMIT_WAIT_SECONDS = 60  # per-minute quotas reset within a minute
 
 
@@ -152,6 +156,7 @@ class ModelPool:
         self._last_call: dict[str, float] = {}
         self.requests_this_run: Counter[str] = Counter()
         self.unavailable: set[str] = set()  # models Gemini said this key can't use (this run)
+        self._paused_until: dict[str, float] = {}  # time.monotonic() until which a busy model is skipped
         # time.monotonic() after which no request starts (OutOfTimeError): the run's time budget, set by EventExtractor.
         self.deadline: float | None = None
 
@@ -164,6 +169,14 @@ class ModelPool:
 
     def any_budget(self, models: tuple[str, ...]) -> bool:
         return any(self.has_budget(model) for model in models)
+
+    def paused(self, model: str) -> bool:
+        """Busy on every attempt a moment ago (BUSY_PAUSE_SECONDS): skipped until then, its budget kept."""
+        return time.monotonic() < self._paused_until.get(model, 0.0)
+
+    def any_ready(self, models: tuple[str, ...]) -> bool:
+        """Some model with budget left and not paused."""
+        return any(self.has_budget(model) and not self.paused(model) for model in models)
 
     def _spend(self, model: str) -> None:
         self._used[model] += 1
@@ -249,6 +262,10 @@ class ModelPool:
                 if not self.has_budget(model):
                     log.info("    %s: daily budget used up, skipping", model)
                     break
+                if self.paused(model):
+                    log.info("    %s: busy a moment ago, skipping", model)
+                    failed = busy = True
+                    break
                 self._pace(model)
                 self._spend(model)
                 try:
@@ -270,6 +287,9 @@ class ModelPool:
                     failed = busy = True
                     if attempt < ATTEMPTS_PER_MODEL:
                         time.sleep(SERVER_ERROR_BACKOFF_SECONDS * attempt)
+                    else:
+                        log.info("    %s still busy: skipped for %s minutes", model, BUSY_PAUSE_SECONDS // 60)
+                        self._paused_until[model] = time.monotonic() + BUSY_PAUSE_SECONDS
                 except errors.ClientError as error:
                     verdict = self._after_client_error(model, attempt, error)
                     if verdict == "retry":

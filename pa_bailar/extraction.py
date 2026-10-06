@@ -83,6 +83,11 @@ class EventExtractor:
     def can_extract_with_flash(self) -> bool:
         return self.pool.any_budget(config.EXTRACTION_MODELS)
 
+    def can_upgrade(self) -> bool:
+        """Flash has budget left and isn't paused as busy (gemini.BUSY_PAUSE_SECONDS): worth re-reading a provisional
+        post now."""
+        return self.pool.any_ready(config.EXTRACTION_MODELS)
+
     def can_analyze(self) -> bool:
         """Some model still has quota today for a new post (triage, extraction or provisional extraction), counting
         the last resort."""
