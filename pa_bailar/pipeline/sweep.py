@@ -65,6 +65,14 @@ def upgrade_urgency(event_ids: list[str], events: dict[str, StoredEvent], today:
     return (0, min(upcoming)) if upcoming else (1, "")
 
 
+
+def _bad_key(error: GeminiKeyError) -> SystemExit:
+    """The run's end when the Gemini key doesn't work: every request would fail, so it fails loudly, saying what to do."""
+    return SystemExit(
+        f"Gemini API key doesn't work ({error}). Create a new key in Google AI Studio and update "
+        "GEMINI_API_KEY (.env and the GitHub secret)."
+    )
+
 class Sweep(ManualPosts, StoryAdmin, Hiding):
     """The sweep (`run`) and the admin tools' operations (`add_post`, `add_story`, `hide_story`, `hide_event`), over
     one shared state (SweepBase)."""
@@ -101,10 +109,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             try:
                 self._process_account(account)
             except GeminiKeyError as error:  # every post would fail: stop, and let the run fail loudly
-                raise SystemExit(
-                    f"Gemini API key doesn't work ({error}). Create a new key in Google AI Studio and update "
-                    "GEMINI_API_KEY (.env and the GitHub secret)."
-                ) from error
+                raise _bad_key(error) from error
             except Exception:  # unexpected (e.g. a malformed answer): lose this account's run, not everyone's
                 log.exception("   unexpected error with @%s, continuing with the next account", account)
                 self.stats.count(account, "errors")
@@ -152,7 +157,13 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
                 log.info("   no Flash (or time) left: %d wait for a later run", len(queue) - done)
                 break
             log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
-            self._upgrade_post(account, post, published)
+            try:
+                self._upgrade_post(account, post, published)
+            except GeminiKeyError as error:
+                raise _bad_key(error) from error
+            except Exception:  # unexpected, as in the accounts' loop: lose this upgrade, not the run's records
+                log.exception("   unexpected error upgrading %s, continuing", post["permalink"])
+                self.stats.count(account, "errors")
 
     def _share_per_run(self) -> int:
         """How many accounts one sweep reads: its share of the day's sweeps, plus a margin for late ones."""

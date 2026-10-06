@@ -259,6 +259,26 @@ def test_provisional_extraction_is_upgraded_when_flash_is_back():
     assert events[0]["id"] == event_id("Leído por Lite")  # the URL shared meanwhile keeps working
 
 
+class BreaksOnUpgrade(FakeExtractor):
+    """An unexpected error re-reading a provisional post with Flash (e.g. a malformed answer)."""
+
+    def extract(self, account, post, published, images, known_events, allow_provisional=True, rules=""):
+        if not allow_provisional:
+            raise ValueError("unexpected")
+        return super().extract(account, post, published, images, known_events, allow_provisional, rules)
+
+
+def test_an_unexpected_error_in_an_upgrade_loses_that_upgrade_not_the_run():
+    """Upgrades run after every account since #126, outside the accounts' loop and its safety net: an error there
+    ended the run before its records (meta.json, the health record) were written (the bug-squash pass, 6 Oct 2026)."""
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    run(instagram, FakeExtractor({"p1": event_post("p1")}, flash_available=False))
+    config.META_FILE.unlink()
+    stats = run(instagram, BreaksOnUpgrade({"p1": event_post("p1")}))
+    assert config.META_FILE.exists() and stats.upgraded == 0
+    assert read(config.PROCESSED_POSTS_FILE)["p1"]["provisional"] is True  # tried again next run
+
+
 def test_provisional_posts_wait_while_flash_is_still_out():
     instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
     run(instagram, FakeExtractor({"p1": event_post("p1")}, flash_available=False))
