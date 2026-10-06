@@ -10,6 +10,8 @@ def isolated_files(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "DATA_DIR", tmp_path / "data")
     monkeypatch.setattr(config, "FLYERS_DIR", tmp_path / "data" / "flyers")
     monkeypatch.setattr(config, "PREVIEWS_DIR", tmp_path / "data" / "previews")
+    monkeypatch.setattr(config, "ARCHIVE_DIR", tmp_path / "data" / "archive")
+    monkeypatch.setattr(config, "ARCHIVE_FLYERS_DIR", tmp_path / "data" / "archive" / "flyers")
     monkeypatch.setattr(config, "EVENTS_FILE", tmp_path / "data" / "events.json")
     monkeypatch.setattr(config, "META_FILE", tmp_path / "data" / "meta.json")
     monkeypatch.setattr(config, "PROCESSED_POSTS_FILE", tmp_path / "state" / "processed_posts.json")

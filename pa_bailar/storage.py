@@ -180,6 +180,45 @@ def save_flyer(image_bytes: bytes, name: str) -> str:
     return path.relative_to(config.DATA_DIR).as_posix()
 
 
+def archive_events(events: list[StoredEvent]) -> int:
+    """Keep past events instead of deleting them (the owner, 5 Oct 2026: "it could be useful later"). Each record
+    goes to archive/<year of its last day>.json (in the site repository, read by no page), with a small copy of
+    each flyer in archive/flyers/ (in the media repository); the clips go. An event archived again (a later run)
+    replaces its record. Returns how many were archived."""
+    by_year: dict[str, list[StoredEvent]] = {}
+    for event in events:
+        media = [item.model_copy(update={"flyer": _archive_flyer(item.flyer), "preview": None}) for item in event.media]
+        year = (event.last_day or event.date or "0000")[:4]
+        by_year.setdefault(year, []).append(event.model_copy(update={"media": media}))
+    for year, archived in by_year.items():
+        path = config.ARCHIVE_DIR / f"{year}.json"
+        known = {event.id: event for event in _events_adapter.validate_python(read_json(path, []))}
+        known |= {event.id: event for event in archived}
+        ordered = sorted(known.values(), key=lambda event: (event.date or "", event.start_time or "", event.id))
+        write_json(path, _events_adapter.dump_python(ordered, mode="json"))
+    return len(events)
+
+
+def _archive_flyer(flyer: str | None) -> str | None:
+    """The archive's small copy of a flyer (made once), as a path relative to data/. None without the flyer file or
+    when it can't be read: the record is archived all the same, and one bad file never stops the run's clean-up."""
+    if not flyer:
+        return None
+    target = config.ARCHIVE_FLYERS_DIR / Path(flyer).name
+    if not target.exists():
+        source = config.DATA_DIR / flyer
+        if not source.exists():
+            return None
+        try:
+            image = Image.open(source).convert("RGB")
+        except OSError:  # PIL's UnidentifiedImageError too
+            return None
+        image.thumbnail(config.ARCHIVE_FLYER_MAX_SIZE)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        image.save(target, "WEBP", quality=config.ARCHIVE_FLYER_WEBP_QUALITY)
+    return target.relative_to(config.DATA_DIR).as_posix()
+
+
 def remove_unused_flyers(events: list[StoredEvent]) -> int:
     """Delete flyer and clip files no event points to. Returns how many were deleted."""
     used = {path for event in events for media in event.media for path in (media.flyer, media.preview) if path}

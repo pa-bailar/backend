@@ -309,6 +309,24 @@ def test_past_events_expire_with_their_flyers_and_old_post_records_are_forgotten
     assert sorted(path.name for path in config.FLYERS_DIR.iterdir()) == ["recent-0.webp"]
     assert list(storage.load_processed_posts()) == ["kept"]
     assert (stats.events_expired, stats.flyers_removed, stats.processed_forgotten) == (1, 1, 1)
+    # Archived, not lost (its flyer here isn't a real image: the record goes without one).
+    archived = read(config.ARCHIVE_DIR / f"{old.last_day[:4]}.json")
+    assert [event["id"] for event in archived] == ["old-0"] and archived[0]["media"][0]["flyer"] is None
+
+
+def test_a_past_events_record_and_a_small_copy_of_its_flyer_are_archived():
+    old = stored("old-0", posts=[media("old")], date=days_ago_date(config.EVENT_RETENTION_DAYS + 1))
+    old.media[0].preview = "previews/old-0.mp4"
+    storage.save_events([old])
+    config.FLYERS_DIR.mkdir(parents=True)
+    (config.FLYERS_DIR / "old-0.webp").write_bytes(make_image())
+    run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}))
+    archived = read(config.ARCHIVE_DIR / f"{old.last_day[:4]}.json")[0]
+    assert archived["media"][0]["flyer"] == "archive/flyers/old-0.webp" and archived["media"][0]["preview"] is None
+    small = config.ARCHIVE_FLYERS_DIR / "old-0.webp"
+    assert small.exists() and not (config.FLYERS_DIR / "old-0.webp").exists()
+    run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}))  # nothing left to archive: kept as it was
+    assert [event["id"] for event in read(config.ARCHIVE_DIR / f"{old.last_day[:4]}.json")] == ["old-0"]
 
 
 def test_post_records_inside_a_long_manual_lookback_are_kept():

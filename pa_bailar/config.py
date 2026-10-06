@@ -22,7 +22,13 @@ load_dotenv(ENV_FILE)
 DATA_DIR = Path(os.environ.get("DATA_DIR") or ROOT_DIR.parent / "pa-bailar-web" / "data").resolve()
 EVENTS_FILE = DATA_DIR / "events.json"
 META_FILE = DATA_DIR / "meta.json"
+# The images live in their own repository (pa-bailar/media, media_store.py): the workflow copies them into
+# data/flyers/ and data/previews/ before a run and pushes what changed after it; the site repository ignores them.
 FLYERS_DIR = DATA_DIR / "flyers"
+# Past events, archived instead of deleted (storage.archive_events): their records by the year of their last day
+# (archive/<year>.json, in the site repository) and a small copy of their flyers (archive/flyers/, in the media one).
+ARCHIVE_DIR = DATA_DIR / "archive"
+ARCHIVE_FLYERS_DIR = ARCHIVE_DIR / "flyers"
 # Backend-only input and state (on CI the state is kept in this repository's sweep-state branch).
 ACCOUNTS_FILE = ROOT_DIR / "accounts.txt"
 STATE_DIR = ROOT_DIR / "state"
@@ -196,6 +202,9 @@ OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"  # `admin bakeoff 
 # ---------- Flyers ----------
 FLYER_MAX_SIZE = (1080, 1350)  # 4:5, Instagram's tallest feed ratio
 FLYER_WEBP_QUALITY = 80
+# The archive's copy: enough to recognize the flyer, about a fifth of its size.
+ARCHIVE_FLYER_MAX_SIZE = (480, 600)
+ARCHIVE_FLYER_WEBP_QUALITY = 60
 
 # ---------- Pipeline ----------
 DEFAULT_LOOKBACK_DAYS = 7
@@ -229,8 +238,8 @@ MAX_SERIES_DAYS = 123
 NEW_SERIES_DAYS = 14
 
 # ---------- Retention ----------
-# Events whose last day was more than this many days ago are deleted, and their flyers with them (git history
-# keeps both).
+# Events whose last day was more than this many days ago leave the site: archived (storage.archive_events), their
+# full flyers and clips deleted (the media repository's history keeps them until it's reset).
 EVENT_RETENTION_DAYS = 60
 # Records of analyzed posts are forgotten after this many days. Must exceed BACKFILL_DAYS and the lookback:
 # older posts are never fetched again, so forgetting them can't cause a second analysis.

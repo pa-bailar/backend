@@ -114,11 +114,13 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         return sorted(due, key=lambda account: (is_new(account), -self._hours_overdue(account, now)))
 
     def _apply_retention(self) -> None:
-        """Delete long-past events and forget old analyzed posts, so data and flyers don't grow forever."""
+        """Archive long-past events (storage.archive_events) and forget old analyzed posts, so the site's data and
+        flyers don't grow forever. Their full flyers and clips go with the unused ones (remove_unused_flyers)."""
         now = config.now_bogota()
         oldest_date = (now - timedelta(days=config.EVENT_RETENTION_DAYS)).date().isoformat()
         kept = [event for event in self.events if not event.last_day or event.last_day >= oldest_date]
-        self.stats.events_expired = len(self.events) - len(kept)
+        expired = [event for event in self.events if event not in kept]
+        self.stats.events_expired = storage.archive_events(expired) if expired else 0
         self.events = kept
         past = [key for key, item in self.hidden.items() if (item.event.last_day or "") < oldest_date]
         for key in past:  # long past: no post of it will be read again
@@ -134,7 +136,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
 
         if self.stats.events_expired or old or past:
             log.info(
-                "Retention: %s past events deleted, %s old post records forgotten", self.stats.events_expired, len(old)
+                "Retention: %s past events archived, %s old post records forgotten", self.stats.events_expired, len(old)
             )
             self._save()
 

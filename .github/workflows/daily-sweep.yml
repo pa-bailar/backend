@@ -1,9 +1,11 @@
 # Twice a day: collect new events from Instagram and publish real changes to the (public) site
 # repository through a pull request.
 #
-#   this repo (private): sweep ── data PR ──▶ pa-bailar.github.io: ci → auto-merge → deploy
+#   this repo (private): sweep ── images ──▶ pa-bailar/media (pushed directly)
+#                              └─ data PR ──▶ pa-bailar.github.io: ci → auto-merge → deploy (copies the images in)
 #
-# - The site repository is reached with the pa-bailar-bot GitHub App (vars.APP_ID, secrets.APP_PRIVATE_KEY).
+# - The site and images repositories are reached with the pa-bailar-bot GitHub App (vars.APP_ID,
+#   secrets.APP_PRIVATE_KEY).
 #   Its pull requests trigger the site's ci like anyone's, and its merges trigger the deploy.
 # - Days without new events open no PR; the site is still republished with the time of the check.
 # - The sweep's state (analyzed posts, accounts' turns and first-sweep progress, today's Gemini usage and the last
@@ -76,6 +78,7 @@ concurrency:
 env:
   SITE_OWNER: pa-bailar
   SITE_REPO: pa-bailar.github.io
+  MEDIA_REPO: media # the flyers and clips (pa_bailar/media_store.py)
   STATE_FILES: state # where the code keeps its state (config.STATE_DIR); copied to/from the sweep-state branch
   MERGE_TIMEOUT_MINUTES: 20
   HEALTH_REPORT_FILE: ${{ github.workspace }}/health.md # written by the sweep (pa_bailar/health.py)
@@ -243,6 +246,15 @@ jobs:
           persist-credentials: false
           path: site
 
+      # The images live in their own repository (pa_bailar/media_store.py): copied into the site's data/ before the
+      # run, pushed back after it. Public too; only its latest version.
+      - name: Check out the images repository
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.SITE_OWNER }}/${{ env.MEDIA_REPO }}
+          persist-credentials: false
+          path: media
+
       - uses: actions/setup-python@v7
         with:
           python-version-file: .python-version
@@ -250,6 +262,9 @@ jobs:
           cache-dependency-path: requirements.txt
 
       - run: pip install -r requirements.txt
+
+      - name: Copy the images into the site's data
+        run: python -m pa_bailar.media_store pull media site/data
 
       - name: Get the story's screenshots
         if: ${{ inputs.story != '' }}
@@ -329,11 +344,36 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: ${{ env.SITE_OWNER }}
-          repositories: ${{ env.SITE_REPO }}
+          repositories: |
+            ${{ env.SITE_REPO }}
+            ${{ env.MEDIA_REPO }}
+
+      # Before the data PR, so the site's build always finds the images its events point to. Pushed directly, without
+      # a pull request: pull request references would keep every old image alive (the reason for this repository).
+      # If it fails, no data PR is opened: this run's posts stay unread and are read again next run.
+      - name: Save the images to their repository
+        id: media
+        if: ${{ !cancelled() }}
+        working-directory: media
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          BOT: ${{ steps.app.outputs.app-slug }}[bot]
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python -m pa_bailar.media_store push ../site/data .
+          if [ -z "$(git status --porcelain)" ]; then echo "No new or changed images."; exit 0; fi
+          gh auth setup-git  # git pushes with the App token (GH_TOKEN), only from here on
+          bot_id="$(gh api "/users/${BOT}" --jq .id)"
+          git config user.name "$BOT"
+          git config user.email "${bot_id}+${BOT}@users.noreply.github.com"
+          git add -A
+          git commit -qm "chore(media): images of run ${GITHUB_RUN_ID} ($(date -u +%F))"
+          git push -q origin HEAD:main
 
       - name: Open a data pull request in the site repository if events or flyers changed
         id: pr
-        if: ${{ !cancelled() }} # keep progress from a sweep that failed partway (it still shows as failed)
+        # Keep progress from a sweep that failed partway (it still shows as failed), unless the images weren't saved.
+        if: ${{ !cancelled() && steps.media.outcome != 'failure' }}
         working-directory: site
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
@@ -344,8 +384,9 @@ jobs:
             startsWith(inputs.hide, 'story-') && 'story hidden by hand' || inputs.hide && 'event hidden by hand' ||
             'daily sweep' }}
         run: |
-          # Only events and flyers count as a change: meta.json is rewritten every run (with the check time).
-          if [ -z "$(git status --porcelain -- data/events.json data/flyers)" ]; then
+          # Only events, the archive and flyers count as a change: meta.json is rewritten every run (with the check
+          # time). Flyers only while the site repository still keeps them (until it ignores data/flyers/).
+          if [ -z "$(git status --porcelain -- data/events.json data/archive data/flyers)" ]; then
             echo "No new or changed events: no pull request."
             exit 0
           fi

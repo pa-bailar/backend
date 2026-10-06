@@ -344,15 +344,18 @@ sequenceDiagram
 | 2 | Read the sweep state | Always | Checks out the `sweep-state` branch into `sweep-state/` | None kept |
 | 3 | Copy the state | Always | `sweep-state/*.json` → `state/` | |
 | 4 | Check out the site repository | Always | Into `site/`. `DATA_DIR` points to `site/data` | None (public repository) |
+| 4b | Check out the images repository | Always | `pa-bailar/media` into `media/`, its latest version (section 10.2) | None (public repository) |
 | 5 | Set up Python | Always | Python from `.python-version` (3.12), pip cache | |
 | 6 | Install | Always | `pip install -r requirements.txt`, every package pinned and hash-checked | |
+| 6a′ | Copy the images into the site's data | Always | `python -m pa_bailar.media_store pull media site/data`: the current flyers and clips, so the run works on them as before | |
 | 6a | Get the story's screenshots | `story` | Downloads the `story-images` job's artifact into `stories/` | |
 | 6b | Make sure ffmpeg is installed | Always | For videos' preview clips (`clips.py`); usually already on the runner | |
 | 6c | Make sure the last data PR merged | Always | Fails if a `data` PR is still open in the site repository: the sweep reads the events from the site's `main`, so sweeping past an unmerged PR would lose its events for good (their posts are already marked analyzed). Merge or fix it first | `GITHUB_TOKEN` (reads the public site repository) |
 | 7 | **Run the sweep** | Always | With `post_url` (admin tools): `python -m pa_bailar sweep --post <link> [--account x] [--again]`, one post by hand (`--again` from the `again` input, "Volver a leer"). With `story`: `sweep --story <ids> --story-dir stories [--account=x] --notes=…` (the screenshots from `story-images`, step 6a). With `hide`: `sweep --hide-story <story id>`, or `sweep --hide-event <event id>`. Otherwise `python -m pa_bailar sweep --days N [--all]` (N from the `days` input, 7 by default, at most 30; `--all` from `all_accounts`). Step limit: 35 minutes; the code stops starting Gemini work at 30 | `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, and the optional `GROQ_API_KEY` and `OPENROUTER_API_KEY` (this step only) |
 | 8 | Write the status for the admin page | Unless cancelled; its failure doesn't fail the run | `python -m pa_bailar admin status --json` → `state/status.json`, saved with the state (one Graph API call, no Gemini). The admin page reads it | `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
-| 9 | Get a token for the site repository | Unless cancelled | Mints a pa-bailar-bot installation token for the site repository only | `APP_ID`, `APP_PRIVATE_KEY` |
-| 10 | Open a data PR | Unless cancelled | Only if `data/events.json` or `data/flyers` changed (clips change `events.json` too) (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled. It runs before the state is saved, so the state never marks posts as analyzed whose events didn't leave the runner | App token |
+| 9 | Get a token for the site repository | Unless cancelled | Mints a pa-bailar-bot installation token for the site and images repositories only | `APP_ID`, `APP_PRIVATE_KEY` |
+| 9b | Save the images to their repository | Unless cancelled | `media_store push`: new and changed images (and the archive's small flyers) copied into `media/`, the current ones this run deleted removed (only if no event points to them and they're gone from `site/data`); committed as the bot and pushed straight to `main`, no PR (pull request references would keep old images alive). If it fails, no data PR is opened, so the run's posts stay unread | App token |
+| 10 | Open a data PR | Unless cancelled, and the images were saved | Only if `data/events.json`, `data/archive` or (while the site repository still keeps them) `data/flyers` changed (clips change `events.json` too) (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled. It runs before the state is saved, so the state never marks posts as analyzed whose events didn't leave the runner | App token |
 | 10b | Keep the site data of a data PR that wasn't opened | The data PR step failed | Uploads `site/data` (events, flyers, clips) as the run's artifact `site-data-<run id>`, kept 14 days, to recover by hand (section 15) | |
 | 11 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real. **If the data PR step didn't succeed**, `processed_posts.json` and `accounts.json` keep their previous versions (a warning says so): this run's posts stay unread and its accounts due, so the next run reads them again and its PR carries their events. Gemini's usage, the run history and `status.json` are saved either way | `GITHUB_TOKEN` (this step only) |
 | 11b | Save an account added by hand | `post_url` or `story`, and `accounts.txt` changed | Commits `accounts.txt` to `main` | `GITHUB_TOKEN` (this step only) |
@@ -440,7 +443,7 @@ flowchart TD
     G -->|no| B
     H --> B
     R --> Z
-    B -->|no accounts left| Z["Retention: delete events that ended 60+ days ago,<br/>forget post records 45+ days old,<br/>delete flyers no event uses"]
+    B -->|no accounts left| Z["Retention: archive events that ended 60+ days ago,<br/>forget post records 45+ days old,<br/>delete flyers no event uses"]
     Z --> M["Write meta.json, health report, run history"]
 ```
 
@@ -989,11 +992,22 @@ itself: `pa_bailar/sweep_state.py` fetches it and reads each file with `git show
 |---|---|
 | `data/events.json` | Every stored event, sorted by date (its first day) and time. The format is the data contract (`docs/DATA.md` in the site repository); `pa_bailar/models.py` (`StoredEvent`) is its source of truth |
 | `data/meta.json` | `schema_version`, `generated_at` (Bogotá time), `accounts` (every account swept, the site's list of sources) and the stats of the run that wrote it. Rewritten every run, but only committed together with a real change to events or flyers |
-| `data/flyers/*.webp` | The flyer copies. Unused ones are deleted at the end of every run |
-| `data/previews/*.mp4` | Videos' preview clips (6 s, silent). Deleted with their events, like flyers |
+| `data/archive/<year>.json` | Past events, archived instead of deleted: their records as in `events.json`, by the year of their last day, each flyer pointing to the archive's small copy and no clip. Not read by the site's pages |
+| `data/flyers/*.webp`, `data/previews/*.mp4` | The flyer copies and videos' preview clips (6 s, silent). **Not in the site repository** (it ignores them): they live in `pa-bailar/media` (below). Unused ones are deleted at the end of every run |
+
+**The images' repository, `pa-bailar/media`** (since 5 Oct 2026; `pa_bailar/media_store.py`, its `README.md`):
+`flyers/`, `previews/` and `archive/flyers/` (the archive's small copies, 480 px, kept for good). Images in the site
+repository grew its history by hundreds of MB a year, and its data PRs' references keep every old image alive, so
+rewriting that history wouldn't shrink it. Here pushes are direct (no PRs), so the repository can be recreated with
+only the current images when it gets big (save the old full-size ones first). The run copies the images in before
+it starts and pushes what changed before the data PR (section 5.2); the site's build copies `flyers/` and
+`previews/` into its `data/` the same way, so their addresses don't change. Moving them to other storage (e.g.
+Cloudflare R2) would only change `media_store.py` and the site's copy step.
 
 **Retention:** events whose last day (`end_date`, or `date`; a workshop series' last session) was more than 60
-days ago are deleted, together with their flyers, so `data/` doesn't grow forever. Git history keeps them.
+days ago leave the site and are **archived** (`storage.archive_events`, the owner's decision, 5 Oct 2026: "it could
+be useful later"): the record to `data/archive/<year>.json`, a small copy of each flyer to `archive/flyers/`. Their
+full flyers and clips are deleted with the unused ones.
 
 ---
 
@@ -1366,7 +1380,8 @@ flowchart LR
 | `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; `hours_overdue` |
 | `pipeline/manual_post.py`, `story_admin.py`, `hiding.py` | The admin tools, mixed into `Sweep`: add a post (`add_post`), add a story (`add_story`), hide a story or an event (`hide_story`, `hide_event`) |
 | `clips.py` | Videos' preview clips: download, cut 6 silent seconds with ffmpeg |
-| `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, `accounts.txt` |
+| `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, the archive of past events, `accounts.txt` |
+| `media_store.py` | The images' repository (`pa-bailar/media`): `pull` into the site's data before a run, `push` what changed after it |
 | `health.py` | Run history, health rules, events to review, the report and its fingerprint |
 | `status.py` | What `admin status` shows: sweeps, Gemini usage, Instagram, accounts, events, new workshop series (data and Spanish text) |
 | `sweep_state.py` | The sweeps' latest state on your computer: reads the `sweep-state` branch with git |
