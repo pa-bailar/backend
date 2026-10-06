@@ -13,14 +13,27 @@ else is a suspect, reported apart.
 
 Pick one, and say which in the reply:
 
-- **A branch** (a big feature, before its PR): its diff, and what calls into it.
+- **A branch** (before its PR): **the feature the change belongs to, whole**, not the changed lines. A new chip in
+  the filters means checking the filters: every way to choose and clear them (the pinned bar, the sheet, the
+  toolbar's pills, "Limpiar", an empty result's buttons), in every view, with search, after back and forward, after
+  a reload, with the setting remembered and with storage blocked, on a phone and a wide screen. Most bugs sit where
+  the new piece meets the old ones, not in the new lines (the bookmark worked; the attribute added next to it broke
+  every click). Name the feature, then list its parts before reading (§0.1).
 - **An area** (e.g. "Guardados", "the sweep's merges"), or a symptom the owner saw (start from the symptom: §2).
 - **A whole repository** (before a launch, or periodically): split by area and give each to a subagent (`Agent`,
   `general-purpose`) with the bug classes for that area (§3) and the rule "report suspects with the exact steps or
   input; don't fix". Then reproduce each suspect yourself (§4). A handful of agents at most.
 
-Start from what changed: `git log --oneline` since the last pass (recorded in `Code/handoff/HANDOFF.md`). New code
-and code next to it hide most bugs.
+Start from what changed: `git log --oneline` since the last pass (recorded in `Code/handoff/HANDOFF.md`), to know
+which features to check, then check each of those features whole.
+
+### 0.1 Map the feature before hunting
+
+Write down, for the feature in scope: its entry points (controls, addresses, commands, workflows), the modules and
+state it reads and writes, its neighbors (what else shares that state, the DOM, history, storage, the data), and
+the conditions it runs under (views, themes, widths, time of day, offline, quota left). That list is what gets
+checked, one item at a time, against the bug classes below. For a site feature, the docs' sections on it
+(`docs/ARCHITECTURE.md`, `docs/DESIGN.md`) are the fastest map; for a backend one, `docs/ARCHITECTURE.md`'s pipeline.
 
 Work on a branch (`fix/<area>`), never on `main`.
 
