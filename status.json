@@ -1,7 +1,103 @@
 {
-  "generated_at": "2026-10-05T10:02:21-05:00",
+  "generated_at": "2026-10-05T21:31:00-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-10-05T21:30:59-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37401968570",
+        "accounts": 53,
+        "failed_accounts": [],
+        "read_accounts": [
+          "_olorumcongress",
+          "and1erita",
+          "arrollando.dc",
+          "babou_candelaria",
+          "bachatamania_bogota",
+          "bachatasocialcongresss",
+          "bailarito",
+          "bilongocolombia",
+          "bogotadanceclub",
+          "boogaloop.candelaria",
+          "bulevarsalsabar",
+          "bulevarsalsarooftop",
+          "casaquiebracanto",
+          "casavander_",
+          "casineafest",
+          "cordillerafestival",
+          "danitello22",
+          "danzaenlaciudad",
+          "dlivingstudio",
+          "ebi_dancecompany",
+          "el_panteon_de_la_salsa",
+          "elgocepagano",
+          "elparche.se",
+          "elratonsalsaclub",
+          "fernandoespanadj",
+          "frank.de.latorre",
+          "galeriacafelibro",
+          "germanbaila",
+          "guadalupebar751",
+          "habana93",
+          "herencialatinad.c",
+          "iledanza",
+          "jackandjilloficial",
+          "jaleocompetencia_",
+          "juancho__salsita",
+          "la33orquesta",
+          "lacoartadacentrocultural",
+          "latinproductioncolombia",
+          "latrinidaddelasalsa",
+          "mariavasquezdancer",
+          "oronegroclub",
+          "pachanga_y_pochola",
+          "parchexbogota",
+          "reyesdelasalsa.col",
+          "salsacamaraoficial",
+          "salsaculto",
+          "salsaysonoficial",
+          "sandunguera.salsabar",
+          "sarasandoval.oficial",
+          "sondehabana",
+          "soywiwioficial",
+          "teffa_mg",
+          "zaimora24"
+        ],
+        "skipped_accounts": [
+          "chanchanlatino",
+          "el_bochinche_cafe_",
+          "callejonsalsa",
+          "tributo.salsayjazz",
+          "terrazasalsera",
+          "ilhehabana",
+          "restaurantecasadecitas",
+          "ladiezluxury_outlet",
+          "quemaquequema",
+          "ritmomoderno",
+          "sonorasocialclub_",
+          "discojaguar.bta",
+          "acaparchamos",
+          "lamecanica_original",
+          "aseismanos",
+          "mundanobaroficial"
+        ],
+        "posts_analyzed": 97,
+        "events_new": 28,
+        "events_merged": 7,
+        "pending": 2,
+        "post_errors": 1,
+        "provisional": 34,
+        "rate_limited": false,
+        "out_of_time": true,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 117
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 76,
+        "warnings": []
+      },
       {
         "finished_at": "2026-10-05T09:27:32-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/37321177247",
@@ -74,6 +170,9 @@
           "gemini-3.5-flash": 18
         },
         "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
         "instagram_usage": 86,
         "warnings": []
       },
@@ -135,6 +234,9 @@
           "gemini-3.5-flash": 17
         },
         "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
         "instagram_usage": 56,
         "warnings": []
       },
@@ -192,6 +294,9 @@
           "gemini-3.8-flash": 4
         },
         "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
         "instagram_usage": 48,
         "warnings": []
       },
@@ -235,58 +340,16 @@
           "gemini-3.5-flash-lite": 145
         },
         "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
         "instagram_usage": 61,
-        "warnings": []
-      },
-      {
-        "finished_at": "2026-10-03T09:15:27-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37128097876",
-        "accounts": 33,
-        "failed_accounts": [
-          "herencialatinad.c"
-        ],
-        "read_accounts": [],
-        "skipped_accounts": [
-          "iledanza",
-          "ebi_dancecompany",
-          "festivalsalsaalparque",
-          "salsabravadancehallpicante",
-          "reyesdelasalsa.col",
-          "bachatamania_bogota",
-          "germanbaila",
-          "_olorumcongress",
-          "bailalo_improsocial",
-          "cordillerafestival",
-          "latrinidaddelasalsa",
-          "danzaenlaciudad",
-          "salsaculto",
-          "paramopresenta",
-          "latinproductioncolombia",
-          "bachatasocialcongresss",
-          "bailarito",
-          "elparche.se",
-          "bogotadanceclub"
-        ],
-        "posts_analyzed": 0,
-        "events_new": 0,
-        "events_merged": 0,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 0,
-        "rate_limited": true,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.8-flash": 18,
-          "gemini-3.5-flash": 18
-        },
-        "models_unavailable": [],
-        "instagram_usage": null,
         "warnings": []
       }
     ],
     "next": [
-      "2026-10-05T21:00-05:00",
-      "2026-10-06T09:00-05:00"
+      "2026-10-06T09:00-05:00",
+      "2026-10-06T21:00-05:00"
     ]
   },
   "gemini": {
@@ -308,8 +371,37 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 79,
+        "used": 196,
         "budget": 498
+      }
+    ]
+  },
+  "external": {
+    "resets_at": "2026-10-06T19:00-05:00",
+    "providers": [
+      {
+        "name": "groq",
+        "models": [
+          "qwen/qwen3.8-27b"
+        ],
+        "used": 0,
+        "budget": 900,
+        "tokens": 0,
+        "token_budget": 180000,
+        "answered": {}
+      },
+      {
+        "name": "openrouter",
+        "models": [
+          "google/gemma-4-31b-it:free",
+          "google/gemma-4-26b-a4b-it:free",
+          "openrouter/free"
+        ],
+        "used": 0,
+        "budget": 40,
+        "tokens": null,
+        "token_budget": null,
+        "answered": {}
       }
     ]
   },
@@ -319,16 +411,33 @@
     "error": null
   },
   "accounts": {
-    "followed": 95,
-    "first_sweep_pending": [],
+    "followed": 125,
+    "first_sweep_pending": [
+      "chanchanlatino",
+      "el_bochinche_cafe_",
+      "callejonsalsa",
+      "tributo.salsayjazz",
+      "terrazasalsera",
+      "ilhehabana",
+      "restaurantecasadecitas",
+      "ladiezluxury_outlet",
+      "quemaquequema",
+      "ritmomoderno",
+      "sonorasocialclub_",
+      "discojaguar.bta",
+      "acaparchamos",
+      "lamecanica_original",
+      "aseismanos",
+      "mundanobaroficial"
+    ],
     "waiting": []
   },
   "posts": {
-    "recorded": 485,
-    "provisional": 134
+    "recorded": 582,
+    "provisional": 168
   },
   "events": {
-    "upcoming": 40,
+    "upcoming": 68,
     "low_confidence": 0
   },
   "new_series": [

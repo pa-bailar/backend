@@ -11,7 +11,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18198040588376870": {
     "account": "zafradance",
@@ -25,7 +26,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18379762747224169": {
     "account": "zafradance",
@@ -39,7 +41,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18142103065599867": {
     "account": "zafradance",
@@ -53,7 +56,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17944206615322562": {
     "account": "zafradance",
@@ -67,7 +71,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18330914212277947": {
     "account": "zafradance",
@@ -81,7 +86,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18129749683771543": {
     "account": "bembeacademiadebaile",
@@ -95,7 +101,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18092662847433715": {
     "account": "bembeacademiadebaile",
@@ -109,7 +116,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17866733517659910": {
     "account": "bembeacademiadebaile",
@@ -123,7 +131,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18113166034873802": {
     "account": "bembeacademiadebaile",
@@ -137,7 +146,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18194856820389461": {
     "account": "bembeacademiadebaile",
@@ -151,7 +161,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18125277811839771": {
     "account": "bembeacademiadebaile",
@@ -165,7 +176,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17985388479076791": {
     "account": "esferalatinaoficial",
@@ -179,7 +191,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17940141273086498": {
     "account": "esferalatinaoficial",
@@ -193,7 +206,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17966843337172267": {
     "account": "esferalatinaoficial",
@@ -207,7 +221,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18485647252129232": {
     "account": "madyumdance",
@@ -221,7 +236,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18179940502441318": {
     "account": "madyumdance",
@@ -235,7 +251,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18445168045134487": {
     "account": "madyumdance",
@@ -249,7 +266,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18382266040226570": {
     "account": "madyumdance",
@@ -263,7 +281,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17990723310048827": {
     "account": "madyumdance",
@@ -277,7 +296,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18422550298154507": {
     "account": "madyumdance",
@@ -291,7 +311,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18382502500227795": {
     "account": "madyumdance",
@@ -305,7 +326,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18104347286615308": {
     "account": "madyumdance",
@@ -319,7 +341,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18389263297200452": {
     "account": "madyumdance",
@@ -333,7 +356,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18336609811283206": {
     "account": "madyumdance",
@@ -347,7 +371,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18126108809477354": {
     "account": "academiadebailepasolatino",
@@ -361,7 +386,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18112581790860968": {
     "account": "esferalatinaoficial",
@@ -375,7 +401,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18207044776366939": {
     "account": "bureodancestudio",
@@ -389,7 +416,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18094649012398996": {
     "account": "bureodancestudio",
@@ -403,7 +431,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18108680687599548": {
     "account": "bureodancestudio",
@@ -417,7 +446,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18475359718114255": {
     "account": "bureodancestudio",
@@ -431,7 +461,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18013517321748037": {
     "account": "bureodancestudio",
@@ -445,7 +476,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17939885055096850": {
     "account": "bureodancestudio",
@@ -459,7 +491,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18126494698803654": {
     "account": "bureodancestudio",
@@ -473,7 +506,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18265196218306960": {
     "account": "bureodancestudio",
@@ -487,7 +521,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18125843635842523": {
     "account": "bureodancestudio",
@@ -501,7 +536,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18649102459032582": {
     "account": "bureodancestudio",
@@ -515,7 +551,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18124895125860558": {
     "account": "bureodancestudio",
@@ -529,7 +566,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18114879713055350": {
     "account": "bureodancestudio",
@@ -543,7 +581,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18113903033040937": {
     "account": "bureodancestudio",
@@ -557,7 +596,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18007124306782865": {
     "account": "bureodancestudio",
@@ -571,7 +611,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18036448199836668": {
     "account": "ludancestudios",
@@ -585,7 +626,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18154168786450664": {
     "account": "ludancestudios",
@@ -599,7 +641,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18621881713023553": {
     "account": "ludancestudios",
@@ -613,7 +656,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18090013664183863": {
     "account": "ludancestudios",
@@ -627,7 +671,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17908918632471320": {
     "account": "ludancestudios",
@@ -641,7 +686,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18130959460746898": {
     "account": "ludancestudios",
@@ -655,7 +701,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18413821672080522": {
     "account": "ludancestudios",
@@ -669,7 +716,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18129795415671668": {
     "account": "ritmosacademiadebaile",
@@ -683,7 +731,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18199884541372721": {
     "account": "ritmosacademiadebaile",
@@ -697,7 +746,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18069630428738274": {
     "account": "ritmosacademiadebaile",
@@ -711,7 +761,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18333258193274240": {
     "account": "studio110dance",
@@ -725,7 +776,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18125773468889093": {
     "account": "studio110dance",
@@ -739,7 +791,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18046982273805992": {
     "account": "bogotadanceclub.academy",
@@ -753,7 +806,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17931879759384676": {
     "account": "bogotadanceclub.academy",
@@ -767,7 +821,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17947203279275710": {
     "account": "bogotadanceclub.academy",
@@ -781,7 +836,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18069384140744326": {
     "account": "bogotadanceclub.academy",
@@ -795,7 +851,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17915582604448980": {
     "account": "bogotadanceclub.academy",
@@ -809,7 +866,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18107461136192690": {
     "account": "bogotadanceclub.academy",
@@ -823,7 +881,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18218113489342549": {
     "account": "bogotadanceclub.academy",
@@ -837,7 +896,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18150230383557404": {
     "account": "bogotadanceclub.academy",
@@ -851,7 +911,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18112428938584718": {
     "account": "bogotadanceclub.academy",
@@ -865,7 +926,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18149714359529479": {
     "account": "bogotadanceclub.academy",
@@ -879,7 +941,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17971442750947663": {
     "account": "bogotadanceclub.academy",
@@ -893,7 +956,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18113027366013830": {
     "account": "bogotadanceclub.academy",
@@ -907,7 +971,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18026404658885665": {
     "account": "bogotadanceclub.academy",
@@ -921,7 +986,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17974630266132703": {
     "account": "bogotadanceclub.academy",
@@ -935,7 +1001,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17905684278510537": {
     "account": "academyfeel",
@@ -949,7 +1016,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18127381486751149": {
     "account": "academyfeel",
@@ -963,7 +1031,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17907969771545676": {
     "account": "academyfeel",
@@ -977,7 +1046,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18094427084387144": {
     "account": "soondanz_company",
@@ -991,7 +1061,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17984251284078552": {
     "account": "soondanz_company",
@@ -1005,7 +1076,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18356056747221099": {
     "account": "soondanz_company",
@@ -1019,7 +1091,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18029912528681157": {
     "account": "soondanz_company",
@@ -1033,7 +1106,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17913794670446865": {
     "account": "imperiolatino",
@@ -1047,7 +1121,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18143422915496924": {
     "account": "imperiolatino",
@@ -1061,7 +1136,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18176212447433419": {
     "account": "imperiolatino",
@@ -1075,7 +1151,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18177695947442451": {
     "account": "imperiolatino",
@@ -1089,7 +1166,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18128846989785657": {
     "account": "imperiolatino",
@@ -1103,7 +1181,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18100745444632280": {
     "account": "imperiolatino",
@@ -1117,7 +1196,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17905517349593677": {
     "account": "imperiolatino",
@@ -1131,7 +1211,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18016554014926349": {
     "account": "mambo_y_control",
@@ -1145,7 +1226,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17881005324522990": {
     "account": "mambo_y_control",
@@ -1159,7 +1241,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18071762753721686": {
     "account": "mambo_y_control",
@@ -1173,7 +1256,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17896591305398161": {
     "account": "mambo_y_control",
@@ -1187,7 +1271,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18018174977930391": {
     "account": "distritosocialbog",
@@ -1201,7 +1286,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18409856125080489": {
     "account": "distritosocialbog",
@@ -1215,7 +1301,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18127890811762567": {
     "account": "distritosocialbog",
@@ -1229,7 +1316,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18101050046369055": {
     "account": "distritosocialbog",
@@ -1243,7 +1331,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17939085588098200": {
     "account": "distritosocialbog",
@@ -1257,7 +1346,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18091073186556725": {
     "account": "distritosocialbog",
@@ -1271,7 +1361,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18438785839135774": {
     "account": "distritosocialbog",
@@ -1285,7 +1376,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18101899421631677": {
     "account": "distritosocialbog",
@@ -1299,7 +1391,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18133094761730072": {
     "account": "distritosocialbog",
@@ -1313,7 +1406,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17925664512421185": {
     "account": "distritosocialbog",
@@ -1327,7 +1421,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18169606639420327": {
     "account": "distritosocialbog",
@@ -1341,7 +1436,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18150552889543035": {
     "account": "distritosocialbog",
@@ -1355,7 +1451,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18125678203891135": {
     "account": "distritosocialbog",
@@ -1369,7 +1466,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18021267338925064": {
     "account": "distritosocialbog",
@@ -1385,7 +1483,8 @@
       "distrito-social-aniversario-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18334628131261291": {
     "account": "distritosocialbog",
@@ -1401,7 +1500,8 @@
       "distrito-social-aniversario-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17922037542488794": {
     "account": "distritosocialbog",
@@ -1417,7 +1517,8 @@
       "distrito-social-aniversario-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18136397614653925": {
     "account": "distritosocialbog",
@@ -1433,7 +1534,8 @@
       "distrito-social-aniversario-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17910069849519332": {
     "account": "distritosocialbog",
@@ -1449,7 +1551,8 @@
       "distrito-social-aniversario-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18475727074116887": {
     "account": "distritosocialbog",
@@ -1465,7 +1568,8 @@
       "distrito-social-aniversario-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18095793410543849": {
     "account": "distritosocialbog",
@@ -1481,7 +1585,8 @@
       "distrito-social-aniversario-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18153059854477991": {
     "account": "distritosocialbog",
@@ -1497,7 +1602,8 @@
       "distrito-social-aniversario-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18016769585940879": {
     "account": "danceinmotionclub",
@@ -1511,7 +1617,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18120739681906964": {
     "account": "danceinmotionclub",
@@ -1525,7 +1632,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18164322976483987": {
     "account": "danceinmotionclub",
@@ -1539,7 +1647,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18113466149017426": {
     "account": "danceinmotionclub",
@@ -1553,7 +1662,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17962219116197714": {
     "account": "danceinmotionclub",
@@ -1567,7 +1677,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18159651883516437": {
     "account": "danceinmotionclub",
@@ -1581,7 +1692,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17902083543361973": {
     "account": "danceinmotionclub",
@@ -1597,7 +1709,8 @@
       "taller-de-salsa-estilo-caleno-17-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18609561076049652": {
     "account": "tubailecom",
@@ -1611,7 +1724,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18039575954816775": {
     "account": "tubailecom",
@@ -1625,7 +1739,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17957743317250699": {
     "account": "tubailecom",
@@ -1639,7 +1754,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18132653167655934": {
     "account": "tubailecom",
@@ -1653,7 +1769,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18420123475152701": {
     "account": "tubailecom",
@@ -1667,7 +1784,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18117387673959897": {
     "account": "tubailecom",
@@ -1681,7 +1799,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18111328985123164": {
     "account": "tubailecom",
@@ -1695,7 +1814,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17986966299027310": {
     "account": "tubailecom",
@@ -1709,7 +1829,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18104343455267314": {
     "account": "tubailecom",
@@ -1723,7 +1844,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18046796276809001": {
     "account": "mover__se",
@@ -1737,7 +1859,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17949659403256946": {
     "account": "mover__se",
@@ -1751,7 +1874,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18151270045532103": {
     "account": "mover__se",
@@ -1765,7 +1889,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18095873720432478": {
     "account": "mover__se",
@@ -1781,7 +1906,8 @@
       "ecos-en-movimiento-clausura-mover-se-2026-13-dic"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18013505918746903": {
     "account": "showstarscol",
@@ -1795,7 +1921,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18119490457941889": {
     "account": "showstarscol",
@@ -1809,7 +1936,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17974124537935313": {
     "account": "showstarscol",
@@ -1823,7 +1951,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18124482976842926": {
     "account": "showstarscol",
@@ -1837,7 +1966,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18107639209923462": {
     "account": "showstarscol",
@@ -1851,7 +1981,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18066587792777378": {
     "account": "showstarscol",
@@ -1865,7 +1996,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18115508507019819": {
     "account": "showstarscol",
@@ -1879,7 +2011,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18209333182364945": {
     "account": "showstarscol",
@@ -1893,7 +2026,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18185806897365695": {
     "account": "reyesdelasalsa.col",
@@ -1907,7 +2041,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17939961648366902": {
     "account": "reyesdelasalsa.col",
@@ -1921,7 +2056,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18218496433344823": {
     "account": "reyesdelasalsa.col",
@@ -1935,7 +2071,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17910685500495782": {
     "account": "reyesdelasalsa.col",
@@ -1949,7 +2086,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18115421941982084": {
     "account": "bachatamania_bogota",
@@ -1963,7 +2101,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18041124329684768": {
     "account": "bachatamania_bogota",
@@ -1977,7 +2116,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17896312032393668": {
     "account": "bachatamania_bogota",
@@ -1991,7 +2131,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18107746265597196": {
     "account": "bachatamania_bogota",
@@ -2005,7 +2146,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17982270951095026": {
     "account": "bachatamania_bogota",
@@ -2019,7 +2161,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18122906905711309": {
     "account": "bachatamania_bogota",
@@ -2033,7 +2176,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18411223324085711": {
     "account": "bachatamania_bogota",
@@ -2047,7 +2191,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17980619367080550": {
     "account": "germanbaila",
@@ -2061,7 +2206,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17930487552145151": {
     "account": "germanbaila",
@@ -2075,7 +2221,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18108572762327650": {
     "account": "germanbaila",
@@ -2089,7 +2236,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17985897396080592": {
     "account": "bogotadanceclub.academy",
@@ -2103,7 +2251,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18407653663091838": {
     "account": "academiaalmadetangoe",
@@ -2117,7 +2266,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18114810215075112": {
     "account": "academiaalmadetangoe",
@@ -2131,7 +2281,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18197969926388498": {
     "account": "academiaalmadetangoe",
@@ -2145,7 +2296,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18407884213094306": {
     "account": "academiaalmadetangoe",
@@ -2159,7 +2311,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18085699580306788": {
     "account": "proyectourbandance",
@@ -2173,7 +2326,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18010811948986920": {
     "account": "proyectourbandance",
@@ -2191,7 +2345,8 @@
       "workshop-pro-fondos-coreografia-11-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18134142721660577": {
     "account": "proyectourbandance",
@@ -2209,7 +2364,8 @@
       "workshop-pro-fondos-coreografia-11-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18049519712803457": {
     "account": "espacio.64",
@@ -2223,7 +2379,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18184772941413158": {
     "account": "espacio.64",
@@ -2237,7 +2394,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18004580819970205": {
     "account": "espacio.64",
@@ -2251,7 +2409,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18445192954127928": {
     "account": "espacio.64",
@@ -2265,7 +2424,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18110441605999285": {
     "account": "espacio.64",
@@ -2279,7 +2439,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17946754536321024": {
     "account": "espacio.64",
@@ -2293,7 +2454,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18125548828812573": {
     "account": "espacio.64",
@@ -2307,7 +2469,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18625040047041227": {
     "account": "espacio.64",
@@ -2321,7 +2484,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18093411647640302": {
     "account": "espacio.64",
@@ -2335,7 +2499,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18014743958744837": {
     "account": "espacio.64",
@@ -2349,7 +2514,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18217550830345714": {
     "account": "espacio.64",
@@ -2363,7 +2529,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17909187708536925": {
     "account": "espacio.64",
@@ -2377,7 +2544,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18110707181169422": {
     "account": "espacio.64",
@@ -2391,7 +2559,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18457669492184828": {
     "account": "espacio.64",
@@ -2405,7 +2574,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17907447666552777": {
     "account": "espacio.64",
@@ -2419,7 +2589,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17899298484656476": {
     "account": "espacio.64",
@@ -2433,7 +2604,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18094790768394874": {
     "account": "espacio.64",
@@ -2447,7 +2619,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18132106027673068": {
     "account": "espacio.64",
@@ -2461,7 +2634,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17993060226049468": {
     "account": "espacio.64",
@@ -2475,7 +2649,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18086183840306500": {
     "account": "espacio.64",
@@ -2489,7 +2664,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18565666195074057": {
     "account": "espacio.64",
@@ -2503,7 +2679,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17950654596275371": {
     "account": "lacoartadacentrocultural",
@@ -2517,7 +2694,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17976123450102405": {
     "account": "herencialatinad.c",
@@ -2531,7 +2709,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18120266225484695": {
     "account": "herencialatinad.c",
@@ -2545,7 +2724,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18094927937539830": {
     "account": "herencialatinad.c",
@@ -2559,7 +2739,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18446250358123312": {
     "account": "herencialatinad.c",
@@ -2573,7 +2754,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17895273984607583": {
     "account": "herencialatinad.c",
@@ -2587,7 +2769,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18094222160548314": {
     "account": "herencialatinad.c",
@@ -2601,7 +2784,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18133635982645378": {
     "account": "ebi_dancecompany",
@@ -2615,7 +2799,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18148786210526643": {
     "account": "ebi_dancecompany",
@@ -2629,7 +2814,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18127548028789655": {
     "account": "germanbaila",
@@ -2643,7 +2829,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18214150060358890": {
     "account": "germanbaila",
@@ -2657,7 +2844,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17957876115079615": {
     "account": "germanbaila",
@@ -2671,7 +2859,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18128274380486284": {
     "account": "germanbaila",
@@ -2685,7 +2874,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18100759811377405": {
     "account": "germanbaila",
@@ -2699,7 +2889,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18025978352861193": {
     "account": "germanbaila",
@@ -2713,7 +2904,8 @@
     "outcome": null,
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "public-Dc_Jsv6R6Wu": {
     "account": "levelupbfc",
@@ -2729,7 +2921,8 @@
       "level-up-bachata-fusion-congress-13-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18029807327685223": {
     "account": "bachatasocialcongresss",
@@ -2743,7 +2936,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18115650418969387": {
     "account": "iledanza",
@@ -2757,7 +2951,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18101304254322591": {
     "account": "germanbaila",
@@ -2773,7 +2968,8 @@
       "coca-cola-bailable-la-fiesta-salsera-de-las-4-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18115313872982288": {
     "account": "germanbaila",
@@ -2789,7 +2985,8 @@
       "coca-cola-bailable-la-fiesta-salsera-de-las-4-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18475329490119740": {
     "account": "germanbaila",
@@ -2805,7 +3002,8 @@
       "coca-cola-bailable-la-fiesta-salsera-de-las-4-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18094306217402354": {
     "account": "cordillerafestival",
@@ -2819,7 +3017,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18104389103192347": {
     "account": "cordillerafestival",
@@ -2833,7 +3032,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18073536410444551": {
     "account": "cordillerafestival",
@@ -2847,7 +3047,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17902632177561033": {
     "account": "cordillerafestival",
@@ -2861,7 +3062,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18111651581112947": {
     "account": "cordillerafestival",
@@ -2875,7 +3077,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18154057741511417": {
     "account": "cordillerafestival",
@@ -2889,7 +3092,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18350644795217245": {
     "account": "cordillerafestival",
@@ -2903,7 +3107,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18111365651125148": {
     "account": "cordillerafestival",
@@ -2917,7 +3122,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18133687264634740": {
     "account": "cordillerafestival",
@@ -2931,7 +3137,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18078419060518623": {
     "account": "cordillerafestival",
@@ -2945,7 +3152,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18101732174249242": {
     "account": "cordillerafestival",
@@ -2959,7 +3167,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18140610622572164": {
     "account": "cordillerafestival",
@@ -2973,7 +3182,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17937735573367624": {
     "account": "cordillerafestival",
@@ -2987,7 +3197,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18114035333101722": {
     "account": "cordillerafestival",
@@ -3001,7 +3212,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18149492059546208": {
     "account": "cordillerafestival",
@@ -3015,7 +3227,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18489920641104976": {
     "account": "cordillerafestival",
@@ -3029,7 +3242,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17958514245219740": {
     "account": "cordillerafestival",
@@ -3043,7 +3257,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17979620171908486": {
     "account": "cordillerafestival",
@@ -3057,7 +3272,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18103930997460456": {
     "account": "cordillerafestival",
@@ -3071,7 +3287,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18229124611322976": {
     "account": "cordillerafestival",
@@ -3085,7 +3302,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18121959526920910": {
     "account": "cordillerafestival",
@@ -3099,7 +3317,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18052813787643588": {
     "account": "cordillerafestival",
@@ -3113,7 +3332,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17964189960189310": {
     "account": "cordillerafestival",
@@ -3127,7 +3347,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18351585403172153": {
     "account": "cordillerafestival",
@@ -3141,7 +3362,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18627930790047792": {
     "account": "cordillerafestival",
@@ -3155,7 +3377,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18108003545271551": {
     "account": "cordillerafestival",
@@ -3169,7 +3392,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18028130675907698": {
     "account": "cordillerafestival",
@@ -3183,7 +3407,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18127757272825765": {
     "account": "cordillerafestival",
@@ -3197,7 +3422,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18146662777560483": {
     "account": "cordillerafestival",
@@ -3211,7 +3437,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17945606037074681": {
     "account": "cordillerafestival",
@@ -3225,7 +3452,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17958667976998604": {
     "account": "latrinidaddelasalsa",
@@ -3241,7 +3469,8 @@
       "3-pa-3-edicion-popular-26-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18015342857941091": {
     "account": "danzaenlaciudad",
@@ -3255,7 +3484,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18022032923914011": {
     "account": "danzaenlaciudad",
@@ -3271,7 +3501,8 @@
       "gala-premio-danza-k-pop-2026-13-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18144839581576733": {
     "account": "danzaenlaciudad",
@@ -3287,7 +3518,8 @@
       "gala-premio-danza-k-pop-2026-13-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17983015014118680": {
     "account": "danzaenlaciudad",
@@ -3303,7 +3535,8 @@
       "gala-premio-danza-k-pop-2026-13-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17988738999050451": {
     "account": "danzaenlaciudad",
@@ -3317,7 +3550,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18101255201291340": {
     "account": "danzaenlaciudad",
@@ -3331,7 +3565,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17882625444689741": {
     "account": "danzaenlaciudad",
@@ -3345,7 +3580,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18380887969228934": {
     "account": "danzaenlaciudad",
@@ -3368,7 +3604,8 @@
       "taller-fenomenologia-sueno-y-luego-produzco-20-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17988844131103785": {
     "account": "salsaculto",
@@ -3384,7 +3621,8 @@
       "tour-de-la-salsa-capitulo-001-11-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18110615609173199": {
     "account": "salsaculto",
@@ -3400,7 +3638,8 @@
       "tour-de-la-salsa-capitulo-001-11-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18465297490140535": {
     "account": "salsaculto",
@@ -3416,7 +3655,8 @@
       "tour-de-la-salsa-capitulo-001-11-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18099362465261357": {
     "account": "paramopresenta",
@@ -3430,7 +3670,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18229008445325573": {
     "account": "paramopresenta",
@@ -3444,7 +3685,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18022167770866830": {
     "account": "paramopresenta",
@@ -3458,7 +3700,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17911229802498055": {
     "account": "paramopresenta",
@@ -3472,7 +3715,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18134862862653366": {
     "account": "paramopresenta",
@@ -3486,7 +3730,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18143106805606223": {
     "account": "paramopresenta",
@@ -3500,7 +3745,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18354866785174717": {
     "account": "paramopresenta",
@@ -3514,7 +3760,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18117035027043442": {
     "account": "paramopresenta",
@@ -3528,7 +3775,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18031309511854889": {
     "account": "paramopresenta",
@@ -3542,7 +3790,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18104973755343991": {
     "account": "paramopresenta",
@@ -3556,7 +3805,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18114350282469606": {
     "account": "paramopresenta",
@@ -3570,7 +3820,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18085747553697951": {
     "account": "paramopresenta",
@@ -3584,7 +3835,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18641702410013685": {
     "account": "paramopresenta",
@@ -3598,7 +3850,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17864722032677996": {
     "account": "paramopresenta",
@@ -3612,7 +3865,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18340434637283324": {
     "account": "paramopresenta",
@@ -3626,7 +3880,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18105993442970933": {
     "account": "paramopresenta",
@@ -3640,7 +3895,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18008371112779507": {
     "account": "paramopresenta",
@@ -3654,7 +3910,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18164030419490153": {
     "account": "paramopresenta",
@@ -3668,7 +3925,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18178046074430703": {
     "account": "paramopresenta",
@@ -3682,7 +3940,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17958964593228331": {
     "account": "paramopresenta",
@@ -3696,7 +3955,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18002065722007296": {
     "account": "paramopresenta",
@@ -3710,7 +3970,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18112959014147092": {
     "account": "paramopresenta",
@@ -3724,7 +3985,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18109846736175024": {
     "account": "paramopresenta",
@@ -3738,7 +4000,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18026577215910884": {
     "account": "paramopresenta",
@@ -3752,7 +4015,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18090663245208339": {
     "account": "paramopresenta",
@@ -3766,7 +4030,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18129474601691373": {
     "account": "paramopresenta",
@@ -3780,7 +4045,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17890496040455335": {
     "account": "paramopresenta",
@@ -3794,7 +4060,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17911462272507702": {
     "account": "paramopresenta",
@@ -3808,7 +4075,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18632227786026197": {
     "account": "paramopresenta",
@@ -3822,7 +4090,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18104674115202339": {
     "account": "paramopresenta",
@@ -3836,7 +4105,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18057589880567868": {
     "account": "latinproductioncolombia",
@@ -3850,7 +4120,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18000166256809054": {
     "account": "latinproductioncolombia",
@@ -3864,7 +4135,8 @@
     "outcome": "hidden",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18100177298369892": {
     "account": "elparche.se",
@@ -3881,7 +4153,8 @@
       "taller-de-juzgamiento-para-la-improvisacion-salsa-2-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18072774407742709": {
     "account": "elparche.se",
@@ -3895,7 +4168,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18100778483204765": {
     "account": "bogotadanceclub",
@@ -3911,7 +4185,8 @@
       "fiesta-neon-5-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18017335922925427": {
     "account": "bogotadanceclub",
@@ -3927,7 +4202,8 @@
       "angeles-y-diablitos-edicion-tinder-bailable-12-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18367120918246405": {
     "account": "bogotadanceclub",
@@ -3943,7 +4219,8 @@
       "angeles-y-diablitos-edicion-tinder-bailable-12-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17921307081425313": {
     "account": "bogotadanceclub",
@@ -3959,7 +4236,8 @@
       "angeles-y-diablitos-edicion-tinder-bailable-12-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18121537481303497": {
     "account": "bogotadanceclub",
@@ -3973,7 +4251,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18040436561847343": {
     "account": "bogotadanceclub",
@@ -3987,7 +4266,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18142836934545236": {
     "account": "bogotadanceclub",
@@ -4001,7 +4281,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18103630714970187": {
     "account": "bogotadanceclub",
@@ -4015,7 +4296,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17910666849533819": {
     "account": "bogotadanceclub",
@@ -4031,7 +4313,8 @@
       "tardeo-parche-bailador-26-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18126000472890608": {
     "account": "bogotadanceclub",
@@ -4047,7 +4330,8 @@
       "tardeo-parche-bailador-26-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18564241744075239": {
     "account": "bogotadanceclub",
@@ -4063,7 +4347,8 @@
       "parche-de-bailadores-26-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18027619853910745": {
     "account": "bogotadanceclub",
@@ -4079,7 +4364,8 @@
       "fiesta-tematica-diablitos-3-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18111747185145430": {
     "account": "bogotadanceclub",
@@ -4095,7 +4381,8 @@
       "fiesta-tematica-diablitos-3-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18395033200164841": {
     "account": "bogotadanceclub",
@@ -4111,7 +4398,8 @@
       "fiesta-tematica-diablitos-3-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18174896527445791": {
     "account": "distritosocialbog",
@@ -4127,7 +4415,8 @@
       "distrito-social-aniversario-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18113689204986232": {
     "account": "danceinmotionclub",
@@ -4141,7 +4430,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18102698552564681": {
     "account": "danceinmotionclub",
@@ -4155,7 +4445,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18102247549996700": {
     "account": "casineafest",
@@ -4171,7 +4462,8 @@
       "festival-internacional-casinea-10-a-edicion-13-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "story-c8a18ba7aae13f91": {
     "account": "frank.de.latorre",
@@ -4187,7 +4479,8 @@
     "detail": null,
     "image_hashes": [
       "900b0f8193232386"
-    ]
+    ],
+    "by_hand": false
   },
   "18116617811330754": {
     "account": "herencialatinad.c",
@@ -4201,7 +4494,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18120157103318771": {
     "account": "latinproductioncolombia",
@@ -4215,7 +4509,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18109915577586129": {
     "account": "sondehabana",
@@ -4229,7 +4524,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18099617171628364": {
     "account": "sondehabana",
@@ -4243,7 +4539,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18044150648816300": {
     "account": "sondehabana",
@@ -4259,7 +4556,8 @@
       "viernes-para-bailadores-edicion-2-amor-amistad-25-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18102127904568878": {
     "account": "sondehabana",
@@ -4273,7 +4571,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18073448372447981": {
     "account": "casineafest",
@@ -4289,7 +4588,8 @@
       "festival-internacional-casinea-10-a-edicion-13-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17970372216139158": {
     "account": "casineafest",
@@ -4305,7 +4605,8 @@
       "festival-internacional-casinea-10-a-edicion-13-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17930434554401238": {
     "account": "casineafest",
@@ -4321,7 +4622,8 @@
       "festival-internacional-casinea-10-a-edicion-13-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18141240823586989": {
     "account": "casineafest",
@@ -4337,7 +4639,8 @@
       "festival-internacional-casinea-10-a-edicion-13-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18188499625395008": {
     "account": "casineafest",
@@ -4353,7 +4656,8 @@
       "festival-internacional-casinea-10-a-edicion-13-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18628651735054443": {
     "account": "soywiwioficial",
@@ -4367,7 +4671,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18113955965069863": {
     "account": "soywiwioficial",
@@ -4381,7 +4686,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18110680999856507": {
     "account": "soywiwioficial",
@@ -4395,7 +4701,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17895856968398148": {
     "account": "soywiwioficial",
@@ -4409,7 +4716,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18116216417068478": {
     "account": "soywiwioficial",
@@ -4423,7 +4731,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18095204255438052": {
     "account": "soywiwioficial",
@@ -4437,7 +4746,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18215959618349454": {
     "account": "soywiwioficial",
@@ -4451,7 +4761,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18220156246338913": {
     "account": "soywiwioficial",
@@ -4465,7 +4776,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17941334238092349": {
     "account": "soywiwioficial",
@@ -4479,7 +4791,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17948435121298794": {
     "account": "soywiwioficial",
@@ -4493,7 +4806,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18075753554721508": {
     "account": "soywiwioficial",
@@ -4507,7 +4821,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18036703358839023": {
     "account": "soywiwioficial",
@@ -4521,7 +4836,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18098608037638234": {
     "account": "soywiwioficial",
@@ -4535,7 +4851,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18229425175325979": {
     "account": "soywiwioficial",
@@ -4551,7 +4868,8 @@
       "bailaton-los-morochos-4-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18122042672487029": {
     "account": "soywiwioficial",
@@ -4567,7 +4885,8 @@
       "bailaton-los-morochos-4-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18336051925285526": {
     "account": "arrollando.dc",
@@ -4581,7 +4900,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17866193091661569": {
     "account": "arrollando.dc",
@@ -4595,7 +4915,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17973807941936309": {
     "account": "arrollando.dc",
@@ -4609,7 +4930,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18095016149382595": {
     "account": "arrollando.dc",
@@ -4623,7 +4945,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18130809451707742": {
     "account": "arrollando.dc",
@@ -4637,7 +4960,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17903466045590599": {
     "account": "arrollando.dc",
@@ -4651,7 +4975,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17884175295633377": {
     "account": "arrollando.dc",
@@ -4665,7 +4990,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17984956463882357": {
     "account": "arrollando.dc",
@@ -4679,7 +5005,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17989373211059113": {
     "account": "arrollando.dc",
@@ -4693,7 +5020,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18114256535107383": {
     "account": "jackandjilloficial",
@@ -4709,7 +5037,8 @@
       "jack-and-jill-20-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18368394184212470": {
     "account": "jackandjilloficial",
@@ -4725,7 +5054,8 @@
       "jack-and-jill-20-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18024003998870639": {
     "account": "jackandjilloficial",
@@ -4741,7 +5071,8 @@
       "jack-and-jill-20-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17901976053669117": {
     "account": "jackandjilloficial",
@@ -4757,7 +5088,8 @@
       "jack-and-jill-20-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18183172054424844": {
     "account": "jackandjilloficial",
@@ -4773,7 +5105,8 @@
       "jack-and-jill-20-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18079883642369358": {
     "account": "jackandjilloficial",
@@ -4789,7 +5122,8 @@
       "jack-and-jill-20-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17919923508443102": {
     "account": "jackandjilloficial",
@@ -4805,7 +5139,8 @@
       "jack-and-jill-20-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18183868318414015": {
     "account": "frank.de.latorre",
@@ -4819,7 +5154,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18137220808609743": {
     "account": "frank.de.latorre",
@@ -4833,7 +5169,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18128439625769742": {
     "account": "frank.de.latorre",
@@ -4847,7 +5184,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18115000996963246": {
     "account": "frank.de.latorre",
@@ -4861,7 +5199,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18004952741786055": {
     "account": "frank.de.latorre",
@@ -4875,7 +5214,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18137899501621419": {
     "account": "frank.de.latorre",
@@ -4891,7 +5231,8 @@
       "iniciacion-a-la-salsa-en-linea-3-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18005418956974201": {
     "account": "frank.de.latorre",
@@ -4905,7 +5246,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18102052058202319": {
     "account": "frank.de.latorre",
@@ -4919,7 +5261,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17910172251536345": {
     "account": "frank.de.latorre",
@@ -4933,7 +5276,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17962759775983312": {
     "account": "frank.de.latorre",
@@ -4947,7 +5291,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18112248914122569": {
     "account": "frank.de.latorre",
@@ -4961,7 +5306,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18114643687993212": {
     "account": "frank.de.latorre",
@@ -4975,7 +5321,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18389092048167162": {
     "account": "frank.de.latorre",
@@ -4989,7 +5336,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18439212880134608": {
     "account": "frank.de.latorre",
@@ -5003,7 +5351,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18113248916044042": {
     "account": "frank.de.latorre",
@@ -5017,7 +5366,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18622733401007935": {
     "account": "frank.de.latorre",
@@ -5031,7 +5381,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18031112306889872": {
     "account": "frank.de.latorre",
@@ -5045,7 +5396,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17966931332964424": {
     "account": "frank.de.latorre",
@@ -5059,7 +5411,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18149837980527248": {
     "account": "frank.de.latorre",
@@ -5073,7 +5426,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17861659737696319": {
     "account": "frank.de.latorre",
@@ -5087,7 +5441,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18588887557071714": {
     "account": "frank.de.latorre",
@@ -5101,7 +5456,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18132462310708819": {
     "account": "frank.de.latorre",
@@ -5115,7 +5471,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18126133747851307": {
     "account": "frank.de.latorre",
@@ -5129,7 +5486,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18127973723500654": {
     "account": "frank.de.latorre",
@@ -5143,7 +5501,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18034262768890925": {
     "account": "frank.de.latorre",
@@ -5157,7 +5516,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18068643329779777": {
     "account": "frank.de.latorre",
@@ -5171,7 +5531,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18128879158817463": {
     "account": "frank.de.latorre",
@@ -5185,7 +5546,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18105432890244972": {
     "account": "frank.de.latorre",
@@ -5199,7 +5561,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18176395630452076": {
     "account": "frank.de.latorre",
@@ -5213,7 +5576,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18369009439242259": {
     "account": "frank.de.latorre",
@@ -5227,7 +5591,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17930913522401675": {
     "account": "angie__cuesta",
@@ -5241,7 +5606,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18333585316286247": {
     "account": "angie__cuesta",
@@ -5255,7 +5621,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18329936398273927": {
     "account": "angie__cuesta",
@@ -5269,7 +5636,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18406694890090141": {
     "account": "angie__cuesta",
@@ -5283,7 +5651,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18179485447384833": {
     "account": "angie__cuesta",
@@ -5297,7 +5666,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18247535929313049": {
     "account": "angie__cuesta",
@@ -5311,7 +5681,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17881217703529189": {
     "account": "angie__cuesta",
@@ -5325,7 +5696,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18123931229484348": {
     "account": "angie__cuesta",
@@ -5339,7 +5711,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18018277757937316": {
     "account": "angie__cuesta",
@@ -5353,7 +5726,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17908379190533142": {
     "account": "and1erita",
@@ -5367,7 +5741,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17983975169886323": {
     "account": "and1erita",
@@ -5381,7 +5756,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17901537792596657": {
     "account": "and1erita",
@@ -5397,7 +5773,8 @@
       "video-class-survivor-17-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18131179519588351": {
     "account": "and1erita",
@@ -5411,7 +5788,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17963522373192824": {
     "account": "and1erita",
@@ -5425,7 +5803,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17902866762665597": {
     "account": "and1erita",
@@ -5439,7 +5818,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18435603244177229": {
     "account": "and1erita",
@@ -5453,7 +5833,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18106194643984585": {
     "account": "danitello22",
@@ -5467,7 +5848,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18103551518096393": {
     "account": "danitello22",
@@ -5481,7 +5863,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18129463396756971": {
     "account": "danitello22",
@@ -5495,7 +5878,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18086036525298322": {
     "account": "danitello22",
@@ -5509,7 +5893,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17895630522669342": {
     "account": "juancho__salsita",
@@ -5523,7 +5908,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18628432651044366": {
     "account": "juancho__salsita",
@@ -5537,7 +5923,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18080308550368423": {
     "account": "mariavasquezdancer",
@@ -5551,7 +5938,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18415664749153870": {
     "account": "teffa_mg",
@@ -5565,7 +5953,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18118088512937767": {
     "account": "teffa_mg",
@@ -5581,7 +5970,8 @@
       "clase-de-salsa-calena-4-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17991947727021630": {
     "account": "teffa_mg",
@@ -5595,7 +5985,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18154160305519913": {
     "account": "teffa_mg",
@@ -5609,7 +6000,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18443038561132912": {
     "account": "teffa_mg",
@@ -5623,7 +6015,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18115367972082920": {
     "account": "teffa_mg",
@@ -5637,7 +6030,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18092547029430228": {
     "account": "zaimora24",
@@ -5651,7 +6045,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17954021634253041": {
     "account": "zaimora24",
@@ -5667,7 +6062,8 @@
       "jazz-through-time-capitulo-1-back-to-the-roots-11-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17906444376484320": {
     "account": "zaimora24",
@@ -5681,7 +6077,8 @@
     "outcome": "discarded",
     "event_ids": [],
     "detail": "sin fecha",
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18369522313215063": {
     "account": "zaimora24",
@@ -5695,7 +6092,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18120659284908802": {
     "account": "la33orquesta",
@@ -5709,7 +6107,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18111934297836322": {
     "account": "la33orquesta",
@@ -5723,7 +6122,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18112842836013028": {
     "account": "la33orquesta",
@@ -5737,7 +6137,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18089336345675564": {
     "account": "la33orquesta",
@@ -5751,7 +6152,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18001960326003074": {
     "account": "la33orquesta",
@@ -5767,7 +6169,8 @@
       "los-25-de-la-33-21-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18016192184942271": {
     "account": "la33orquesta",
@@ -5785,7 +6188,8 @@
       "los-25-de-la-33-21-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18118629572473678": {
     "account": "la33orquesta",
@@ -5799,7 +6203,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17900618646598490": {
     "account": "la33orquesta",
@@ -5813,7 +6218,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18143692393605612": {
     "account": "la33orquesta",
@@ -5829,7 +6235,8 @@
       "los-25-de-la-33-21-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17876740728564732": {
     "account": "la33orquesta",
@@ -5843,7 +6250,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17981971556902899": {
     "account": "la33orquesta",
@@ -5859,7 +6267,8 @@
       "los-25-de-la-33-21-nov"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18091712333274371": {
     "account": "la33orquesta",
@@ -5873,7 +6282,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18020409350915248": {
     "account": "fernandoespanadj",
@@ -5887,7 +6297,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18105297280948456": {
     "account": "fernandoespanadj",
@@ -5901,7 +6312,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18155959315512366": {
     "account": "fernandoespanadj",
@@ -5917,7 +6329,8 @@
       "fiesta-profana-los-titanes-de-la-salsa-26-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18126755350833501": {
     "account": "fernandoespanadj",
@@ -5931,7 +6344,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18128260903828476": {
     "account": "fernandoespanadj",
@@ -5945,7 +6359,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18021687374713134": {
     "account": "fernandoespanadj",
@@ -5961,7 +6376,8 @@
       "fiesta-profana-los-titanes-de-la-salsa-26-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18117131075516386": {
     "account": "fernandoespanadj",
@@ -5975,7 +6391,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18111170588124325": {
     "account": "fernandoespanadj",
@@ -5989,7 +6406,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17981434907897551": {
     "account": "jaleocompetencia_",
@@ -6005,7 +6423,8 @@
       "social-pal-parche-10-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18023652230697180": {
     "account": "dlivingstudio",
@@ -6019,7 +6438,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17888929371612645": {
     "account": "dlivingstudio",
@@ -6035,7 +6455,8 @@
       "tardeo-de-amor-y-amistad-13-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18094020380431100": {
     "account": "dlivingstudio",
@@ -6049,7 +6470,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17911998243530427": {
     "account": "dlivingstudio",
@@ -6063,7 +6485,8 @@
     "outcome": "discarded",
     "event_ids": [],
     "detail": "sin fecha",
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18224862724327731": {
     "account": "dlivingstudio",
@@ -6077,7 +6500,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17904095547356280": {
     "account": "dlivingstudio",
@@ -6093,7 +6517,8 @@
       "halloween-social-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "story-8ccbeb9e2cbbba06": {
     "account": "frank.de.latorre",
@@ -6111,7 +6536,8 @@
     "detail": null,
     "image_hashes": [
       "900b0f8193232386"
-    ]
+    ],
+    "by_hand": false
   },
   "18035194370814740": {
     "account": "distritosocialbog",
@@ -6127,7 +6553,8 @@
       "distrito-social-aniversario-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17888736804618261": {
     "account": "distritosocialbog",
@@ -6143,7 +6570,8 @@
       "distrito-social-aniversario-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18105094838103639": {
     "account": "danceinmotionclub",
@@ -6157,7 +6585,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18110293657881831": {
     "account": "danceinmotionclub",
@@ -6171,7 +6600,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18007899326985652": {
     "account": "sonrumbero",
@@ -6185,7 +6615,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18395846821207641": {
     "account": "sonrumbero",
@@ -6199,7 +6630,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18195573838387802": {
     "account": "sonrumbero",
@@ -6213,7 +6645,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18164931739475732": {
     "account": "sonrumbero",
@@ -6227,7 +6660,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18113528516009809": {
     "account": "originalstepdance",
@@ -6241,7 +6675,8 @@
     "outcome": "discarded",
     "event_ids": [],
     "detail": "ya pasó",
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18005853674967756": {
     "account": "originalstepdance",
@@ -6255,7 +6690,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18149854930527130": {
     "account": "originalstepdance",
@@ -6269,7 +6705,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18120010258937331": {
     "account": "originalstepdance",
@@ -6283,7 +6720,8 @@
     "outcome": "discarded",
     "event_ids": [],
     "detail": "ya pasó",
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18076051613416116": {
     "account": "originalstepdance",
@@ -6297,7 +6735,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18098634104072709": {
     "account": "originalstepdance",
@@ -6311,7 +6750,8 @@
     "outcome": "discarded",
     "event_ids": [],
     "detail": "ya pasó",
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17864761806680699": {
     "account": "originalstepdance",
@@ -6325,7 +6765,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18115459972793299": {
     "account": "valkandela",
@@ -6339,7 +6780,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18149700502554924": {
     "account": "valkandela",
@@ -6353,7 +6795,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18112997326873834": {
     "account": "valkandela",
@@ -6369,7 +6812,8 @@
       "la-guillaera-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18130633168775854": {
     "account": "valkandela",
@@ -6383,7 +6827,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18108020216145495": {
     "account": "valkandela",
@@ -6397,7 +6842,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18030705380908699": {
     "account": "valkandela",
@@ -6411,7 +6857,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18106590419580056": {
     "account": "valkandela",
@@ -6427,7 +6874,8 @@
       "la-guillaera-31-oct"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17869561938645782": {
     "account": "valkandela",
@@ -6441,7 +6889,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18018888140931459": {
     "account": "clandisfrute",
@@ -6455,7 +6904,8 @@
     "outcome": "discarded",
     "event_ids": [],
     "detail": "ya pasó",
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17912155827461313": {
     "account": "clandisfrute",
@@ -6469,7 +6919,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18093215753306505": {
     "account": "clandisfrute",
@@ -6483,7 +6934,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18087235745480115": {
     "account": "clandisfrute",
@@ -6497,7 +6949,8 @@
     "outcome": "discarded",
     "event_ids": [],
     "detail": "ya pasó",
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18564329029077914": {
     "account": "clandisfrute",
@@ -6511,7 +6964,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18619071907007936": {
     "account": "clandisfrute",
@@ -6525,7 +6979,8 @@
     "outcome": "discarded",
     "event_ids": [],
     "detail": "ya pasó",
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18085519250275701": {
     "account": "clandisfrute",
@@ -6539,7 +6994,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17922290304200612": {
     "account": "clandisfrute",
@@ -6553,7 +7009,8 @@
     "outcome": "discarded",
     "event_ids": [],
     "detail": "ya pasó",
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18452360722187610": {
     "account": "clandisfrute",
@@ -6567,7 +7024,8 @@
     "outcome": "discarded",
     "event_ids": [],
     "detail": "ya pasó",
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18130223713669826": {
     "account": "clandisfrute",
@@ -6581,7 +7039,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18123929974879988": {
     "account": "clandisfrute",
@@ -6595,7 +7054,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18191441494406358": {
     "account": "clandisfrute",
@@ -6609,7 +7069,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17928154269162912": {
     "account": "puntalpie",
@@ -6623,7 +7084,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18077578016414163": {
     "account": "puntalpie",
@@ -6637,7 +7099,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18347523370280389": {
     "account": "angie__cuesta",
@@ -6651,7 +7114,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18087960344690745": {
     "account": "alejochacon.co",
@@ -6665,7 +7129,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18215987668354977": {
     "account": "jen.ssy",
@@ -6679,7 +7144,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18074575166426657": {
     "account": "tibaduiza__",
@@ -6695,7 +7161,8 @@
       "estilo-carrandales-intensivo-de-bachata-20-sep"
     ],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18124822123879767": {
     "account": "tibaduiza__",
@@ -6709,7 +7176,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17872218789634223": {
     "account": "davidylauradancers",
@@ -6723,7 +7191,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18034305206841558": {
     "account": "davidylauradancers",
@@ -6737,7 +7206,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18101924900254543": {
     "account": "davidylauradancers",
@@ -6751,7 +7221,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18082903283330378": {
     "account": "davidylauradancers",
@@ -6765,7 +7236,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17921588139427733": {
     "account": "davidylauradancers",
@@ -6779,7 +7251,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17902958079574818": {
     "account": "davidylauradancers",
@@ -6793,7 +7266,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18117723985945015": {
     "account": "davidylauradancers",
@@ -6807,7 +7281,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17970645447158182": {
     "account": "davidylauradancers",
@@ -6821,7 +7296,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18105655700057781": {
     "account": "davidylauradancers",
@@ -6835,7 +7311,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18027294125909455": {
     "account": "davidylauradancers",
@@ -6849,7 +7326,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18127851925876120": {
     "account": "davidylauradancers",
@@ -6863,7 +7341,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17887655607618529": {
     "account": "davidylauradancers",
@@ -6877,7 +7356,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18089340686228769": {
     "account": "davidylauradancers",
@@ -6891,7 +7371,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18132899935729263": {
     "account": "lanenamagdalena",
@@ -6905,7 +7386,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18079297895348332": {
     "account": "lanenamagdalena",
@@ -6919,7 +7401,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "17885132610491704": {
     "account": "lanenamagdalena",
@@ -6933,7 +7416,8 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
   },
   "18112885391085330": {
     "account": "lanenamagdalena",
@@ -6947,6 +7431,1513 @@
     "outcome": "not_event",
     "event_ids": [],
     "detail": null,
-    "image_hashes": []
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18131889817665100": {
+    "account": "lacoartadacentrocultural",
+    "permalink": "https://www.instagram.com/p/DeIKmSVFBNv/",
+    "processed_at": "2026-10-05T21:00:55-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es una celebración de aniversario y un reconocimiento al equipo, pero no anuncia ningún evento próximo con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "726be7342b77452f",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17968129914179181": {
+    "account": "lacoartadacentrocultural",
+    "permalink": "https://www.instagram.com/p/DeIK6y8kWtS/",
+    "processed_at": "2026-10-05T21:01:00-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es una celebración de aniversario sin anunciar un evento específico de baile con fecha futura.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "726be7342b77452f",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18089307479491744": {
+    "account": "bachatamania_bogota",
+    "permalink": "https://www.instagram.com/p/DeH_ux4GbHG/",
+    "processed_at": "2026-10-05T21:01:13-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento social de bachata para el 17 de octubre de 2026 en Bogotá.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "344726b60af1f1d4",
+    "outcome": "merged",
+    "event_ids": [
+      "bachatamania-social-17-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18117308276082895": {
+    "account": "germanbaila",
+    "permalink": "https://www.instagram.com/reel/DeHoE5lz2N5/",
+    "processed_at": "2026-10-05T21:01:27-05:00",
+    "is_event_post": false,
+    "reason": "El post es un recuerdo o mención de un evento pasado y no anuncia un evento próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "d6dcf4ab46d20e2f",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18093843464393553": {
+    "account": "danzaenlaciudad",
+    "permalink": "https://www.instagram.com/p/DeIF6HGic4_/",
+    "processed_at": "2026-10-05T21:01:51-05:00",
+    "is_event_post": true,
+    "reason": "La publicación anuncia una programación de eventos de danza en diferentes localidades de Bogotá durante octubre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "0ca0464172e65f45",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "recurrente",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18124635425491831": {
+    "account": "jackandjilloficial",
+    "permalink": "https://www.instagram.com/p/DeIY2bFyGXz/",
+    "processed_at": "2026-10-05T21:02:13-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia la participación de Jomber Chinchilla como jurado en el evento Jack and Jill los días 20 y 21 de noviembre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "1e359d8a431ab3fb",
+    "outcome": "merged",
+    "event_ids": [
+      "jack-and-jill-20-nov"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17904224787595144": {
+    "account": "frank.de.latorre",
+    "permalink": "https://www.instagram.com/reel/DeIPjrCPS-t/",
+    "processed_at": "2026-10-05T21:02:16-05:00",
+    "is_event_post": false,
+    "reason": "El video muestra una práctica o ensayo de salsa en una academia y no anuncia ningún evento próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "1fd24bb356c58734",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17904867492574790": {
+    "account": "sarasandoval.oficial",
+    "permalink": "https://www.instagram.com/p/DeHxmKRIOhM/",
+    "processed_at": "2026-10-05T21:02:31-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un agradecimiento y resultado de un evento pasado, no anuncia un próximo evento.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "165bc260fae52ae4",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18130491478784014": {
+    "account": "la33orquesta",
+    "permalink": "https://www.instagram.com/p/DeILoalFVBD/",
+    "processed_at": "2026-10-05T21:02:46-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un concierto por el aniversario de la orquesta La 33 en Bogotá.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "57ae0a2a37f74d8e",
+    "outcome": "merged",
+    "event_ids": [
+      "los-25-de-la-33-21-nov"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18106987091241198": {
+    "account": "jaleocompetencia_",
+    "permalink": "https://www.instagram.com/p/DeIlV9MliV8/",
+    "processed_at": "2026-10-05T21:02:57-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento social de baile con clases y competencia en Bogotá.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "2a85742e2f983a83",
+    "outcome": "merged",
+    "event_ids": [
+      "social-pal-parche-10-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18105486962190426": {
+    "account": "dlivingstudio",
+    "permalink": "https://www.instagram.com/reel/DeH-odsv25S/",
+    "processed_at": "2026-10-05T21:03:01-05:00",
+    "is_event_post": false,
+    "reason": "La publicación anuncia clases regulares semanales todos los jueves y no un evento único o serie fechada.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "3e1c467202def46d",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17880107559533585": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DdXUd-5GoQ7/",
+    "processed_at": "2026-10-05T21:03:05-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "0e9113b7e38faa09",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17903584497589519": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DdZfPydBDof/",
+    "processed_at": "2026-10-05T21:03:05-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "f7b3db37dc44cbcb",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18149250415555184": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DdZyaOjAjnp/",
+    "processed_at": "2026-10-05T21:03:05-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "646bdaf922038892",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18096096644096707": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DdaD-Kgmvfo/",
+    "processed_at": "2026-10-05T21:03:05-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "3684d89f1d903614",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18377943178232759": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/Ddd7bk8iYGU/",
+    "processed_at": "2026-10-05T21:03:05-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "a3f38f7d7cce2572",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17995057845037285": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/reel/Ddge3J5tGui/",
+    "processed_at": "2026-10-05T21:03:05-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "213482f1f5c98483",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17918952693243871": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DdhtzVPgj1i/",
+    "processed_at": "2026-10-05T21:03:05-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "02467afeb84360cc",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18090346670661324": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DdkSkQYgqbG/",
+    "processed_at": "2026-10-05T21:03:06-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es una recomendación y reseña de bares de salsa, pero no anuncia ningún evento específico con fecha próxima.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "0f8f0ac128980308",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18074339660455820": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/reel/DdllBottSGW/",
+    "processed_at": "2026-10-05T21:03:06-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "fdc2ed8555c0a8cd",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18177322615435733": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/Ddl_wDklaAO/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "El evento anunciado ocurrió el 25 de septiembre de 2026, por lo que ya pasó y la fecha actual es posterior.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "b8f26d4010c8682c",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17914834695264129": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DdmjFsumtXQ/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "da34a7933892b97d",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18625685314060775": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/reel/DdmziuphtCU/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "82498f4a58b610fb",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17894625099418548": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DdpSDUamtmR/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "d307fd8fe08fa9e9",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17947229166318439": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/reel/DdrWctwBS1P/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "4ccabada76da6875",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18558005851073247": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/Ddr6G17gu9E/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "c4d009b562dd3361",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18078395024433749": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DdsTfe8FbUz/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "61a0692cddc9b3a6",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18420211891146907": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/Ddv7lT1gmIl/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "3928d05d916c5ce8",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17960765493211089": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DdydCPUgrve/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "fb9c4926df76b390",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17950652358278720": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/Dd6hg38An_I/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "aba07a26b70c6fb8",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18122093860927927": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/Dd7dvKAAumx/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "c74ee832abb3d0da",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18060040778788657": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/Dd80sJbgtSt/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "3deca866b6ce1f6e",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17891407059625392": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/Dd86ceKFWdo/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "9cf6f314e60fa63e",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18369690769241189": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/Dd9x117GoNi/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "eff7a5a6fb86fcde",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18179236477434346": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/Dd_YgWYgoR5/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "50b81451ec915b58",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18483266635104925": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/Dd_iwLrFVOG/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "aa42bdf25c80d762",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18118025356975809": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DeCVWxPgojc/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "833eb95a1f6bfd83",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17862725379695902": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DeEmjiJi7uz/",
+    "processed_at": "2026-10-05T21:03:12-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "f1e9c131d5de8afa",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17998000296034443": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/reel/DeHYQm0BTuK/",
+    "processed_at": "2026-10-05T21:03:27-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia la primera parada de un tour de salsa con clase de fiesta y baile en Bogotá.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "c5b099598de3e3ab",
+    "outcome": "event",
+    "event_ids": [
+      "primer-capitulo-del-tour-de-la-salsa-11-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18093414767405218": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DeHfeC8lWP9/",
+    "processed_at": "2026-10-05T21:03:37-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia cuatro viernes de rumba y clases de salsa en octubre en Bogotá.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "47afd2812cd6e30e",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "recurrente",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18126213671482067": {
+    "account": "parchexbogota",
+    "permalink": "https://www.instagram.com/p/DeIdUM9GnqW/",
+    "processed_at": "2026-10-05T21:03:37-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata ni merengue ni kizomba ni tango (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "07c55eeaf2cabc8d",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18399061570202765": {
+    "account": "galeriacafelibro",
+    "permalink": "https://www.instagram.com/reel/Dd474H_x7_n/",
+    "processed_at": "2026-10-05T21:03:46-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un concierto de salsa en vivo en Galería Café Libro 93 para celebrar los 95 años de Ismael Rivera.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "0b44b12744be0fa0",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "ya pasó",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18142561072606253": {
+    "account": "galeriacafelibro",
+    "permalink": "https://www.instagram.com/reel/Dd7TfCZspGj/",
+    "processed_at": "2026-10-05T21:03:49-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia clases regulares semanales de salsa todos los miércoles y jueves, lo cual no cuenta como un evento de única ocasión.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "8a2f4ab8184ddcc7",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18153673936468487": {
+    "account": "galeriacafelibro",
+    "permalink": "https://www.instagram.com/p/Dd9AYzes2yD/",
+    "processed_at": "2026-10-05T21:03:59-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un concierto en vivo de la orquesta Sonora Extrema en Galería Café Libro.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "258d50a58b5e9d11",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "ya pasó",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18079572566375876": {
+    "account": "galeriacafelibro",
+    "permalink": "https://www.instagram.com/p/Dd95soSo_Ld/",
+    "processed_at": "2026-10-05T21:04:10-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento especial de celebración del legado de Ismael Rivera el 3 de octubre en Galería Café Libro.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "6b636da7b0c13230",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "ya pasó",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18114027317081652": {
+    "account": "galeriacafelibro",
+    "permalink": "https://www.instagram.com/p/Dd_mJ_4skqN/",
+    "processed_at": "2026-10-05T21:04:12-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia una noche regular de salsa que se celebra todos los viernes, la cual no cuenta como un evento único y especial.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "0e8f27bafbf49c55",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18193213570403554": {
+    "account": "galeriacafelibro",
+    "permalink": "https://www.instagram.com/reel/DeAw2p8MFha/",
+    "processed_at": "2026-10-05T21:04:18-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es una promoción general del lugar y su ambiente habitual, sin anunciar un evento específico ni una fecha determinada.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "39679a37d6d826d2",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18638944012027022": {
+    "account": "galeriacafelibro",
+    "permalink": "https://www.instagram.com/p/DeCOol1st3n/",
+    "processed_at": "2026-10-05T21:04:21-05:00",
+    "is_event_post": false,
+    "reason": "El evento anunciado ocurrió en el pasado y la fecha ya ha pasado.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "2b8ed7687ee3fee4",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18116995058004967": {
+    "account": "galeriacafelibro",
+    "permalink": "https://www.instagram.com/reel/DeChl-Gs-53/",
+    "processed_at": "2026-10-05T21:04:31-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un concierto y homenaje especial de música en vivo en Galería Café Libro 93.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "eb14005216fecd05",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "ya pasó",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18077925755706373": {
+    "account": "galeriacafelibro",
+    "permalink": "https://www.instagram.com/p/DeE-Oo0seCp/",
+    "processed_at": "2026-10-05T21:04:41-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un concierto de salsa en vivo por el aniversario del establecimiento.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "c8100c965d81587b",
+    "outcome": "event",
+    "event_ids": [
+      "celebrando-40-anos-de-trayectoria-enrique-barrios-22-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17969272572189819": {
+    "account": "galeriacafelibro",
+    "permalink": "https://www.instagram.com/p/DeH3KHzI83D/",
+    "processed_at": "2026-10-05T21:04:44-05:00",
+    "is_event_post": false,
+    "reason": "El post es un recuerdo de un evento pasado que ya ocurrió y no anuncia un evento próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "2f784fff50cbb33a",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17945930238071667": {
+    "account": "casaquiebracanto",
+    "permalink": "https://www.instagram.com/p/Dd6_CAatfqq/",
+    "processed_at": "2026-10-05T21:04:54-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia dos eventos de salsa en fechas específicas en Casa Quiebra-Canto.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "a840bd863ae79acf",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "ya pasó",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17905138554583423": {
+    "account": "casaquiebracanto",
+    "permalink": "https://www.instagram.com/reel/DeBNC1oEdAs/",
+    "processed_at": "2026-10-05T21:05:02-05:00",
+    "is_event_post": false,
+    "reason": "El post solo menciona un evento pasado u homenaje sin fecha específica ni detalles de programación.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "7237894932deb1b9",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18136476739653839": {
+    "account": "casaquiebracanto",
+    "permalink": "https://www.instagram.com/p/DeFC50_kawV/",
+    "processed_at": "2026-10-05T21:05:06-05:00",
+    "is_event_post": false,
+    "reason": "La publicación muestra fotos de un homenaje que ya ocurrió y no anuncia un evento futuro.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "3eee899523ef5ec4",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17914519269467684": {
+    "account": "casaquiebracanto",
+    "permalink": "https://www.instagram.com/p/DeFIjVrkdKQ/",
+    "processed_at": "2026-10-05T21:05:11-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es una foto de ambiente de una noche regular sin fecha específica ni anuncios de eventos especiales.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "c8afa09d04295205",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18140475673614223": {
+    "account": "salsacamaraoficial",
+    "permalink": "https://www.instagram.com/reel/Dd7DLI1RwUl/",
+    "processed_at": "2026-10-05T21:05:15-05:00",
+    "is_event_post": false,
+    "reason": "La imagen muestra un ambiente nocturno en un bar sin información sobre un evento especial o fecha anunciada.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "e3b0c44298fc1c14",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18348300418268302": {
+    "account": "salsacamaraoficial",
+    "permalink": "https://www.instagram.com/reel/Dd7uT0EMei5/",
+    "processed_at": "2026-10-05T21:06:14-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un post general sobre salsa y no anuncia un evento único específico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "7343be7d70ca1dde",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18107780113929094": {
+    "account": "salsacamaraoficial",
+    "permalink": "https://www.instagram.com/reel/Dd897vixLTL/",
+    "processed_at": "2026-10-05T21:06:19-05:00",
+    "is_event_post": false,
+    "reason": "La imagen muestra una fiesta o rumba regular en el bar sin anunciar un evento especial o fecha futura.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "e3b0c44298fc1c14",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17908102644559762": {
+    "account": "salsacamaraoficial",
+    "permalink": "https://www.instagram.com/reel/Dd_07X7R4EY/",
+    "processed_at": "2026-10-05T21:06:23-05:00",
+    "is_event_post": false,
+    "reason": "La publicación muestra una foto de una fiesta regular o pasada en el bar sin anunciar un evento especial o fecha futura.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "a97001260f63fa54",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18217633288348588": {
+    "account": "salsacamaraoficial",
+    "permalink": "https://www.instagram.com/reel/DeCtfPLRH5A/",
+    "processed_at": "2026-10-05T21:06:27-05:00",
+    "is_event_post": false,
+    "reason": "La imagen muestra personas bailando en una fiesta de cumpleaños sin información de un evento público.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "e3b0c44298fc1c14",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18014588645952066": {
+    "account": "salsacamaraoficial",
+    "permalink": "https://www.instagram.com/reel/DeDNkI2xuwo/",
+    "processed_at": "2026-10-05T21:06:36-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia una noche regular de salsa en el bar Salsa Camará sin un evento especial único.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "549ece5055d45a67",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17905517667577063": {
+    "account": "salsacamaraoficial",
+    "permalink": "https://www.instagram.com/p/DeIPgexlXFO/",
+    "processed_at": "2026-10-05T21:06:56-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia dos conciertos de música en vivo para el fin de semana en el bar.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "23fdfa478602eb59",
+    "outcome": "event",
+    "event_ids": [
+      "jueves-de-son-gozon-con-orlando-y-su-sonora-8-oct",
+      "sabado-de-orquesta-y-sabor-con-zafra-10-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17873536227593859": {
+    "account": "elgocepagano",
+    "permalink": "https://www.instagram.com/p/Dd7mV70jn6J/",
+    "processed_at": "2026-10-05T21:07:16-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una serie de conciertos y eventos de salsa programados para octubre en el establecimiento.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "f85cb85108c69063",
+    "outcome": "event",
+    "event_ids": [
+      "salsoteca-dc-canamelao-9-oct",
+      "salsoteca-dc-acere-10-oct",
+      "dj-set-salsa-culto-11-oct",
+      "salsoteca-dc-the-bambas-16-oct",
+      "salsoteca-dc-fidel-pena-y-su-tono-mayor-17-oct",
+      "una-cita-con-la-salsa-18-oct",
+      "salsoteca-dc-candombe-23-oct",
+      "salsoteca-dc-la-pambele-24-oct",
+      "salsoteca-dc-salsa-infierno-30-oct",
+      "salsoteca-dc-bbyb-31-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18079187786372305": {
+    "account": "elgocepagano",
+    "permalink": "https://www.instagram.com/reel/Dd7pwCYOCNs/",
+    "processed_at": "2026-10-05T21:07:30-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia la programación de eventos y orquestas de salsa en vivo para el mes de octubre en El Goce Pagano.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "cabbaa1ab2e3740f",
+    "outcome": "event",
+    "event_ids": [
+      "canamelao-9-oct",
+      "acere-10-oct",
+      "dj-set-salsa-culto-11-oct",
+      "the-bambas-16-oct",
+      "fidel-pena-y-su-tono-mayor-17-oct",
+      "una-cita-con-la-salsa-18-oct",
+      "candombe-23-oct",
+      "la-pambele-24-oct",
+      "salsa-infierno-30-oct",
+      "bbyb-31-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17876363187565754": {
+    "account": "salsaysonoficial",
+    "permalink": "https://www.instagram.com/reel/Dd2p4JYhAsI/",
+    "processed_at": "2026-10-05T21:07:36-05:00",
+    "is_event_post": false,
+    "reason": "El post es un resumen de un evento pasado y no anuncia un evento próximo.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "1cfe05dfa137a596",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17902055949596846": {
+    "account": "salsaysonoficial",
+    "permalink": "https://www.instagram.com/p/Dd5Qx2xN2_5/",
+    "processed_at": "2026-10-05T21:07:46-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un concierto y rumba especial con el artista Argy Gómez.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "920b101b72fd4526",
+    "outcome": "event",
+    "event_ids": [
+      "argy-gomez-en-salsa-son-24-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18145462162606788": {
+    "account": "salsaysonoficial",
+    "permalink": "https://www.instagram.com/reel/Dd73NkbMHYF/",
+    "processed_at": "2026-10-05T21:07:49-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia clases regulares de los jueves que se realizan todas las semanas, por lo que no cuenta como un evento único.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "69fad6fd654c6826",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17942798097085579": {
+    "account": "salsaysonoficial",
+    "permalink": "https://www.instagram.com/p/Dd-HWIhoGYq/",
+    "processed_at": "2026-10-05T21:07:54-05:00",
+    "is_event_post": false,
+    "reason": "El post es un recuento de un evento pasado que ya ocurrió el 26 de septiembre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "2d4625ecf183432f",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18131404057600217": {
+    "account": "salsaysonoficial",
+    "permalink": "https://www.instagram.com/reel/DeIkOlaR0Kq/",
+    "processed_at": "2026-10-05T21:08:04-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un concierto en vivo de Argy Gómez en Salsa y Son.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "abdd5bc2d1e76315",
+    "outcome": "merged",
+    "event_ids": [
+      "argy-gomez-en-salsa-son-24-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18204866650373778": {
+    "account": "el_panteon_de_la_salsa",
+    "permalink": "https://www.instagram.com/reel/Dd38gdBAZZP/",
+    "processed_at": "2026-10-05T21:08:11-05:00",
+    "is_event_post": false,
+    "reason": "El evento anunciado ocurrió el 3 de octubre de 2026 y la fecha actual es posterior.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "8b641159615d1ce5",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18226763773331188": {
+    "account": "el_panteon_de_la_salsa",
+    "permalink": "https://www.instagram.com/reel/Dd7py1wM_Y7/",
+    "processed_at": "2026-10-05T21:08:22-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento especial de salsa en vinilo y digital con programadores invitados.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "e7943b040a97ebad",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "ya pasó",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18087958949248804": {
+    "account": "el_panteon_de_la_salsa",
+    "permalink": "https://www.instagram.com/reel/DeBLIcstFj8/",
+    "processed_at": "2026-10-05T21:08:24-05:00",
+    "is_event_post": false,
+    "reason": "El evento anunciado ocurrió el 3 de octubre, por lo que la fecha ya ha pasado.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "b8895c30707f23b1",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18118659556985164": {
+    "account": "el_panteon_de_la_salsa",
+    "permalink": "https://www.instagram.com/reel/DeCZFHPgVFV/",
+    "processed_at": "2026-10-05T21:08:29-05:00",
+    "is_event_post": false,
+    "reason": "La publicación solo invita a sugerir canciones para el DJ residente y no anuncia ningún evento especial.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "285c9c3cc253acd0",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17968093821187190": {
+    "account": "babou_candelaria",
+    "permalink": "https://www.instagram.com/p/Dd7mXUtFsF4/",
+    "processed_at": "2026-10-05T21:08:36-05:00",
+    "is_event_post": false,
+    "reason": "La publicación promociona el servicio regular del bar y su música en vivo diaria sin anunciar un evento único o especial de baile.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "cfc60ba10b8cf95c",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18447991102132851": {
+    "account": "babou_candelaria",
+    "permalink": "https://www.instagram.com/reel/DeA8V4oOJEs/",
+    "processed_at": "2026-10-05T21:08:41-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es una invitación general al bar y no anuncia un evento especial de una sola vez.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "725ed344742b109c",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18114227897464139": {
+    "account": "pachanga_y_pochola",
+    "permalink": "https://www.instagram.com/reel/Dd5ASBOxmBf/",
+    "processed_at": "2026-10-05T21:08:45-05:00",
+    "is_event_post": false,
+    "reason": "El post es un resumen de una fiesta pasada y solo pide estar atento a futuros anuncios sin anunciar ningún evento específico.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "9374712907b9b636",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18629257975027395": {
+    "account": "pachanga_y_pochola",
+    "permalink": "https://www.instagram.com/reel/Dd7nDjixK_5/",
+    "processed_at": "2026-10-05T21:08:50-05:00",
+    "is_event_post": false,
+    "reason": "El evento anunciado ocurrió el 3 de octubre y la fecha actual es 5 de octubre de 2026, por lo que ya ha finalizado.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "f4de2582b89a3c13",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18110406409881714": {
+    "account": "pachanga_y_pochola",
+    "permalink": "https://www.instagram.com/reel/Dd_gQv_xtbH/",
+    "processed_at": "2026-10-05T21:09:06-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un concierto de salsa en vivo de la orquesta NS para este viernes 2 de octubre sin costo de cover.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "8caf877c7a4ee1d7",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "ya pasó",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18210323335323212": {
+    "account": "pachanga_y_pochola",
+    "permalink": "https://www.instagram.com/p/DeFq4IrR5Ox/",
+    "processed_at": "2026-10-05T21:09:15-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una fiesta de Halloween temática de salsa con premios en efectivo en Bogotá.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "e003aa6b87ce2a9b",
+    "outcome": "event",
+    "event_ids": [
+      "halloween-en-pachanga-pochola-31-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18125251684893474": {
+    "account": "pachanga_y_pochola",
+    "permalink": "https://www.instagram.com/reel/DeHhXC1xF8F/",
+    "processed_at": "2026-10-05T21:09:24-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un concierto de Issac Delgado y su orquesta en Pachanga & Pochola para el 9 de octubre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "b4168862027f3f93",
+    "outcome": "event",
+    "event_ids": [
+      "issac-delgado-y-su-orquesta-en-pachanga-pochola-9-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18146575606483712": {
+    "account": "bulevarsalsabar",
+    "permalink": "https://www.instagram.com/reel/Dd5F8utg02I/",
+    "processed_at": "2026-10-05T21:09:26-05:00",
+    "is_event_post": false,
+    "reason": "El post es una publicacion promocional rutinaria del bar sin anunciar un evento especial o fecha futura especifica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "8f9cf71297c34dce",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18095254952405777": {
+    "account": "bulevarsalsabar",
+    "permalink": "https://www.instagram.com/reel/Dd7sYfpAchq/",
+    "processed_at": "2026-10-05T21:09:31-05:00",
+    "is_event_post": false,
+    "reason": "El post promociona una noche regular de viernes en el bar sin anunciar un evento especial o fecha futura específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "e780b34a315183fe",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18117978655941198": {
+    "account": "bulevarsalsabar",
+    "permalink": "https://www.instagram.com/reel/Dd-Uh9zAXQA/",
+    "processed_at": "2026-10-05T21:09:36-05:00",
+    "is_event_post": false,
+    "reason": "El video muestra un momento cotidiano en el bar cantando karaoke sin anunciar ningún evento especial o fecha futura.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "70d8fa3e5c1ba6d9",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18138098488529600": {
+    "account": "bulevarsalsabar",
+    "permalink": "https://www.instagram.com/reel/DeCamZ7gkke/",
+    "processed_at": "2026-10-05T21:09:41-05:00",
+    "is_event_post": false,
+    "reason": "La publicación solo muestra un video resumen de la rutina semanal de tardeos del bar sin anunciar una fecha u ocasión especial futura.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "67b2fe0e556cc12b",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18160409443496162": {
+    "account": "bulevarsalsabar",
+    "permalink": "https://www.instagram.com/reel/DeIim2Kx-_v/",
+    "processed_at": "2026-10-05T21:09:45-05:00",
+    "is_event_post": false,
+    "reason": "Es una promoción regular para el ingreso de bebidas en el bar.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "8c7966a63f96374c",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18130057825689666": {
+    "account": "bulevarsalsarooftop",
+    "permalink": "https://www.instagram.com/reel/DeGD0PpR8Di/",
+    "processed_at": "2026-10-05T21:09:56-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento especial de rumba y social en el rooftop.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "d53ddbed4f8b832e",
+    "outcome": "event",
+    "event_ids": [
+      "el-golazo-de-bulevar-11-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18129533600499120": {
+    "account": "bilongocolombia",
+    "permalink": "https://www.instagram.com/p/Dd4tx-XhUwM/",
+    "processed_at": "2026-10-05T21:10:04-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una serie de eventos de salsa en vivo para los sábados de octubre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "69184e0c62c0996b",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "recurrente, ya pasó",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17928006039420166": {
+    "account": "bilongocolombia",
+    "permalink": "https://www.instagram.com/reel/Dd7gnvoBKfy/",
+    "processed_at": "2026-10-05T21:10:08-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia una programación semanal y regular del bar (miércoles, jueves y sábados) sin una fecha específica de un evento único.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "4194f28fe25a3118",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18140206321613888": {
+    "account": "bilongocolombia",
+    "permalink": "https://www.instagram.com/p/Dd-ET5_hv-u/",
+    "processed_at": "2026-10-05T21:10:12-05:00",
+    "is_event_post": false,
+    "reason": "La imagen muestra un meme romántico y no anuncia ningún evento de baile.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "47405f5d4eb4cf69",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17967503895190500": {
+    "account": "bilongocolombia",
+    "permalink": "https://www.instagram.com/reel/DeC94SoB5or/",
+    "processed_at": "2026-10-05T21:10:23-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una noche de salsa en vivo para hoy sábado.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "cef5389e2e0007f7",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "ya pasó",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17869041087658066": {
+    "account": "bilongocolombia",
+    "permalink": "https://www.instagram.com/p/DeH3qgDFRMN/",
+    "processed_at": "2026-10-05T21:10:37-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia un evento especial de homenaje a Héctor Lavoe y Marc Anthony con música en vivo este miércoles.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "4224169cb3f0571b",
+    "outcome": "event",
+    "event_ids": [
+      "homenaje-a-hector-lavoe-y-marc-anthony-7-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18157825405525306": {
+    "account": "elratonsalsaclub",
+    "permalink": "https://www.instagram.com/reel/Dd4RibnRExW/",
+    "processed_at": "2026-10-05T21:10:47-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia una fiesta especial de Halloween con múltiples experiencias musicales y de baile el 31 de octubre.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "5856bce993104966",
+    "outcome": "event",
+    "event_ids": [
+      "la-fiesta-de-halloween-que-estabas-esperando-31-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17948911254338050": {
+    "account": "elratonsalsaclub",
+    "permalink": "https://www.instagram.com/reel/Dd7BqWUJQYu/",
+    "processed_at": "2026-10-05T21:10:53-05:00",
+    "is_event_post": false,
+    "reason": "La publicación solo promociona los servicios habituales del club y no anuncia un evento único o especial.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "8c050ab95f21f633",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18107538146617084": {
+    "account": "elratonsalsaclub",
+    "permalink": "https://www.instagram.com/p/Dd9omqJASkS/",
+    "processed_at": "2026-10-05T21:10:59-05:00",
+    "is_event_post": false,
+    "reason": "La publicación promociona la rumba habitual del fin de semana del club sin anunciar un evento especial o una orquesta en vivo con fecha específica.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "ce631afc50db2876",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18182322898425111": {
+    "account": "elratonsalsaclub",
+    "permalink": "https://www.instagram.com/p/Dd_wnvTREsy/",
+    "processed_at": "2026-10-05T21:15:59-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia las noches regulares de música en vivo del bar que ocurren todos los viernes y sábados, las cuales no se consideran eventos únicos según las reglas.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "950855f0794d23b7",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18060372779795476": {
+    "account": "oronegroclub",
+    "permalink": "https://www.instagram.com/p/Dd__7fjnOOZ/",
+    "processed_at": "2026-10-05T21:26:29-05:00",
+    "is_event_post": true,
+    "reason": "El post anuncia dos eventos especiales: el evento 'Viernes de Güiro & Campana' y la celebración del 'Primer Aniversario' del club.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": true,
+    "caption_hash": "f9ce06cd29364aed",
+    "outcome": "discarded",
+    "event_ids": [],
+    "detail": "ya pasó",
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18095743166132336": {
+    "account": "casavander_",
+    "permalink": "https://www.instagram.com/p/DeDGJwugfCX/",
+    "processed_at": "2026-10-05T21:30:59-05:00",
+    "is_event_post": false,
+    "reason": "La publicación es un mensaje reflexivo sobre la remodelación y apertura del espacio, sin anunciar ningún evento de baile.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "17cbc4c6d62b9a94",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
   }
 }
