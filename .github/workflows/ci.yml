@@ -10,8 +10,14 @@ name: ci
 
 on:
   pull_request:
+    # A pull request that changes only these doesn't run it: nothing in them is linted or tested, and each run bills a
+    # whole Actions minute of this private repository's 2,000 a month (the owner, 6 Oct 2026). Such a PR has no checks
+    # to wait for.
     paths-ignore:
       - "media/site-checks/**" # the site checks run on this machine only, never here (media/site-checks/README.md)
+      - "docs/**"
+      - "**/*.md"
+      - ".claude/**" # the skills, the context, the hooks: Claude Code's, not tested here
   schedule:
     - cron: "17 11 * * 1" # Mondays 06:17 Bogotá, clear of the sweeps
   workflow_dispatch:
