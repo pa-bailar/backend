@@ -94,6 +94,7 @@ def test_old_versions_without_a_name_reads_the_archive_names(tmp_path):
 def test_clean_skips_the_site_checks_and_spots_working_files(tmp_path):
     assert clean.site_check(touch(tmp_path / "calendar-check.mjs"))
     assert clean.site_check(tmp_path / "site-bugs")
+    assert clean.site_check(tmp_path / "site-checks")
     assert not clean.site_check(tmp_path / "teaser-v2")
     assert clean.working_file(touch(tmp_path / "teaser-v2-v2.4-reel-draft.mp4"))
     assert clean.working_file(touch(tmp_path / "teaser-v2-v2.4-reel-vs-v2.3.mp4"))

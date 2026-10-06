@@ -11,8 +11,8 @@ Looks in three places:
   version and its `<deliverable>.mp4` link stay. The home's archive/ (posted versions) is never touched.
 - the checkout's media/cache, media/public/<video> and media/out/<video> from before the media home: a file is
   listed only when the home holds an identical copy (a render of a posted version: in the archive). The site checks
-  that live in media/out/ (`*.mjs`, `site-bugs/`, `site-quality/`, `admin-tabs/`) are skipped, by name; new checks
-  belong in a scratch folder, not in media/out/.
+  that live in media/out/ (`*.mjs`, `site-bugs/`, `site-quality/`, `admin-tabs/`, and `site-checks/`: the
+  screenshots of media/site-checks) are skipped, by name; new checks are scenarios in media/site-checks/.
 - the original teaser project's out/ (C:\\Users\\Jhoan\\Code\\pa-bailar-teaser, the first archive): older versions of
   each deliverable (`teaser-v2.2-reel.mp4` once `teaser-v2.3-reel.mp4` exists) that the home's archive/ holds an
   identical copy of, comparisons, drafts, frames, logs. Files that project's git tracks (its voice lines, music
@@ -36,8 +36,8 @@ from common import HOME, MEDIA, parse_render_name
 
 ARCHIVE = MEDIA.parent.parent / "pa-bailar-teaser"
 SCRATCH_DIRS = {"frames", "review", "rt", "auditions", "music", "draft", "inspect", "probe", "keyframes", ".bundle"}
-# Site checks kept in the checkout's media/out/ (not video output): never listed. New ones go in a scratch folder.
-SITE_CHECKS = {"site-bugs", "site-quality", "admin-tabs"}
+# Site checks kept in the checkout's media/out/ (not video output): never listed. New ones are media/site-checks/.
+SITE_CHECKS = {"site-bugs", "site-quality", "admin-tabs", "site-checks"}
 VERSIONED = re.compile(r"^(?P<name>.+?)-v(?P<version>\d+(?:\.\d+)*)-(?P<deliverable>[\w-]+)\.mp4$")
 
 

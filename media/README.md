@@ -23,7 +23,8 @@ media/
 ├── projects/<video>/ one folder per video: video.json (settings for the tools), its compositions, its notes,
 │                     data/ (small JSON the composition imports: timing, captures, events; committed)
 ├── fonts/            the site's three faces (committed, bundled with the code)
-└── tests/            the tools' pure functions (pytest) and the weekend rule and the captions in JS (node --test)
+├── tests/            the tools' pure functions (pytest) and the weekend rule and the captions in JS (node --test)
+└── site-checks/      not video: Claude's local browser checks of the site (its own README.md; never run in CI)
 ```
 
 ### The media home
@@ -44,9 +45,10 @@ D:\AI\pa-bailar-media\
 ```
 
 The checkout's old `media/cache`, `media/public/<video>` and `media/out/<video>` are copies from before the home;
-`clean.py` lists them once the home holds identical files. `media/out/` also keeps some site checks (`*.mjs`,
-`site-bugs/`, `site-quality/`, `admin-tabs/`): `clean.py` skips them by name. New checks go in a scratch folder, not
-in `media/out/`.
+`clean.py` lists them once the home holds identical files. `media/out/` also keeps some older site checks (`*.mjs`,
+`site-bugs/`, `site-quality/`, `admin-tabs/`) and the screenshots of `site-checks/` (`out/site-checks/`): `clean.py`
+skips them by name. New site checks are scenarios in [`site-checks/`](site-checks/README.md), not scripts in
+`media/out/`.
 
 ## Setup (once per machine)
 
