@@ -133,7 +133,7 @@ Every service the system depends on. All of them are on free plans.
 | **What it needs** | A **Meta app** (Meta for Developers, with the Instagram Graph API product). A **Facebook Page** linked to **our own Instagram professional account**, whose id is `IG_USER_ID`. An access token for that Page (`META_ACCESS_TOKEN`) |
 | **Token** | A **Page access token that doesn't expire**. It's made from a short-lived Graph API Explorer token by `python -m pa_bailar refresh-token` (section 12.2). It stops working only if it's revoked (for example, a Facebook password change) |
 | **What it can see** | Only **business and creator** accounts. Personal or private accounts answer with error 100/110 ("not visible") |
-| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used, now in the `X-Business-Use-Case-Usage` header (`call_count`, `total_cputime`, `total_time`, in percent; older apps got `X-App-Usage`). `InstagramClient.app_usage_percent` reads both and keeps the highest. The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
+| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used in the `X-Business-Use-Case-Usage` header (`X-App-Usage` on older apps); `InstagramClient.app_usage_percent` reads both and keeps the highest. The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
 | **Cost per sweep** | **1 call per account read**, no matter how many posts are asked for (10 regular, 30 for a new account). Each account is read about once a day, so a sweep reads about half of them (section 5). Images are then downloaded from Instagram's CDN, which isn't an API call |
 | **Cost** | Free |
 | **If it fails** | Token invalid: the run stops at the start and fails, and healthchecks.io emails you. Rate limit: the run stops calling Instagram, and the remaining accounts wait for the next run (a notice, and a warning after 3 runs in a row). One account fails: logged, and the others continue |
@@ -148,7 +148,7 @@ Every service the system depends on. All of them are on free plans.
 | **Models and roles** | `gemini-3.5-flash-lite` does triage, provisional extraction and discovery. `gemini-3.8-flash`, then `gemini-3.5-flash`, do extraction (`config.TRIAGE_MODELS`, `EXTRACTION_MODELS`, `PROVISIONAL_MODELS`) |
 | **Free quotas** | Flash-Lite: 15 requests/minute and 500/day. Each Flash model: 5/minute and 20/day (`config.MODEL_LIMITS`, read from AI Studio on 2026-10-02). Each model has its own quota. Days reset at **midnight Pacific time** |
 | **Cost** | Free (the free tier may use prompts to improve Google's products; posts are public anyway) |
-| **If it fails** | The model is out of quota: the next model is used, and if all are out, the last resort (section 3.10) if its keys are set, else the post stays pending. A server error, a timeout or a dropped connection: retried (3 attempts per model, then the next model; if none answers, the post waits for the next run). The request itself is rejected: the post is recorded as rejected and never retried (section 7) |
+| **If it fails** | Out of quota: the next model, then the last resort (section 3.10), else the post waits. Busy or unreachable: retried, then the next model, else the post waits. Rejected: recorded as rejected, never retried. Details in section 7.2 |
 
 ### 3.3 GitHub
 
@@ -189,9 +189,8 @@ Every service the system depends on. All of them are on free plans.
 
 | | |
 |---|---|
-| **What for** | Hosting the admin page (Worker `pa-bailar-admin`, at `https://pa-bailar-admin.jzamorac-9.workers.dev`) and its server side: the sign-in with GitHub (the `pa-bailar-admin` GitHub App), reading the status, and keeping story screenshots for a few days (Workers KV, namespace bound as `UPLOADS`, 7-day expiry) until the sweep workflow downloads them with GitHub's identity token (OIDC, no secret). GitHub Pages can't: it's not free for a private repository and has no server side |
-| **How** | Cloudflare's build (Workers Builds) deploys `admin-web/` (`wrangler.jsonc`) from this repository on every push to `main`, no preview builds. Its GitHub connection is limited to this repository. Every answer carries security headers, with a strict Content Security Policy: `public/_headers` for the page's files, `src/index.js` for the Worker's own (ADMIN.md, "The admin page") |
-| **Status** | Sign-in with GitHub, then two tabs: Estadísticas (the status) and Herramientas (the admin tools). Installable on Android, where it receives posts and story screenshots shared from Instagram (a service worker, `public/sw.js`). Described in [`docs/ADMIN.md`](ADMIN.md) |
+| **What for** | Hosting the admin page (Worker `pa-bailar-admin`, at `https://pa-bailar-admin.jzamorac-9.workers.dev`) and its server side: the sign-in with GitHub (the `pa-bailar-admin` GitHub App), reading the status, and keeping story screenshots (Workers KV, bound as `UPLOADS`, 7-day expiry) until the sweep workflow downloads them with GitHub's identity token (OIDC, no secret). GitHub Pages can't: it's not free for a private repository and has no server side |
+| **How** | Cloudflare's build (Workers Builds) deploys `admin-web/` (`wrangler.jsonc`) from this repository on every push to `main`, no preview builds; its GitHub connection is limited to this repository. Security headers and the rest: [`docs/ADMIN.md`](ADMIN.md), "The admin page" |
 | **Cost** | Free (KV's free plan: 1,000 writes a day, one per screenshot) |
 
 ### 3.7 Instagram's public post pages (fallback)
@@ -234,12 +233,12 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 |---|---|
 | **What for** | Extracting posts when Gemini can't: Flash and Flash-Lite are both out of today's quota or not available to the key (only quota: a busy or refusing Gemini never reaches it). Never the triage, never before Gemini, and never for stories or upgrades (section 7.3) |
 | **API** | Both are OpenAI-compatible: `POST …/chat/completions` with the prompt's text and the images as base64 data URLs (`pa_bailar/external.py`, `config.EXTERNAL_PROVIDERS`). Plain `httpx`, no SDK |
-| **Keys** | `GROQ_API_KEY` (console.groq.com) and `OPENROUTER_API_KEY` (openrouter.ai). Both optional: a provider without its key is skipped, so without either the sweep works as before |
+| **Keys** | `GROQ_API_KEY` (console.groq.com) and `OPENROUTER_API_KEY` (openrouter.ai). Both optional: a provider without its key is skipped, and without either there's no last resort |
 | **Models** | Groq: `qwen/qwen3.8-27b`, its only vision model, in JSON mode with the schema in the prompt. OpenRouter: `google/gemma-4-31b-it:free` and `google/gemma-4-26b-a4b-it:free` (JSON mode, the schema in the prompt; one request with its `models` list), then `openrouter/free`, a router to a random free model that takes the schema (structured output: the schema as `response_format`, strict, with `provider.require_parameters`). Every answer is checked against the same Pydantic schemas as Gemini's |
 | **Free limits** | Groq (2026-10-05): 30 requests/minute and 1,000/day, but 8,000 tokens/minute and 200,000/day; each image counts as 2,048 input tokens, at most 3 images per request. OpenRouter without credit: 20 requests/minute and 50/day for all free models together. Daily limits reset at midnight UTC (7:00 p.m. Bogotá) |
 | **Our budgets** | Groq: 900 requests and 180,000 tokens a day. OpenRouter: 40 requests a day. Kept under the free limits, for manual runs and the bake-off |
 | **Cost** | Free. Free models get pulled or paywalled without notice: `admin bakeoff` re-checks them (section 12.3) |
-| **If it fails** | One request per model and post, a 60-second timeout, no retries, at most 3 minutes per post and nothing started that wouldn't end within the run's time budget: a busy model (a 429 from the model's provider, a 5xx, a timeout) or an answer that isn't the schema's JSON moves on to the next model, and when none answers, the post waits for the next run as it would without them. A model that fails twice in a run is set aside for the rest of it, and one answering 404 (gone, or no longer free) at once. A key refused (401), credit needed (402) or a blocked request (403) turns that provider off for the run (a notice; a warning after 3 runs) |
+| **If it fails** | Fail fast: one request per model and post, no retries, at most 3 minutes per post. A busy model or an invalid answer moves on to the next model, and when none answers, the post waits for the next run. A 401, 402 or 403 turns that provider off for the run (a notice; a warning after 3 runs). Details in section 7.3 |
 
 ---
 
@@ -321,17 +320,15 @@ sequenceDiagram
 
 `.github/workflows/daily-sweep.yml`, two jobs on `ubuntu-latest`, plus two for stories:
 - **`request`** checks an admin request (add a post or a story, hide a story or an event) before anything else
-  runs. Only with `post_url`, `story`, `hide` or `issue`: for a regular sweep the job is skipped (its `if` is at job level,
-  so no runner starts and no minute is billed). Exactly one of `post_url`, `story` (1 to 4 upload ids) or
-  `hide` (`story-<16 hex>`, or an event's id: lowercase words joined by hyphens, at most 120 characters) must
-  be given, `issue` must be a number, and that issue an open `admin` issue by
-  `jzamora5` (the inbox reopens an answered issue before starting the add). Otherwise the run fails
-  and the sweep job doesn't start: whoever can start the workflow (the cron-job.org token) can't publish a
-  post with it. When it fails, it answers on the issue that adding couldn't start, but only if that issue is
-  an open `admin` issue by `jzamora5` (never on another issue). The inputs only reach shell commands through
-  environment variables. Every answer on the issue, in every job, goes through `.github/actions/answer-issue`,
-  which makes that check; `request` and `story-images` check out only `.github/actions` for it (no
-  credentials kept, `contents: read`).
+  runs. It runs only with `post_url`, `story`, `hide` or `issue` (its `if` is at job level, so a regular sweep
+  starts no runner and bills no minute). Exactly one of `post_url`, `story` (1 to 4 upload ids) or `hide`
+  (`story-<16 hex>`, or an event's id: lowercase words joined by hyphens, at most 120 characters) must be
+  given, and `issue` must be an open `admin` issue by `jzamora5` (the inbox reopens an answered issue before
+  starting the add). Otherwise the run fails before the sweep job, so whoever can start the workflow (the
+  cron-job.org token) can't publish a post with it; it then answers on the issue only if that issue is such an
+  `admin` issue. Inputs reach shell commands only through environment variables. Every answer on an issue, in
+  every job, goes through `.github/actions/answer-issue`, which makes that check; `request` and `story-images`
+  check out only `.github/actions` for it (no credentials kept, `contents: read`).
 - **`story-images`** (only with `story`): downloads the story's screenshots from the admin page's Worker
   (`/api/uploads/<id>`, retrying about 2 minutes while KV spreads them) with GitHub's identity token (OIDC,
   `id-token: write` on this job only, which runs no third-party package), and hands them to `sweep` as an
@@ -369,16 +366,15 @@ Other workflow settings:
 - **`concurrency: data`** (`cancel-in-progress: false`): two sweeps never run at the same time. A new one
   waits, and if several are started meanwhile, only the newest waits (the others show as "cancelled").
 - **`workflow_dispatch` only:** there's no schedule (section 3.4), and no push trigger.
-- **Single-post mode** (`post_url`, started by the `admin` workflow): `sweep --post` adds one post by hand,
-  then the same state save and data PR. With `again` (a boolean input, "Volver a leer"), it reads the post
-  even if it was read before and hasn't changed. It isn't recorded in the run history, opens no health issue and
-  doesn't ping healthchecks.io. GitHub keeps only one waiting run per concurrency group (a newer one cancels
-  it), so the `admin` workflow never queues a sweep: requests take turns, first come first served. Each waits
-  until no sweep is running or waiting and no earlier `admin` run is still going, starts the sweep, and waits
-  until GitHub lists it. Still busy after 50 minutes, it answers on the issue that it didn't start
-  ("Pídelo otra vez en un rato") instead of starting a sweep that could be cancelled. For the same reason the
-  `admin` workflow has no concurrency group of its own: a third comment on an issue would cancel the second
-  one's waiting run, and its request would never be answered.
+- **Single-post mode** (`post_url`, started by the `admin` workflow): `sweep --post` adds one post by hand (with `again`, "Volver a leer", even if it was read before and hasn't
+  changed), then the same state save and data PR. It isn't recorded in the run history, opens no health issue
+  and doesn't ping healthchecks.io.
+- **Admin requests take turns:** GitHub keeps only one waiting run per concurrency group (a newer one cancels
+  it), so the `admin` workflow never queues a sweep. Each request waits until no sweep is running or waiting
+  and no earlier `admin` run is still going, starts the sweep, and waits until GitHub lists it. Still busy
+  after 50 minutes, it answers on the issue that it didn't start ("Pídelo otra vez en un rato"). For the same
+  reason the `admin` workflow has no concurrency group of its own: a third comment on an issue would cancel
+  the second one's waiting run, and its request would never be answered.
 
 ### Whose turn it is: each account about once a day
 
@@ -466,20 +462,19 @@ flowchart TD
 
   - `bar`: a bar or club, open every week (the owner, 5 October 2026: salsa bars hold special nights, but most of
     their posts are their regular ones). The triage and the extraction get `prompts.BAR_RULES` after the caption:
-    its regular nights aren't events, only special one-time occasions (a live band, a guest artist or DJ billed
-    by name, an anniversary, a holiday party, a workshop, a competition or show); when unsure, it isn't. Its
+    its regular nights aren't events, only special one-time occasions (a live band, a billed guest, an
+    anniversary…); when unsure, it isn't. Its
     events carry `bar: true` (`StoredEvent.bar`, docs/DATA.md in the site), set from `accounts.txt` on every run,
     so marking or unmarking an account updates its stored events. Its first sweep is a regular one (10 posts, the
     lookback): a bar's older posts are past nights.
   - `solo:<styles>` (salsa, bachata, merengue, kizomba, tango): a general bar, club or cultural space that also
-    holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`: the words
-    the safeguards read a style from, `normalize.TEXT_STYLE_WORDS`, plus looser ones such as "salser", "timba",
-    "bachat"…, accents and case ignored) is recorded as no event before any Gemini request,
-    for free ("no menciona salsa ni bachata"); the others get `prompts.FOCUS_RULES` too. A caption edited later
-    is checked again.
+    holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`:
+    `normalize.TEXT_STYLE_WORDS` plus looser stems such as "salser", "bachat", accents and case ignored) is
+    recorded as no event for free, before any Gemini request ("no menciona salsa ni bachata"); the others get
+    `prompts.FOCUS_RULES` too. A caption edited later is checked again.
   - A post added by hand (`--post`, PB Admin) gets neither the filter nor the rules: whoever adds it wants it read
     as it is. Its record keeps `by_hand`, so its later reads (the provisional upgrade, an edited caption) skip them
-    too. Every other account's prompts are unchanged (the rules are an empty string).
+    too.
   - The filter only screens posts the triage would: a post that had events and whose caption is edited goes
     straight to the extraction, which can take its events down ("CANCELADO"), whatever styles it names now.
   - Captions are folded before matching (`text.fold`: compatibility forms first, then case), so Instagram's "fancy
@@ -519,21 +514,23 @@ flowchart TD
     UP --> ST
 ```
 
-A re-analyzed post "had events" when its record's outcome is `event` or `merged`, or, for records kept before
-outcomes existed (no `outcome`), when Gemini called it an event post. When it had events and now has none, and
-its caption or Gemini's reason says they're cancelled or postponed ("CANCELADO", aplazado, pospuesto…;
-`pipeline/base.py`, `_says_cancelled`), its events leave the site even when other posts announce them too, if they're its
-own account's (the account that announced them first); another account's event stays, with low confidence and
-a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for review (section 11.1)
-(`Sweep._take_down_cancelled`). When Flash-Lite is out of today's quota and Flash isn't, new posts wait for the
-next run instead of going straight to Flash: skipping the filter would spend Flash's 20 requests on posts that
-mostly aren't events. When Flash is out too, the extraction would be the last resort's anyway (section 7.3), so
-the post goes straight to it, without a triage: the extraction decides alone whether it's an event. The triage
-never goes to the last resort: Groq's 8,000 tokens a minute don't fit a triage (about 4,100 tokens) and an
-extraction (about 7,250) of the same post, and a weaker model's "no" would lose the event for good. The last
-resort's "no" is provisional like all its readings, and its upgrade goes through Flash-Lite's triage first
-(`Sweep._upgrade_post`): Flash is spent only if the triage says it's an event. A triage that fails for another
-reason (busy, a timeout) lets the extraction decide.
+**Cancellations:** a re-analyzed post "had events" when its record's outcome is `event` or `merged` (or, with
+no `outcome`, when Gemini called it an event post). When it had events and now has none, and its caption or
+Gemini's reason says they're cancelled or postponed ("CANCELADO", aplazado, pospuesto…; `pipeline/base.py`, `_says_cancelled`),
+its own account's events leave the site even when other posts announce them too; another account's event
+stays, with low confidence and a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for
+review (section 11.1) (`Sweep._take_down_cancelled`).
+
+**When Flash-Lite is out of today's quota:**
+- and Flash isn't, new posts wait for the next run: skipping the triage would spend Flash's 20 requests on
+  posts that mostly aren't events;
+- and Flash is out too, the extraction would be the last resort's anyway (section 7.3), so the post goes
+  straight to it, without a triage: the extraction decides alone whether it's an event.
+
+The triage never goes to the last resort: Groq's 8,000 tokens a minute don't fit a triage (about 4,100 tokens)
+and an extraction (about 7,250) of the same post, and a weaker model's "no" would lose the event for good. The
+last resort's "no" is provisional, and its upgrade goes through Flash-Lite's triage first
+(`Sweep._upgrade_post`). A triage that fails for another reason (busy, a timeout) lets the extraction decide.
 
 Triage exists to save the scarce Flash quota (20 a day per model). Most posts aren't events, and a
 512-pixel image plus the caption are enough to tell. When unsure, the triage prompt answers "yes": a
@@ -551,47 +548,39 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
      event keeps its first day, with a doubt when the range was reversed ("fecha final anterior a la
      inicial") or too long ("dura más de una semana: revisar fechas"), so it's listed for review;
    - a workshop series' `sessions` (section 9.1) sorted, without repeats or invalid dates, each with valid
-     times (the event's own when a session gives none); `date` and `end_date` become the first and last
-     session's, `start_time`, `end_time` and `weekday` the first session's (`normalize.fit_sessions`).
-     Sessions on consecutive days are an event over several days instead, and more than
-     `MAX_SERIES_SESSIONS` (12) sessions or more than `MAX_SERIES_DAYS` (123, about 4 months) is a course:
-     recurring, so discarded ("más de 12 sesiones o más de 4 meses: es un curso");
+     times; the event's days, times and weekday follow them (`normalize.fit_sessions`). Sessions on
+     consecutive days are an event over several days instead, and more than `MAX_SERIES_SESSIONS` (12)
+     sessions or `MAX_SERIES_DAYS` (123, about 4 months) is a course: discarded as recurring ("más de 12
+     sesiones o más de 4 meses: es un curso");
    - prices and text cleaned (`normalize.clean_prices`): a label, no negative amounts, and no 0 that is an
      amount in another currency (USD, US$, MXN, EUR, €, dólares, pesos mexicanos…, in the label or the
      condition), since the site shows 0 as free: it's dropped, with a doubt ("Precio en otra moneda: VIP
      (1,000.00 MXN)"), unless it reads as free (gratis, libre, free);
    - an event Gemini isn't sure is in Bogotá (`in_bogota` "unknown") gets the doubt "ciudad sin confirmar: ¿es
-     en Bogotá?", which lists it for review (section 11.1). Before that, a free check in code
-     (`normalize.doubtful_city`): an event Gemini placed in Bogotá, with no address of its own, from a caption
-     that names another city or country (`_OTHER_PLACES`: Medellín, Cali, México…) and never Bogotá, becomes
-     "unknown" too. On 3 October 2026 Flash-Lite read "Nos vemos en expofitness Medellín 2027" (La Revuelta Latin
-     Fest) as a Bogotá event; a caption that says where a guest comes from ("llega desde Medellín") with the
-     venue's address stays in Bogotá. Not counted: a place after "estilo", "style", "desde", "llega de", "viene
-     de" or "sabor" (a style or a guest's origin), the song "Cali Pachanguero"; and Pasto, Pereira, New York, Puerto
-     Rico and La Habana aren't in the list (a word or a surname, or salsa styles and artists' origins). A bar's
-     events skip the check: they're at the bar.
+     en Bogotá?", which lists it for review (section 11.1). A free check in code (`normalize.doubtful_city`)
+     makes it "unknown" too when Gemini placed it in Bogotá but it has no address of its own and the caption
+     names another city or country (`_OTHER_PLACES`) and never Bogotá: on 3 October 2026 Flash-Lite read "Nos
+     vemos en expofitness Medellín 2027" as a Bogotá event. A style or a guest's origin ("estilo", "desde",
+     "llega de", "sabor"…) doesn't count, and places that are also words, surnames, styles or artists' origins
+     (Pasto, Pereira, New York, Puerto Rico, La Habana) aren't in the list. A bar's events skip the check.
    - **Safeguards for lighter readings** (`Sweep._safeguarded`; free, no request). Measured on 5 October 2026 on
      every post Flash had read (20 posts, 35 events), Flash-Lite matched Flash on dates (26/26) but got styles
      wrong or missing on 7 of 26 events and mixed up times and prices in a post with three workshops. So:
      - an event that comes back with no styles gets the ones its title or caption names
        (`normalize.styles_in_text`: the style list and its synonyms, longest first), else its account's usual
-       ones (`_usual_styles`: styles a model read on at least 80% of its 3+ stored events). The text leaves out
-       synonyms captions use as plain words or names, which gave wrong styles: "son", "salsa la", "otro",
-       "sensual", "rueda", "rumba" ("la mejor rumba salsera"), "street" and "urbano" ("street food", "transporte
-       urbano": only "baile urbano", "danza urbana", hip hop, reggaeton count), "casino" ("Casino Royal"), "mambo"
-       ("Mambo Cafe"), "calena" ("la caleña"), "swing" ("Swing Latino"), "timba", "cubano" and "pachanga"; the
-       model's own styles keep every synonym. One of several events in a post looks at its own title first, and
-       takes the caption's styles only when they're all one family (salsa and its variants, say): a caption
-       naming salsa and bachata doesn't say which event is which. The dance filters would miss the event
-       otherwise. Styles the model gave are never changed; guessed ones carry the doubt "estilos deducidos del
-       texto o de la cuenta, no leídos en el post" (`normalize.GUESSED_STYLES_DOUBT`), so a later post whose
-       reading gives styles replaces them when merged (`merging.merge_into`), and they never make an account's
+       ones (`_usual_styles`: styles a model read on at least 80% of its 3+ stored events); otherwise the dance
+       filters would miss the event. The text leaves out synonyms captions use as plain words or names, which
+       gave wrong styles ("la mejor rumba salsera", "street food", "Casino Royal", "Mambo Cafe"…); the model's
+       own styles keep every synonym. One of several events in a post looks at its own title first, and takes
+       the caption's styles only when they're all one family: a caption naming salsa and bachata doesn't say
+       which event is which. Styles the model gave are never changed; guessed ones carry the doubt "estilos
+       deducidos del texto o de la cuenta, no leídos en el post" (`normalize.GUESSED_STYLES_DOUBT`), so a later
+       reading with styles replaces them when merged (`merging.merge_into`), and they never make an account's
        usual style;
      - a post with several events read only by a lighter model (a provisional reading, or Flash-Lite in lite-only
        mode) gets the doubt "varios eventos en una publicación, leída por un modelo ligero: confirma horas y
        precios" (`normalize.MULTI_DOUBT`) on each, which lists them for review (`health.review_reasons`, section
-       11.1). Flash re-reading the post rebuilds its events without it, and a Flash reading merged into one of
-       them (a reminder, or the post re-read while a reminder keeps the event) takes it off (`Sweep._add_event`).
+       11.1). A Flash reading of the post, or one merged into its event, takes it off (`Sweep._add_event`).
 
    The site relies on these formats.
 2. **Keep only publishable events** (`Sweep._discard_reasons`): one-time (`is_recurring` false; a workshop
@@ -608,8 +597,7 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
    `data/previews/<post id>-<slide>.mp4`, recorded as the media's `preview`: the site plays it, silent and
    looping. Carousels record their slide count (`slides`). Some videos come without a file from Instagram
    (likely licensed music): they get no clip. Posts stored before clips existed get theirs when a sweep
-   fetches them again (`Sweep._complete_media`), since Instagram's video links expire.
-   Instagram's image links expire, so the site uses these copies. An image that shows several events
+   fetches them again (`Sweep._complete_media`). Instagram's image and video links expire, so the site uses these copies. An image that shows several events
    (a monthly schedule) is saved once and shared.
 4. **Detach the post from earlier results:** if the post was analyzed before (edited caption, upgrade),
    what it contributed is removed first. Events only it announced give their ids back, so their URLs
@@ -636,29 +624,23 @@ Notes on the prompts and parameters:
 - **Temperature** stays at the default, as Google advises for Gemini 3 models.
 - **The extraction prompt covers:**
   - what is and isn't an event, shared with triage (`_EVENT_DEFINITION`): one-time socials, workshops,
-    concerts, festivals (an event over several consecutive days is one event, from its first to its last
-    day), workshop series (one finite program on 2 to 12 separate days, every one of them dated in the post,
-    within 4 months: one event with its sessions)… but not regular
-    classes, courses or programs whose sessions aren't each dated ("todos los sábados de noviembre", "8
-    semanas") or that are longer, recaps, showcases or tutorials, nor anything that isn't
-    about dancing (like a drawing workshop at a dance venue), nor concerts and music festivals that aren't for
-    social or partner dancing (electronic, rock, pop, indie, reggaeton or urbano mass concerts, general music
-    festivals: a concert or festival counts only for salsa, bachata, merengue, son, timba, kizomba, tango,
-    champeta… dancing), nor events the post places in another city or
-    country (teachers and artists travel; no city stated means Bogotá), nor an event a post about something
-    else (a song release, a profile) only mentions in passing. It quotes the words academies use
-    ("social", "taller", "todos los jueves", "así se vivió"…), which helps the lighter model most;
+    concerts, festivals (several consecutive days are one event) and workshop series (2 to 12 separate days,
+    each dated in the post, within 4 months: one event with its sessions); not regular classes or courses whose
+    sessions aren't each dated ("todos los sábados de noviembre", "8 semanas") or that are longer, recaps,
+    showcases or tutorials, anything not about dancing, concerts and festivals that aren't for social or
+    partner dancing (electronic, rock, reggaeton mass concerts…), events the post places in another city or
+    country (no city stated means Bogotá), nor an event a post about something else only mentions in passing.
+    It quotes the words academies use ("social", "taller", "todos los jueves", "así se vivió"…), which helps
+    the lighter model most;
   - `in_bogota` for every event ("yes", "no" or "unknown"), checked in code (section 6.3), since the prompt
     alone let a tour's concerts abroad through;
   - how to pick the event type (social, workshop, concert, congress, festival, competition, show, other: a
     multi-day dance congress is a `congress`, its workshops included) and the styles (from a fixed list);
-  - dates: `date` is the event's day or its first day, `end_date` its last day over several consecutive days
-    ("NOV 13-15" → 13 and 15; null for one day, a night past midnight included); never one event per day of
-    a congress, but the same workshop given again on separate, non-consecutive dates is one event per date,
-    while a workshop series (one sign-up, every session attended) is one event with `sessions` (each with its
-    date and times; `date` and `end_date` the first and last session's), and a post about one of its
-    sessions is that series; a post presenting a teacher or one night of a festival is that festival. Times
-    over several days: the first day's start and the last day's end;
+  - dates: `date` is the event's (first) day, `end_date` its last over consecutive days ("NOV 13-15" → 13
+    and 15; null for one day, a night past midnight included); one event per congress, not per day; the same
+    workshop on separate dates is one event per date, while a workshop series (one sign-up) is one event with
+    `sessions`; a post about one session, one teacher or one night is that series or festival. Times over
+    several days: the first day's start and the last day's end;
   - how to resolve dates without a year;
   - prices: `amount_cop` only in Colombian pesos, 0 only when free; a price in another currency goes to the
     doubts, never as 0 (the code drops one anyway, section 6.3);
@@ -726,9 +708,9 @@ flowchart TD
   error retried next run (not "no quota left").
 - **Which 429:** only one whose message or quota id names the daily quota ("per day",
   `GenerateRequestsPerDay…`; `gemini._is_daily_quota_error`) marks the model used up for the day. A per-minute
-  429 waits 60 seconds and retries; a second one moves on to the next model without touching the day's budget,
-  and if no model answers, the post is an error retried next run (until 2026-10-04 a second per-minute 429
-  counted as daily, so two in a row lost a model for the whole quota day).
+  429 waits 60 seconds and retries; a second one moves on to the next model without touching the day's budget
+  (counting it as daily once lost a model for a whole quota day), and if no model answers, the post is an
+  error retried next run.
 - **Pace:** calls to the same model are spaced to its per-minute limit.
 - **Timeout:** each request gives up after 120 seconds, so a stuck call can't hang the run. The SDK raises
   timeouts and dropped connections as httpx's own errors (`httpx.TransportError`, neither an `APIError` nor an
@@ -750,9 +732,9 @@ flowchart TD
 - **Only when Gemini is out:** the last resort is asked only when both Flash and Flash-Lite raised
   `QuotaExhaustedError` (all out of today's quota or not available to the key; `EventExtractor._extract`). A busy
   Flash (5xx, timeouts) or one that refused the post (a safety block) with Flash-Lite out leaves the post waiting
-  for Gemini, as before the last resort existed.
-- **Off without keys:** each provider needs its key (`GROQ_API_KEY`, `OPENROUTER_API_KEY`); without both, nothing
-  changes. Lite-only mode keeps them as the last resort after Flash-Lite.
+  for Gemini.
+- **Off without keys:** each provider needs its key (`GROQ_API_KEY`, `OPENROUTER_API_KEY`). Lite-only mode keeps
+  them as the last resort after Flash-Lite.
 - **Always provisional:** an extraction from the last resort is stored like Flash-Lite's provisional ones, and
   upgraded with Flash on a later run when there's quota (section 6.2). Its record names the model with its
   provider, `groq:qwen/qwen3.8-27b` or `openrouter:google/gemma-4-31b-it:free`, and `admin why` shows it.
@@ -762,14 +744,13 @@ flowchart TD
 - **Time:** a post spends at most 3 minutes on the last resort (`EXTERNAL_MAX_SECONDS_PER_POST`), and a request
   starts only if its wait and a whole timeout fit before that and before the run's time budget ends (section 14):
   Groq's wait and request (60 + 60 s), then OpenRouter only if a request still fits. Otherwise the post waits.
-- **Groq's tokens:** each request's tokens are estimated before it's sent (its text / 4, 2,048 per image, 800 for
-  the answer; the real count from the answer replaces it) and kept in a one-minute window. An extraction is about
-  7,250 tokens (4,200 of prompt and schema, one image, the answer) of Groq's 8,000 a minute, so each one waits for
-  the one before to leave the minute: up to 60 seconds (`EXTERNAL_MAX_WAIT_SECONDS`), about one extraction a
-  minute. It gets the first images, at most 3 and as many as fit in a minute's tokens: with the extraction prompt
-  and its schema, usually one. A 413 or a 429 about tokens skips it for the post, without counting as a failure,
-  and with less than a request (`EXTERNAL_MIN_REQUEST_TOKENS`, 5,000) of its daily tokens left Groq isn't
-  available, so no post downloads its images just to be skipped.
+- **Groq's tokens:** each request's tokens are estimated before it's sent (text / 4, 2,048 per image, 800 for
+  the answer; replaced by the real count) and kept in a one-minute window. An extraction is about 7,250 tokens
+  (4,200 of prompt and schema, one image, the answer) of Groq's 8,000 a minute, so each one waits for the one
+  before to leave the minute (up to 60 seconds, `EXTERNAL_MAX_WAIT_SECONDS`): about one a minute. It gets the
+  first images that fit in a minute's tokens, at most 3, usually one. A 413 or a token 429 skips Groq for the
+  post without counting as a failure, and with less than `EXTERNAL_MIN_REQUEST_TOKENS` (5,000) of its daily
+  tokens left Groq isn't available, so no post downloads its images just to be skipped.
 - **Per run:** a model that fails twice (busy, a timeout, invalid JSON: `EXTERNAL_FAILURES_TO_QUARANTINE`) is set
   aside for the rest of the run, with one warning in the log; a model answering 404 (gone, or no longer free) at
   once. A provider answering 401, 402 or 403 is turned off for the run. What each model did (answered, busy,
@@ -777,16 +758,12 @@ flowchart TD
   (`RunStats.external`) and history, for the health checks.
 - **Shared daily budgets:** requests (and Groq's tokens) per provider are saved in `state/external_usage.json`
   with their UTC day, like Gemini's usage. A provider's own daily-limit 429 spends it for the day.
-- **Re-checking the models:** `admin bakeoff` compares Flash-Lite and every model of the last resort with what Flash
-  read on recent posts, and `admin bakeoff --discover` lists OpenRouter's free models with image input now
-  ([`docs/ADMIN.md`](ADMIN.md)). The list in `config.EXTERNAL_PROVIDERS` stays explicit: nothing switches by itself.
-  The bake-off waits for Groq's tokens between posts like the sweep (about a post a minute), and a request its
-  limits kept from being sent isn't cached as an error: the next run asks it again.
-  On 5 October 2026, on 15 posts, OpenRouter's free qwen read about as well as Flash-Lite but failed or was
-  rate-limited upstream often, and gemma never answered: why OpenRouter comes last. The same day OpenRouter
-  answered 404 for `qwen/qwen3.8-27b:free` ("unavailable for free"): it went paid-only, so it left the list
-  (a 404 sets a model aside at once). `--discover` lists only models that answer in text: Google's Lyria shows a
-  zero token price but is a paid music model.
+- **Re-checking the models:** `admin bakeoff` (section 12.3, [`docs/ADMIN.md`](ADMIN.md)). The list in
+  `config.EXTERNAL_PROVIDERS` stays explicit: nothing switches by itself. On 5 October 2026, on 15 posts,
+  OpenRouter's free qwen read about as well as Flash-Lite but often failed upstream, and gemma never answered:
+  why OpenRouter comes last. The same day `qwen/qwen3.8-27b:free` went paid-only (404) and left the list.
+  `--discover` lists only models that answer in text: Google's Lyria shows a zero token price but is a paid
+  music model.
 
 ---
 
@@ -804,8 +781,8 @@ flowchart TD
   - `is_not_visible`: 100 and 110, a personal, private or missing account;
   - `is_rate_limited`: 4, 17, 32, 613 and 80001–80009;
   - network failures and non-JSON answers become an `InstagramError` for that account only.
-- **Quota awareness:** every answer updates `app_usage_percent` from Meta's usage headers (until 2026-10-03 only
-  `X-App-Usage` was read, which Instagram no longer sends, so this never triggered). `discover` pauses at
+- **Quota awareness:** every answer updates `app_usage_percent` from both of Meta's usage headers (reading only
+  `X-App-Usage`, which Instagram no longer sends, once meant the stop never triggered). `discover` pauses at
   60%. The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`), or on the first rate-limit error,
   and the remaining accounts go first next run.
 - **The token never shows in errors:** it travels in the URL, and connection errors quote the URL, so
@@ -918,8 +895,8 @@ evento único").
 - **What qualifies:** 2 to 12 sessions (`MIN_SERIES_SESSIONS`, `MAX_SERIES_SESSIONS`), **every one dated** in
   the post, the last at most `MAX_SERIES_DAYS` (123) days in all after the first (about 4 months). Regular
   classes ("todos los viernes", "clases regulares", monthly fees), programs with only a start date or "todos
-  los sábados de noviembre", and longer courses stay out (recurring). A story's weekly social night still
-  publishes its next date, as before.
+  los sábados de noviembre", and longer courses stay out (recurring). A story's weekly social night publishes
+  only its next date.
 - **Not a series:** an event over consecutive days (a congress, "7, 8 y 9 de noviembre") keeps `date` and
   `end_date` without sessions, at most 7 days; the same workshop given again on another date (people attend
   one) is one event per date.
@@ -963,9 +940,8 @@ evento único").
   when they're the same program).
 - **The admin tools' answers** show a series as "4 sesiones: 8, 22, 29 nov y 6 dic" (`text.sessions_label`).
 - **Safety net:** `admin status` and the admin page list **Series nuevas**, the series first published in the
-  last `NEW_SERIES_DAYS` (14) and not over yet (`status.new_series`: when its first post was analyzed, else its
-  earliest post's date), each with its sessions, sources, link and a one-tap **Ocultar** (`hide-event`,
-  section 12.3), so each new series gets a look.
+  last `NEW_SERIES_DAYS` (14) and not over yet (`status.new_series`), each with a one-tap **Ocultar**
+  (`hide-event`), so each new series gets a look (ADMIN.md, "From the admin page").
 
 ---
 
@@ -983,7 +959,7 @@ memory between runs; the site never sees it.
 | `gemini_usage.json` | Today's quota day (Pacific) and requests per model | The day's runs share the daily budgets |
 | `external_usage.json` | The last resort's day (UTC) and, per provider, requests, tokens and the answers per model | The day's runs share Groq's and OpenRouter's budgets (section 7.3) |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
-| `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts (the same event read again: a sibling from the same post, another event that day, stays published) nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load (if the data PR that hid one didn't merge). Adding one of its posts by hand publishes it again |
+| `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load. Adding one of its posts by hand publishes it again (ADMIN.md, "Ocultar evento") |
 | `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests (and the last resort's, per provider) and models the key couldn't use; what each of the last resort's models did, those set aside and the providers turned off; warning keys | The health rules compare a run with the previous ones (section 11) |
 
 ```mermaid
@@ -993,9 +969,8 @@ flowchart LR
     W -- "commit + push<br/>(save step, even after a failed sweep)" --> B
 ```
 
-The save runs after the data PR step (section 5.2). If that PR couldn't be opened, `processed_posts.json` and
-`accounts.json` keep their previous versions, so the posts whose events would otherwise be lost are read again
-by the next run; the other files are saved as usual.
+The save runs after the data PR step; when that PR couldn't be opened, `processed_posts.json` and
+`accounts.json` keep their previous versions (section 5.2, step 11).
 
 Locally, the same files live in `state/` (git-ignored), so local runs keep their own state. Tools that
 need the sweeps' state on your computer (`admin status`, `discover`'s Gemini allowance) read the branch
@@ -1129,13 +1104,11 @@ flowchart TD
 - **Recommended** means, in or probably in Bogotá (`discovery.is_recommended`):
   - an academy, venue, organizer or dance company;
   - a teacher (a teacher, dancer or dance couple) or musician (an orchestra, band, singer or DJ) whose recent
-    captions announce one-time events: their own workshops, intensives, socials, shows or concerts. Until
-    4 October 2026 teachers were never recommended (only listed under "maybe"), and orchestras and DJs had no
-    kind of their own, so artists who announce events in Bogotá were left out. Those whose posts are only
+    captions announce one-time events: their own workshops, intensives, socials, shows or concerts (since
+    4 October 2026; before, artists who announce events in Bogotá were left out). Those whose posts are only
     videos and regular classes stay under "maybe": each followed account costs an Instagram call a day and a
-    Flash-Lite triage per new post, for nothing. Cached classifications keep their kind: teachers already
-    classified move to "recommended" on the next run (no new request); orchestras and DJs classified earlier
-    as `dance_other` or `not_dance` aren't classified again.
+    Flash-Lite triage per new post, for nothing. Cached classifications aren't redone: orchestras and DJs
+    classified earlier as `dance_other` or `not_dance` stay so.
 - **Personal accounts** (many teachers use one) can't be read by Business Discovery: they're skipped, and their
   posts can only be added one by one with the admin tools (Agregar), from the post's public page.
 - **Adding an account** means adding a line to `accounts.txt` through a PR, in its section (academies, dance
@@ -1169,42 +1142,28 @@ guide.
 
 - **`admin why <link>`** (`pa_bailar/why.py`): why a post's event is or isn't on the site. From the post's
   record (its `outcome`, Gemini's reason, the events in `events.json`), or, for a post never analyzed, its
-  author from the public page (section 3.7: a collaboration follows its author), one Instagram call (the
-  account's latest 50 posts) and the run history: posted after the last sweep, account not swept yet, too
-  old, the account couldn't be read or isn't visible to the API, waiting for quota.
+  author from the public page (section 3.7), one Instagram call (the account's latest 50 posts) and the run
+  history. ADMIN.md, "Revisar".
 - **`admin add-account @x`**: checks that Instagram can read it (Business Discovery), then adds it to
   `accounts.txt` (`storage.add_account`, in its own section).
 - **`sweep --post <link>`** (`Sweep.add_post`): one post by hand, without triage. Adds the account if it isn't
-  swept. When the API doesn't give the post (not visible, not among the latest 50, a collaboration, the rate
-  limit), it reads the post's public page (section 3.7; its id is `public-<id>`) and doesn't add an account
-  the API can't read. A post analyzed before is only read again (one Gemini request) when its caption changed
-  or it was filtered out as "not an event" or rejected; otherwise the answer is what it already became
-  (`SETTLED_OUTCOMES`). `--again` ("Volver a leer") reads it anyway, one Gemini request, still as one post
-  (its events keep their ids): for an event stored with wrong data, e.g. after the prompts improved.
-  `AddPostError` says in Spanish why it couldn't (neither source worked, no quota).
+  swept. When the API doesn't give the post, it reads the post's public page (section 3.7; its id is
+  `public-<id>`) and doesn't add an account the API can't read. A post analyzed before is only read again when
+  its caption changed or it was "not an event" or rejected (`SETTLED_OUTCOMES`), or with `--again` ("Volver a
+  leer", its events keep their ids). `AddPostError` says in Spanish why it couldn't. ADMIN.md, "Agregar".
 - **`sweep --story <ids>`** (`Sweep.add_story`, `pa_bailar/stories.py`): an event from screenshots of an
-  Instagram story, uploaded from the admin page (ADMIN.md, "Agregar historia"). One Gemini request for all of
-  them (`STORY_PROMPT`, `StoryAnalysis`), no triage. Dates are worked out in code from what's printed
-  (`stories.resolve_date`), relative to when the screenshot was taken; the account is the typed one, a
-  reshared post's author or the name at the top (checked with one Instagram call, or matched to a known
-  account); the flyer is a checked, padded crop. Stored as a `STORY` item (`post_id` `story-<hash>`, the
-  profile as permalink, no caption). The same screenshots, or another screenshot of a story published in the
-  last 36 hours (perceptual hash), aren't read twice. `--hide-story` takes one off the site again.
-- **`sweep --hide-event <id>`** (`Sweep.hide_event`): takes any event off the site, whatever it came from (the
-  admin page's "Series nuevas", `/ocultar <id>`). Kept in `state/hidden_events.json`: the sweeps leave it off
-  (the same posts read again, or a later post of the same event by the merging rules), while a genuinely new
-  event is published as usual; adding one of its posts by hand publishes it again with its old id. ADMIN.md,
-  "Ocultar evento".
+  Instagram story, uploaded from the admin page. One Gemini request for all of them (`STORY_PROMPT`,
+  `StoryAnalysis`), no triage; dates worked out in code (`stories.resolve_date`); stored as a `STORY` item
+  (`post_id` `story-<hash>`, the profile as permalink, no caption). `--hide-story` takes one off the site
+  again. ADMIN.md, "Agregar historia".
+- **`sweep --hide-event <id>`** (`Sweep.hide_event`): takes any event off the site, whatever it came from, and
+  keeps it off (`state/hidden_events.json`, section 10.1). ADMIN.md, "Ocultar evento".
 - **`admin inbox`** (`pa_bailar/inbox.py`): reads an issue or comment with fixed patterns (a post link alone,
-  the commands `/agregar`, `/releer`, `/cuenta @x`, `/estado`, `/historia <ids>`, `/ocultar story-…` and
-  `/ocultar <event id>`, or the
-  issue form's fields) and writes the
-  answer; the `admin` workflow (`.github/workflows/admin.yml`) runs it on new issues and comments from
-  `jzamora5`. Only the inbox's: an issue labelled `admin` (the form, the admin page) or a text that asks for
-  something (`inbox.is_request`: a post link or a command). Anything else gets no answer and no label
-  (`action=skip`). In plain text a command is a word starting with `/` at the start of a line: ordinary words
-  ("revisar el estado de…", "agrega", "publica", "volver a leer", "agregar cuenta") never are, since some
-  commands spend Gemini or change `accounts.txt`. A command without its link gets the list of commands.
+  a `/` command, or the issue form's fields) and writes the answer; the `admin` workflow
+  (`.github/workflows/admin.yml`) runs it on new issues and comments from `jzamora5`. Only requests get an
+  answer and a label (`inbox.is_request`: an issue labelled `admin`, or a text with a post link or a command);
+  anything else is skipped (`action=skip`). A command is a `/word` at the start of a line, never ordinary
+  words, since some commands spend Gemini or change `accounts.txt`. ADMIN.md, "From GitHub (the inbox)".
 - **`admin status`** (`pa_bailar/status.py`): the latest and next sweeps; Gemini usage per model against
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
   otherwise); whether the Instagram token works and the share of Instagram's quota used (one call, `--no-instagram`
@@ -1213,12 +1172,10 @@ guide.
   today per provider (`external`), shown only when it was used.
   `--json` gives the same as data. On your computer it reads the sweeps' state from the `sweep-state`
   branch.
-- **`admin bakeoff`** (`pa_bailar/bakeoff.py`): the way to re-check the last resort's models (section 7.3). It picks
-  recent posts Flash read on its own (final, the only post of its events, a flyer stored), runs Flash-Lite and
-  every model of the last resort on each one's caption and flyer with the extraction prompt, and scores each model's
-  events against Flash's, field by field. Answers are cached in `state/bakeoff/` (git-ignored). It spends real
-  requests from the same daily quotas as the sweeps. `--discover` lists OpenRouter's free models with image input
-  now (one request, no key). On your computer only.
+- **`admin bakeoff`** (`pa_bailar/bakeoff.py`): re-checks the last resort's models (section 7.3): runs
+  Flash-Lite and each of them on recent posts Flash read and scores their events against Flash's, field by
+  field, spending requests from the sweeps' daily quotas. On your computer only. ADMIN.md, "Re-checking the
+  last resort's models".
 
 ---
 
@@ -1236,10 +1193,10 @@ guide.
 - and, in its own workflow `media-ci.yml`, the video toolkit: `npm ci`, `tsc --noEmit` and its Node tests
   (`media/tests`), only on pull requests that change `media/` (its Python tests run with the rest under `pytest`).
 
-**Actions minutes** (the repository is private: 2,000 a month free; each job bills at least a whole minute): from
-1 to 5 October 2026 CI took 246 of 533 minutes (177 runs in a busy week of pull requests), the sweeps about 180. That's
-why CI no longer runs again after merges and the toolkit's job only starts when `media/` changes. A quiet month is
-mostly the sweeps: 2 a day × 10–15 minutes.
+**Actions minutes** (private repository: 2,000 a month free; each job bills at least a whole minute): from 1 to 5
+October 2026 CI took 246 of 533 minutes (177 runs in a busy week of pull requests), the sweeps about 180. So CI
+doesn't run again after merges, and the toolkit's job only starts when `media/` changes. A quiet month is mostly
+the sweeps: 2 a day × 10–15 minutes.
 
 Both test suites check the shapes the admin tools accept (`pa_bailar/patterns.py`, `admin-web/public/patterns.js`)
 against the same examples, `tests/fixtures/patterns.json`, so the inbox and the admin page can't drift apart.
@@ -1262,7 +1219,7 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 |---|---|
 | A compromised dependency reading the repository token during the sweep | No checkout keeps credentials (`persist-credentials: false`). The write token is only handed to the steps that write (the state save, the account commit, issues), and the App token is minted after the sweep |
 | Secrets exposed to steps that don't need them | The Gemini secrets (and Groq's and OpenRouter's) are only in the sweep step's environment; the Meta token and the Instagram user id, in the sweep step, the status step after it (`admin status --json`) and the admin workflow's Answer step (section 4). The Meta app secret isn't on GitHub at all |
-| A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. Adding a post or a story by hand (`post_url`, `story`) or hiding a story or an event (`hide`) needs an open `admin` issue by `jzamora5` (the `request` job, section 5.2), `story` and `hide` must have their exact shapes, and inputs never reach shell code directly, so the token can't publish or hide anything or run commands |
+| A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. The admin inputs (`post_url`, `story`, `hide`) need an open `admin` issue by `jzamora5` and their exact shapes, and never reach shell code directly (the `request` job, section 5.2), so the token can't publish or hide anything or run commands |
 | The Meta token in error text | It's sent in the URL; `instagram.redact` removes it (and the app secret and exchanged tokens of `refresh-token`) from every error before logs, `status.json` or admin answers (section 8) |
 | Odd text in a link or a public page reaching files, accounts or issues | Post codes match ASCII letters, digits, `_` and `-` only (`patterns.POST_LINK`, like the site's `check-data.mjs`); a public page's author must be a valid username; the admin page only accepts a value that is one post link and nothing else (`POST_LINK` in `admin-web/public/patterns.js`, which the Worker imports: anchored at both ends, no spaces or new lines) |
 | A comment on an issue that isn't an admin request (e.g. a number passed to `daily-sweep` by hand) | Every answer goes through `.github/actions/answer-issue`: only an issue by `jzamora5` labelled `admin` (and open, in `daily-sweep`) gets one |
@@ -1272,7 +1229,7 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 | Tagging strangers from the health issue | Handles in reports are neutralized (section 11.2) |
 | A script injected into the admin page (e.g. through a request's title or an answer) using your session | Everything shown is escaped (`app.js`), and the Content Security Policy (`admin-web/public/_headers`) runs only the page's own `app.js`: no inline scripts, no other hosts, no `style=""`. The session cookie is `HttpOnly`, so scripts can't read it |
 | Another site framing the admin page, or sending requests as you | `frame-ancestors 'none'` and `X-Frame-Options: DENY`. The cookie is `SameSite=Lax`, and the Worker only accepts POSTs whose `Origin` is the page's |
-| Someone reading or deleting the story screenshots waiting in KV | Uploading needs your session; reading and deleting need GitHub's identity token (OIDC) from this repository's `daily-sweep.yml` on `main`, checked against GitHub's keys, with this Worker's audience (ADMIN.md, "The admin page"). Ids are 128 random bits. Only the flyer's crop is ever published, and the screenshots expire after 7 days anyway |
+| Someone reading or deleting the story screenshots waiting in KV | Uploading needs your session; reading and deleting need GitHub's identity token (OIDC) from this repository's `daily-sweep.yml` on `main` (ADMIN.md, "The admin page"). Ids are 128 random bits. Only the flyer's crop is ever published, and the screenshots expire after 7 days anyway |
 | Unreviewed changes to the backend's `main` | **Not enforced** (section 3.3): rulesets need a paid plan on private repositories. Work goes through PRs with `ci` by convention |
 
 ---
@@ -1295,12 +1252,11 @@ day, quiet ones less often: section 5, "Whose turn it is"):
 | healthchecks.io | Free plan | 1 ping | 2 | |
 
 **The time budget:** a run stops starting Gemini work after 30 minutes (`MAX_RUN_MINUTES`). The step
-itself stops at 35, and the job at 60, leaving room for the state, the PR and the merge. No request starts after
-the budget, not even within a post already started (`EventExtractor`'s deadline, `gemini.OutOfTimeError`: the
-post waits for the next run), so a run ends at most one Gemini request and one pause later (a 120-second timeout
-and a 60-second wait: about 3 minutes). Nor does it fetch more accounts: those still due wait, first next run. A
-post left waiting keeps its account due, an edited caption too, so a "CANCELADO" edit is read on the next run. The last resort never starts a request, or a wait for Groq's tokens, that
-wouldn't end before the budget, and spends at most 3 minutes on a post.
+itself stops at 35, and the job at 60, leaving room for the state, the PR and the merge. After the budget no
+request starts, not even within a post already started (`gemini.OutOfTimeError`: the post waits), so a run ends
+at most one request and one pause later (about 3 minutes), and no more accounts are fetched. A post left
+waiting keeps its account due, so a "CANCELADO" edit is read on the next run. The last resort never starts a
+request, or a wait for Groq's tokens, that wouldn't end before the budget (section 7.3).
 
 **Adding accounts:** each new account costs about 1 Instagram call a day, plus a one-time load of up to
 30 older posts. Regular accounts always go first, so new ones never crowd out today's posts. Artists post
