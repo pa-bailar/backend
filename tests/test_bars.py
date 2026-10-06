@@ -230,3 +230,12 @@ def test_a_bars_social_stored_before_the_type_existed_becomes_a_party_on_the_nex
     run(FakeInstagram({"academia": [], "salsabar": [], "club": []}), FakeExtractor({}))
     types = {event["id"]: event["event_type"] for event in read(config.EVENTS_FILE)}
     assert types == {"halloween": "party", "social-bachata": "social", "concierto": "concert", "fiesta-neon": "social"}
+
+
+def test_the_answer_schemas_tell_a_party_from_a_social_like_the_prompt():
+    """Bug-squash, 6 Oct 2026: the schema's description still said "social = socials, parties", against the prompt."""
+    from pa_bailar.models import EventDetails, StoryEvent
+
+    for model in (EventDetails, StoryEvent):
+        description = model.model_fields["event_type"].description or ""
+        assert "party = " in description and "social = socials, parties" not in description
