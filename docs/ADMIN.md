@@ -83,10 +83,9 @@ menu, for links and for images:
 iPhones don't support sharing to web pages: there, copy a post's link and paste it, and pick story screenshots
 with **Elegir capturas**.
 
-If PB Admin was installed before story screenshots could be shared (October 2026), Android may take up to a day
-to list it for images: uninstall it and install it again (Chrome → the page → ⋮ → "Instalar app") to see it
-right away. The first share right after installing can arrive before the page is ready: it then says so, and
-sharing again works.
+If PB Admin doesn't show up for images (installed before story screenshots could be shared, October 2026:
+Android can take up to a day), reinstall it (Chrome → the page → ⋮ → "Instalar app"). The first share right after installing can arrive
+before the page is ready: it says so; share again.
 
 ### Adding an event from a story
 
@@ -244,18 +243,15 @@ The sweep workflow runs in single-post mode (`sweep --post`), one at a time with
    page any website uses to show a post, read without logging in. It has the author, caption, image, video
    and slides; the answer says "La leí desde su página pública". An account the API can't read (personal or
    private) isn't added to the sweeps, and the answer says so.
-2. Extracts it with Gemini **without the first filter** (whoever asks knows it's an event): Flash, or
-   Flash-Lite as provisional when Flash's quota is used up, or the last resort (Groq, then OpenRouter, also
-   provisional) when Flash-Lite's is too. **Only when that can change something:** a post
-   analyzed before, with the same caption, isn't read again (no Gemini request): the answer says "Ya la había
-   leído y no ha cambiado", links its events and offers **Volver a leer**. It is read again when its caption
-   changed, or when the first filter had called it "not an event" or Gemini had rejected it, or with
-   **Volver a leer** (`sweep --post <link> --again`): then always, one Gemini request, as the same post (its
-   events keep their ids). Sharing the same post twice never
-   duplicates its event, whether it was read through the API or from its public page. A provisional read is
-   upgraded to Flash by a later sweep only if the sweeps read that account: a post from its public page
-   keeps its Flash-Lite read (adding it again doesn't redo it while its caption is the same), and the answer
-   says "Flash no tenía cuota" instead of "se relee con Flash".
+2. Extracts it with Gemini **without the first filter** (whoever asks knows it's an event): Flash, else
+   Flash-Lite as provisional, else the last resort (Groq, then OpenRouter, also provisional). **Only when that
+   can change something:** a post analyzed before with the same caption isn't read again: the answer says "Ya
+   la había leído y no ha cambiado", links its events and offers **Volver a leer**. It's read again when its
+   caption changed, when the first filter had called it "not an event" or Gemini had rejected it, or with
+   **Volver a leer** (`--again`): one Gemini request, as the same post (its events keep their ids). Sharing a
+   post twice never duplicates its event, through the API or its public page. A provisional read is upgraded
+   to Flash by a later sweep only if the sweeps read that account; a post from its public page keeps its
+   Flash-Lite read, and the answer says "Flash no tenía cuota" instead of "se relee con Flash".
 3. Publishes through the usual data PR (it merges itself and the site deploys), and answers: the events it
    became (with links and dates, a range for an event over several days, the sessions of a workshop series),
    or why not (not an event, recurring, no date, no Gemini quota left today).
@@ -286,15 +282,14 @@ The sweep workflow runs in story mode, one at a time with the sweeps:
    Mentions are never the account. An account the API can read and isn't swept yet is added, as with posts.
    If no account can be told, it answers "escribe la @cuenta" (the screenshots stay for a retry).
 5. **The dates, worked out in code** (`stories.resolve_date`), from the day the screenshot was taken (its file
-   name, `Screenshot_20261004-183012…`, else the file's date, else when it was uploaded): the next such date
-   on or after it, or one up to 7 days before it (`stories.RECENT_PAST_DAYS`: "SÁB 3 OCT" shared at 00:30 on
-   4 October is last night's, so it isn't published, rather than next year's), the printed weekday settling the
-   year (or the month, for "sábado 12"); "este sábado" is the
-   next Saturday; a weekly night ("todos los viernes") publishes only its next date. A workshop series' sessions
-   (each printed with its day and month, `stories.resolve_sessions`) take the year that makes the series the
-   earliest one not over yet, so a story shared after its first sessions still publishes it. A weekday that
-   doesn't match the date makes the event low-confidence, with a doubt; a date more than 60 days ahead gets a
-   doubt. An event whose date (a series: its last session) has passed isn't published.
+   name, `Screenshot_20261004-183012…`, else the file's date, else the upload): the next such date on or
+   after it, or one up to 7 days before (`stories.RECENT_PAST_DAYS`: "SÁB 3 OCT" shared at 00:30 on 4 October
+   is last night's, not next year's, so it isn't published); the printed weekday settles the year (or the
+   month, for "sábado 12"); "este sábado" is the next Saturday; a weekly night ("todos los viernes") publishes
+   only its next date. A series' sessions (`stories.resolve_sessions`) take the year that makes it the
+   earliest series not over yet. A weekday that doesn't match the date makes the event low-confidence, with a
+   doubt; a date more than 60 days ahead gets a doubt. A past event (a series: its last session) isn't
+   published.
 6. **The flyer:** each screenshot is cropped to Gemini's box, if it's plausible (at least 12% of the
    screenshot, shaped like a flyer), with 3% padding; otherwise 12% comes off the top and the bottom. Each event
    uses the crop of the screenshot that shows it best. Only the crop is published.
@@ -316,19 +311,17 @@ the last part of the event's link on the site (`/evento/<id>/`).
   a post that announced nothing else is recorded as `hidden` ("Revisar" says it was taken off by hand).
 - It's kept in `state/hidden_events.json` (`models.HiddenEvent`: the event as it was, and when), so it stays
   off: the sweeps don't publish it again from **the same posts** (a caption edit, a provisional read upgraded
-  to Flash: the same event read again; another event of the same post, a social at 21:00 after a hidden workshop
-  at 16:00 that day, stays published) nor from **a later post of the same event** (a reminder of one session, a collaborator's post), as
-  the merging rules tell (`merging.matches_hidden`). A **genuinely new event**, one those rules don't match
-  (another date, another title or time), is published as usual, even from the same account.
+  to Flash; another event of the same post, a social at 21:00 after a hidden workshop at 16:00, stays
+  published) nor from **a later post of the same event** (a reminder, a collaborator's post), as the merging
+  rules tell (`merging.matches_hidden`). A **genuinely new event** (another date, title or time) is published
+  as usual, even from the same account.
 - If the run that hid it couldn't get its data PR merged, the next sweep takes it off anyway (events in
   `hidden_events.json` are never loaded).
 - **To publish it again** (hidden by mistake): Agregar or Volver a leer one of its posts, or share its story's
-  screenshots again (by hand, whoever asks wants it): it comes back with its old link. Its id isn't given to
-  another event meanwhile. A post or story a hidden event came from is always read again when added by hand, even
-  unchanged and even when its other events are still published (`_announced_hidden`). The answer to "Ocultar"
-  lists its posts, each with a **Volver a publicarla** link: the admin page with that post filled in
-  (`ADMIN_URL/?url=<post>`, the same address its share target uses), where Agregar publishes it again; for a
-  story it says to share the screenshots again.
+  screenshots again: it comes back with its old link (its id isn't given to another event meanwhile). A post
+  or story a hidden event came from is always read again when added by hand, even unchanged
+  (`_announced_hidden`). The answer to "Ocultar" lists its posts, each with a **Volver a publicarla** link to
+  the admin page with that post filled in (`ADMIN_URL/?url=<post>`).
 - Forgotten 60 days after its last day, like the events themselves.
 
 ## How it works
@@ -352,23 +345,17 @@ flowchart LR
   An added account is committed to `main` (`accounts.txt`). Adding a post starts the sweep workflow with
   `post_url`, `account` and `issue`, and `again` (true for Volver a leer); adding a story with `story` (the
   screenshots' ids), `account`, `notes` and `issue`; hiding a story or an event with `hide` (its id) and
-  `issue`. Requests take turns, first come
-  first served: each waits until no sweep is running or waiting and no earlier `admin` run is going (GitHub
-  would cancel a second queued sweep), up to 50 minutes; past that it answers that it didn't start. The
-  workflow has no concurrency group either, for the same reason: several comments on one issue are all
-  answered.
-- **`.github/workflows/daily-sweep.yml`**, with `post_url`: `sweep --post` (`--again` with `again`) instead of the sweep, then the same
-  data PR and state save; it commits an added account and answers on the issue. With `story`: the
-  `story-images` job downloads the screenshots (the only job besides `story-cleanup` that may ask GitHub for an
-  identity token), then `sweep --story`, and `story-cleanup` deletes them from KV after a successful run. With
-  `hide`: `sweep --hide-story` for a story's id (`story-<16 hex>`), `sweep --hide-event` for an event's id
-  (lowercase words joined by hyphens, at most 120 characters). If its `request` check fails (not exactly one of `post_url`, `story` or `hide`,
-  values of the wrong shape, or the issue isn't an open admin request), it answers on the issue when that issue
-  is an open `admin` issue of yours.
+  `issue`. Requests take turns, first come first served, for up to 50 minutes, and the workflow has no
+  concurrency group (ARCHITECTURE.md section 5.2, "Admin requests take turns").
+- **`.github/workflows/daily-sweep.yml`**, with `post_url`: `sweep --post` (`--again` with `again`) instead of
+  the sweep, then the same data PR and state save; it commits an added account and answers on the issue. With
+  `story`: the `story-images` job downloads the screenshots, then `sweep --story`, and `story-cleanup` deletes
+  them from KV after a successful run. With `hide`: `sweep --hide-story` or `sweep --hide-event`. Its `request`
+  job checks the inputs first (ARCHITECTURE.md section 5.2).
 - **`.github/actions/answer-issue`:** every answer on an admin issue, in both workflows, goes through this
-  action. It comments (and closes, when asked) only on an issue of yours labelled `admin`: in `daily-sweep`
-  also only an open one; `admin` answers closed issues too (a request made by commenting on an answered issue).
-  Any other issue number gets no comment. The answer reaches it as a file or an input, never inside a script.
+  action. It comments (and closes, when asked) only on an issue of yours labelled `admin` (and open, in
+  `daily-sweep`; `admin` also answers a request made by commenting on a closed issue). The answer reaches it as
+  a file or an input, never inside a script.
 - **`.github/ISSUE_TEMPLATE/admin.yml`:** the form (Acción: Revisar, Agregar, Volver a leer, Agregar cuenta,
   Estado, Ocultar historia or Ocultar evento; Enlace; Cuenta; Historia; Evento). The page writes its issues the same way, and also
   "Agregar historia" (Capturas, Cuenta, Notas), which isn't in the form: its screenshots come from the page.
@@ -379,17 +366,14 @@ flowchart LR
   Cloudflare deploys it from this repository's `admin-web/` folder on every push to `main`.
 - **Files:**
   - `admin-web/wrangler.jsonc`: the Worker's settings. Its `name` must match the Worker's name in Cloudflare.
-  - `admin-web/public/`: the page (`index.html`, `app.js`, `admin.css`, `render.js`: the parts that only
-    turn data into HTML, such as the new series card, escaped and tested in Node, and `tabs.js`: which tab
-    opens, the arrow keys and the tabs' markup, also tested in Node; `patterns.js`: the shapes a request may
-    take, a post link, an @account, a story's or an event's id, an upload's id, which `src/index.js` imports
-    too), with no data in it, and what
-    makes it installable: `manifest.webmanifest` (name, colors, icons in `icons/`) with a `share_target`:
-    Android posts what's shared (a link's text, up to 4 images) to `/share`. `sw.js`, the page's service
-    worker, answers that in the browser: it keeps shared images in the browser's Cache Storage (where
-    `app.js` picks them up, also after a sign-in) and sends links on to `/?text=<link>`. It handles nothing
-    else (no offline copy). `_headers` gives these files their security headers (below); Cloudflare applies
-    it and doesn't serve it.
+  - `admin-web/public/`: the page, with no data in it: `index.html`, `app.js`, `admin.css`, `render.js` (turns
+    data into escaped HTML), `tabs.js` (the tabs) and `patterns.js` (the shapes a request may take, which
+    `src/index.js` imports too). What makes it installable: `manifest.webmanifest` (name, colors, icons in
+    `icons/`) with a `share_target`: Android posts what's shared (a link's text, up to 4 images) to `/share`.
+    `sw.js`, the page's service worker, answers that in the browser: it keeps shared images in Cache Storage
+    (where `app.js` picks them up, also after a sign-in) and sends links on to `/?text=<link>`; nothing else
+    (no offline copy). `_headers` gives these files their security headers (below); Cloudflare applies it and
+    doesn't serve it.
   - `admin-web/icons-src/make-icons.mjs`: draws those icons, the site's record on marigold with a wrench badge,
     so the two apps can't be confused on the phone (`node admin-web/icons-src/make-icons.mjs`).
   - `admin-web/src/index.js`: the server side:
@@ -401,11 +385,9 @@ flowchart LR
       `/api/uploads/<id>` (GET, DELETE: only for the sweep workflow, below);
     - `/share`: what Android shares when `sw.js` isn't running yet (the first share after installing): a
       link goes on to the page, images get "share again".
-  - `admin-web/test/worker.test.mjs`: the Worker's tests (`node --test "admin-web/test/*.test.mjs"`, run by
-    `ci`), with fakes for GitHub, its keys and KV; `render.test.mjs`, the page's rendering (escaping included);
-    `tabs.test.mjs`, the tabs; `patterns.test.mjs`, `patterns.js` against the examples in
-    `tests/fixtures/patterns.json`, which `tests/test_patterns.py` checks against `pa_bailar/patterns.py` (the
-    inbox's), so the page and the inbox can't drift apart.
+  - `admin-web/test/*.test.mjs`: the Worker's tests (with fakes for GitHub, its keys and KV), the rendering,
+    the tabs, and `patterns.js` against `tests/fixtures/patterns.json` (ARCHITECTURE.md section 13.1); run by
+    `ci` with `node --test "admin-web/test/*.test.mjs"`.
   - `patterns.js`, `render.js` and `tabs.js` start with `// @ts-check`: editors type-check them from their JSDoc
     (no build step).
 - **Story screenshots (KV):** the KV namespace bound as `UPLOADS` (`wrangler.jsonc`) keeps them as the page
