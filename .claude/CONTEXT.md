@@ -37,6 +37,7 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
 |---|---|
 | Backend (private) | `pa-bailar` → `pa-bailar/backend`. Python 3.12, `python -m pa_bailar sweep\|discover\|admin\|refresh-token` (`.venv/Scripts/python`) |
 | Site (public) | `pa-bailar-web` → `pa-bailar/pa-bailar.github.io`. Astro + vanilla TypeScript in `frontend/`, the data in `data/`. https://pa-bailar.github.io (`/`, `/calendario/`, `/guardados/`, `/evento/<id>/`) |
+| Images (public) | `pa-bailar/media`, cloned locally as `Code/pa-bailar-images`: the flyers, clips and the archive's small flyers. The site repository ignores `data/flyers/` and `data/previews/` (backend ARCHITECTURE §10.2) |
 | PB Admin | Cloudflare Worker from backend `admin-web/`, https://pa-bailar-admin.jzamorac-9.workers.dev (deploys on every push to the backend's `main`) |
 | Video toolkit | backend `media/` (Remotion + Python tools); renders go to the media home `D:\AI\pa-bailar-media` |
 
@@ -45,8 +46,10 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
 - **An event's life:** cron-job.org starts `daily-sweep.yml` → `sweep` picks whose turn it is (`accounts.txt`, the
   quiet and dormant tiers) → Instagram Graph API (Business Discovery) → Flash-Lite triage → Flash extraction (the
   `ModelPool`; Lite, then Groq/OpenRouter as the last resort, all provisional) → `normalize.py` safeguards →
-  merging into events (`merging.py`, `ids.py`) → state on the `sweep-state` branch, data written to the site repo
-  through a data PR that merges itself → the site's `deploy.yml` builds and publishes.
+  merging into events (`merging.py`, `ids.py`; stored duplicates repaired on every load) → state on the
+  `sweep-state` branch; images pushed to `pa-bailar/media` (`media_store.py`), then the data written to the site
+  repo through a data PR that merges itself → the site's `deploy.yml` copies the images in, builds and publishes.
+  Events 60 days past are archived (`data/archive/<year>.json`), not deleted.
 - **The owner's hand:** PB Admin (a share target on the phone) or a GitHub issue → `admin.yml` → `pa_bailar admin`
   (no AI except reading a post or a story) → the bot's answer on the issue. Events can be added from a post or a
   story screenshot, hidden (`/ocultar`, with undo links), or re-read.
