@@ -5,7 +5,7 @@ from datetime import date, timedelta
 from pa_bailar import health
 from pa_bailar.health import RunRecord
 from pa_bailar.pipeline import AccountStats, RunStats
-from tests.factories import stored
+from tests.factories import media, stored
 
 TODAY = date(2026, 10, 2)
 
@@ -179,3 +179,14 @@ def test_every_date_doubt_normalize_writes_lists_the_event_for_review():
     assert len(doubts) == 2
     for doubt in doubts:
         assert health.review_reasons(stored(doubts=[doubt])) == [doubt]
+
+
+def test_two_events_of_an_account_that_day_sharing_a_title_word_are_listed_for_review():
+    """What the merging rules couldn't tell (a new pattern) shows in the health report before visitors notice."""
+    day = (date.today() + timedelta(days=3)).isoformat()
+    a = stored("orquesta-x", posts=[media("p1")], title="Orquesta Candombé en vivo", date=day)
+    b = stored("candombe-noche", posts=[media("p2")], title="Noche con Candombé", date=day, start_time="22:00")
+    other = stored("otra-cosa", posts=[media("p3")], title="Taller de giros", date=day)
+    review = health.events_to_review([a, b, other], date.today())
+    assert [event.id for event in review] == ["orquesta-x", "candombe-noche"]
+    assert "Noche con Candombé" in health.report_markdown([], review)

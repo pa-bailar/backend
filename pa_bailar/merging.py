@@ -94,7 +94,7 @@ def _session_of(series: EventDetails, other: EventDetails) -> bool:
     same_time = bool(other.start_time) and other.start_time == session.start_time
     if other.start_time and session.start_time and not same_time:
         return False
-    if fold(series.title) == fold(other.title) or _title_words(series.title) & _title_words(other.title):
+    if fold(series.title) == fold(other.title) or title_words(series.title) & title_words(other.title):
         return True
     venues = _key(series.venue), _key(other.venue)
     return all(venues) and venues[0] == venues[1] and same_time
@@ -102,7 +102,8 @@ def _session_of(series: EventDetails, other: EventDetails) -> bool:
 
 def looks_like_same_event(stored: StoredEvent, account: str, candidate: EventDetails) -> bool:
     """Rule-based fallback when Gemini didn't link the post: same account and a day in common, plus
-    - for two one-day events: the same start time, or the same title when a start time is missing;
+    - for two one-day events: the same start time, or, when a start time is missing, the same title or one
+      title inside the other (_same_title: "Acere" and "Salsoteca DC - Acere");
     - when either lasts several days: the same title, or distinctive title words in common (a festival
       and a post about its teacher), never the start time alone (a festival weekend has several nights);
     - a workshop series and a post about one of its sessions: _session_of; two series: _same_series.
@@ -118,7 +119,21 @@ def looks_like_same_event(stored: StoredEvent, account: str, candidate: EventDet
         return fold(stored.title) == fold(candidate.title) or _share_title(stored, candidate)
     if stored.start_time and candidate.start_time:
         return stored.start_time == candidate.start_time
-    return fold(stored.title) == fold(candidate.title)
+    return _same_title(stored, candidate)
+
+
+def _same_title(a: EventDetails, b: EventDetails) -> bool:
+    """The same title, or one inside the other: the shorter title's distinctive words all in the longer one, which
+    only adds a name around them ("Acere" and "Salsoteca DC - Acere": a venue's series before each night's act; two
+    month schedules of @elgocepagano listed every night twice, 5 Oct 2026). Not when the extra words name a kind of
+    event ("Social con Juan" and "Masterclass con Juan" are two events) nor when both venues are known and differ."""
+    if fold(a.title) == fold(b.title):
+        return True
+    venues = _key(a.venue), _key(b.venue)
+    if all(venues) and venues[0] != venues[1]:
+        return False
+    shorter, longer = sorted((title_words(a.title), title_words(b.title)), key=len)
+    return bool(shorter) and shorter <= longer and not (longer - shorter) & _EVENT_WORDS
 
 
 # Words every dance event's title shares: they don't tell two events apart.
@@ -148,7 +163,7 @@ def _key(text: str | None) -> str:
     return "".join(char for char in fold(text) if char.isalnum())
 
 
-def _title_words(title: str, across_accounts: bool = False) -> set[str]:
+def title_words(title: str, across_accounts: bool = False) -> set[str]:
     """A title's distinctive words: no common words, nothing with a digit (years, "100%", "5to"), and across
     accounts no kind of event either (`_EVENT_WORDS`)."""
     words = "".join(char if char.isalnum() else " " for char in fold(title)).split()
@@ -158,7 +173,7 @@ def _title_words(title: str, across_accounts: bool = False) -> set[str]:
 
 def _share_title(a: EventDetails, b: EventDetails, across_accounts: bool = False) -> bool:
     """Two or more distinctive title words in common, most of the shorter title's ("Level Up … Fusion Congress")."""
-    words_a, words_b = _title_words(a.title, across_accounts), _title_words(b.title, across_accounts)
+    words_a, words_b = title_words(a.title, across_accounts), title_words(b.title, across_accounts)
     shared = words_a & words_b
     return len(shared) >= 2 and len(shared) / (min(len(words_a), len(words_b)) or 1) >= 0.6
 
@@ -170,7 +185,7 @@ def _names_account(event: EventDetails, account: str) -> bool:
     names = [_key(event.organizer), _key(event.venue), _key(event.contact)]
     if any(len(name) >= 5 and (handle.startswith(name) or name.startswith(handle)) for name in names):
         return True
-    words = _title_words(event.title, across_accounts=True)
+    words = title_words(event.title, across_accounts=True)
     return any(len(word) >= 5 and handle.startswith(_key(word)) for word in words)
 
 
@@ -192,7 +207,7 @@ def looks_like_shared_event(stored: StoredEvent, account: str, candidate: EventD
         return False
     same_time = one_day and bool(stored.start_time) and stored.start_time == candidate.start_time
     # With an account named or the same venue and time, any title word in common will do ("Halloween").
-    shared = _title_words(stored.title) & _title_words(candidate.title)
+    shared = title_words(stored.title) & title_words(candidate.title)
     if _names_account(stored, account) or _names_account(candidate, stored.account):
         return same_time or bool(shared)
     if not all(venues):  # without the same venue, titles alone don't tie two accounts' posts together
@@ -334,6 +349,40 @@ def _valid_range(event: EventDetails) -> bool:
         return False
     days = (date.fromisoformat(event.end_date) - date.fromisoformat(event.date)).days + 1
     return 1 < days <= config.MAX_EVENT_DAYS
+
+
+def _richness(event: StoredEvent) -> tuple[int, int]:
+    """How much an event says: its details filled in, then its title's length (the fuller one is kept)."""
+    filled = sum(1 for field in _DETAIL_FIELDS if getattr(event, field) not in _EMPTY)
+    return filled, len(event.title)
+
+
+def merge_duplicates(events: list[StoredEvent]) -> tuple[list[StoredEvent], list[tuple[str, str]]]:
+    """Stored events of one account that the rules say are one (looks_like_same_event), merged: the fuller one is
+    kept and takes the other's posts (merge_into). Every run does this on load, so a duplicate the rules let through
+    once (or one made before a rule improved) is repaired on the next run. Two events that share a post are never
+    merged (one post announcing two events). Returns the events and (kept id, dropped id) pairs."""
+    result: list[StoredEvent] = []
+    merged: list[tuple[str, str]] = []
+    for event in events:
+        posts = {m.post_id for m in event.media}
+        twin = next(
+            (
+                kept
+                for kept in result
+                if not posts & {m.post_id for m in kept.media} and looks_like_same_event(kept, event.account, event)
+            ),
+            None,
+        )
+        if twin is None:
+            result.append(event)
+            continue
+        keep, drop = (twin, event) if _richness(twin) >= _richness(event) else (event, twin)
+        for item in drop.media:
+            keep = merge_into(keep, drop, item)
+        result[result.index(twin)] = keep
+        merged.append((keep.id, drop.id))
+    return result, merged
 
 
 def detach_post(events: list[StoredEvent], post_id: str) -> list[StoredEvent]:

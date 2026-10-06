@@ -24,6 +24,7 @@ from typing import Literal
 from pydantic import BaseModel, TypeAdapter
 
 from . import config, storage
+from .merging import title_words
 from .models import StoredEvent
 from .normalize import MULTI_DOUBT
 from .pipeline import RunStats
@@ -315,11 +316,30 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
 SINGLE_DAY_DOUBT = "un solo día: ¿faltan fechas?"  # a congress or festival usually lasts several days
 
 
-def review_reasons(event: StoredEvent) -> list[str]:
+def possible_duplicates(events: list[StoredEvent]) -> dict[str, str]:
+    """Events that may be one event listed twice, which the merging rules didn't join: the same account and day,
+    from different posts, with a distinctive title word in common. By id, the other one's title. Only for review:
+    merging.merge_duplicates repairs what the rules can tell; this catches a new pattern before visitors do."""
+    twins: dict[str, str] = {}
+    for index, event in enumerate(events):
+        for other in events[index + 1 :]:
+            if event.account != other.account or not event.date or event.date != other.date:
+                continue
+            if {m.post_id for m in event.media} & {m.post_id for m in other.media}:
+                continue  # one post announcing two events
+            if title_words(event.title) & title_words(other.title):
+                twins.setdefault(event.id, other.title)
+                twins.setdefault(other.id, event.title)
+    return twins
+
+
+def review_reasons(event: StoredEvent, twins: dict[str, str] | None = None) -> list[str]:
     """Why an event is worth a second look (empty: it isn't): its doubts when Gemini wasn't confident or doubted
-    the date, whether it's in Bogotá or whether it was cancelled, and a congress or festival dated on one day only
-    (its other days may be missing)."""
+    the date, whether it's in Bogotá or whether it was cancelled, a congress or festival dated on one day only
+    (its other days may be missing), and a possible duplicate (`twins`: possible_duplicates)."""
     reasons = []
+    if twins and event.id in twins:
+        reasons.append(f"¿el mismo evento que «{twins[event.id]}»?")
     serious = (DATE_DOUBT, PLACE_DOUBT, MULTI_DOUBT_RULE)
     if event.confidence != "high" or any(rule.search(fold(doubt)) for doubt in event.doubts for rule in serious):
         reasons += event.doubts or ["no details"]
@@ -329,9 +349,10 @@ def review_reasons(event: StoredEvent) -> list[str]:
 
 
 def events_to_review(events: list[StoredEvent], today: date) -> list[StoredEvent]:
-    """Upcoming events (until their last day) worth a second look (review_reasons)."""
+    """Upcoming events (until their last day) worth a second look (review_reasons), possible duplicates included."""
     upcoming = [event for event in events if (event.last_day or "") >= today.isoformat()]
-    return [event for event in upcoming if review_reasons(event)]
+    twins = possible_duplicates(upcoming)
+    return [event for event in upcoming if review_reasons(event, twins)]
 
 
 def fingerprint(findings: list[Finding]) -> str:
@@ -352,15 +373,16 @@ def report_markdown(findings: list[Finding], review: list[StoredEvent], run_url:
     if notices:
         lines += ["### Notices", "", *(f"- {finding.text}" for finding in notices), ""]
     if review:
+        twins = possible_duplicates(review)
         lines += [
             "### Events to review",
             "",
             "Gemini wasn't confident about them or doubted the date or the city, a lighter model read several events "
-            "in one post, or a congress or festival has a single day:",
+            "in one post, a congress or festival has a single day, or two of an account's events that day may be one:",
             "",
         ]
         for event in review:
-            reasons = "; ".join(review_reasons(event))
+            reasons = "; ".join(review_reasons(event, twins))
             link = f"[{event.title}]({event.media[0].permalink})" if event.media else event.title
             when = event_dates_label(event.date, event.end_date, event.session_dates)
             lines.append(f"- {when} · {link} (@{event.account}, {event.confidence} confidence): {reasons}")

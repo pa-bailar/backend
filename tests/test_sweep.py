@@ -638,7 +638,11 @@ def test_past_events_expire_by_their_last_day():
         "ended-recently", date=days_ago_date(retention + 2), end_date=days_ago_date(retention - 1), posts=[media("a")]
     )
     ended_long_ago = stored(
-        "ended-long-ago", date=days_ago_date(retention + 4), end_date=days_ago_date(retention + 1), posts=[media("b")]
+        "ended-long-ago",
+        date=days_ago_date(retention + 4),
+        end_date=days_ago_date(retention + 1),
+        posts=[media("b")],
+        title="Congreso de bachata",  # another event: the same title on overlapping days would be one
     )
     storage.save_events([ended_recently, ended_long_ago])
     stats = run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}))
@@ -893,3 +897,17 @@ def test_a_failure_while_storing_a_post_leaves_it_to_be_read_again(monkeypatch, 
     monkeypatch.setattr(Sweep, "_add_event", original)
     run(FakeInstagram({"academia": [first], "otra": [post("p2")]}), FakeExtractor(analyses))
     assert sorted(event["id"] for event in read(config.EVENTS_FILE)) == sorted([event_id("Social"), event_id("Otra")])
+
+
+def test_duplicates_stored_by_an_older_rule_are_merged_on_the_next_run():
+    """Every run repairs what the rules let through before: the posts' records follow the event that's kept."""
+    full = stored("salsoteca-dc-acere", posts=[media("carousel")], title="Salsoteca DC - Acere", start_time=None,
+                  address="Diagonal 20A")  # fmt: skip
+    bare = stored("acere", posts=[media("video", "VIDEO")], title="Acere", start_time=None)
+    storage.save_events([full, bare])
+    record = processed_record(1)
+    record.outcome, record.event_ids = "event", ["acere"]
+    storage.save_processed_posts({"video": record})
+    run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}))
+    assert [event.id for event in storage.load_events()] == ["salsoteca-dc-acere"]
+    assert storage.load_processed_posts()["video"].event_ids == ["salsoteca-dc-acere"]

@@ -13,7 +13,15 @@ from ..account_options import AccountOptions
 from ..extraction import EventExtractor
 from ..ids import new_event_id
 from ..instagram import InstagramClient, Post
-from ..merging import already_stored, detach_post, find_existing, matches_hidden, merge_into, refused_link
+from ..merging import (
+    already_stored,
+    detach_post,
+    find_existing,
+    matches_hidden,
+    merge_duplicates,
+    merge_into,
+    refused_link,
+)
 from ..models import (
     EventDetails,
     EventMedia,
@@ -91,9 +99,10 @@ class SweepBase:
             for event in stored
             if event.id not in self.hidden
         ]
+        self.processed = storage.load_processed_posts()
+        self._merge_duplicates()
         if self.events != stored:
             storage.save_events(self.events)
-        self.processed = storage.load_processed_posts()
         self.by_hand = False  # adding a post or story by hand: it may publish again what was hidden
         self.accounts = storage.load_account_state()
         self.stats = RunStats()
@@ -416,6 +425,20 @@ class SweepBase:
     ) -> None:
         record = self.processed[post["id"]]
         record.outcome, record.event_ids, record.detail = outcome, event_ids or [], detail
+
+    def _merge_duplicates(self) -> None:
+        """Stored events the rules now say are one (merging.merge_duplicates), merged on load; the posts that
+        became the dropped one now point at the one kept, and the processed records are saved with them."""
+        self.events, pairs = merge_duplicates(self.events)
+        if not pairs:
+            return
+        renamed = dict((dropped, kept) for kept, dropped in pairs)
+        for record in self.processed.values():
+            if any(event_id in renamed for event_id in record.event_ids):
+                record.event_ids = list(dict.fromkeys(renamed.get(i, i) for i in record.event_ids))
+        storage.save_processed_posts(self.processed)
+        for kept, dropped in pairs:
+            log.info("Duplicate events merged: %s into %s", dropped, kept)
 
     def _save(self) -> None:
         """Save after every post so progress survives an interrupted run."""

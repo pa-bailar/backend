@@ -802,7 +802,7 @@ all of them in `media`. `pa_bailar/merging.py`. None of this costs a Gemini requ
 flowchart TD
     C["Extracted event from post P"] --> L{"Gemini set same_as<br/>to a known event of this account?"}
     L -->|"yes, that event doesn't already<br/>contain P, and they share a day"| MERGE["Merge into it"]
-    L -->|"no, or no day in common<br/>(then a new event gets a doubt)"| RULE{"Rule: same account, a day in common, and<br/>same start time (or same title when a time<br/>is missing; over several days: the title)?"}
+    L -->|"no, or no day in common<br/>(then a new event gets a doubt)"| RULE{"Rule: same account, a day in common, and<br/>same start time (or, when a time is missing, the same<br/>title or one inside the other; over several days: the title)?"}
     RULE -->|yes| MERGE
     RULE -->|no| SHARED{"Rule: another account's event,<br/>a day in common, no clash in time or venue,<br/>and one names the other's account,<br/>or the same venue (never titles alone)?"}
     SHARED -->|yes| MERGE
@@ -834,9 +834,16 @@ flowchart TD
   - the newest post's sessions replace the series' (with `date` and `end_date`); an older post with the
     whole series (the program's flyer) turns an event stored from one of its sessions into the series.
 - **The same account's event** (`looks_like_same_event`): between two one-day events, the same start time,
-  or the same title when a time is missing. When either lasts several days, the title decides (the same
+  or, when a time is missing, the same title or one title inside the other (`_same_title`: the shorter title's
+  distinctive words all in the longer one, "Acere" and "Salsoteca DC - Acere"; not when the extra words name a
+  kind of event, "Social con Juan" and "Masterclass con Juan", nor with two different venues). Two month
+  schedules of @elgocepagano listed every night twice before this (5 Oct 2026). When either lasts several days, the title decides (the same
   title, or distinctive title words in common, as below), never the start time alone: a festival weekend
   has several nights, and the same academy's social on one of them is another event.
+- **Duplicates already stored are repaired** (`merging.merge_duplicates`, on every run's load): events of one
+  account the rules say are one, from different posts, merge into the fuller one (more details, then the longer
+  title), which takes the other's posts; the posts' records follow it. So a duplicate the rules let through, or
+  one stored before a rule improved, is gone after the next run.
 - **Another account's event** (`looks_like_shared_event`): Gemini only sees this account's events, so
   across accounts it's rules only. A day in common; never with different start times (compared between
   one-day events only) or different venues (when both are known); and one of:
@@ -1029,7 +1036,7 @@ They run after every sweep. No AI, no quota.
 | The last resort was used | Notice | Gemini ran out: requests per provider, what each model did (answered, busy, invalid, skipped…) and the ones set aside after failing twice |
 | A provider of the last resort turned off | Notice, then **warning** after 3 runs in a row | Groq or OpenRouter answered 401, 402 or 403: check its key secret and the account, or delete the secret to stop using it |
 | Account inactive | Notice | No post in 45 days (or none at all) |
-| Events to review | Listed | Upcoming events (until their last day) with medium or low confidence, or whose doubts mention the date (`fecha`, `día`; a refused `same_as` link too), Bogotá (a city Gemini couldn't confirm) or a cancellation (`cancelado`, `aplazado`: another account's post said so), or several events in one post read only by a lighter model ("varios eventos en una publicación…": times and prices may be mixed up), and congresses or festivals with a single day ("un solo día: ¿faltan fechas?": their other days may be missing) |
+| Events to review | Listed | Upcoming events (until their last day) with medium or low confidence, or whose doubts mention the date (`fecha`, `día`; a refused `same_as` link too), Bogotá (a city Gemini couldn't confirm) or a cancellation (`cancelado`, `aplazado`: another account's post said so), or several events in one post read only by a lighter model ("varios eventos en una publicación…": times and prices may be mixed up), congresses or festivals with a single day ("un solo día: ¿faltan fechas?": their other days may be missing), and possible duplicates the rules didn't merge (`possible_duplicates`: one account, the same day, different posts, a distinctive title word in common: "¿el mismo evento que «…»?") |
 
 ### 11.2 Where it shows
 
