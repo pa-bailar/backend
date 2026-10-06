@@ -1,7 +1,8 @@
 # The `ci` check on every pull request: lint (ruff), format check, type check (mypy, strict) and unit tests
 # (pytest), and the admin page's Worker tests (admin-web/test, Node's own test runner). The video toolkit has its own
-# workflow, media-ci.yml, which starts only when media/ changes. Not enforced: main isn't protected (rulesets on private
-# repositories need a paid plan), so PRs merge when it's green by convention.
+# workflow, media-ci.yml, which starts only when media/ changes. Required: a ruleset on main makes `ci` pass before a
+# merge, so it runs on every pull request. A path filter here (skipping docs-only PRs, tried 6 Oct 2026) leaves such a
+# PR waiting forever for a check that never reports.
 #
 # Actions minutes (this repository is private: 2,000 a month on the free plan, and each job is billed as at least one
 # whole minute). So it doesn't run again on main after a merge (the PR already ran the same checks); a weekly run on
@@ -10,14 +11,6 @@ name: ci
 
 on:
   pull_request:
-    # A pull request that changes only these doesn't run it: nothing in them is linted or tested, and each run bills a
-    # whole Actions minute of this private repository's 2,000 a month (the owner, 6 Oct 2026). Such a PR has no checks
-    # to wait for.
-    paths-ignore:
-      - "media/site-checks/**" # the site checks run on this machine only, never here (media/site-checks/README.md)
-      - "docs/**"
-      - "**/*.md"
-      - ".claude/**" # the skills, the context, the hooks: Claude Code's, not tested here
   schedule:
     - cron: "17 11 * * 1" # Mondays 06:17 Bogotá, clear of the sweeps
   workflow_dispatch:

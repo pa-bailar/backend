@@ -80,8 +80,13 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
 
 - **Tunables in `config.py`;** the pipeline is a package of mixins (`pipeline/`); answers to the owner in
   `commands/answers.py`; prompts in `prompts.py`. State is written last so a stopped run leaves nothing half-done.
-- **Quota is the real constraint:** Gemini's free tier (Flash for extraction, Flash-Lite for triage, fallbacks) and
-  Instagram's usage. Reads made by a lighter model are provisional and re-read with Flash later.
+- **Quota is the real constraint:** Gemini's free tier and Instagram's usage. **Each Gemini model has its own daily
+  quota**, so each role takes several (`config.py`: `LITE_MODELS`, `EXTRACTION_MODELS`, `PROVISIONAL_MODELS`); the
+  real limits and today's use per model are on AI Studio's rate-limit page (the owner can paste it; our own counter
+  can differ: Google counts failed requests). The model ids: list them with the API (`client.models.list()`), not
+  from memory. Reads by a lighter model are provisional and re-read with Flash later, the soonest events first; a
+  sweep leaves the day's later sweep half of Flash. Flash often answers 503 "overloaded" for hours (Google's
+  capacity, not shown on its status page): the pool pauses a busy model instead of retrying.
 - **`accounts.txt` options:** `bar` (only special nights, `bar: true`), `solo:<styles>` (a focus filter); silent
   accounts commented out with why.
 - **The admin bot is not AI:** fixed patterns (shared with `admin-web` through `tests/fixtures/patterns.json`).
@@ -108,7 +113,13 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
   (the owner, 6 Oct 2026). For videos, `media/tools/capture.mjs` (`openPhone({ now, theme })`). Preview servers through `Code/.claude/launch.json` and the
   `preview_start` tool, not Bash. `astro preview` refuses a second instance ("already running": reuse its port).
 - **GitHub Actions:** a job cancelled after ~15 min with no steps run is GitHub not assigning a runner (incidents
-  happen), not a failure of ours: re-run it. The backend is private: 2,000 minutes a month.
+  happen), not a failure of ours: re-run it. The backend is private: 2,000 minutes a month, and they run short (memory
+  `backend-visibility-and-minutes`: the billing API gives the real numbers). Batch backend changes into fewer PRs
+  (every PR runs `ci`: a ruleset on `main` requires it, so a path filter would leave a PR unmergeable). The site
+  repository is public: free.
+- **WebKit (Safari's engine) in Playwright** is installed with the toolkit: use it for Safari checks. It isn't iOS
+  (no real keyboard, toolbar or home-screen app). A screenshot injects a style the site's CSP refuses: those console
+  errors are the test's, not the site's.
 
 ## 7. Working agreements and lessons
 

@@ -1,6 +1,6 @@
 // ↓ all the way down the list on a desktop (the owner, 6 Oct): the arrows go on past the cards to the summarized
 // periods ("Ver los 23 eventos", "Ver 7 más"), Enter opens one and the focus lands on its first new event, the walk
-// reaches the list's last card, and the focus never leaves the screen. Then back folds a period again.
+// reaches the list's last card, and the focus never leaves the screen. Then back closes the reading pane and folds.
 import { Skip } from "../lib.mjs";
 
 const focusInfo = (page) =>
@@ -78,10 +78,15 @@ export default {
     check("the focus never leaves the screen", !offScreen.length, offScreen.join(", "));
 
     if (opened.length) {
+      // The arrows opened the side panel on the way (the reading pane, 6 Oct): back closes it first, and the periods
+      // opened under it got their entry then (site #130), so the next back folds them.
       await ctx.back();
-      const b = await ctx.step("back");
+      const closed = await ctx.step("back");
+      check("back closes the reading pane, the periods stay open", !closed.drawer && closed.url === "/", closed);
+      await ctx.back();
+      const b = await ctx.step("back again");
       check(
-        "back folds the last period opened again, on the list",
+        "back again folds the last period opened, on the list",
         b.url === "/" && b.folded.includes(opened.at(-1)),
         b,
       );
