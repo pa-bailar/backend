@@ -218,13 +218,15 @@ looks for instructions, skills and hooks. The files themselves are versioned her
 
 | File | What it is |
 |---|---|
-| `.claude/WORKSPACE.md` | The instructions for every session: the two repositories, how changes are made, what never to touch |
-| `.claude/skills/<name>/SKILL.md` | Skills: step-by-step procedures Claude follows. `sync-docs` updates the docs to match a branch before its pull request (architecture, behavior and decisions only, never pixel-level detail; it also checks the whole repository for drift on request or before a launch); `code-quality` reviews code against the project's standards (design tokens, shared utilities and components, types, tests, house style) and fixes what falls short; `bug-squash` hunts for bugs in the whole feature a change belongs to (not just its new lines), by this project's known bug classes, proves each with a test or a reproduction, fixes it and adds a guard; `teaser` makes or changes a video with `media/`. Each pass is recorded in the handoff, so the next one starts from there |
+| `.claude/WORKSPACE.md` | The instructions for every session: the two repositories, how changes are made, the review process, what never to touch |
+| `.claude/CONTEXT.md` | The context for a new session: where each truth lives, how the pieces connect, what bites on this machine, the lessons. Durable facts only; the current state is the handoff (`Code/handoff/HANDOFF.md`, not versioned). Kept by the `handoff` skill |
+| `.claude/skills/<name>/SKILL.md` | Skills: step-by-step procedures Claude follows. `sync-docs` updates the docs to match a branch before its pull request (architecture, behavior and decisions only, never pixel-level detail; it also checks the whole repository for drift on request or before a launch); `code-quality` reviews code against the project's standards (design tokens, shared utilities and components, types, tests, house style) and fixes what falls short; `bug-squash` hunts for bugs in the whole feature a change belongs to (not just its new lines), by this project's known bug classes, proves each with a test or a reproduction, fixes it and adds a guard; `handoff` leaves the state for the next session (the handoff, `CONTEXT.md`, memory); `teaser` makes or changes a video with `media/`. Each pass is recorded in the handoff, so the next one starts from there |
 | `.claude/hooks/require-docs-sync.mjs` | Blocks opening a pull request (`gh pr create`) until `sync-docs` has run at the branch's latest commit, which it records in `.git/docs-synced` |
 
 The `Code` folder points at them (set up once per computer):
 
-- `Code\CLAUDE.md` contains `@pa-bailar/.claude/WORKSPACE.md`, which loads the instructions.
+- `Code\CLAUDE.md` contains `@pa-bailar/.claude/WORKSPACE.md` and `@pa-bailar/.claude/CONTEXT.md`, which load the
+  instructions and the context.
 - `Code\.claude\skills` is a junction to this repository's `.claude\skills` (PowerShell, from `Code`):
   `New-Item -ItemType Junction -Path .claude\skills -Target pa-bailar\.claude\skills`
 - `Code\.claude\settings.json` runs the hook before every Bash command:
