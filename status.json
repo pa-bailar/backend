@@ -1,7 +1,51 @@
 {
-  "generated_at": "2026-10-05T21:31:00-05:00",
+  "generated_at": "2026-10-05T22:26:23-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-10-05T22:26:22-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37408545396",
+        "accounts": 18,
+        "failed_accounts": [],
+        "read_accounts": [
+          "acaparchamos",
+          "aseismanos",
+          "callejonsalsa",
+          "casavander_",
+          "chanchanlatino",
+          "discojaguar.bta",
+          "el_bochinche_cafe_",
+          "elratonsalsaclub",
+          "ilhehabana",
+          "ladiezluxury_outlet",
+          "lamecanica_original",
+          "mundanobaroficial",
+          "quemaquequema",
+          "restaurantecasadecitas",
+          "ritmomoderno",
+          "sonorasocialclub_",
+          "terrazasalsera",
+          "tributo.salsayjazz"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 62,
+        "events_new": 2,
+        "events_merged": 1,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 10,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 48
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 37,
+        "warnings": []
+      },
       {
         "finished_at": "2026-10-05T21:30:59-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/37401968570",
@@ -299,52 +343,6 @@
         "external_problems": {},
         "instagram_usage": 48,
         "warnings": []
-      },
-      {
-        "finished_at": "2026-10-03T21:14:07-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37169691300",
-        "accounts": 20,
-        "failed_accounts": [],
-        "read_accounts": [
-          "_olorumcongress",
-          "bachatamania_bogota",
-          "bachatasocialcongresss",
-          "bailalo_improsocial",
-          "bailarito",
-          "bogotadanceclub",
-          "cordillerafestival",
-          "danzaenlaciudad",
-          "ebi_dancecompany",
-          "elparche.se",
-          "festivalsalsaalparque",
-          "germanbaila",
-          "herencialatinad.c",
-          "iledanza",
-          "latinproductioncolombia",
-          "latrinidaddelasalsa",
-          "paramopresenta",
-          "reyesdelasalsa.col",
-          "salsabravadancehallpicante",
-          "salsaculto"
-        ],
-        "skipped_accounts": [],
-        "posts_analyzed": 95,
-        "events_new": 24,
-        "events_merged": 16,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 50,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 145
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 61,
-        "warnings": []
       }
     ],
     "next": [
@@ -371,7 +369,7 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 196,
+        "used": 244,
         "budget": 498
       }
     ]
@@ -412,32 +410,15 @@
   },
   "accounts": {
     "followed": 125,
-    "first_sweep_pending": [
-      "chanchanlatino",
-      "el_bochinche_cafe_",
-      "callejonsalsa",
-      "tributo.salsayjazz",
-      "terrazasalsera",
-      "ilhehabana",
-      "restaurantecasadecitas",
-      "ladiezluxury_outlet",
-      "quemaquequema",
-      "ritmomoderno",
-      "sonorasocialclub_",
-      "discojaguar.bta",
-      "acaparchamos",
-      "lamecanica_original",
-      "aseismanos",
-      "mundanobaroficial"
-    ],
+    "first_sweep_pending": [],
     "waiting": []
   },
   "posts": {
-    "recorded": 582,
-    "provisional": 168
+    "recorded": 644,
+    "provisional": 178
   },
   "events": {
-    "upcoming": 68,
+    "upcoming": 62,
     "low_confidence": 0
   },
   "new_series": [

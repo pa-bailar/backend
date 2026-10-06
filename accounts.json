@@ -225,23 +225,23 @@
   },
   "tributo.salsayjazz": {
     "first_seen": "2026-10-02",
-    "backfill_done": false,
-    "last_swept_at": null,
-    "latest_post": null,
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:22:55-05:00",
+    "latest_post": "2026-10-05",
     "unreadable": {}
   },
   "ritmomoderno": {
     "first_seen": "2026-10-02",
-    "backfill_done": false,
-    "last_swept_at": null,
-    "latest_post": null,
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:25:23-05:00",
+    "latest_post": "2026-10-05",
     "unreadable": {}
   },
   "terrazasalsera": {
     "first_seen": "2026-10-02",
-    "backfill_done": false,
-    "last_swept_at": null,
-    "latest_post": null,
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:22:57-05:00",
+    "latest_post": "2025-12-10",
     "unreadable": {}
   },
   "studiolatindance": {
@@ -807,7 +807,7 @@
   "elratonsalsaclub": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": null,
+    "last_swept_at": "2026-10-05T22:21:46-05:00",
     "latest_post": "2026-10-05",
     "unreadable": {}
   },
@@ -821,7 +821,98 @@
   "casavander_": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": null,
+    "last_swept_at": "2026-10-05T22:21:50-05:00",
+    "latest_post": "2026-10-04",
+    "unreadable": {}
+  },
+  "chanchanlatino": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:21:52-05:00",
+    "latest_post": "2026-09-21",
+    "unreadable": {}
+  },
+  "el_bochinche_cafe_": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:22:02-05:00",
+    "latest_post": "2026-09-30",
+    "unreadable": {}
+  },
+  "callejonsalsa": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:22:30-05:00",
+    "latest_post": "2026-10-05",
+    "unreadable": {}
+  },
+  "ilhehabana": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:23:00-05:00",
+    "latest_post": "2026-09-30",
+    "unreadable": {}
+  },
+  "restaurantecasadecitas": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:23:11-05:00",
+    "latest_post": "2026-09-29",
+    "unreadable": {}
+  },
+  "ladiezluxury_outlet": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:23:27-05:00",
+    "latest_post": "2026-10-05",
+    "unreadable": {}
+  },
+  "quemaquequema": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:24:58-05:00",
+    "latest_post": "2026-10-05",
+    "unreadable": {}
+  },
+  "sonorasocialclub_": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:25:26-05:00",
+    "latest_post": "2026-10-05",
+    "unreadable": {}
+  },
+  "discojaguar.bta": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:25:31-05:00",
+    "latest_post": "2026-10-03",
+    "unreadable": {}
+  },
+  "acaparchamos": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:25:38-05:00",
+    "latest_post": "2026-08-26",
+    "unreadable": {}
+  },
+  "lamecanica_original": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:25:44-05:00",
+    "latest_post": "2026-09-14",
+    "unreadable": {}
+  },
+  "aseismanos": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:26:18-05:00",
+    "latest_post": "2026-10-05",
+    "unreadable": {}
+  },
+  "mundanobaroficial": {
+    "first_seen": "2026-10-05",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-05T22:26:22-05:00",
     "latest_post": "2026-10-04",
     "unreadable": {}
   }

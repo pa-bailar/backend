@@ -507,5 +507,49 @@
     "external_problems": {},
     "instagram_usage": 76,
     "warnings": []
+  },
+  {
+    "finished_at": "2026-10-05T22:26:22-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/37408545396",
+    "accounts": 18,
+    "failed_accounts": [],
+    "read_accounts": [
+      "acaparchamos",
+      "aseismanos",
+      "callejonsalsa",
+      "casavander_",
+      "chanchanlatino",
+      "discojaguar.bta",
+      "el_bochinche_cafe_",
+      "elratonsalsaclub",
+      "ilhehabana",
+      "ladiezluxury_outlet",
+      "lamecanica_original",
+      "mundanobaroficial",
+      "quemaquequema",
+      "restaurantecasadecitas",
+      "ritmomoderno",
+      "sonorasocialclub_",
+      "terrazasalsera",
+      "tributo.salsayjazz"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 62,
+    "events_new": 2,
+    "events_merged": 1,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 10,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 48
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 37,
+    "warnings": []
   }
 ]
