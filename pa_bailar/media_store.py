@@ -7,7 +7,7 @@ back what changed (`push`); the workflow commits and pushes the media repository
 The site's build copies flyers/ and previews/ into its data/ the same way, so the images keep their addresses.
 
     python -m pa_bailar.media_store pull <media checkout> <data folder>
-    python -m pa_bailar.media_store push <data folder> <media checkout>
+    python -m pa_bailar.media_store push <data folder> <media checkout> [--published <events.json>]
 """
 
 import argparse
@@ -42,9 +42,8 @@ def pull(media: Path, data: Path) -> int:
     return copied
 
 
-def used_images(data: Path) -> set[str]:
-    """Every image the events on the site point to, as paths relative to data/ ("flyers/x.webp")."""
-    events_file = data / "events.json"
+def used_images(events_file: Path) -> set[str]:
+    """Every image the events in `events_file` point to, as paths relative to data/ ("flyers/x.webp")."""
     if not events_file.exists():  # never decide what to remove without the events
         raise SystemExit(f"{events_file} is missing: not touching the media repository.")
     events = json.loads(events_file.read_text(encoding="utf-8"))
@@ -54,12 +53,16 @@ def used_images(data: Path) -> set[str]:
     }  # fmt: skip
 
 
-def push(data: Path, media: Path) -> PushReport:
-    """Copy new and changed images from data/ into the media checkout, and remove from it the current images this
-    run deleted. A file is removed only when no event points to it AND it's gone from data/ too, so a run that
-    couldn't pull (an empty data/flyers/) never empties the repository: its events still point to the images."""
+def push(data: Path, media: Path, published: Path | None = None) -> PushReport:
+    """Copy new and changed images from data/ into the media checkout, and remove from it the current images no
+    longer used. A file is removed only when no event points to it AND it's gone from data/ too, so a run that
+    couldn't pull (an empty data/flyers/) never empties the repository: its events still point to the images.
+
+    `published`: the events the site has now (its main when the run started). Their images stay too: the data PR
+    merges minutes after this push, and until then every build and check reads those events (removing an
+    archived event's image at once failed them, 5 Oct 2026). The next run removes them, once the PR has merged."""
     report = PushReport()
-    used = used_images(data)
+    used = used_images(data / "events.json") | (used_images(published) if published else set())
     for folder in (*CURRENT, ARCHIVE):
         source = data / folder
         if not source.is_dir():
@@ -90,11 +93,12 @@ def main() -> None:
     push_args = sub.add_parser("push", help="data/ → media checkout")
     push_args.add_argument("data", type=Path)
     push_args.add_argument("media", type=Path)
+    push_args.add_argument("--published", type=Path, help="the site's events.json before the run: its images stay")
     args = parser.parse_args()
     if args.action == "pull":
         print(f"Copied {pull(args.media, args.data)} images from {args.media} into {args.data}.")
     else:
-        report = push(args.data, args.media)
+        report = push(args.data, args.media, args.published)
         print(f"Media: {report.added} added, {report.updated} updated, {report.removed} removed.")
 
 

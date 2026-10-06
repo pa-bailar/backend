@@ -70,3 +70,16 @@ def test_push_refuses_to_run_without_the_events(tmp_path):
     with pytest.raises(SystemExit):
         media_store.push(data, media)
     assert (media / "flyers" / "a-0.webp").exists()
+
+
+def test_an_image_the_published_events_still_use_stays_until_they_change(tmp_path):
+    """The data PR merges minutes after the push: until then the site's main still points to an event this run
+    archived. Removing its image at once failed every build and check in between (a code PR's ci, the republish)."""
+    media, data, published = tmp_path / "media", tmp_path / "data", tmp_path / "published.json"
+    write(media / "flyers" / "expired-0.webp")
+    events(data)  # this run archived the event: no event points to its flyer any more
+    published.write_text(json.dumps([{"id": "x", "media": [{"flyer": "flyers/expired-0.webp"}]}]), encoding="utf-8")
+    assert media_store.push(data, media, published=published).removed == 0
+    assert (media / "flyers" / "expired-0.webp").exists()
+    published.write_text("[]", encoding="utf-8")  # next run: the site's main has the new events
+    assert media_store.push(data, media, published=published).removed == 1

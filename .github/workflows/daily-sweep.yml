@@ -263,8 +263,11 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      # And the events as published, before the run changes them: their images stay until the data PR has merged.
       - name: Copy the images into the site's data
-        run: python -m pa_bailar.media_store pull media site/data
+        run: |
+          python -m pa_bailar.media_store pull media site/data
+          cp site/data/events.json "$RUNNER_TEMP/published-events.json"
 
       - name: Get the story's screenshots
         if: ${{ inputs.story != '' }}
@@ -360,7 +363,7 @@ jobs:
           BOT: ${{ steps.app.outputs.app-slug }}[bot]
           PYTHONPATH: ${{ github.workspace }}
         run: |
-          python -m pa_bailar.media_store push ../site/data .
+          python -m pa_bailar.media_store push ../site/data . --published "$RUNNER_TEMP/published-events.json"
           if [ -z "$(git status --porcelain)" ]; then echo "No new or changed images."; exit 0; fi
           gh auth setup-git  # git pushes with the App token (GH_TOKEN), only from here on
           bot_id="$(gh api "/users/${BOT}" --jq .id)"

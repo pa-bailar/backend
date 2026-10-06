@@ -201,7 +201,9 @@ OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"  # `admin bakeoff 
 
 # ---------- Flyers ----------
 FLYER_MAX_SIZE = (1080, 1350)  # 4:5, Instagram's tallest feed ratio
-FLYER_WEBP_QUALITY = 80
+# 75: measured on all 152 flyers (5 Oct 2026), 15% smaller than 80 with no visible difference in their fine print
+# (SSIM 0.990 against 0.995; a side-by-side at 2× zoom showed none). Lower starts to cost text edges for little.
+FLYER_WEBP_QUALITY = 75
 # The archive's copy: enough to recognize the flyer, about a fifth of its size.
 ARCHIVE_FLYER_MAX_SIZE = (480, 600)
 ARCHIVE_FLYER_WEBP_QUALITY = 60
