@@ -1,7 +1,78 @@
 {
-  "generated_at": "2026-10-05T22:26:23-05:00",
+  "generated_at": "2026-10-06T09:14:52-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-10-06T09:14:51-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37475298741",
+        "accounts": 43,
+        "failed_accounts": [],
+        "read_accounts": [
+          "academia_cowork",
+          "academiaalmadetangoe",
+          "academiadebailepasolatino",
+          "academyfeel",
+          "alejochacon.co",
+          "alpasojam",
+          "angie__cuesta",
+          "bailabo_studio",
+          "bembeacademiadebaile",
+          "bogotadanceclub.academy",
+          "bureodancestudio",
+          "clandisfrute",
+          "danceinmotionclub",
+          "davidylauradancers",
+          "distritosocialbog",
+          "efadanza",
+          "esferalatinaoficial",
+          "espacio.64",
+          "foururbandanc",
+          "ikubambayadanza",
+          "imperiolatino",
+          "jen.ssy",
+          "lanenamagdalena",
+          "ludancestudios",
+          "madyumdance",
+          "mambo_y_control",
+          "mambolei_",
+          "mover__se",
+          "originalstepdance",
+          "proyectourbandance",
+          "puntalpie",
+          "ritmosacademiadebaile",
+          "rpdancestudio",
+          "salsalatina.villaluz",
+          "showstarscol",
+          "sonrumbero",
+          "soondanz_company",
+          "studio110dance",
+          "studiolatindance",
+          "tibaduiza__",
+          "tubailecom",
+          "valkandela",
+          "zafradance"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 13,
+        "events_new": 2,
+        "events_merged": 2,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 4,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 17,
+          "gemini-3.8-flash": 18,
+          "gemini-3.5-flash": 18
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 62,
+        "warnings": []
+      },
       {
         "finished_at": "2026-10-05T22:26:22-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/37408545396",
@@ -283,76 +354,16 @@
         "external_problems": {},
         "instagram_usage": 56,
         "warnings": []
-      },
-      {
-        "finished_at": "2026-10-04T09:03:25-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/37207634002",
-        "accounts": 31,
-        "failed_accounts": [],
-        "read_accounts": [
-          "academia_cowork",
-          "academiaalmadetangoe",
-          "academiadebailepasolatino",
-          "academyfeel",
-          "bailabo_studio",
-          "bembeacademiadebaile",
-          "bogotadanceclub.academy",
-          "bureodancestudio",
-          "danceinmotionclub",
-          "distritosocialbog",
-          "esferalatinaoficial",
-          "espacio.64",
-          "foururbandanc",
-          "ikubambayadanza",
-          "imperiolatino",
-          "ludancestudios",
-          "madyumdance",
-          "mambo_y_control",
-          "mambolei_",
-          "mover__se",
-          "proyectourbandance",
-          "ritmosacademiadebaile",
-          "rpdancestudio",
-          "salsalatina.alsacia",
-          "salsalatina.villaluz",
-          "showstarscol",
-          "soondanz_company",
-          "studio110dance",
-          "studiolatindance",
-          "tubailecom",
-          "zafradance"
-        ],
-        "skipped_accounts": [
-          "lacoartadacentrocultural"
-        ],
-        "posts_analyzed": 4,
-        "events_new": 0,
-        "events_merged": 1,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 0,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 4,
-          "gemini-3.8-flash": 4
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 48,
-        "warnings": []
       }
     ],
     "next": [
-      "2026-10-06T09:00-05:00",
-      "2026-10-06T21:00-05:00"
+      "2026-10-06T21:00-05:00",
+      "2026-10-07T09:00-05:00"
     ]
   },
   "gemini": {
     "lite_only": false,
-    "resets_at": "2026-10-06T02:00-05:00",
+    "resets_at": "2026-10-07T02:00-05:00",
     "models": [
       {
         "model": "gemini-3.8-flash",
@@ -369,7 +380,7 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 244,
+        "used": 17,
         "budget": 498
       }
     ]
@@ -414,11 +425,11 @@
     "waiting": []
   },
   "posts": {
-    "recorded": 644,
-    "provisional": 178
+    "recorded": 657,
+    "provisional": 182
   },
   "events": {
-    "upcoming": 62,
+    "upcoming": 64,
     "low_confidence": 0
   },
   "new_series": [
