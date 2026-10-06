@@ -471,7 +471,8 @@ flowchart TD
     so marking or unmarking an account updates its stored events. Its nights are a `party` ("Rumba" on the site),
     not a `social` (the owner, 6 October 2026: a bar's party isn't a dancers' social): the prompt says so, and
     `normalize.party_at_a_bar` makes it a fixed rule, on new readings and on stored events at every run, unless
-    the title or a caption says "social" (an academy's social held at a bar stays one). Its first sweep is a
+    the title or a caption says "social" (an academy's social held at a bar stays one; not "redes sociales" or a
+    "… Social Club", common in captions). The answer schema's type description says the same as the prompt. Its first sweep is a
     regular one (10 posts, the lookback): a bar's older posts are past nights.
   - `solo:<styles>` (salsa, bachata, merengue, kizomba, tango): a general bar, club or cultural space that also
     holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`:
