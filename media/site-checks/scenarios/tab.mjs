@@ -1,18 +1,30 @@
-// Tab on a desktop (the owner, 6 Oct): the list is one Tab stop, the selected card. Tab from the toolbar lands on it;
-// on it, Tab goes through its own controls, then into the side panel when it's open, then out of the list (no other
-// card on the way); Shift+Tab from the panel's start goes back to the card the panel shows; Tab and the arrows agree.
+// Tab on a desktop: one stop per event (the owner, 6 Oct). From the toolbar, Tab walks the list in its reading order,
+// each event once (never one of its own buttons), the periods' Compartir and the "Ver N más" / month blocks where they
+// are, the side panel following each event, then the footer, and out of the page (never into the panel, never round
+// again). Enter goes into the panel; past its last control Tab goes on to the next event; Shift+Tab from its start
+// goes back to the event it shows; Escape closes it; Shift+Tab walks the list back like ←. WebKit checks Safari's
+// default: its Tab skips links (the cards, the footer's) unless "Press Tab to highlight each item" is on, which a test
+// can't turn on (nor Option+Tab, a Mac-only shortcut): the buttons only, in order, and never stuck or into the panel.
 import { Skip } from "../lib.mjs";
 
-/** Where the focus is: "card:<id>" (the card itself), "card:<id>/control", "panel", or the element's name. */
+/** Where the focus is: "card:<id>", "control:<id>" (one of a card's own), "panel", "page" or the element's name. */
 const where = (page) =>
   page.evaluate(() => {
     const a = document.activeElement;
-    if (!a || a === document.body) return "body";
-    if (a.closest("#event-drawer")) return "panel";
+    if (!a || a === document.body) return "page";
+    if (a.closest("#event-drawer, #lightbox")) return "panel";
     const card = a.closest("[data-event-card]")?.dataset.eventCard;
-    if (card) return a.matches("a.event-card__hit") ? `card:${card}` : `card:${card}/control`;
-    if (a.closest(".toolbar")) return "toolbar";
-    return (a.getAttribute("aria-label") || a.textContent || a.tagName).trim().slice(0, 30);
+    if (card) return a.matches("a.event-card__hit") ? `card:${card}` : `control:${card}`;
+    return (a.getAttribute("aria-label") || a.textContent || a.tagName).trim().replace(/\s+/g, " ").slice(0, 30);
+  });
+
+/** The list's stops in its reading order, as Tab should meet them: cards, the periods' share buttons, the blocks. */
+const expectedStops = (page) =>
+  page.evaluate(() => {
+    const view = document.querySelector('[role="tabpanel"]:not([hidden])');
+    return [...view.querySelectorAll("a.event-card__hit, .agenda-group__header button, [data-show-period]")]
+      .filter((e) => e.getClientRects().length > 0)
+      .map((e) => (e.matches("a.event-card__hit") ? `card:${e.closest("[data-event-card]").dataset.eventCard}` : (e.getAttribute("aria-label") || e.textContent).trim().replace(/\s+/g, " ").slice(0, 30)));
   });
 
 /** The focus on the toolbar's last visible control (where Tab into the list starts). */
@@ -22,77 +34,77 @@ const toToolbarEnd = (page) =>
       (e) => e.getClientRects().length && e.tabIndex >= 0 && !e.closest("[hidden], [role=menu], dialog"),
     );
     visible.at(-1)?.focus();
-    return visible.at(-1)?.textContent?.trim() || visible.at(-1)?.getAttribute("aria-label");
   });
 
 export default {
   name: "tab",
-  summary: "Tab on a desktop: the list is one stop (the selected card), then its controls, the panel, out; agrees with the arrows",
+  summary: "Tab on a desktop: each event once in reading order (the panel follows), blocks, footer, out; Enter/Esc/Shift+Tab with the panel",
   devices: ["desktop"],
   async run(ctx) {
     const { page, check } = ctx;
     if (ctx.touch) throw new Skip("Tab with a keyboard is a desktop's");
+    const TAB = "Tab";
+    const BACK = "Shift+Tab";
+    const linksTabbable = ctx.engine !== "webkit"; // Safari's default (see the header)
     await ctx.goto("/");
-    const cards = ctx.cards();
-    if ((await cards.count()) < 3) throw new Skip("fewer than 3 events on the list");
-    const first = await cards.nth(0).getAttribute("data-event-card");
+    const all = await expectedStops(page);
+    const expected = linksTabbable ? all : all.filter((s) => !s.startsWith("card:"));
+    if (all.filter((s) => s.startsWith("card:")).length < 3) throw new Skip("fewer than 3 events on the list");
 
-    // From the toolbar's last control, Tab: past the period's share button, onto the first card (the selected one)
+    // The whole walk: the list's stops in order, the panel following every event, then the footer and out
     await toToolbarEnd(page);
-    const path = [];
-    for (let i = 0; i < 4 && !path.at(-1)?.startsWith("card:"); i++) {
-      await ctx.key("Tab");
-      path.push(await where(page));
-    }
-    check("Tab from the toolbar lands on the selected card", path.at(-1) === `card:${first}`, path.join(" → "));
-
-    // Its controls, then out of the list: never another card's
     const walk = [];
-    for (let i = 0; i < 12; i++) {
-      await ctx.key("Tab");
-      walk.push(await where(page));
+    const panelWrong = [];
+    for (let i = 0; i < expected.length + 12; i++) {
+      await page.keyboard.press(TAB);
+      await page.waitForTimeout(60);
+      const w = await where(page);
+      walk.push(w);
+      if (w.startsWith("card:")) {
+        const s = await ctx.snap();
+        if (s.drawer !== w.slice(5)) panelWrong.push(`${w.slice(5, 30)} (panel: ${s.drawer})`);
+      }
+      if (w === "page") break;
     }
-    const left = walk.findIndex((w) => !w.startsWith(`card:${first}`));
-    const others = walk.filter((w) => w.startsWith("card:") && !w.startsWith(`card:${first}`));
-    check("Tab goes through the card's own controls first", left > 1, walk.slice(0, left + 1).join(" → "));
-    check("…then out of the list, past every other card", !others.length, others.join(", ") || walk.join(" → "));
+    const inList = walk.slice(0, expected.length);
+    check(linksTabbable ? "Tab meets every event and block in reading order, nothing else" : "Safari's default Tab: the list's buttons in order (its links need its setting)", JSON.stringify(inList) === JSON.stringify(expected), `${inList.length} of ${expected.length}; first difference at ${inList.findIndex((w, i) => w !== expected[i])}: ${inList.find((w, i) => w !== expected[i])}`);
+    check("never one of a card's own buttons", !walk.some((w) => w.startsWith("control:")), walk.filter((w) => w.startsWith("control:")).join(", "));
+    check("the side panel follows each event Tab lands on", !panelWrong.length, panelWrong.slice(0, 3).join("; "));
+    check("after the list, the footer, then out of the page (not into the panel, not round again)", walk.at(-1) === "page" && !walk.includes("panel"), walk.slice(expected.length).join(" → "));
 
-    // The arrows move the selection: Tab from the toolbar now lands there
-    await cards.nth(0).locator("a.event-card__hit").focus();
-    await ctx.key("ArrowRight");
-    const second = await cards.nth(1).getAttribute("data-event-card");
-    await page.keyboard.press("Escape"); // the reading pane closes; the selection stays
-    await ctx.settle();
+    // Enter: into the panel. Past its last control: on to the next event. Shift+Tab from its start: back to the event.
+    if (!linksTabbable) return ctx.skip("the panel by Tab", "Safari tabs to links only with its setting, which a test can't turn on");
+    await ctx.goto("/");
     await toToolbarEnd(page);
-    let landed = "";
-    for (let i = 0; i < 4 && !landed.startsWith("card:"); i++) {
-      await ctx.key("Tab");
-      landed = await where(page);
+    let at = "";
+    for (let i = 0; i < 4 && !at.startsWith("card:"); i++) {
+      await ctx.key(TAB);
+      at = await where(page);
     }
-    check("after → the selection moved: Tab lands on the second card", landed === `card:${second}`, landed);
-
-    // With the side panel open: past the card's controls into the panel; Shift+Tab from its start back to the card
-    await cards.nth(1).locator("a.event-card__hit").focus();
-    await ctx.key("ArrowLeft"); // the reading pane opens on the first card
+    const first = at.slice(5);
+    const second = expected.filter((s) => s.startsWith("card:"))[1]?.slice(5);
+    await ctx.key("Enter");
     await ctx.settle();
-    const open = await ctx.snap();
-    if (!open.drawer) return ctx.skip("the panel", "the reading pane didn't open (a narrow window?)");
-    let reached = "";
-    for (let i = 0; i < 10 && reached !== "panel"; i++) {
-      await ctx.key("Tab");
-      reached = await where(page);
+    check("Enter on an event goes into the panel", (await where(page)) === "panel", await where(page));
+    let out = "panel";
+    for (let i = 0; i < 25 && out === "panel"; i++) {
+      await ctx.key(TAB);
+      out = await where(page);
     }
-    check("past the card's controls, Tab goes into the open side panel", reached === "panel", reached);
-    await ctx.key("ArrowRight"); // in the panel: the next event
-    await ctx.settle();
-    const moved = await ctx.snap();
+    check("past the panel's last control, Tab goes on to the next event", out === `card:${second}`, `${out} (expected card:${second})`);
+    const followed = await ctx.snap();
+    check("…and the panel follows it", followed.drawer === second, followed.drawer);
     await page.evaluate(() => document.getElementById("drawer-title")?.focus());
-    await ctx.key("Shift+Tab");
-    const backTo = await where(page);
-    check(
-      "Shift+Tab from the panel's start: back to the card it shows (its last control)",
-      backTo === `card:${moved.drawer}/control`,
-      `${backTo} (panel shows ${moved.drawer})`,
-    );
+    await ctx.key(BACK);
+    check("Shift+Tab from the panel's start: back to the event it shows", (await where(page)) === `card:${second}`, await where(page));
+    await ctx.key(BACK);
+    check("Shift+Tab walks the list back like ←", (await where(page)) === `card:${first}`, await where(page));
+    await ctx.key("Escape");
+    await ctx.settle();
+    const closed = await ctx.snap();
+    check("Escape closes the panel, the focus stays on the event", !closed.drawer && (await where(page)) === `card:${first}`, `${await where(page)} drawer=${closed.drawer}`);
+    await ctx.key(TAB);
+    const reopened = await ctx.snap();
+    check("the next Tab: the next event, the panel open on it again", (await where(page)) === `card:${second}` && reopened.drawer === second, `${await where(page)} drawer=${reopened.drawer}`);
   },
 };
