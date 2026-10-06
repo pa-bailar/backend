@@ -114,8 +114,9 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
   `preview_start` tool, not Bash. `astro preview` refuses a second instance ("already running": reuse its port).
 - **GitHub Actions:** a job cancelled after ~15 min with no steps run is GitHub not assigning a runner (incidents
   happen), not a failure of ours: re-run it. The backend is private: 2,000 minutes a month, and they run short (memory
-  `backend-visibility-and-minutes`: the billing API gives the real numbers). Batch backend changes into fewer PRs;
-  docs, Markdown, `.claude/` and `media/site-checks/` changes skip ci. The site repository is public: free.
+  `backend-visibility-and-minutes`: the billing API gives the real numbers). Batch backend changes into fewer PRs
+  (every PR runs `ci`: a ruleset on `main` requires it, so a path filter would leave a PR unmergeable). The site
+  repository is public: free.
 - **WebKit (Safari's engine) in Playwright** is installed with the toolkit: use it for Safari checks. It isn't iOS
   (no real keyboard, toolbar or home-screen app). A screenshot injects a style the site's CSP refuses: those console
   errors are the test's, not the site's.

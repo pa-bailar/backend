@@ -1216,7 +1216,7 @@ guide.
 
 ### 13.1 Checks
 
-`ci.yml` runs on every pull request but those that only touch docs, Markdown, `.claude/` or `media/site-checks/` (nothing there is checked; such a PR has no checks to wait for; not again on `main` after a merge: the PR ran the same checks; a Monday run on
+`ci.yml` runs on every pull request (a ruleset on `main` requires it, so it has no path filter: a PR it skipped could never merge; not again on `main` after a merge: the PR ran the same checks; a Monday run on
 `main` keeps the pip cache where every branch can use it, since a PR's cache stays with that PR):
 - `ruff check` (lint, including a complexity cap: no function over 12, `C901`);
 - `ruff format --check`;
