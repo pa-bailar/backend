@@ -496,7 +496,7 @@ flowchart TD
     P["Post"] --> Q{"Analyzed before?<br/>(processed_posts.json)"}
     Q -->|no| N["New post"]
     Q -->|"yes, caption changed<br/>(hash differs)"| RE["Analyze again<br/>(e.g. venue added later)"]
-    Q -->|"yes, provisional<br/>and Flash has quota"| UP["Upgrade: re-extract with Flash"]
+    Q -->|"yes, provisional"| UP["Queued: after every account,<br/>re-extracted with Flash while it has quota,<br/>the soonest events first"]
     Q -->|"yes, unchanged"| SKIP["Skip (no cost)"]
     N --> T{"Time budget<br/>(30 min) used?"}
     T -->|yes| PEND["Pending: next run"]
@@ -1279,8 +1279,8 @@ day, quiet ones less often: section 5, "Whose turn it is"):
 | Gemini Flash-Lite | 500 / day (498 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
-| Gemini Flash (two models) | 20 / day each (36 usable) | 1 per post that announces events, plus upgrades of provisional posts | Usually all of it while there's a backlog of provisional posts (98 on 4 October 2026), under 20 once it's gone | Tight while new accounts load (provisional fallback, upgraded on later runs); fine afterwards |
-| GitHub Actions minutes (private repository) | 2,000 / month | 3–5 min normally; about 15 on nights new accounts load (up to ~35) | ~10 normally | ~300 a month normally; heavy loading weeks stay under the limit. Admin requests add 1–2 min each, plus the wait for a running sweep. Set an Actions spending limit of $0 so runs stop instead of being charged |
+| Gemini Flash (two models) | 20 / day each (36 usable) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read by Flash-Lite (provisional) | The binding limit, but it loses no events: the overflow is read by Flash-Lite and shown. Both sweeps share one quota day (midnight Pacific), so a sweep leaves the later ones their share (`later_sweeps_in_quota_day`: the 9:00 one keeps half for 21:00), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end |
+| GitHub Actions minutes (private repository) | 2,000 / month | 15–30 min (measured 6 Oct 2026: Gemini's pacing and busy retries, Instagram; no longer waiting for the data PR, #124) | ~35–50 | About 1,100–1,500 a month for the sweeps, plus ci on pull requests (1 min each: development weeks add a few hundred). The binding limit to watch. Admin requests add 1–2 min each, plus the wait for a running sweep. Set an Actions spending limit of $0 so runs stop instead of being charged |
 | GitHub Actions minutes (public site repository) | Unlimited | ci + deploy, ~2 min | | |
 | cron-job.org | Unlimited jobs | 1 call | 2 | |
 | healthchecks.io | Free plan | 1 ping | 2 | |

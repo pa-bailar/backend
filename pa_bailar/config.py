@@ -216,6 +216,11 @@ MAX_LOOKBACK_DAYS = 30
 # When cron-job.org starts the daily sweep (Bogotá time, README "What starts the sweep"). Other jobs that
 # use the Instagram app's hourly quota (discover) keep clear of these times so the sweep finds it free.
 SWEEP_TIMES = ("09:00", "21:00")
+# Flash's few daily requests are shared by every sweep of a Gemini quota day (midnight to midnight Pacific: the 9:00 and
+# 21:00 sweeps fall in one). A sweep leaves the later ones of that day their share: before, the morning's (academies,
+# few posts) could take them all and the evening's (the busy organizers and bars) got none (the owner, 6 Oct 2026). A
+# scheduled sweep starting within this margin is the current run (a late start), not a later one.
+LATER_SWEEP_MARGIN_MINUTES = 60
 # A newly added account is swept more deeply until all of these posts have been analyzed
 # (it can take a few runs if the daily Gemini budget runs out); then it joins the regular sweep.
 BACKFILL_POSTS = 30
