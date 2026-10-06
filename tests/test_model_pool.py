@@ -320,3 +320,10 @@ def test_a_one_off_busy_answer_doesnt_pause_the_model(pool):
     with_models(pool, {"gemini-3.8-flash": [busy, ANSWER]})
     pool.generate(("gemini-3.8-flash",), [], Triage)
     assert not pool.paused("gemini-3.8-flash")
+
+
+def test_every_model_of_every_role_has_its_limits():
+    """Each role takes several models, each with its own free-tier quota (config.MODEL_LIMITS, 6 Oct 2026)."""
+    for role in (config.TRIAGE_MODELS, config.EXTRACTION_MODELS, config.PROVISIONAL_MODELS):
+        assert role and all(model in config.MODEL_LIMITS for model in role)
+    assert not set(config.EXTRACTION_MODELS) & set(config.PROVISIONAL_MODELS)  # a final read is never provisional
