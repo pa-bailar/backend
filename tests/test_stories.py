@@ -261,6 +261,9 @@ class FakeStoryExtractor:
     def can_extract_with_flash(self) -> bool:
         return True
 
+    def can_upgrade(self) -> bool:
+        return True
+
     def requests_this_run(self) -> dict[str, int]:
         return {"fake-flash": len(self.calls)}
 
