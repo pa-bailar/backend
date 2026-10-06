@@ -8,6 +8,21 @@ description: Bring a branch's documentation up to date with its code changes, in
 Run this after committing the change and before opening its pull request. Docs that describe the code
 (how it works, its files, commands, workflows, tokens, decisions) must say what the branch makes true.
 
+**The docs are architecture and decisions, not a description of every pixel.** What belongs in them, and what
+doesn't:
+
+| Documented | Not documented |
+|---|---|
+| How it works: modules, the flow of data, history and overlays, the sweep's steps | Pixel sizes, opacities, exact spacing |
+| Rules and behavior a reader needs ("Guardados has no filters", "back returns to the list") | Which token a component uses, a color within the palette |
+| Decisions, with who and when ("the owner, 5 Oct 2026"), and why | A button's position or order inside a row |
+| The data contract, workflows, commands, settings, tokens (the token table itself) | Copy tweaks, icon choices, small visual adjustments |
+| Files and modules (the code maps), tests' scope | What the code and a screenshot already show |
+
+So a visual tweak usually needs **no doc change**, and that's a valid result. When it makes an existing statement
+false (the doc said "40% opacity" and now it's 50%), fix it by making the statement less detailed ("faded"), not by
+updating the number: the doc then survives the next tweak. Never add new pixel-level detail.
+
 ## 1. See what changed
 
 In the repository of the branch:
@@ -44,7 +59,7 @@ the sections around them. A change to the data's shape touches both repositories
 - Fix every statement the branch made wrong: tables, lists, code maps, Mermaid diagrams, numbers, times, names.
 - Add what's new where a reader would look for it (a new command in the commands table, a new page in the
   pages table, a new token in the token table), in the doc's existing style: plain English, short sentences,
-  bullets for lists, `code` for names, no marketing words.
+  bullets for lists, `code` for names, no marketing words. Only what the table above says is documented.
 - Remove what no longer exists. Don't rewrite sections the branch didn't touch.
 - If nothing needs to change, that's a valid result: say why (e.g. "internal refactor, no documented names
   changed").
