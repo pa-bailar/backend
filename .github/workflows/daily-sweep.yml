@@ -228,6 +228,30 @@ jobs:
         with:
           persist-credentials: false
 
+      # The sweep reads the events from the site's main: if an earlier data PR never merged (its ci failed,
+      # or it timed out), sweeping now would leave its events behind for good (their posts are already marked
+      # as analyzed). Stop until it's merged or fixed; the failed run emails, like any failure.
+      # A scheduled sweep doesn't wait for its own data PR (below): a run right after one (an owner's request) waits here
+      # for it, a few minutes at most, and fails only if it's still open after OPEN_DATA_PR_WAIT_MINUTES.
+      # Before anything is checked out: a copy of the site taken before that PR merged lacks its events, and the run
+      # would then delete their flyers from the images repository and open a PR that conflicts with it for good
+      # (tests/test_workflows.py).
+      - name: Make sure the last data PR merged
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          deadline=$(( $(date +%s) + OPEN_DATA_PR_WAIT_MINUTES * 60 ))
+          while true; do
+            open="$(gh pr list --repo "$SITE_OWNER/$SITE_REPO" --label data --state open --json url --jq '.[].url')"
+            if [ -z "$open" ]; then break; fi
+            if [ "$(date +%s)" -gt "$deadline" ]; then
+              echo "::error::A data PR hasn't merged: ${open}. Merge or fix it first (its events aren't on main)."
+              exit 1
+            fi
+            echo "Waiting for ${open} to merge…"
+            sleep 30
+          done
+
       # Without stored credentials: the sweep runs third-party packages, so the token that can push here is
       # only handed to the step that saves the state (below).
       - name: Read the sweep state
@@ -280,27 +304,6 @@ jobs:
       # Videos' preview clips (pa_bailar/clips.py) need ffmpeg; usually already on the runner.
       - name: Make sure ffmpeg is installed
         run: command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
-
-      # The sweep reads the events from the site's main: if an earlier data PR never merged (its ci failed,
-      # or it timed out), sweeping now would leave its events behind for good (their posts are already marked
-      # as analyzed). Stop until it's merged or fixed; the failed run emails, like any failure.
-      # A scheduled sweep doesn't wait for its own data PR (below): a run right after one (an owner's request) waits here
-      # for it, a few minutes at most, and fails only if it's still open after OPEN_DATA_PR_WAIT_MINUTES.
-      - name: Make sure the last data PR merged
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          deadline=$(( $(date +%s) + OPEN_DATA_PR_WAIT_MINUTES * 60 ))
-          while true; do
-            open="$(gh pr list --repo "$SITE_OWNER/$SITE_REPO" --label data --state open --json url --jq '.[].url')"
-            if [ -z "$open" ]; then break; fi
-            if [ "$(date +%s)" -gt "$deadline" ]; then
-              echo "::error::A data PR hasn't merged: ${open}. Merge or fix it first (its events aren't on main)."
-              exit 1
-            fi
-            echo "Waiting for ${open} to merge…"
-            sleep 30
-          done
 
       - name: Run the sweep
         id: sweep

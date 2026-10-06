@@ -152,10 +152,14 @@ class ModelPool:
         )
         self._day = quota_day()
         usage = storage.load_gemini_usage()
-        self._used: Counter[str] = Counter(usage.get("requests", {}) if usage.get("day") == self._day else {})
+        today = usage.get("day") == self._day
+        self._used: Counter[str] = Counter(usage.get("requests", {}) if today else {})
         self._last_call: dict[str, float] = {}
         self.requests_this_run: Counter[str] = Counter()
-        self.unavailable: set[str] = set()  # models Gemini said this key can't use (this run)
+        # Models Gemini said this key can't use, today: kept for the quota day's later runs, which skip them as spent
+        # without asking, so that every run reports them (health counts runs in a row; the day's second run, with an
+        # empty list, reset the count and the warning never came).
+        self.unavailable: set[str] = set(usage.get("unavailable", [])) if today else set()
         self._paused_until: dict[str, float] = {}  # time.monotonic() until which a busy model is skipped
         self._reserved: dict[str, int] = {}  # requests left for later runs today (`reserve`)
         # time.monotonic() after which no request starts (OutOfTimeError): the run's time budget, set by EventExtractor.
@@ -195,7 +199,9 @@ class ModelPool:
 
     def _persist(self) -> None:
         """Save today's usage, so later runs on the same quota day share the budget."""
-        storage.save_gemini_usage({"day": self._day, "requests": dict(self._used)})
+        storage.save_gemini_usage(
+            {"day": self._day, "requests": dict(self._used), "unavailable": sorted(self.unavailable)}
+        )
 
     def _check_time(self) -> None:
         """OutOfTimeError once the deadline has passed: no request starts after it."""
