@@ -1,6 +1,6 @@
 ---
 name: sync-docs
-description: Bring a branch's documentation up to date with its code changes, in pa-bailar (backend) or pa-bailar-web (site), before opening a pull request. Use it every time, right before `gh pr create`; a hook blocks the PR until it has run at the branch's latest commit.
+description: Bring a branch's documentation up to date with its code changes, in pa-bailar (backend) or pa-bailar-web (site), before opening a pull request. Use it every time, right before `gh pr create`; a hook blocks the PR until it has run at the branch's latest commit. Also checks the whole repository for drift when the owner asks whether the docs are up to date, in a code-quality pass, and before a launch.
 ---
 
 # Sync the docs with this branch's changes
@@ -63,3 +63,18 @@ needs the sync again. Then push and open the PR in a separate command.
 ## 5. Report
 
 One or two lines in the reply: which docs changed and how, or why none needed to.
+
+## A whole-repository check (drift)
+
+A branch's sync only sees that branch. Across many PRs the docs can still drift: a phrase that was true for two
+views and not for three, a module renamed in one table but not in another, a test file never listed. Check the
+whole repository when the owner asks "are the docs up to date?", during a `code-quality` pass, and before a launch:
+
+- Names: every module, file, command, workflow, CSS token and setting the docs name still exists
+  (list the names the docs write as `code` and look for each in the code), and the code's main ones are named
+  where a reader would look (the code maps, the pages table, the tests row, the workflows table).
+- Numbers and lists: counts (accounts, views, tests' scope), times (the sweeps, the windows), limits and quotas
+  against `config.py`, `accounts.txt`, the workflows.
+- Phrases left by a change: grep for words the last features made false ("both views", old names, removed
+  controls).
+- Fix it on a branch (`docs/<what>`), then the steps above from 4.
