@@ -93,6 +93,9 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
   backslashes get mangled (one turned `\b` into a control character).
 - **`gh` with a `/word` argument** (`/agregar`): `MSYS_NO_PATHCONV=1`, or Git Bash turns it into a Windows path.
 - **`gh pr create` runs in its own command** (the docs-sync hook reads the command; chained after a commit it blocks).
+- **Parallel shell commands share one working directory:** a `cd` in one can land another in the wrong repository
+  (a PR got the other repository's description). Name the target explicitly: `gh … -R pa-bailar/<repo>`,
+  `git -C <path>`.
 - **Worktrees** for parallel agents. A site or media worktree has a `node_modules` junction: `cmd //c rmdir` it
   BEFORE `git worktree remove`, or the real folder goes with it.
 - **Browser checks:** Playwright through `pa-bailar/media/tools/capture.mjs` (`openPhone({ now, theme })`: a phone
