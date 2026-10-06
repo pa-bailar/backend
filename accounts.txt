@@ -39,6 +39,9 @@ iledanza
 sondehabana
 # Son Rumbero: academy in Bogotá (salsa, bachata, merengue) (discovery, 4 Oct 2026).
 sonrumbero
+# Danceholic Project / La Mansión: street dance and salsa studio; pop-up classes with guest teachers and salsa
+# nights ("Latinholic") (the owner, 6 Oct 2026: not followed before).
+danceholicproject
 # Rechecked 4 Oct 2026 (marked personal before, readable now): Bogotá academies that announce workshops and events.
 bailaderia
 # bailo.formacion  # silent: no posts in 651 days (5 Oct 2026): not swept; re-add if it posts
