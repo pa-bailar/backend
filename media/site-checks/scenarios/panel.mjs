@@ -127,7 +127,8 @@ export default {
       await ctx.key("Escape");
       if ((await ctx.snap()).drawer) await ctx.key("Escape");
       const after = await ctx.step(`y=${before.y}: image, Escape`);
-      if (!open.stage || after.drawer || after.stage || after.y !== before.y)
+      // ±2 px: WebKit rounds sub-pixel positions after the list makes room for the panel and gives it back
+      if (!open.stage || after.drawer || after.stage || Math.abs(after.y - before.y) > 2)
         moved.push(
           `y=${before.y}: opened ${Boolean(open.stage)}, after ${after.y} drawer=${after.drawer || "-"} stage=${after.stage || "-"}`,
         );
