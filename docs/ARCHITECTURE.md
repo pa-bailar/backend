@@ -468,8 +468,11 @@ flowchart TD
     its regular nights aren't events, only special one-time occasions (a live band, a billed guest, an
     anniversary…); when unsure, it isn't. Its
     events carry `bar: true` (`StoredEvent.bar`, docs/DATA.md in the site), set from `accounts.txt` on every run,
-    so marking or unmarking an account updates its stored events. Its first sweep is a regular one (10 posts, the
-    lookback): a bar's older posts are past nights.
+    so marking or unmarking an account updates its stored events. Its nights are a `party` ("Rumba" on the site),
+    not a `social` (the owner, 6 October 2026: a bar's party isn't a dancers' social): the prompt says so, and
+    `normalize.party_at_a_bar` makes it a fixed rule, on new readings and on stored events at every run, unless
+    the title or a caption says "social" (an academy's social held at a bar stays one). Its first sweep is a
+    regular one (10 posts, the lookback): a bar's older posts are past nights.
   - `solo:<styles>` (salsa, bachata, merengue, kizomba, tango): a general bar, club or cultural space that also
     holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`:
     `normalize.TEXT_STYLE_WORDS` plus looser stems such as "salser", "bachat", accents and case ignored) is
@@ -637,8 +640,9 @@ Notes on the prompts and parameters:
     the lighter model most;
   - `in_bogota` for every event ("yes", "no" or "unknown"), checked in code (section 6.3), since the prompt
     alone let a tour's concerts abroad through;
-  - how to pick the event type (social, workshop, concert, congress, festival, competition, show, other: a
-    multi-day dance congress is a `congress`, its workshops included) and the styles (from a fixed list);
+  - how to pick the event type (social, party, workshop, concert, congress, festival, competition, show, other: a
+    multi-day dance congress is a `congress`, its workshops included; a `social` is a night for dancers, an
+    academy's or an organizer's, a `party` a night out, a bar's or a general public one) and the styles (from a fixed list);
   - dates: `date` is the event's (first) day, `end_date` its last over consecutive days ("NOV 13-15" → 13
     and 15; null for one day, a night past midnight included); one event per congress, not per day; the same
     workshop on separate dates is one event per date, while a workshop series (one sign-up) is one event with

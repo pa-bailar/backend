@@ -14,7 +14,8 @@ from pydantic import BaseModel, Field, model_validator
 
 from . import config
 
-EventType = Literal["social", "workshop", "concert", "festival", "congress", "competition", "show", "other"]
+# "party" ("Rumba" on the site): a night out, apart from a dancers' social (the owner, 6 Oct 2026; prompts.py).
+EventType = Literal["social", "party", "workshop", "concert", "festival", "congress", "competition", "show", "other"]
 Confidence = Literal["high", "medium", "low"]
 
 # Dance styles. Salsa and bachata have one level of specificity; the plain name is the fallback when
