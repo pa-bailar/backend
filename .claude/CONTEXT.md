@@ -107,7 +107,7 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
 - **Worktrees** for parallel agents. A site or media worktree has a `node_modules` junction: `cmd //c rmdir` it
   BEFORE `git worktree remove`, or the real folder goes with it.
 - **Browser checks:** first `pa-bailar/media/site-checks/` (its README): `run.mjs` runs the scenarios (`tour`,
-  `arrows`, `walk`, `panel`, `stage`, `tab`) on chrome or webkit, desktop, phone or iPhone, both themes, against the local
+  `arrows`, `walk`, `panel`, `stage`, `tab`) on chrome or webkit, desktop, phone or iPhone (or any window: `--size 1100x800`), both themes, against the local
   preview or `--live`, printing only failures; `probe.mjs --do "tap:…" --do back …` prints the page's state after
   each action, for one-off debugging. Add a scenario there instead of a throwaway script. Local only, never in CI
   (the owner, 6 Oct 2026). For videos, `media/tools/capture.mjs` (`openPhone({ now, theme })`). Preview servers through `Code/.claude/launch.json` and the

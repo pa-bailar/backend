@@ -2,7 +2,7 @@
 // (one line: lib.mjs snapshot), then the errors. Local only (README.md).
 //
 //   node media/site-checks/probe.mjs [--live | --url <u>] [--engine chrome|webkit] [--device desktop|phone|iphone]
-//     [--theme light|dark] [--now <iso>] [--fresh] [--path /calendario/] --do "<action>" --do "<action>" …
+//     [--size 1100x800] [--theme light|dark] [--now <iso>] [--fresh] [--path /calendario/] --do "<action>" …
 //
 // Actions: click:<selector>  tap:<selector>  key:<Key>[*n]  type:<text>  scroll:<y> (or +<dy>/-<dy>)  goto:<path>
 //   back  forward  reload  wait:<ms>  eval:<js expression>  shot:<name>  snap (the full snapshot as JSON)
@@ -27,6 +27,7 @@ const { page, errors, close } = await open({
   base: args.base,
   now: args.now,
   fresh: args.fresh,
+  size: args.size,
 });
 const target = (sel) => {
   const m = sel.match(/^(card|hit):(\d+)$/);

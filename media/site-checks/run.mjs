@@ -48,7 +48,7 @@ for (const scenario of scenarios.filter((s) => !names.length || names.includes(s
         let skipped = null;
         let timer;
         try {
-          session = await lib.open({ engine, device, theme, base: args.base, now: args.now });
+          session = await lib.open({ engine, device, theme, base: args.base, now: args.now, size: args.size });
           const { page } = session;
           const ctx = {
             page,

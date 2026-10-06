@@ -33,12 +33,20 @@ export const ENGINES = {
 };
 
 const ALLOWED_THIRD_PARTIES = /^https:\/\/fonts\.(googleapis|gstatic)\.com\//;
+
+/** "1100x800" → a viewport, for a window of another size than the device's (a short laptop, a half screen). */
+export function parseSize(size) {
+  const m = /^(\d{3,4})x(\d{3,4})$/.exec(size ?? "");
+  if (!m) throw new Error(`--size ${size}: width x height in CSS pixels, e.g. 1100x800`);
+  return { width: Number(m[1]), height: Number(m[2]) };
+}
 const pageInfo = new WeakMap(); // page → { touch, base }
 
 /**
  * A browser on the site. `now` freezes the clock (an ISO date); `fresh` leaves the first-visit flags unset (the
- * details hint, the install offer). Returns `{ browser, context, page, errors, close }`; `errors` collects page
- * errors, console errors and failed same-site requests, as short strings.
+ * details hint, the install offer); `size` ("1100x800") replaces the device's window size. Returns
+ * `{ browser, context, page, errors, close }`; `errors` collects page errors, console errors and failed same-site
+ * requests, as short strings.
  */
 export async function open({
   engine = "chrome",
@@ -47,12 +55,14 @@ export async function open({
   base = LOCAL,
   now,
   fresh = false,
+  size,
 } = {}) {
   if (!ENGINES[engine]) throw new Error(`unknown engine ${engine} (chrome, webkit)`);
   if (!DEVICES[device]) throw new Error(`unknown device ${device} (${Object.keys(DEVICES).join(", ")})`);
   const browser = await ENGINES[engine]();
   const context = await browser.newContext({
     ...DEVICES[device],
+    ...(size && { viewport: parseSize(size) }),
     colorScheme: theme,
     locale: "es-CO",
     timezoneId: "America/Bogota",
@@ -257,6 +267,7 @@ export function cli(extra = {}) {
       shots: { type: "boolean" },
       verbose: { type: "boolean", short: "v" },
       fresh: { type: "boolean" },
+      size: { type: "string" },
       help: { type: "boolean", short: "h" },
       ...extra,
     },
