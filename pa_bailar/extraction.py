@@ -99,7 +99,7 @@ class EventExtractor:
         return self.pool.any_budget(gemini) or self.external.available()
 
     def models_unavailable(self) -> list[str]:
-        """Models Gemini said this key can't use, this run (gemini.ModelPool.unavailable)."""
+        """Models Gemini said this key can't use, today (gemini.ModelPool.unavailable): every run of the day."""
         return sorted(self.pool.unavailable)
 
     def requests_this_run(self) -> dict[str, int]:

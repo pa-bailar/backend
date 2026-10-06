@@ -114,6 +114,28 @@ def test_a_model_this_key_cant_use_is_skipped_and_reported(pool, code):
     assert fake.calls == ["gemini-3.8-flash", "gemini-3.5-flash"]
 
 
+def test_a_model_this_key_cant_use_is_reported_by_every_run_of_the_day(pool):
+    """The day's later runs skip it as spent without asking: they report it too, or health's count of runs in a row
+    starts over with each and never warns (the bug-squash pass, 6 Oct 2026)."""
+    with_models(pool, {"gemini-3.8-flash": [client_error(404, "not found")], "gemini-3.5-flash": [ANSWER]})
+    pool.generate(["gemini-3.8-flash", "gemini-3.5-flash"], [], Triage)
+    evening = gemini.ModelPool("unused-key", client=FakeClient())  # the same quota day: the saved usage
+    fake = with_models(evening, {"gemini-3.5-flash": [ANSWER]})
+    evening.generate(["gemini-3.8-flash", "gemini-3.5-flash"], [], Triage)
+    assert fake.calls == ["gemini-3.5-flash"]  # not asked again today
+    assert evening.unavailable == {"gemini-3.8-flash"}
+
+
+def test_a_model_unavailable_yesterday_is_asked_again(pool, monkeypatch):
+    with_models(pool, {"gemini-3.8-flash": [client_error(404, "not found")], "gemini-3.5-flash": [ANSWER]})
+    pool.generate(["gemini-3.8-flash", "gemini-3.5-flash"], [], Triage)
+    monkeypatch.setattr(gemini, "quota_day", lambda: "2099-01-01")
+    tomorrow = gemini.ModelPool("unused-key", client=FakeClient())
+    fake = with_models(tomorrow, {"gemini-3.8-flash": [ANSWER]})
+    tomorrow.generate(["gemini-3.8-flash", "gemini-3.5-flash"], [], Triage)
+    assert fake.calls == ["gemini-3.8-flash"] and tomorrow.unavailable == set()
+
+
 def test_models_that_keep_failing_raise_a_plain_extraction_error(pool):
     bad = "not json"
     with_models(pool, {"gemini-3.8-flash": [bad, bad, bad]})
@@ -126,7 +148,7 @@ def test_usage_is_saved_and_counted_per_day(pool):
     with_models(pool, {"gemini-3.5-flash-lite": [ANSWER]})
     pool.generate(["gemini-3.5-flash-lite"], [], Triage)
     saved = gemini.storage.load_gemini_usage()
-    assert saved == {"day": gemini.quota_day(), "requests": {"gemini-3.5-flash-lite": 1}}
+    assert saved == {"day": gemini.quota_day(), "requests": {"gemini-3.5-flash-lite": 1}, "unavailable": []}
 
 
 def test_a_request_gemini_refuses_is_permanent_not_retried(pool):

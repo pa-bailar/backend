@@ -689,7 +689,10 @@ flowchart TD
 - **Budget:** each model's daily limit minus 2, kept free for manual runs and retries
   (`DAILY_BUDGET_MARGIN`).
 - **Shared across the day's runs:** usage is saved in `state/gemini_usage.json` with its quota day,
-  which is midnight to midnight Pacific time. So the 9:00 AM and 9:00 PM runs share one day's budget.
+  which is midnight to midnight Pacific time. So the 9:00 AM and 9:00 PM runs share one day's budget. So are the
+  models Gemini said the key can't use (403, 404) that day: the day's later runs skip them without asking, and still
+  report them, so the health check counts every run (until 6 Oct 2026 the second run reported none and the count of
+  runs in a row started over).
   `discover`, run on your computer, uses the same key but keeps its own count: it reads the sweeps' usage
   from the `sweep-state` branch and always leaves them `DISCOVERY_LEAVES_FOR_SWEEPS` (250) Flash-Lite
   requests (section 12.1).
@@ -978,7 +981,7 @@ memory between runs; the site never sees it.
 |---|---|---|
 | `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha`, `fuera de Bogotá`, `ya pasó` or `cancelado`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined. Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
 | `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post`, and `unreadable` (post id → runs on which no model gave valid JSON for it, section 7.2) | Whether the account still gets the deeper first sweep, and when its next turn is |
-| `gemini_usage.json` | Today's quota day (Pacific) and requests per model | The day's runs share the daily budgets |
+| `gemini_usage.json` | Today's quota day (Pacific), requests per model, and the models not available to the key today | The day's runs share the daily budgets |
 | `external_usage.json` | The last resort's day (UTC) and, per provider, requests, tokens and the answers per model | The day's runs share Groq's and OpenRouter's budgets (section 7.3) |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
 | `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load. Adding one of its posts by hand publishes it again (ADMIN.md, "Ocultar evento") |
