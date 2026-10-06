@@ -38,6 +38,7 @@ node media/site-checks/run.mjs --help        the scenarios and what each covers
 | `walk` | desktop | ↓ through the whole list: each period's button is reached, Enter opens it with the focus on its first new event, the walk ends on the last card, the focus never leaves the screen; back folds a period again |
 | `panel` | desktop | The side panel and the image beside it: the panel follows the card clicked or focused, its buttons stay usable, → moves both, Escape, × and back close both, the list stays where it was |
 | `stage` | desktop | ← → through an event's photos then the next event (← back: its last photo); from the details, every period's block opens on the way down; Escape, back, forward and a reload after a block opened that way |
+| `tab` | desktop | Tab: the list is one stop (the selected card): from the toolbar onto it, through its own controls, into the open side panel, out of the list past every other card; the arrows move the selection; Shift+Tab from the panel's start back to the card it shows |
 
 The scenarios find what they need in today's data (the first card with a carousel, the first folded period…) and
 skip a part, saying why, when the data has none.
