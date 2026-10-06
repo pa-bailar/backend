@@ -85,20 +85,31 @@ class ModelLimit:
     requests_per_day: int
 
 
+# The free tier's limits per model (AI Studio's rate-limit page, 6 Oct 2026): each model has its own daily quota.
 MODEL_LIMITS = {
     "gemini-3.8-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
+    "gemini-3.7-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
+    "gemini-3.6-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3.5-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
+    "gemini-3-flash-preview": ModelLimit(requests_per_minute=5, requests_per_day=20),
+    "gemini-2.5-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3.5-flash-lite": ModelLimit(requests_per_minute=15, requests_per_day=500),
+    "gemini-3.1-flash-lite": ModelLimit(requests_per_minute=15, requests_per_day=500),
 }
 # Lite-only mode (GEMINI_LITE_ONLY=1, a repository variable on CI): Flash-Lite also does extraction, as final
 # results, not provisional ones. For when Flash isn't available, e.g. if Google took it out of the free tier.
 LITE_ONLY = os.environ.get("GEMINI_LITE_ONLY", "").strip() == "1"
-# Each model has its own quota. Roles:
-TRIAGE_MODELS = ("gemini-3.5-flash-lite",)  # cheap yes/no: does the post announce an event?
-# Full details, best quality.
-EXTRACTION_MODELS = ("gemini-3.5-flash-lite",) if LITE_ONLY else ("gemini-3.8-flash", "gemini-3.5-flash")
-# When Flash is out: saved, then upgraded on a later run (none in lite-only mode).
-PROVISIONAL_MODELS: tuple[str, ...] = () if LITE_ONLY else ("gemini-3.5-flash-lite",)
+# Each model has its own quota, so each role takes several, in order (the owner, 6 Oct 2026: Flash's 40 a day were
+# the binding limit while 3.7 and 3.6 Flash and a second Flash-Lite sat unused). Roles:
+LITE_MODELS = ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite")
+TRIAGE_MODELS = LITE_MODELS  # cheap yes/no: does the post announce an event?
+# Full details, best quality: Flash of this generation (80 a day). Lite-only mode: Flash-Lite, as final results.
+EXTRACTION_MODELS = (
+    LITE_MODELS if LITE_ONLY else ("gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash")
+)
+# When those are out: saved, then upgraded on a later run (none in lite-only mode). An older Flash first (its reads
+# weren't compared with this generation's yet: a 6 Oct bake-off met Google's overload), then Flash-Lite.
+PROVISIONAL_MODELS: tuple[str, ...] = () if LITE_ONLY else ("gemini-3-flash-preview", *LITE_MODELS)
 DAILY_BUDGET_MARGIN = 2  # requests kept unused per model, for manual runs and retries
 # A post no model gives valid JSON for (gemini.UnreadableAnswerError) is retried on this many runs, then recorded as
 # rejected: each run spends Flash's small quota on it.

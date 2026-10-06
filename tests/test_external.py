@@ -60,13 +60,17 @@ class FakeAPI:
 
 @pytest.fixture(autouse=True)
 def fixed_models(monkeypatch):
-    """The tests' own model lists, so changing config.EXTERNAL_PROVIDERS's models (free models come and go) doesn't
-    change them: OpenRouter with a structured model then a JSON-mode one."""
+    """The tests' own model lists, so changing config.EXTERNAL_PROVIDERS's models (free models come and go) or the
+    Gemini roles' models doesn't change them: OpenRouter with a structured model then a JSON-mode one; two Flash for
+    extraction, one Flash-Lite for the triage and provisional reads."""
     groq, openrouter = config.EXTERNAL_PROVIDERS
     pinned = openrouter.__class__(
         **{**openrouter.__dict__, "models": (config.ExternalModel(QWEN, structured=True), config.ExternalModel(GEMMA))}
     )
     monkeypatch.setattr(config, "EXTERNAL_PROVIDERS", (groq, pinned))
+    monkeypatch.setattr(config, "TRIAGE_MODELS", ("gemini-3.5-flash-lite",))
+    monkeypatch.setattr(config, "EXTRACTION_MODELS", ("gemini-3.8-flash", "gemini-3.5-flash"))
+    monkeypatch.setattr(config, "PROVISIONAL_MODELS", ("gemini-3.5-flash-lite",))
 
 
 @pytest.fixture
