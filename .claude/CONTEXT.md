@@ -35,7 +35,7 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
 
 | Piece | Where |
 |---|---|
-| Backend (private) | `pa-bailar` → `pa-bailar/backend`. Python 3.12, `python -m pa_bailar sweep\|discover\|admin\|refresh-token` (`.venv/Scripts/python`) |
+| Backend (public) | `pa-bailar` → `pa-bailar/backend`. Python 3.12, `python -m pa_bailar sweep\|discover\|admin\|refresh-token` (`.venv/Scripts/python`) |
 | Site (public) | `pa-bailar-web` → `pa-bailar/pa-bailar.github.io`. Astro + vanilla TypeScript in `frontend/`, the data in `data/`. https://pa-bailar.github.io (`/`, `/calendario/`, `/guardados/`, `/evento/<id>/`) |
 | Images (public) | `pa-bailar/media`, cloned locally as `Code/pa-bailar-images`: the flyers, clips and the archive's small flyers. The site repository ignores `data/flyers/` and `data/previews/` (backend ARCHITECTURE §10.2) |
 | PB Admin | Cloudflare Worker from backend `admin-web/`, https://pa-bailar-admin.jzamorac-9.workers.dev (deploys on every push to the backend's `main`) |
@@ -113,10 +113,9 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
   (the owner, 6 Oct 2026). For videos, `media/tools/capture.mjs` (`openPhone({ now, theme })`). Preview servers through `Code/.claude/launch.json` and the
   `preview_start` tool, not Bash. `astro preview` refuses a second instance ("already running": reuse its port).
 - **GitHub Actions:** a job cancelled after ~15 min with no steps run is GitHub not assigning a runner (incidents
-  happen), not a failure of ours: re-run it. The backend is private: 2,000 minutes a month, and they run short (memory
-  `backend-visibility-and-minutes`: the billing API gives the real numbers). Batch backend changes into fewer PRs
-  (every PR runs `ci`: a ruleset on `main` requires it, so a path filter would leave a PR unmergeable). The site
-  repository is public: free.
+  happen), not a failure of ours: re-run it. Both repositories are public (the backend since 6 Oct 2026): Actions
+  minutes are free. A ruleset on `main` requires `ci`, so `ci.yml` has no path filter (a skipped required check
+  leaves a PR unmergeable). Public means every push is public: never a key in a commit.
 - **WebKit (Safari's engine) in Playwright** is installed with the toolkit: use it for Safari checks. It isn't iOS
   (no real keyboard, toolbar or home-screen app). A screenshot injects a style the site's CSP refuses: those console
   errors are the test's, not the site's.
