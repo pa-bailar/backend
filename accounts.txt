@@ -72,6 +72,8 @@ bachatasocialcongresss
 bailarito
 elparche.se
 bogotadanceclub
+# Crema de Ajiaco: a salsa event organizer in Bogotá (discovery, 6 Oct 2026).
+cremadeajiaco
 # Parche X Bogotá: a general agenda of plans in Bogotá (concerts, food, culture) that also posts dance events
 # (the owner, 5 Oct 2026). Only its posts naming these styles are read (`solo:`, free filter before Gemini).
 parchexbogota  solo:salsa,bachata,merengue,kizomba,tango
@@ -182,6 +184,7 @@ acaparchamos         bar solo:salsa,bachata  # Bar and event venue in Chapinero:
 lamecanica_original  bar solo:salsa,bachata  # Cultural center, stage and bar (Cra 25 # 63f-21): concerts and salsa parties
 aseismanos           bar solo:salsa,bachata  # Bar and cultural center: events, concerts and dance classes
 mundanobaroficial    bar solo:salsa,bachata  # Bar with live music, food and occasional dance classes and events
+meetinghousebogota   bar solo:salsa,bachata  # Bar and gastropub with live music and salsa parties (discovery, 6 Oct 2026)
 
 # ---------------------------------------------------------------------------------------------------
 # Other bars and clubs: NOT swept (every line below is a comment). The swept bars are above; to sweep one of
@@ -208,3 +211,12 @@ mundanobaroficial    bar solo:salsa,bachata  # Bar with live music, food and occ
 # xicalactica
 # Also not swept for now: pinochoconciertos (says it organizes salsa events and festivals, but the name points
 # to concerts: check its posts first); karenyricardo (world-class couple touring with workshops).
+# Discovery, 6 Oct 2026, city not stated: _giafu (salsa DJ and curator, plays abroad), pablopueblo.co (salsa
+# selector: talks and dance nights), valeequiceno (Bogotá teacher and choreographer, but no partner dance named);
+# johnnyvazquez_official (touring star: his Bogotá workshops come through local organizers).
+# Not dance events (discovery, 6 Oct 2026; listed so the next discovery doesn't suggest them again): auditoriosff,
+# lasala.dc, eneldelia (theaters), filarmonibogota, musica.celta.bog, laresena.oficial (other music),
+# thewhitecastleworld, radioestrella.bog (electronic music), gringotuesdays, viajero.bogota (traveler parties),
+# bemol.pianobar, trementinapub, elbourbon_cafe, sanmiguel_casa, smoking_molly_ (music bars without salsa
+# nights), pavlepopovic204, themamboguild (online classes), l.fernando.espana.e (Fernando España's own account:
+# fernandoespanadj is swept).
