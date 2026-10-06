@@ -346,8 +346,12 @@ def normalize_event(event: ExtractedEvent) -> ExtractedEvent:
     )
 
 
-# A dancers' social, said in words: a bar's night that says so stays a social.
-_SOCIAL_WORD = re.compile(r"\bsociale?s?\b")
+# A dancers' social, said in words: a bar's night that says so stays a social. Not the word's other uses, common in
+# captions: "redes sociales", a "... Social Club" (a bar's own name), "causa/obra/labor/proyecto social"...
+_SOCIAL_WORD = re.compile(
+    r"(?<!redes )(?<!causa )(?<!obra )(?<!labor )(?<!proyecto )(?<!impacto )(?<!responsabilidad )"
+    r"\bsociale?s?\b(?! club)"
+)
 
 
 def party_at_a_bar(event_type: EventType, text: str) -> EventType:

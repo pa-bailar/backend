@@ -188,6 +188,11 @@ def test_the_party_rule_keeps_socials_announced_as_such_and_other_types():
     assert party_at_a_bar("social", "Halloween en el bar · DJ invitado") == "party"
     assert party_at_a_bar("social", "Gran SOCIAL de bachata con la academia") == "social"
     assert party_at_a_bar("social", "Sociales de salsa todos invitados") == "social"
+    # The word's other uses don't make a bar's night a social (bug-squash, 6 Oct 2026).
+    assert party_at_a_bar("social", "Halloween con DJ · síguenos en nuestras redes sociales") == "party"
+    assert party_at_a_bar("social", "Noche de Halloween en Sonora Social Club") == "party"
+    assert party_at_a_bar("social", "Aniversario del bar por una causa social") == "party"
+    assert party_at_a_bar("social", "Social de bachata · síguenos en redes sociales") == "social"
     assert party_at_a_bar("concert", "Orquesta en vivo") == "concert"
     assert party_at_a_bar("workshop", "Taller con invitado") == "workshop"
 
