@@ -27,10 +27,10 @@ def bogota(day: int, hour: int, minute: int = 0) -> datetime:
 @pytest.mark.parametrize(
     ("now", "later"),
     [
-        (bogota(6, 9, 5), 1),  # the morning sweep: the evening's is the same Pacific day
-        (bogota(6, 8, 30), 1),  # started a bit early: it's still the 9:00 one, not a later one
+        (bogota(6, 6, 35), 1),  # the morning sweep: the evening's is the same Pacific day
+        (bogota(6, 6, 0), 1),  # started a bit early: it's still the 6:30 one, not a later one
         (bogota(6, 13), 1),  # a manual run at midday leaves the evening its share
-        (bogota(6, 21, 5), 0),  # the evening sweep: the next one (9:00) is the next Pacific day
+        (bogota(6, 21, 5), 0),  # the evening sweep: the next one (6:30) is the next Pacific day
         (bogota(6, 2), 2),  # past Pacific midnight (2:00 Bogotá): both of today's sweeps are to come
     ],
 )

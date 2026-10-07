@@ -110,7 +110,7 @@ For each suspect, in order of likely harm (what visitors see, what corrupts data
 ## 6. Ship and report
 
 Ship the usual way (WORKSPACE.md): checks green, commit, `sync-docs`, push, the PR in its own command, merge only
-when every check passes (sweep or workflow changes outside the sweep windows: 8:30–9:45 and 20:30–21:45 Bogotá,
+when every check passes (sweep or workflow changes outside the sweep windows: 6:00–7:15 and 20:30–21:45 Bogotá,
 the time from `node`, not `TZ=… date`), then check the live site after a deploy.
 
 Report to the owner, short: the bugs fixed (symptom → cause → guard), the suspects not reproduced, and the risky

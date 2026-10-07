@@ -40,7 +40,7 @@ Pa' Bailar has no server. Everything runs on free services:
 ```mermaid
 flowchart LR
     subgraph Outside["Outside services"]
-        CJ["cron-job.org<br/>9:00 AM and 9:00 PM Bogotá"]
+        CJ["cron-job.org<br/>6:30 AM and 9:00 PM Bogotá"]
         IG["Instagram Graph API<br/>(Meta, Business Discovery)"]
         GM["Gemini API<br/>(Google AI Studio)"]
         HC["healthchecks.io"]
@@ -170,9 +170,9 @@ Every service the system depends on. All of them are on free plans.
 
 | | |
 |---|---|
-| **What for** | Starting the sweep at fixed times: **9:00 AM and 9:00 PM, Bogotá time**, 12 hours apart |
+| **What for** | Starting the sweep at fixed times: **6:30 AM and 9:00 PM, Bogotá time** (`config.SWEEP_TIMES`, which they must match). Until 7 Oct 2026 the morning run was at 9:00, where Google's Flash refused 97% of weekday requests as busy (the owner moved it, from the logs of 29 runs) |
 | **Why not GitHub's own `schedule`** | It never fired in this repository. That's a known, undocumented problem of new private repositories, with no fix from GitHub, and community reports describe runs delayed by hours or dropped. The workflow has **no `schedule:` trigger** on purpose: if GitHub's scheduler started working, every run would happen twice |
-| **The two jobs** | `pa-bailar sweep 9:00` and `pa-bailar sweep 21:00`, time zone America/Bogota |
+| **The two jobs** | `pa-bailar sweep 6:30` and `pa-bailar sweep 21:00`, time zone America/Bogota |
 | **The request** | `POST https://api.github.com/repos/pa-bailar/backend/actions/workflows/daily-sweep.yml/dispatches`, with body `{"ref":"main"}` and headers `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json` and `Authorization: Bearer <token>`. GitHub answers `204 No Content` |
 | **Token** | A **fine-grained personal access token**, owned by the `pa-bailar` organization, limited to this repository and to **Actions: read and write**. It can start and cancel runs; it can't read the code or the secrets. Stored only in cron-job.org |
 | **Cost** | Free |
@@ -184,7 +184,7 @@ Every service the system depends on. All of them are on free plans.
 |---|---|
 | **What for** | A dead man's switch: it emails when a sweep **fails**, or when **no sweep arrives** in time, which is the case GitHub itself never reports |
 | **How** | The workflow's last step always runs. It pings `HEALTHCHECK_URL` on success, or `HEALTHCHECK_URL/fail` on failure, with the run's health report as the body, so the report shows in the check's event log |
-| **Schedule** | **Period 12 hours, grace 2 hours:** the runs are 12 hours apart, so a single missed run is noticed within about 14 hours |
+| **Schedule** | **Period 15 hours, grace 2 hours:** the runs are 14.5 and 9.5 hours apart (6:30 and 21:00), so a single missed run is noticed within about 17 hours (12 hours until the morning run moved, 7 Oct 2026) |
 | **Cost** | Free |
 
 ### 3.6 Cloudflare Workers
@@ -693,7 +693,7 @@ flowchart TD
 - **Budget:** each model's daily limit minus 2, kept free for manual runs and retries
   (`DAILY_BUDGET_MARGIN`).
 - **Shared across the day's runs:** usage is saved in `state/gemini_usage.json` with its quota day,
-  which is midnight to midnight Pacific time. So the 9:00 AM and 9:00 PM runs share one day's budget. So are the
+  which is midnight to midnight Pacific time. So the 6:30 AM and 9:00 PM runs share one day's budget. So are the
   models Gemini said the key can't use (403, 404) that day: the day's later runs skip them without asking, and still
   report them, so the health check counts every run (until 6 Oct 2026 the second run reported none and the count of
   runs in a row started over).
@@ -1285,7 +1285,7 @@ day, quiet ones less often: section 5, "Whose turn it is"):
 | Gemini Flash-Lite (two models) | 500 / day each (996 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
-| Gemini Flash (four for extraction, one older for provisional reads) | 20 / day each (72 usable for extraction, 18 more provisional) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read by Flash-Lite (provisional) | The binding limit, but it loses no events: the overflow is read by Flash-Lite and shown. Both sweeps share one quota day (midnight Pacific), so a sweep leaves the later ones their share (`later_sweeps_in_quota_day`: the 9:00 one keeps half for 21:00), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end |
+| Gemini Flash (four for extraction, one older for provisional reads) | 20 / day each (72 usable for extraction, 18 more provisional) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read by Flash-Lite (provisional) | The binding limit, but it loses no events: the overflow is read by Flash-Lite and shown. Both sweeps share one quota day (midnight Pacific), so a sweep leaves the later ones their share (`later_sweeps_in_quota_day`: the 6:30 one keeps half for 21:00), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end |
 | GitHub Actions minutes (backend, public since 6 Oct 2026) | Unlimited | 15–30 min (measured 6 Oct 2026: Gemini's pacing and busy retries, Instagram; no longer waiting for the data PR, #124) | ~35–50 | Free. Before (private: 2,000 a month), about 1,100–1,500 a month went to the sweeps, plus ci on pull requests |
 | GitHub Actions minutes (public site repository) | Unlimited | ci + deploy, ~2 min | | |
 | cron-job.org | Unlimited jobs | 1 call | 2 | |
