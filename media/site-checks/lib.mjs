@@ -186,7 +186,11 @@ export async function forward(page) {
 }
 
 /** The visible view's cards (Locator). */
-export const cards = (page) => page.locator('[role="tabpanel"]:not([hidden]) [data-event-card]');
+/** The view on screen (Próximos, Calendario, Guardados): the other views keep their old cards, hidden. */
+const VIEW = '[role="tabpanel"]:not([hidden])';
+export const cards = (page) => page.locator(`${VIEW} [data-event-card]`);
+/** The id of the card a snapshot's focus is on (`card:<id>`), or null. */
+export const focusedCardId = (s) => (s.focus.startsWith("card:") ? s.focus.slice(5) : null);
 
 /**
  * The page's state in one compact object: what a check usually needs. Falsy parts are left out of `fmt()`.
@@ -251,8 +255,8 @@ export async function shot(page, name) {
 }
 
 /**
- * The command line shared by run.mjs and probe.mjs: --live, --url <u>, --engine a,b, --device a,b, --theme a,b,
- * --now <iso>, --shots, --verbose, --fresh, and `extra` options (node:util parseArgs' format).
+ * The command line shared by run.mjs and probe.mjs: --live, --url <u>, --engine a,b, --device a,b, --size WxH,
+ * --theme a,b, --now <iso>, --shots, --verbose, --fresh, and `extra` options (node:util parseArgs' format).
  */
 export function cli(extra = {}) {
   const { values, positionals } = parseArgs({
@@ -291,12 +295,11 @@ export function cli(extra = {}) {
 
 // ---------- the record: checks, skips and the step log of one run ----------
 
-let active; // the latest recorder
 const text = (v) => (typeof v === "string" ? v : v && "url" in v && "y" in v ? fmt(v) : JSON.stringify(v));
 
 /**
  * A run's record and its functions, bound to it (a scenario stopped by the timeout can't write into the next run's).
- * `echo` prints each step as it happens (--verbose, probe). The module's `check`, `skip` and `log` use the latest one.
+ * `echo` prints each step as it happens (--verbose, probe).
  */
 export function recorder({ echo = false } = {}) {
   const result = { checks: 0, fails: [], skips: [], logs: [] };
@@ -322,13 +325,8 @@ export function recorder({ echo = false } = {}) {
       r.log(`SKIP ${label}`, reason);
     },
   };
-  active = r;
   return r;
 }
-active = recorder({ echo: true });
-export const log = (label, value) => active.log(label, value);
-export const check = (label, condition, details) => active.check(label, condition, details);
-export const skip = (label, reason) => active.skip(label, reason);
 
 /** Thrown to skip a whole scenario on this device or engine (e.g. the side panel on a phone). */
 export class Skip extends Error {}

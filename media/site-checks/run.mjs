@@ -3,7 +3,8 @@
 // failure. Local only: never in GitHub Actions (the owner, 6 Oct 2026).
 //
 //   node media/site-checks/run.mjs [scenario…|all] [--live | --url <u>] [--engine chrome,webkit]
-//     [--device desktop,phone,iphone] [--theme light,dark] [--now <iso>] [--shots] [--verbose]
+//     [--device desktop,phone,iphone] [--size 1100x800] [--theme light,dark] [--now <iso>] [--fresh] [--shots]
+//     [--verbose]
 //
 // Defaults: the local preview (http://localhost:4322/), chrome, each scenario's own devices, light.
 import { readdir } from "node:fs/promises";
@@ -22,7 +23,7 @@ for (const file of (await readdir(path.join(HERE, "scenarios"))).filter((f) => f
 const args = lib.cli();
 if (args.help) {
   console.log(
-    "usage: run.mjs [scenario…|all] [--live|--url u] [--engine e,…] [--device d,…] [--theme t,…] [--now iso] [--shots] [--verbose]",
+    "usage: run.mjs [scenario…|all] [--live|--url u] [--engine e,…] [--device d,…] [--size WxH] [--theme t,…] [--now iso] [--fresh] [--shots] [--verbose]",
   );
   for (const s of scenarios) console.log(`  ${s.name.padEnd(12)} [${s.devices.join(",")}] ${s.summary}`);
   process.exit(0);
@@ -48,7 +49,15 @@ for (const scenario of scenarios.filter((s) => !names.length || names.includes(s
         let skipped = null;
         let timer;
         try {
-          session = await lib.open({ engine, device, theme, base: args.base, now: args.now, size: args.size });
+          session = await lib.open({
+            engine,
+            device,
+            theme,
+            base: args.base,
+            now: args.now,
+            size: args.size,
+            fresh: args.fresh,
+          });
           const { page } = session;
           const ctx = {
             page,

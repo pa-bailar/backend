@@ -1,7 +1,7 @@
 // The desktop's side panel and the image beside it (6 Oct): the panel follows the card clicked or focused, the image
 // opens beside it with the panel still usable, → moves both to the next event, Escape, × and back close both, and the
 // list stays where it was.
-import { Skip } from "../lib.mjs";
+import { Skip, focusedCardId } from "../lib.mjs";
 
 /** The open details' title and the image stage's alt text (it names the event). */
 const shown = (page) =>
@@ -13,7 +13,6 @@ const shown = (page) =>
     alt: document.getElementById("lightbox")?.open ? (document.getElementById("lightbox-image")?.alt ?? "") : "",
   }));
 const sameEvent = ({ title, alt }) => title && alt && alt.toLowerCase().includes(title.slice(0, 12).toLowerCase());
-const cardId = (s) => (s.focus.startsWith("card:") ? s.focus.slice(5) : null);
 
 export default {
   name: "panel",
@@ -67,7 +66,7 @@ export default {
     await cards.nth(1).locator("a.event-card__hit").focus();
     await ctx.key("ArrowRight");
     const e = await ctx.step("panel open, → on the list");
-    check("the panel follows the focus", e.drawer && e.drawer === cardId(e) && e.drawer !== (await id(1)), e);
+    check("the panel follows the focus", e.drawer && e.drawer === focusedCardId(e) && e.drawer !== (await id(1)), e);
 
     // The focus lost by a click on the panel's text: ↓ goes on from the panel's event
     await page.locator("#event-drawer[open] #drawer-title, #event-drawer[open] .event-detail__title").first().click();

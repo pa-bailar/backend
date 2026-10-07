@@ -3,8 +3,8 @@
 Browser checks of the public site (https://pa-bailar.github.io, the `pa-bailar-web` repository), run by Claude on this
 machine to verify a change or chase a bug cheaply: real browsers, a few terse lines of output, no throwaway scripts.
 
-**Local only, never in CI** (the owner, 6 Oct 2026): no workflow runs them, and `media-ci.yml` and `ci.yml` ignore
-changes to this folder, so they cost no Actions minutes. No dependencies of their own: they use the toolkit's
+**Local only, never in CI** (the owner, 6 Oct 2026): no workflow runs them (`media-ci.yml` ignores changes to this
+folder; `ci.yml`, which `main` requires, checks the backend only). No dependencies of their own: they use the toolkit's
 `playwright-core` (`cd media && npm ci`) with the installed Chrome (`channel: "chrome"`) and Playwright's WebKit.
 
 ## Run the scenarios
