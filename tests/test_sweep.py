@@ -259,6 +259,39 @@ def test_provisional_extraction_is_upgraded_when_flash_is_back():
     assert events[0]["id"] == event_id("Leído por Lite")  # the URL shared meanwhile keeps working
 
 
+def test_flash_corrects_an_event_only_lighter_models_read_even_when_two_posts_announce_it():
+    """@elgocepagano posted its October calendar twice; Flash-Lite titled every night "Salsoteca DC - …" (the act of
+    one night). A title keeps its first value (merge_into), so Flash re-reading either post merged into the other's
+    event and kept the wrong title (the weekend check, 7 Oct 2026). Now Flash's details win while every other post of
+    the event was read by a lighter model."""
+    instagram = FakeInstagram({"academia": [post("flyer", days_ago=3), post("reel", "VIDEO", days_ago=2)], "otra": []})
+    wrong = {"title": "Salsoteca DC - Acere", "venue": None}
+    run(instagram, FakeExtractor({p: event_post(p, **wrong) for p in ("flyer", "reel")}, flash_available=False))
+    events = read(config.EVENTS_FILE)
+    assert len(events) == 1 and events[0]["title"] == "Salsoteca DC - Acere"
+
+    right = {"title": "Acere", "venue": "El Goce Pagano"}
+    stats = run(instagram, FakeExtractor({p: event_post(p, **right) for p in ("flyer", "reel")}))
+    assert stats.upgraded == 2
+    events = read(config.EVENTS_FILE)
+    assert len(events) == 1 and (events[0]["title"], events[0]["venue"]) == ("Acere", "El Goce Pagano")
+    assert events[0]["id"] == event_id("Salsoteca DC - Acere")  # the URL shared meanwhile keeps working
+
+
+def test_a_flash_read_keeps_its_title_when_flash_upgrades_a_reminder_of_the_same_event():
+    """The first known title stays when it came from Flash: a reminder's caption doesn't rename the flyer's event."""
+    flyer = post("flyer", days_ago=3)
+    run(FakeInstagram({"academia": [flyer], "otra": []}), FakeExtractor({"flyer": event_post("flyer", title="Social")}))
+    instagram = FakeInstagram({"academia": [post("reminder", days_ago=1), flyer], "otra": []})
+    reminder = event_post("reminder", title="¡Este sábado!", same_as=event_id("Social"))
+    run(instagram, FakeExtractor({"reminder": reminder}, flash_available=False))
+
+    stats = run(instagram, FakeExtractor({"reminder": reminder}))
+    assert stats.upgraded == 1
+    events = read(config.EVENTS_FILE)
+    assert len(events) == 1 and events[0]["title"] == "Social"
+
+
 class BreaksOnUpgrade(FakeExtractor):
     """An unexpected error re-reading a provisional post with Flash (e.g. a malformed answer)."""
 

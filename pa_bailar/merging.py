@@ -180,21 +180,29 @@ def _share_title(a: EventDetails, b: EventDetails, across_accounts: bool = False
 
 def _names_account(event: EventDetails, account: str) -> bool:
     """Whether the event names this account: its organizer, venue or contact is the account (or the account's
-    name starts with it, 'Bachatamanía' for @bachatamania_bogota), or the title names it."""
+    name starts with it, 'Bachatamanía' for @bachatamania_bogota), or the title names it, in one word or in two or
+    three in a row ("DJ set Salsa Culto" names @salsaculto: @elgocepagano's calendar, 7 Oct 2026)."""
     handle = _key(account)
     names = [_key(event.organizer), _key(event.venue), _key(event.contact)]
     if any(len(name) >= 5 and (handle.startswith(name) or name.startswith(handle)) for name in names):
         return True
     words = title_words(event.title, across_accounts=True)
-    return any(len(word) >= 5 and handle.startswith(_key(word)) for word in words)
+    if any(len(word) >= 5 and handle.startswith(_key(word)) for word in words):
+        return True
+    every = "".join(char if char.isalnum() else " " for char in fold(event.title)).split()
+    runs = {"".join(every[start:end]) for start in range(len(every)) for end in range(start + 2, start + 4)}
+    return any(len(run) >= 8 and handle.startswith(run) for run in runs)
 
 
 def looks_like_shared_event(stored: StoredEvent, account: str, candidate: EventDetails) -> bool:
     """Rule-based match across accounts (an organizer and its venue, or two collaborators, each posting the
     flyer): a day in common, no clash in start time (compared between one-day events only) or venue, and one of
-      - one event names the other's account, plus the same start time or a title word in common;
+      - one event names the other's account, plus the same start time, a title word in common, or (one-day
+        events) the same venue;
       - the same venue (both known), plus the same start time and a title word in common, or two or more
-        distinctive title words in common, kinds of events aside ("Level Up … Fusion Congress").
+        distinctive title words in common, kinds of events aside ("Level Up … Fusion Congress"), or counting
+        them as long as one word in common isn't one ("Tour de la Salsa — Capítulo 001" and "Primer capítulo del
+        Tour de la Salsa", the second without a time: 7 Oct 2026).
     Titles alone never merge two accounts' events: "Halloween Party" or "Festival … 2026" may be two events.
     """
     if stored.account == account or not _overlap(stored, candidate):
@@ -209,10 +217,14 @@ def looks_like_shared_event(stored: StoredEvent, account: str, candidate: EventD
     # With an account named or the same venue and time, any title word in common will do ("Halloween").
     shared = title_words(stored.title) & title_words(candidate.title)
     if _names_account(stored, account) or _names_account(candidate, stored.account):
-        return same_time or bool(shared)
+        return same_time or bool(shared) or (one_day and all(venues))
     if not all(venues):  # without the same venue, titles alone don't tie two accounts' posts together
         return False
-    return (same_time and bool(shared)) or _share_title(stored, candidate, across_accounts=True)
+    if same_time and shared:
+        return True
+    return _share_title(stored, candidate, across_accounts=True) or (
+        _share_title(stored, candidate) and bool(shared - _EVENT_WORDS)
+    )
 
 
 def find_existing(
@@ -274,7 +286,9 @@ def matches_hidden(hidden: StoredEvent, account: str, candidate: ExtractedEvent,
     return looks_like_same_event(hidden, account, candidate) or looks_like_shared_event(hidden, account, candidate)
 
 
-def merge_into(stored: StoredEvent, candidate: EventDetails, media: EventMedia) -> StoredEvent:
+def merge_into(
+    stored: StoredEvent, candidate: EventDetails, media: EventMedia, correcting: bool = False
+) -> StoredEvent:
     """Add a post to an existing event: fill in what it was missing, and take dates, times and prices from
     the post if it's the newest one announcing the event (an older post re-analyzed never overrides). A post
     about one day of an event over several days (no range of its own, a day within the event's) leaves its
@@ -282,16 +296,20 @@ def merge_into(stored: StoredEvent, candidate: EventDetails, media: EventMedia) 
 
     The first and last day go together: the newest post's days replace both (one day, as posted, drops the
     old last day), and an older post only gives a missing last day to an event that starts the same day. Styles the
-    safeguards guessed are replaced by the ones a model read (_styles_and_doubts)."""
+    safeguards guessed are replaced by the ones a model read (_styles_and_doubts).
+
+    `correcting`: Flash re-reading a post of an event that only lighter models read so far (Sweep._add_event): what
+    it read replaces what they did, title included, as if it were the newest post."""
     others = [m for m in stored.media if m.post_id != media.post_id]
-    is_newest = all(media.published >= other.published for other in others)
+    is_newest = correcting or all(media.published >= other.published for other in others)
     one_of_its_days = _multi_day(stored) and not _multi_day(candidate) and _overlap(stored, candidate)
     updates: dict[str, object] = {}
     for field in _DETAIL_FIELDS:
         current, new = getattr(stored, field), getattr(candidate, field)
         if field in _DAY_FIELDS or new in _EMPTY or (one_of_its_days and field in _RANGE_FIELDS):
             continue
-        if current in _EMPTY or (is_newest and field in _UPDATABLE_FIELDS and new != current):
+        updatable = correcting or field in _UPDATABLE_FIELDS
+        if current in _EMPTY or (is_newest and updatable and new != current):
             updates[field] = new
     if candidate.date and not one_of_its_days:
         if is_newest or not stored.date:

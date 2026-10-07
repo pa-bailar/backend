@@ -284,7 +284,16 @@ class SweepBase:
         if not publishable:
             log.info("     skipped: %s", analysis.reason)
         added = [
-            self._add_event(account, post, candidate, media_for(post, flyer), reusable, count=count_as_new, light=light)
+            self._add_event(
+                account,
+                post,
+                candidate,
+                media_for(post, flyer),
+                reusable,
+                count=count_as_new,
+                light=light,
+                announced=announced,
+            )
             for candidate, flyer in zip(publishable, flyers, strict=True)
         ]
         results = [result for result in added if result]
@@ -363,12 +372,14 @@ class SweepBase:
         reusable: list[StoredEvent],
         count: bool = True,
         light: bool = False,
+        announced: frozenset[str] | set[str] = frozenset(),
     ) -> tuple[str, bool] | None:
         """Merge into the same event from another post, or store it as a new event: (its id, merged?). None when
         it's an event hidden by hand (hide_event): left off the site, unless the post is added by hand.
 
         `count=False` for re-extractions (upgrades), which replace events instead of adding new ones. A reading by
-        Flash (not `light`) merged into an event settles a lighter model's several-events doubt (MULTI_DOUBT).
+        Flash (not `light`) merged into an event settles a lighter model's several-events doubt (MULTI_DOUBT), and
+        corrects an event this post announced before (`announced`) that only lighter models read (merge_into).
         """
         hidden = self._hidden_match(account, candidate, post["id"])
         if hidden and not self.by_hand:
@@ -383,7 +394,8 @@ class SweepBase:
             candidate = candidate.model_copy(update={"doubts": [*candidate.doubts, doubt]})
         existing = find_existing(self.events, account, candidate, post["id"])
         if existing:
-            merged = merge_into(existing, candidate, media)
+            correcting = not light and existing.id in announced and self._only_lighter_reads(existing)
+            merged = merge_into(existing, candidate, media, correcting=correcting)
             if not light and MULTI_DOUBT in merged.doubts:
                 merged = merged.model_copy(update={"doubts": [d for d in merged.doubts if d != MULTI_DOUBT]})
             self.events[self.events.index(existing)] = merged
@@ -400,6 +412,11 @@ class SweepBase:
             self.stats.count(account, "events_new")
         log.info("     event: %s %s | %s [%s]", _days(event), event.start_time or "", event.title, event.event_type)
         return event.id, False
+
+    def _only_lighter_reads(self, event: StoredEvent) -> bool:
+        """Whether every post or story the event stands on was read by a lighter model (provisional)."""
+        records = [self.processed.get(media.post_id) for media in event.media]
+        return all(record is not None and record.provisional for record in records)
 
     def _event_id(self, candidate: ExtractedEvent, reusable: list[StoredEvent]) -> str:
         """The id of the event this post announced before (same date first), else a new readable one."""
