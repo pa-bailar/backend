@@ -478,14 +478,19 @@ flowchart TD
     so marking or unmarking an account updates its stored events. Its nights are a `party` ("Rumba" on the site),
     not a `social` (the owner, 6 October 2026: a bar's party isn't a dancers' social): the prompt says so, and
     `normalize.party_at_a_bar` makes it a fixed rule, on new readings and on stored events at every run, unless
-    the title or a caption says "social" (an academy's social held at a bar stays one; not "redes sociales" or a
-    "… Social Club", common in captions). The answer schema's type description says the same as the prompt. Its first sweep is a
+    the title or a caption says "social", or names one by its other names, "milonga" (a tango social) or "práctica"
+    (an academy's social held at a bar stays one; not "redes sociales", "red social", a "… Social Club" or "Club
+    Social", or "eventos sociales", common in captions). The answer schema's type description says the same as the
+    prompt. Its first sweep is a
     regular one (10 posts, the lookback): a bar's older posts are past nights.
   - `solo:<styles>` (salsa, bachata, merengue, kizomba, tango): a general bar, club or cultural space that also
     holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`:
-    `normalize.TEXT_STYLE_WORDS` plus looser stems such as "salser", "bachat", accents and case ignored) is
-    recorded as no event for free, before any Gemini request ("no menciona salsa ni bachata"); the others get
-    `prompts.FOCUS_RULES` too. A caption edited later is checked again.
+    `normalize.TEXT_STYLE_WORDS` plus looser parts of words such as "salser", "salsotec", "sonero", "orquesta",
+    "bachat", "kiz", accents and case ignored) is recorded as no event for free, before any Gemini request ("no
+    menciona salsa ni bachata"); the others get `prompts.FOCUS_RULES` too. A caption edited later is checked
+    again, and so is a post the filter left out whenever it comes back in the window (`Sweep._filtered_before`,
+    free): words added to the lists reach the posts dropped before them (the audit of 7 Oct 2026 found "SALSOTECA",
+    "Fania", "soneros", "Bachazouk" and "Kiz night" posts dropped).
   - A post added by hand (`--post`, PB Admin) gets neither the filter nor the rules: whoever adds it wants it read
     as it is. Its record keeps `by_hand`, so its later reads (the provisional upgrade, an edited caption) skip them
     too.
@@ -530,7 +535,9 @@ flowchart TD
 
 **Cancellations:** a re-analyzed post "had events" when its record's outcome is `event` or `merged` (or, with
 no `outcome`, when Gemini called it an event post). When it had events and now has none, and its caption or
-Gemini's reason says they're cancelled or postponed ("CANCELADO", aplazado, pospuesto…; `pipeline/base.py`, `_says_cancelled`),
+Gemini's reason says they're cancelled or postponed ("CANCELADO", "se canceló", aplazado, pospuesto, reprogramado,
+postergado, "no habrá", "nueva fecha"…; not "se cancela" meaning "is paid", as in "la entrada se cancela en la puerta":
+`pipeline/base.py`, `_says_cancelled`),
 its own account's events leave the site even when other posts announce them too; another account's event
 stays, with low confidence and a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for
 review (section 11.1) (`Sweep._take_down_cancelled`).
@@ -581,10 +588,12 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
      every post Flash had read (20 posts, 35 events), Flash-Lite matched Flash on dates (26/26) but got styles
      wrong or missing on 7 of 26 events and mixed up times and prices in a post with three workshops. So:
      - an event that comes back with no styles gets the ones its title or caption names
-       (`normalize.styles_in_text`: the style list and its synonyms, longest first), else its account's usual
-       ones (`_usual_styles`: styles a model read on at least 80% of its 3+ stored events); otherwise the dance
-       filters would miss the event. The text leaves out synonyms captions use as plain words or names, which
-       gave wrong styles ("la mejor rumba salsera", "street food", "Casino Royal", "Mambo Cafe"…); the model's
+       (`normalize.styles_in_text`: the style list and its synonyms, longest first, with the words around a style
+       that captions use instead of its name: salsero, salsoteca, Fania, bachatero, perreo, afrobeats, milonga…),
+       else its account's usual ones (`_usual_styles`: styles a model read on at least 80% of its 3+ stored
+       events); otherwise the dance filters would miss the event. The text leaves out synonyms captions use as
+       plain words or names, which gave wrong styles ("la mejor rumba" isn't afro, "street food", "Casino
+       Royal", "Mambo Cafe"…); the model's
        own styles keep every synonym. One of several events in a post looks at its own title first, and takes
        the caption's styles only when they're all one family: a caption naming salsa and bachata doesn't say
        which event is which. Styles the model gave are never changed; guessed ones carry the doubt "estilos
@@ -859,7 +868,9 @@ flowchart TD
 - **The same account's event** (`looks_like_same_event`): between two one-day events, the same start time,
   or, when a time is missing, the same title or one title inside the other (`_same_title`: the shorter title's
   distinctive words all in the longer one, "Acere" and "Salsoteca DC - Acere"; not when the extra words name a
-  kind of event, "Social con Juan" and "Masterclass con Juan", nor with two different venues). Two month
+  kind of event, "Social con Juan" and "Masterclass con Juan", nor when the titles name different kinds,
+  "Social con Juan" and "Taller con Juan" (`_kinds`: night, class, practice, concert, competition, show; a party
+  and a social are one kind), nor with two different venues). Two month
   schedules of @elgocepagano listed every night twice before this (5 Oct 2026). When either lasts several days, the title decides (the same
   title, or distinctive title words in common, as below), never the start time alone: a festival weekend
   has several nights, and the same academy's social on one of them is another event.

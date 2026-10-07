@@ -861,6 +861,40 @@ def test_an_event_in_another_city_isnt_published_and_an_unknown_city_is_flagged(
 # ---------- a caption edited to "CANCELADO" (review finding) ----------
 
 
+@pytest.mark.parametrize(
+    "caption",
+    [
+        "CANCELADO",
+        "Se cancela el social de hoy",
+        "Se canceló el social de hoy por lluvia",
+        "Evento reprogramado para el 20",
+        "Lo postergamos: nueva fecha pronto",
+        "No habrá clase este jueves",
+        "Cancelación del taller",
+    ],
+)
+def test_a_caption_saying_the_event_is_off(caption):
+    from pa_bailar.pipeline.base import _says_cancelled
+
+    assert _says_cancelled({"caption": caption}, PostAnalysis(is_event_post=False, reason="", events=[]))
+
+
+@pytest.mark.parametrize(
+    "caption",
+    [
+        "La entrada se cancela en la puerta",
+        "El valor se cancela en efectivo al ingresar",
+        "La inscripción se cancela antes del taller",
+        "Cover: $20.000, se cancela por Nequi",
+    ],
+)
+def test_se_cancela_meaning_it_is_paid_doesnt_cancel(caption):
+    """In Colombia "cancelar" is also "to pay" (the audit of 7 Oct 2026)."""
+    from pa_bailar.pipeline.base import _says_cancelled
+
+    assert not _says_cancelled({"caption": caption}, PostAnalysis(is_event_post=False, reason="", events=[]))
+
+
 def cancel(post_dict: dict) -> dict:
     return {**post_dict, "caption": "CANCELADO: lo sentimos"}
 

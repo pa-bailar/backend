@@ -126,14 +126,39 @@ def _same_title(a: EventDetails, b: EventDetails) -> bool:
     """The same title, or one inside the other: the shorter title's distinctive words all in the longer one, which
     only adds a name around them ("Acere" and "Salsoteca DC - Acere": a venue's series before each night's act; two
     month schedules of @elgocepagano listed every night twice, 5 Oct 2026). Not when the extra words name a kind of
-    event ("Social con Juan" and "Masterclass con Juan" are two events) nor when both venues are known and differ."""
+    event ("Social con Juan" and "Masterclass con Juan" are two events), when the titles name different kinds ("Taller
+    con Juan": _kinds), nor when both venues are known and differ."""
     if fold(a.title) == fold(b.title):
         return True
     venues = _key(a.venue), _key(b.venue)
     if all(venues) and venues[0] != venues[1]:
         return False
+    kinds = _kinds(a.title), _kinds(b.title)
+    if all(kinds) and not kinds[0] & kinds[1]:
+        return False
     shorter, longer = sorted((title_words(a.title), title_words(b.title)), key=len)
     return bool(shorter) and shorter <= longer and not (longer - shorter) & _EVENT_WORDS
+
+
+# The kinds of event a title may name, in Spanish and English (folded). "Social con Juan" and "Taller con Juan" the
+# same day are two events, a workshop and the night's social; their kind words are common words (below), dropped
+# before comparing, so they looked the same (the audit of 7 Oct 2026). A party and a social are one kind: an academy's
+# "Fiesta" is its social.
+_KIND_WORDS = {
+    "night": ("social", "sociales", "fiesta", "fiestas", "party", "rumba", "rumbas", "milonga", "milongas"),
+    "class": ("taller", "talleres", "clase", "clases", "workshop", "workshops", "masterclass", "master", "curso"),
+    "practice": ("practica", "practicas"),
+    "concert": ("concierto", "conciertos", "recital"),
+    "competition": ("competencia", "competition", "campeonato", "concurso", "batalla", "battle", "torneo"),
+    "show": ("show", "gala", "muestra"),
+}
+_KIND_OF_WORD = {word: kind for kind, words in _KIND_WORDS.items() for word in words}
+
+
+def _kinds(title: str) -> set[str]:
+    """The kinds of event a title names ("Clase y social con Juan": class and night)."""
+    words = "".join(char if char.isalnum() else " " for char in fold(title)).split()
+    return {_KIND_OF_WORD[word] for word in words if word in _KIND_OF_WORD}
 
 
 # Words every dance event's title shares: they don't tell two events apart.

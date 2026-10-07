@@ -34,6 +34,8 @@ _STYLE_SYNONYMS = {
     "cubano": "salsa cubana",
     "estilo cubano": "salsa cubana",
     "salsa estilo cubano": "salsa cubana",
+    "salsa on 1": "salsa en línea",
+    "salsa on 2": "salsa en línea",
     # Salsa's other names (the owner, 5 Oct 2026): plain salsa.
     "pachanga": "salsa",
     "boogaloo": "salsa",
@@ -41,14 +43,30 @@ _STYLE_SYNONYMS = {
     "salsa brava": "salsa",
     "salsa dura": "salsa",
     "salsa choke": "salsa",
+    # The words around a style that a caption uses instead of its name (the owner, 7 Oct 2026: the Spanish synonyms
+    # of every word the code relies on; the audit that day found these named no style): a salsa night's "salsoteca",
+    # "Fania", "salsero"; "bachatero"; "perreo"; "milonga" is a tango social.
+    "salsero": "salsa",
+    "salsera": "salsa",
+    "salseros": "salsa",
+    "salseras": "salsa",
+    "salsoteca": "salsa",
+    "fania": "salsa",
     "calena": "salsa caleña",
     "salsa estilo caleno": "salsa caleña",
     "estilo caleno": "salsa caleña",
     "salsa cali": "salsa caleña",
+    "salsa estilo cali": "salsa caleña",
+    "estilo cali": "salsa caleña",
     "sensual": "bachata sensual",
     "bachata tradicional": "bachata dominicana",
     "bachata moderna": "bachata",
     "bachata fusion": "bachata",
+    "bachatero": "bachata",
+    "bachatera": "bachata",
+    "bachateros": "bachata",
+    "bachateras": "bachata",
+    "bachazouk": "bachata",
     "chachacha": "cha cha chá",
     "cha cha cha": "cha cha chá",
     "son cubano": "son",
@@ -57,12 +75,25 @@ _STYLE_SYNONYMS = {
     "reggaeton": "urbano",
     "regueton": "urbano",
     "hip hop": "urbano",
+    "perreo": "urbano",
+    "dembow": "urbano",
     "street": "urbano",
     "rumba": "afro",
     "rumba cubana": "afro",
     "guaguanco": "afro",
     "afrobeat": "afro",
     "afrohouse": "afro",
+    "afrobeats": "afro",
+    "amapiano": "afro",
+    "milonga": "tango",
+    "milongas": "tango",
+    "tanguero": "tango",
+    "tanguera": "tango",
+    "kiz": "kizomba",
+    "urban kiz": "kizomba",
+    "urbankiz": "kizomba",
+    "semba": "kizomba",
+    "tarraxinha": "kizomba",
     "west coast swing": "swing",
     "lindy hop": "swing",
 }
@@ -346,11 +377,13 @@ def normalize_event(event: ExtractedEvent) -> ExtractedEvent:
     )
 
 
-# A dancers' social, said in words: a bar's night that says so stays a social. Not the word's other uses, common in
-# captions: "redes sociales", a "... Social Club" (a bar's own name), "causa/obra/labor/proyecto social"...
+# A dancers' social, said in words: a bar's night that says so stays a social. Its other names too: a "milonga" (a
+# tango social) and a "práctica" (the audit of 7 Oct 2026: both became parties). Not the word's other uses, common in
+# captions: "redes sociales", "red social", a "... Social Club" or "Club Social" (a bar's own name), "eventos sociales"
+# (a venue's rentals), "causa/obra/labor/proyecto social"...
 _SOCIAL_WORD = re.compile(
-    r"(?<!redes )(?<!causa )(?<!obra )(?<!labor )(?<!proyecto )(?<!impacto )(?<!responsabilidad )"
-    r"\bsociale?s?\b(?! club)"
+    r"(?<!redes )(?<!red )(?<!club )(?<!eventos )(?<!causa )(?<!obra )(?<!labor )(?<!proyecto )(?<!impacto )"
+    r"(?<!responsabilidad )\bsociale?s?\b(?! club)|\b(?:milongas?|practicas?)\b"
 )
 
 
