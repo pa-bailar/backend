@@ -30,7 +30,7 @@ docs: it says how the pieces fit, where each truth lives, and what bites. Durabl
 
 ## 3. The project in one paragraph
 
-A free ($0) site of dance events in Bogotá. Two sweeps a day (9:00 and 21:00 Bogotá) read ~125 organizers' Instagram
+A free ($0) site of dance events in Bogotá. Two sweeps a day (6:30 and 21:00 Bogotá; 9:00 until 7 Oct 2026) read ~125 organizers' Instagram
 posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two repositories in `C:\Users\Jhoan\Code`:
 
 | Piece | Where |
@@ -125,7 +125,7 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
 The rules are in `WORKSPACE.md`; these are the lessons behind them.
 
 - **Merge only when every check reports pass** (not "mergeable": two PRs were merged early). Changes to the sweep path
-  or workflows only outside the sweep windows (8:30–9:45 and 20:30–21:45 Bogotá).
+  or workflows only outside the sweep windows (6:00–7:15 and 20:30–21:45 Bogotá).
 - **Verify before claiming:** an unconfirmed "free Flash ends 20 Oct" came from news about the Gemini app, not the
   API. Say what was checked and what wasn't.
 - **Test like a visitor:** 375 px, both themes, scrolled down, a first visit, back and reload; the live site after

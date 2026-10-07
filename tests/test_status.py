@@ -21,9 +21,9 @@ def isolated(isolated_files, monkeypatch):
 @pytest.mark.parametrize(
     ("now", "expected"),
     [
-        (NOW, ["2026-10-02T21:00", "2026-10-03T09:00"]),
-        (datetime(2026, 10, 3, 9, 0, tzinfo=config.BOGOTA_TZ), ["2026-10-03T21:00", "2026-10-04T09:00"]),
-        (datetime(2026, 10, 3, 6, 0, tzinfo=config.BOGOTA_TZ), ["2026-10-03T09:00", "2026-10-03T21:00"]),
+        (NOW, ["2026-10-02T21:00", "2026-10-03T06:30"]),
+        (datetime(2026, 10, 3, 6, 30, tzinfo=config.BOGOTA_TZ), ["2026-10-03T21:00", "2026-10-04T06:30"]),
+        (datetime(2026, 10, 3, 6, 0, tzinfo=config.BOGOTA_TZ), ["2026-10-03T06:30", "2026-10-03T21:00"]),
     ],
 )
 def test_next_sweeps_follow_the_schedule(now, expected):
@@ -92,7 +92,7 @@ def test_the_text_says_it_in_spanish():
     latest = "- ⚠️ hoy 9:12 p. m.: 1 nuevos, 0 unidos, 4 en espera, límite de Instagram, 1 cuenta sin leer"
     assert f"{latest} · [ver](https://example/run)" in text
     assert "- ✅ hoy 9:12 a. m.: 2 nuevos, 1 unidos" in text
-    assert "Próximos: hoy 9:00 p. m. y mañana 9:00 a. m." in text
+    assert "Próximos: hoy 9:00 p. m. y mañana 6:30 a. m." in text
     assert "| `gemini-3.8-flash` | extraction | 18 (agotado) | 18 |" in text
     assert "La cuota se reinicia mañana 2:00 a. m." in text
     assert "Cuota de Instagram usada: 12%" in text

@@ -28,7 +28,7 @@ run-name: >-
   inputs.hide && format('Hide from the site (#{0})', inputs.issue) || 'Sweep' }}
 
 on:
-  # Started twice a day (9:00 AM and 9:00 PM Bogotá) by cron-job.org, which calls GitHub's "run workflow"
+  # Started twice a day (6:30 AM and 9:00 PM Bogotá) by cron-job.org, which calls GitHub's "run workflow"
   # API with a token limited to Actions on this repository: GitHub's own `schedule` never fired in this
   # repository (a known, undocumented problem of new private repositories), so it isn't used. See the
   # README, "Deployment". Two runs a day: the evening one catches the day's posts, and a missed run

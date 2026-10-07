@@ -121,7 +121,7 @@ Everything runs on GitHub Actions:
 | `ci` | Every pull request (required by a ruleset on `main`: no path filter, or a PR it skips could never merge), and Mondays on `main` (to keep the pip cache warm) | Lint, format check, types (mypy), tests and the admin page's Worker tests. Not again on `main` after a merge: the PR already ran it (Actions minutes). |
 | `media` | Pull requests that change `media/` (not `media/site-checks/` nor its Markdown) | Type-checks the video toolkit and runs its Node tests (`media-ci.yml`; its own workflow, so it doesn't start, and bill a minute, when `media/` is untouched). |
 | `admin` | A new issue or comment from `jzamora5` (the admin page opens such issues) | The admin inbox (only issues labelled `admin`, or texts with a request): answers with a comment (check a post, add an account, the status); adding a post (or reading one again) or a story, and hiding a story or an event, start `daily-sweep` for that one request. See [docs/ADMIN.md](docs/ADMIN.md) |
-| `daily-sweep` | Every day at 9:00 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (each about once a day, half per sweep), writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is then saved to the `sweep-state` branch (if the data PR couldn't be opened, the run's posts stay unread for the next run, and `site/data` is kept as the run's artifact). With `post_url` (from `admin`), it adds that one post instead (with `again`, even if it was read before and hasn't changed) and answers on the admin issue; with `story` or `hide`, it adds a story or takes a story or an event off the site. |
+| `daily-sweep` | Every day at 6:30 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (each about once a day, half per sweep), writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is then saved to the `sweep-state` branch (if the data PR couldn't be opened, the run's posts stay unread for the next run, and `site/data` is kept as the run's artifact). With `post_url` (from `admin`), it adds that one post instead (with `again`, even if it was read before and hasn't changed) and answers on the admin issue; with `story` or `hide`, it adds a story or takes a story or an event off the site. |
 
 `main` is **protected** (`protect-main`, since the repository went public on 6 Oct 2026): changes only through
 squash-merged pull requests that pass `ci`, force pushes and deletion blocked, no bypass. The site repository's
@@ -140,7 +140,10 @@ Settings → Secrets and variables → Actions:
 never fired in this repository: it's a known, undocumented problem of new private repositories, with no
 fix from GitHub.
 
-- **The jobs:** `pa-bailar sweep 9:00` and `pa-bailar sweep 21:00`, in the America/Bogota time zone.
+- **The jobs:** `pa-bailar sweep 6:30` and `pa-bailar sweep 21:00`, in the America/Bogota time zone. They must
+  match `config.SWEEP_TIMES` (each sweep leaves the day's later ones their share of Flash). The morning one was
+  at 9:00 until 7 Oct 2026: Google's Flash refused 97% of weekday 9:00 requests as busy (Europe's afternoon and the
+  US morning).
 - **What each job does:** it calls GitHub's API to run the workflow, the same as pressing *Run workflow*:
   - `POST https://api.github.com/repos/pa-bailar/backend/actions/workflows/daily-sweep.yml/dispatches`
   - body `{"ref":"main"}`

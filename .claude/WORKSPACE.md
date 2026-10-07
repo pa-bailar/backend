@@ -24,7 +24,7 @@ worktrees, the last sweeps). Before this conversation ends or gets long, run the
   command. A hook (`pa-bailar/.claude/hooks/require-docs-sync.mjs`) blocks the PR until the docs were synced at
   the branch's latest commit. The docs hold architecture, behavior and decisions, never pixel-level detail.
 - Merge only when every check reports pass. Changes to the sweep path or the workflows, and discovery runs, only
-  outside the sweep windows (8:30–9:45 and 20:30–21:45 Bogotá; the time from `node`, not `TZ=… date`).
+  outside the sweep windows (6:00–7:15 and 20:30–21:45 Bogotá; the time from `node`, not `TZ=… date`).
 - Test what the user will see, in real conditions: the preview at phone size (375 px), scrolled-down states,
   a first visit, both themes. Check the live site after a deploy.
 - Multi-line edits: use the Edit/Write tools or a script file in the scratchpad, not heredocs with regexes or
