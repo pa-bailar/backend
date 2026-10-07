@@ -180,12 +180,18 @@ def _share_title(a: EventDetails, b: EventDetails, across_accounts: bool = False
 
 def _names_account(event: EventDetails, account: str) -> bool:
     """Whether the event names this account: its organizer, venue or contact is the account (or the account's
-    name starts with it, 'Bachatamanía' for @bachatamania_bogota), or the title names it, in one word or in two or
-    three in a row ("DJ set Salsa Culto" names @salsaculto: @elgocepagano's calendar, 7 Oct 2026)."""
+    name starts with it, 'Bachatamanía' for @bachatamania_bogota), or its title does (_title_names)."""
     handle = _key(account)
     names = [_key(event.organizer), _key(event.venue), _key(event.contact)]
     if any(len(name) >= 5 and (handle.startswith(name) or name.startswith(handle)) for name in names):
         return True
+    return _title_names(event, account)
+
+
+def _title_names(event: EventDetails, account: str) -> bool:
+    """Whether the event's title names this account, in one word or in two or three in a row ("DJ set Salsa Culto"
+    names @salsaculto: @elgocepagano's calendar, 7 Oct 2026)."""
+    handle = _key(account)
     words = title_words(event.title, across_accounts=True)
     if any(len(word) >= 5 and handle.startswith(_key(word)) for word in words):
         return True
@@ -197,8 +203,10 @@ def _names_account(event: EventDetails, account: str) -> bool:
 def looks_like_shared_event(stored: StoredEvent, account: str, candidate: EventDetails) -> bool:
     """Rule-based match across accounts (an organizer and its venue, or two collaborators, each posting the
     flyer): a day in common, no clash in start time (compared between one-day events only) or venue, and one of
-      - one event names the other's account, plus the same start time, a title word in common, or (one-day
-        events) the same venue;
+      - one event names the other's account, plus the same start time or a title word in common; or, when a
+        title names it, the same venue for one-day events (a venue's calendar listing an organizer's night). Being
+        held at the other account's venue names it too, but isn't enough with the venue alone: an academy's
+        afternoon workshop at a bar isn't the bar's night (review, 7 Oct 2026);
       - the same venue (both known), plus the same start time and a title word in common, or two or more
         distinctive title words in common, kinds of events aside ("Level Up … Fusion Congress"), or counting
         them as long as one word in common isn't one ("Tour de la Salsa — Capítulo 001" and "Primer capítulo del
@@ -217,7 +225,8 @@ def looks_like_shared_event(stored: StoredEvent, account: str, candidate: EventD
     # With an account named or the same venue and time, any title word in common will do ("Halloween").
     shared = title_words(stored.title) & title_words(candidate.title)
     if _names_account(stored, account) or _names_account(candidate, stored.account):
-        return same_time or bool(shared) or (one_day and all(venues))
+        titled = _title_names(stored, account) or _title_names(candidate, stored.account)
+        return same_time or bool(shared) or (one_day and all(venues) and titled)
     if not all(venues):  # without the same venue, titles alone don't tie two accounts' posts together
         return False
     if same_time and shared:
@@ -228,11 +237,19 @@ def looks_like_shared_event(stored: StoredEvent, account: str, candidate: EventD
 
 
 def find_existing(
-    events: list[StoredEvent], account: str, candidate: ExtractedEvent, post_id: str
+    events: list[StoredEvent],
+    account: str,
+    candidate: ExtractedEvent,
+    post_id: str,
+    announced: frozenset[str] | set[str] = frozenset(),
 ) -> StoredEvent | None:
     """The stored event this extracted one refers to, if any. Gemini's `same_as` wins over the rules when the two
     share a day (refused_link); the same account's events come before other accounts' (no Gemini request: Gemini
     only sees this account's).
+
+    A post read again (an upgrade, "Volver a leer") is the event it announced before (`announced`) on its day when
+    the rules don't see it, if there's one such event: Flash-Lite read the doors (18:00) and Flash the show (23:00),
+    and the re-read made a second event, which then took over with a new id (review, 7 Oct 2026).
 
     Events that already contain `post_id` are never matched: two events announced in the same post
     are different events, even if they share a date and time.
@@ -242,7 +259,12 @@ def find_existing(
     if linked and _overlap(linked, candidate):
         return linked
     same_account = next((e for e in others if looks_like_same_event(e, account, candidate)), None)
-    return same_account or next((e for e in others if looks_like_shared_event(e, account, candidate)), None)
+    if same_account:
+        return same_account
+    before = [e for e in others if e.id in announced and e.account == account and _overlap(e, candidate)]
+    if len(before) == 1:
+        return before[0]
+    return next((e for e in others if looks_like_shared_event(e, account, candidate)), None)
 
 
 def _linked(events: list[StoredEvent], account: str, candidate: ExtractedEvent) -> StoredEvent | None:

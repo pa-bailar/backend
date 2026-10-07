@@ -392,7 +392,7 @@ class SweepBase:
             log.info("     Gemini linked it to %s, which isn't on its day: not merged", refused.id)
             doubt = f"posible cambio de fecha: Gemini lo une a {refused.id}"
             candidate = candidate.model_copy(update={"doubts": [*candidate.doubts, doubt]})
-        existing = find_existing(self.events, account, candidate, post["id"])
+        existing = find_existing(self.events, account, candidate, post["id"], announced)
         if existing:
             correcting = not light and existing.id in announced and self._only_lighter_reads(existing)
             merged = merge_into(existing, candidate, media, correcting=correcting)

@@ -377,6 +377,20 @@ def test_two_festivals_at_one_venue_sharing_only_kinds_of_events_stay_apart():
     assert not looks_like_shared_event(tango, "salsacol", salsa)
 
 
+def test_an_event_held_at_another_accounts_venue_isnt_that_accounts_night():
+    """Review of 7 Oct 2026: being AT a venue names the venue's account (its venue field), but only a title naming it
+    makes "the same day at the same venue" enough. An academy's afternoon workshop at a bar and the bar's night (from
+    its monthly calendar, no time) are two events."""
+    night = stored(account="elgocepagano", title="Acere", **TOUR)
+    workshop = extracted(title="Taller de salsa caleña", start_time="15:00", **TOUR)
+    assert not looks_like_shared_event(night, "academia", workshop)
+    assert not looks_like_shared_event(
+        stored(account="academia", title="Taller de salsa caleña", **TOUR),
+        "elgocepagano",
+        extracted(title="Acere", **TOUR),
+    )
+
+
 def test_the_same_party_at_the_same_venue_and_time_still_merges_across_accounts():
     party = stored(account="academia", title="Fiesta de Halloween", start_time="21:00", venue="Casa Latina")
     venue_post = extracted(title="Halloween Party", start_time="21:00", venue="Casa Latina")
