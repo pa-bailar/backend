@@ -204,7 +204,14 @@ flyers (7 Oct 2026): this weekend's backup reads and their errors, a venue's mon
 festivals, several events per image. `admin bakeoff --gold` runs Flash-Lite on them (or `--models …`, Flash too:
 20 a day per Flash model, so the rest waits in the cache for the next day) and scores each field against the right
 answer, not against Flash; `--gold --score` scores what's cached. Any change to the reading (the prompt, OCR text,
-a second look) is measured on it before it ships.
+a second look) is measured on it before it ships. `--gold --ocr` adds each flyer's OCR text after it
+(`pa_bailar/ocr.py`; needs `pip install rapidocr onnxruntime`), cached apart as `<model>+ocr`.
+
+What it showed (7 Oct 2026, Flash-Lite, three runs): 55, 58 and 56 of 60 events found, every date right; two runs
+of the same reading differ by about 3 events, so a change needs more than that to count. The OCR text in the prompt
+gave no measurable gain. Flash-Lite's misses are judgments (a course or a bar's nights dropped as "regular", three
+workshops merged), different from run to run; the rules in `pa_bailar/checks.py`, given the caption and the OCR
+text, flagged every post with a dropped event in all three runs, and 2 of about 33 right ones.
 
 ## What the answers mean
 

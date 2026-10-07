@@ -64,6 +64,8 @@ DORMANT_SWEEP_EVERY_HOURS = 164  # a bit under a week
 DORMANT_AFTER_DAYS = 180
 EXTRA_ACCOUNTS_PER_RUN = 5  # over each sweep's share, so a few late accounts still get read
 MAX_IMAGES_PER_POST = 10  # monthly schedules often show an event on slide 5 or later; still one request
+OCR_MIN_SCORE = 0.6  # pieces of text read with less confidence are left out (stray marks on a photo; ocr.py)
+OCR_ROW_OVERLAP = 0.6  # pieces this close (in line heights) to a row's first piece share its row (ocr.group_rows)
 # Videos' preview clips (clips.py): when an event's image comes from a video (a reel, or a carousel's video slide),
 # a short silent clip of it plays on the site. Made with ffmpeg (on GitHub's runners; locally FFMPEG or the PATH);
 # without ffmpeg there are just no clips.

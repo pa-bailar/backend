@@ -163,6 +163,7 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help="score against the test set checked by hand (gold/), not against Flash; default model: Flash-Lite",
     )
+    bake_parser.add_argument("--ocr", action="store_true", help="with --gold: the flyer's OCR text with each image")
     args = parser.parse_args(argv)
     _utf8_stdout()
     if not sweep_state.refresh():
@@ -183,7 +184,7 @@ def main(argv: list[str] | None = None) -> None:
             bakeoff.discover()
         elif args.gold:
             gold_models = args.models if args.models != list(bakeoff.DEFAULT_MODELS) else list(bakeoff.GOLD_MODELS)
-            bakeoff.run_gold(gold_models, score_only=args.score)
+            bakeoff.run_gold(gold_models, score_only=args.score, with_ocr=args.ocr)
         else:
             bakeoff.run(args.posts, args.models, repick=args.repick, score_only=args.score)
     elif args.tool == "inbox":
