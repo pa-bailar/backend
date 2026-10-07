@@ -12,7 +12,7 @@ import { initialTab, TAB_KEY, tabAfterKey, tabFromHash, tabsHtml } from "./tabs.
 const main = document.getElementById("main");
 const userLine = document.getElementById("user");
 const WEEKDAYS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
-const ROLES = { triage: "filtro", extraction: "extracción", provisional: "provisional", discovery: "descubrimiento" };
+const ROLES = { triage: "filtro", extraction: "extracción", provisional: "provisional", none: "sin uso" };
 const MESSAGES = {
   config: "Falta configurar el inicio de sesión: los secretos de GitHub en Cloudflare (docs/ADMIN.md).",
   login: "No se pudo iniciar sesión con GitHub. Intenta de nuevo.",

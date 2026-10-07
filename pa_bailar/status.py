@@ -49,7 +49,7 @@ def _role(model: str) -> str:
         )
         if model in models
     ]
-    return ", ".join(roles) or "discovery"
+    return ", ".join(roles) or "none"
 
 
 def _external_usage(provider: config.ExternalProvider, used: dict[str, Any]) -> dict[str, Any]:
@@ -318,8 +318,8 @@ def markdown(status: dict[str, Any]) -> str:
     lines.append(f"- {posts['recorded']} publicaciones analizadas en los últimos días.")
     if posts["provisional"]:
         lines.append(
-            f"- {posts['provisional']} eventos provisionales (leídos con Flash-Lite o el último recurso), a releer "
-            "con Flash."
+            f"- {posts['provisional']} publicaciones provisionales (leídas sin Flash: un Flash anterior, Flash-Lite o "
+            "el último recurso), a releer con Flash."
         )
     if status["events"] is not None:
         events = status["events"]
