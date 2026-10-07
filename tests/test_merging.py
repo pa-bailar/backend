@@ -350,6 +350,33 @@ def test_titles_alone_merge_two_accounts_only_at_the_same_venue():
     assert not looks_like_shared_event(gala, "otra", no_venue)
 
 
+TOUR = {"date": "2026-10-11", "venue": "El Goce Pagano"}
+
+
+def test_a_venues_calendar_naming_the_organizer_in_two_words_joins_its_event():
+    """7 Oct 2026: @elgocepagano's calendar listed "DJ set Salsa Culto" (no time) the night of @salsaculto's Tour."""
+    tour = stored(account="salsaculto", title="Tour de la Salsa — Capítulo 001", start_time="19:00", **TOUR)
+    calendar = extracted(title="DJ set Salsa Culto", start_time=None, **TOUR)
+    assert looks_like_shared_event(tour, "elgocepagano", calendar)
+    # Another venue that night: not the Tour, even naming Salsa Culto.
+    assert not looks_like_shared_event(
+        tour, "otrobar", extracted(title="DJ set Salsa Culto", date="2026-10-11", venue="Otro Bar")
+    )
+
+
+def test_a_partners_post_without_a_time_joins_the_organizers_event_at_the_same_venue():
+    """7 Oct 2026: @parchexbogota, the Tour's media partner, posted its flyer without the time."""
+    tour = stored(account="salsaculto", title="Tour de la Salsa — Capítulo 001", start_time="19:00", **TOUR)
+    partner = extracted(title="Primer capítulo del Tour de la Salsa", start_time=None, **TOUR)
+    assert looks_like_shared_event(tour, "parchexbogota", partner)
+
+
+def test_two_festivals_at_one_venue_sharing_only_kinds_of_events_stay_apart():
+    tango = stored(account="tangobogota", title="Festival Internacional de Tango", venue="Teatro Colsubsidio")
+    salsa = extracted(title="Festival Internacional de Salsa", start_time=None, venue="Teatro Colsubsidio")
+    assert not looks_like_shared_event(tango, "salsacol", salsa)
+
+
 def test_the_same_party_at_the_same_venue_and_time_still_merges_across_accounts():
     party = stored(account="academia", title="Fiesta de Halloween", start_time="21:00", venue="Casa Latina")
     venue_post = extracted(title="Halloween Party", start_time="21:00", venue="Casa Latina")
