@@ -1063,7 +1063,7 @@ Five layers, each catching what the others can't:
 flowchart TB
     subgraph Start["Did the sweep start?"]
         CJ["cron-job.org<br/>email when the call to GitHub fails"]
-        HC["healthchecks.io<br/>email when no run arrives in 12 h + 2 h"]
+        HC["healthchecks.io<br/>email when no run arrives in 15 h + 2 h"]
     end
     subgraph Run["Did it work?"]
         FAIL["Failed run → healthchecks.io /fail → email"]

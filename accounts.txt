@@ -75,7 +75,7 @@ bachatasocialcongresss
 bailarito
 elparche.se
 bogotadanceclub
-# Crema de Ajiaco: a salsa event organizer in Bogotá (discovery, 6 Oct 2026).
+# Crema de Ajiaco: a salsa event organizer in Bogotá (discovery, 6 Oct 2026). Silent 82 days; kept (the owner, 7 Oct 2026).
 cremadeajiaco
 # Parche X Bogotá: a general agenda of plans in Bogotá (concerts, food, culture) that also posts dance events
 # (the owner, 5 Oct 2026). Only its posts naming these styles are read (`solo:`, free filter before Gemini).
