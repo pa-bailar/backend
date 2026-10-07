@@ -4,9 +4,9 @@
 # merge, so it runs on every pull request. A path filter here (skipping docs-only PRs, tried 6 Oct 2026) leaves such a
 # PR waiting forever for a check that never reports.
 #
-# Actions minutes (this repository is private: 2,000 a month on the free plan, and each job is billed as at least one
-# whole minute). So it doesn't run again on main after a merge (the PR already ran the same checks); a weekly run on
-# main keeps the pip cache saved where every branch can use it (caches made on a PR stay with that PR).
+# It doesn't run again on main after a merge (the PR already ran the same checks; it saved Actions minutes while the
+# repository was private, until 6 Oct 2026, and keeps the queue short now); a weekly run on main keeps the pip cache
+# saved where every branch can use it (caches made on a PR stay with that PR).
 name: ci
 
 on:

@@ -1,7 +1,7 @@
 # Twice a day: collect new events from Instagram and publish real changes to the (public) site
 # repository through a pull request.
 #
-#   this repo (private): sweep ── images ──▶ pa-bailar/media (pushed directly)
+#   this repo (public): sweep ── images ──▶ pa-bailar/media (pushed directly)
 #                              └─ data PR ──▶ pa-bailar.github.io: ci → auto-merge → deploy (copies the images in)
 #
 # - The site and images repositories are reached with the pa-bailar-bot GitHub App (vars.APP_ID,
@@ -511,8 +511,8 @@ jobs:
           fi
 
       # Its merge triggers the site's deploy (with meta.json's time, which is this sweep's). Only for the owner's requests,
-      # whose answer on the issue should come once the events are live: a scheduled sweep doesn't wait (about 5 minutes
-      # of this private repository's Actions minutes, twice a day, waiting on the site's own ci; 6 Oct 2026). A data PR
+      # whose answer on the issue should come once the events are live: a scheduled sweep doesn't wait (it saved about 5
+      # Actions minutes twice a day while the repository was private; now it keeps the runs short; 6 Oct 2026). A data PR
       # that doesn't merge still stops the next run ("Make sure the last data PR merged"), which fails and emails.
       - name: Wait for the data PR to merge
         if: ${{ !cancelled() && steps.wait.outcome == 'success' && steps.pr.outputs.url != '' && inputs.issue != '' }}
