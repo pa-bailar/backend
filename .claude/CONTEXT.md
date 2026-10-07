@@ -26,6 +26,7 @@ docs: it says how the pieces fit, where each truth lives, and what bites. Durabl
 | The data contract between the two | site `docs/DATA.md` (backend `pa_bailar/models.py`, site `types.ts` and `scripts/check-data.mjs` follow it) |
 | Which accounts are swept, and how | backend `accounts.txt` (options in `pa_bailar/account_options.py`) |
 | Every tunable number | backend `pa_bailar/config.py`; site `frontend/src/styles/tokens.css` |
+| How well a model reads flyers | backend `gold/README.md` (the test set), ADMIN.md "Re-checking the last resort's models" (results) |
 | Why something is the way it is | the dated decisions in the docs, memory, then `git log`/the PRs |
 
 ## 3. The project in one paragraph
@@ -86,7 +87,12 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
   can differ: Google counts failed requests). The model ids: list them with the API (`client.models.list()`), not
   from memory. Reads by a lighter model are provisional and re-read with Flash later, the soonest events first; a
   sweep leaves the day's later sweep half of Flash. Flash often answers 503 "overloaded" for hours (Google's
-  capacity, not shown on its status page): the pool pauses a busy model instead of retrying.
+  capacity, not shown on its status page): the pool pauses a busy model instead of retrying. **A 402 "prepayment
+  credits are depleted" means billing got turned on** for that key's project (since Mar 2026 a project with billing
+  isn't on the free tier): the owner disables it in AI Studio / Google Cloud billing (7 Oct 2026).
+- **Judge a change to the reading on the test set,** not on impressions: `gold/` (40 posts checked by hand) and
+  `admin bakeoff --gold [--ocr]`. Two identical Flash-Lite runs differ by ~3 of 60 events, so a smaller gain is noise.
+  `checks.py` (rules, no AI) and `ocr.py` flag readings for a second look.
 - **`accounts.txt` options:** `bar` (only special nights, `bar: true`), `solo:<styles>` (a focus filter); silent
   accounts commented out with why.
 - **The admin bot is not AI:** fixed patterns (shared with `admin-web` through `tests/fixtures/patterns.json`).
