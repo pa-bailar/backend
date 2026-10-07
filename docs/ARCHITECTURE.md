@@ -1396,7 +1396,9 @@ flowchart LR
 | `account_options.py` | What an `accounts.txt` line says besides the name: `bar` (only special nights) and `solo:<styles>` (the caption filter's words, `FOCUS_KEYWORDS`, from `normalize.TEXT_STYLE_WORDS` plus looser ones), parsed strictly (a typo fails) |
 | `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback and the last resort (extraction only), and no request after the run's time budget |
 | `external.py` | `ExternalTier`: the last resort on OpenAI-compatible chat APIs (Groq, OpenRouter): order, budgets, Groq's token pacing, per-run quarantine, JSON checked against the schemas |
-| `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; the test set (`gold/`, `--gold`); OpenRouter's free vision models |
+| `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; the test set (`gold/`, `--gold`, `--ocr`); OpenRouter's free vision models |
+| `ocr.py` | A flyer's text by OCR (RapidOCR, on the CPU), in rows as printed; optional (`rapidocr` isn't in `requirements.txt` yet): the input of the checks, and of `bakeoff --ocr` |
+| `checks.py` | Rules (no AI) that flag a reading for a second look: dates in the text and no event, a time not read, a range read as one day, three or more times and one event. Measured on the test set; not yet called by the sweep |
 | `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions; prices in another currency never shown as free |
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |
 | `ids.py` | Readable, stable event ids (the event's URL) |

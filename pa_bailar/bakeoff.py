@@ -32,11 +32,11 @@ import httpx
 from google.genai import types
 from PIL import Image
 
-from . import config, storage, sweep_state
+from . import config, ocr, storage, sweep_state
 from .external import ExternalTier, SkippedError, recorded_name
 from .gemini import ExtractionError, ModelPool, QuotaExhaustedError
 from .models import PostAnalysis
-from .prompts import EXTRACTION_PROMPT
+from .prompts import EXTRACTION_PROMPT, OCR_NOTE
 from .text import fold
 
 CACHE_DIR = config.STATE_DIR / "bakeoff"
@@ -100,8 +100,9 @@ def pick(found: list[Item], count: int, seed: int = SEED) -> list[Item]:
 # ---------- 2. run ----------
 
 
-def contents_for(item: Item, data_dir: Path) -> list[types.PartUnionDict]:
-    """What the sweep sends for an extraction, as on the day Flash read the post: its flyer, then the prompt."""
+def contents_for(item: Item, data_dir: Path, with_ocr: bool = False) -> list[types.PartUnionDict]:
+    """What the sweep sends for an extraction, as on the day Flash read the post: its flyer, then the prompt.
+    `with_ocr`: the flyer's OCR text right after it (prompts.OCR_NOTE), the change being measured."""
     published = datetime.fromisoformat(item["published"].replace("+0000", "+00:00"))
     today = datetime.fromisoformat(item["processed_at"]).astimezone(config.BOGOTA_TZ)
     prompt = EXTRACTION_PROMPT.format(
@@ -114,7 +115,11 @@ def contents_for(item: Item, data_dir: Path) -> list[types.PartUnionDict]:
     )
     buffer = io.BytesIO()
     Image.open(data_dir / item["flyer"]).convert("RGB").save(buffer, "JPEG", quality=JPEG_QUALITY)
-    return ["Image 0:", types.Part.from_bytes(data=buffer.getvalue(), mime_type="image/jpeg"), prompt]
+    image = buffer.getvalue()
+    contents: list[types.PartUnionDict] = ["Image 0:", types.Part.from_bytes(data=image, mime_type="image/jpeg")]
+    if with_ocr:
+        contents.append(OCR_NOTE.format(index=0, rows="\n".join(ocr.rows(image)) or "(no text found)"))
+    return [*contents, prompt]
 
 
 def asker(gemini_key: Callable[[], str], external: ExternalTier | None = None) -> Ask:
@@ -150,16 +155,18 @@ def run_model(
     data_dir: Path,
     cache_dir: Path = CACHE_DIR,
     say: Callable[[str], None] = print,
+    with_ocr: bool = False,
 ) -> None:
-    """One model on every picked post it hasn't answered yet: one request each, the answer or the error cached."""
-    path = cache_file(model, cache_dir)
+    """One model on every picked post it hasn't answered yet: one request each, the answer or the error cached
+    (with the OCR text, under "<model>+ocr")."""
+    path = cache_file(model + ("+ocr" if with_ocr else ""), cache_dir)
     cache = load_cache(path)
     for item in picks:
         if "answer" in cache.get(item["post_id"], {}):
             continue
         started = time.monotonic()
         try:
-            answer = ask(model, contents_for(item, data_dir))
+            answer = ask(model, contents_for(item, data_dir, with_ocr))
         except QuotaExhaustedError as error:
             say(f"  no quota left today: {error}. The rest waits for another day.")
             break
@@ -355,18 +362,22 @@ def score_gold(posts: list[Item], cache: dict[str, Any]) -> Score:
     return result
 
 
-def run_gold(models: list[str], score_only: bool = False, say: Callable[[str], None] = print) -> None:
+def run_gold(
+    models: list[str], score_only: bool = False, with_ocr: bool = False, say: Callable[[str], None] = print
+) -> None:
     """`admin bakeoff --gold`: each model on the test set's posts it hasn't answered (unless `score_only`), scored
-    against the truth. A Flash model takes 20 a day: the rest waits in the cache for the next day."""
+    against the truth; `--ocr`, with the flyer's OCR text (cached apart). A Flash model takes 20 a day: the rest
+    waits in the cache for the next day."""
     posts = load_gold()
     say(f"{len(posts)} posts checked by hand ({GOLD_DIR}); answers cached in {GOLD_CACHE_DIR}")
     if not score_only:
         ask = asker(lambda: config.require_env("GEMINI_API_KEY"))
         for model in models:
-            say(f"\n{model}:")
-            run_model(model, posts, ask, GOLD_DIR, cache_dir=GOLD_CACHE_DIR, say=say)
+            say(f"\n{model}{' with OCR' if with_ocr else ''}:")
+            run_model(model, posts, ask, GOLD_DIR, cache_dir=GOLD_CACHE_DIR, say=say, with_ocr=with_ocr)
     for model in models:
-        say("\n" + score_text(model, score_gold(posts, load_cache(cache_file(model, GOLD_CACHE_DIR))), notes=40))
+        label = model + ("+ocr" if with_ocr else "")
+        say("\n" + score_text(label, score_gold(posts, load_cache(cache_file(label, GOLD_CACHE_DIR))), notes=40))
 
 
 # ---------- the command ----------

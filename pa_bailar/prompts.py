@@ -194,6 +194,13 @@ Rules:
   The website asks visitors to confirm in the post when it's low.
 - doubts: only important gaps or assumptions, one short phrase each (e.g. "sin precio")."""
 
+# An image's OCR text (ocr.py), right after the image: rows keep together what's printed together, which a lighter
+# model loses on a grid (a calendar cell's act given to every night). Being measured on the test set (gold/).
+OCR_NOTE = """Text of Image {index} read by OCR, row by row as printed (pieces of one row separated by " | "). OCR \
+misreads stylized letters and digits and misses script fonts: where it disagrees with the image, the image wins. Use \
+it to see which text is printed together (a calendar cell's day and its act, a time and its activity).
+{rows}"""
+
 # A story, from screenshots (stories.py): one request for all of them. Dates are copied as printed, and worked
 # out in code (stories.resolve_date). The admin's notes stand in for a caption.
 STORY_PROMPT = f"""You catalog dance events in Bogotá, Colombia, from screenshots of ONE Instagram story.
