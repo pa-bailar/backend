@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import get_args
 
 import httpx
+import pytest
 
 from pa_bailar import bakeoff, config, external, health, status, why
 from pa_bailar.external import ExternalReport, ExternalTier
@@ -187,6 +188,30 @@ def test_running_a_model_caches_answers_and_retries_only_failures(tmp_path):
     assert bakeoff.load_cache(bakeoff.cache_file("m", tmp_path))["a"]["answer"]["reason"] == "ok"
 
 
+def test_an_answer_to_another_prompt_is_asked_again(tmp_path, monkeypatch):
+    """Review of 7 Oct 2026: answers were cached by post alone, so after the prompt changed (#149) the test set kept
+    scoring the old prompt's answers as if they were the new one's."""
+    (tmp_path / "flyers").mkdir()
+    (tmp_path / "flyers" / "a-0.webp").write_bytes(make_image())
+    item = {"post_id": "a", "account": "academia", "caption": "Social", "flyer": "flyers/a-0.webp", "events": []}
+    item |= {"published": "2026-10-01T12:00:00+0000", "processed_at": "2026-10-01T10:00:00-05:00"}
+    asked: list[str] = []
+
+    def answering(model, contents):
+        asked.append(model)
+        return PostAnalysis(is_event_post=True, reason="ok", events=[])
+
+    bakeoff.run_model("m", [item], answering, tmp_path, cache_dir=tmp_path, say=lambda text: None)
+    bakeoff.run_model("m", [item], answering, tmp_path, cache_dir=tmp_path, say=lambda text: None)  # same request
+    monkeypatch.setattr(bakeoff, "EXTRACTION_PROMPT", bakeoff.EXTRACTION_PROMPT + "\nA new rule.")
+    bakeoff.run_model("m", [item], answering, tmp_path, cache_dir=tmp_path, say=lambda text: None)
+    assert asked == ["m", "m"]
+    stale = bakeoff.stale_answers([item], bakeoff.load_cache(bakeoff.cache_file("m", tmp_path)), tmp_path)
+    assert stale == 0
+    monkeypatch.setattr(bakeoff, "EXTRACTION_PROMPT", bakeoff.EXTRACTION_PROMPT + "\nYet another.")
+    assert bakeoff.stale_answers([item], bakeoff.load_cache(bakeoff.cache_file("m", tmp_path)), tmp_path) == 1
+
+
 def test_groq_answers_every_post_waiting_for_its_tokens_and_a_skip_isnt_cached(tmp_path, monkeypatch):
     """Review finding: the second post was refused "tokens for this minute are used" and cached as an error."""
     now = [1000.0]
@@ -310,3 +335,20 @@ def test_why_names_the_last_resorts_model():
     result = why.diagnose(LINK, read=state({"1": record(**fields)}))
     text = " ".join(text for _, text in result.checks)
     assert "groq:qwen/qwen3.8-27b (último recurso fuera de Gemini" in text
+
+
+def test_the_test_sets_options_need_the_test_set(capsys):
+    """Review of 7 Oct 2026: `--ocr` without `--gold` was silently ignored (the Flash comparison ran without it)."""
+    from pa_bailar.commands import admin
+
+    for options in (["--ocr"], ["--thinking", "low"]):
+        with pytest.raises(SystemExit):
+            admin.main(["bakeoff", *options])
+        assert "go with --gold" in capsys.readouterr().err
+
+
+def test_the_ocr_variant_says_what_it_needs_without_the_engine(monkeypatch):
+    monkeypatch.setattr(bakeoff.ocr, "available", lambda: False)
+    said: list[str] = []
+    bakeoff.run_gold(["gemini-3.5-flash-lite"], with_ocr=True, say=said.append)
+    assert said and "pip install rapidocr onnxruntime" in said[0]

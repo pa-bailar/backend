@@ -189,9 +189,12 @@ report shows them failing) check them against Gemini Flash:
 - Models are named as the sweep records them: `gemini-3.5-flash-lite`, `groq:qwen/qwen3.8-27b`,
   `openrouter:google/gemma-4-31b-it:free`. A provider's model needs its key in `.env` (`GROQ_API_KEY`,
   `OPENROUTER_API_KEY`).
-- Answers are cached in `state/bakeoff/` (git-ignored): a second run spends nothing on what was answered and
-  retries only the failures. Groq waits for its 8,000 tokens a minute between posts (about a post a minute), and a
-  request its limits kept from being sent isn't cached: the next run asks it again.
+- Answers are cached in `state/bakeoff/` (git-ignored) with a fingerprint of the request they answered (the
+  prompt with the account's rules, the caption, the OCR text, the image): a second run spends nothing on what was
+  answered with the same request, and asks again what failed or what a new prompt changes. `--score` warns when
+  cached answers come from another request (review, 7 Oct 2026: the cache once kept scoring the old prompt's
+  answers). Groq waits for its 8,000 tokens a minute between posts (about a post a minute), and a request its
+  limits kept from being sent isn't cached: the next run asks it again.
 - The score, per model: events found, missed and extra against Flash's, errors, average seconds, and each field's
   agreement (date, end date, start time, type, title, styles, prices, venue, sessions), with the first
   differences. Agreement with Flash measures similarity, not truth.
@@ -205,7 +208,8 @@ festivals, several events per image. `admin bakeoff --gold` runs Flash-Lite on t
 20 a day per Flash model, so the rest waits in the cache for the next day) and scores each field against the right
 answer, not against Flash; `--gold --score` scores what's cached. Any change to the reading (the prompt, OCR text,
 a second look) is measured on it before it ships. `--gold --ocr` adds each flyer's OCR text after it
-(`pa_bailar/ocr.py`; needs `pip install rapidocr onnxruntime`), cached apart as `<model>+ocr`.
+(`pa_bailar/ocr.py`; needs `pip install rapidocr onnxruntime`), and `--gold --thinking low` (or `minimal`, `medium`,
+`high`) sets Gemini's thinking level; each variant is cached apart (`<model>+ocr`, `<model>+think-low`).
 
 What it showed (7 Oct 2026, Flash-Lite; the test reads each post with its account's rules from `accounts.txt`, as
 the sweep does):
@@ -213,7 +217,7 @@ the sweep does):
 | Reading | Events found (of 61) |
 |---|---|
 | The prompt as it was, two runs | 57, 58 |
-| With the flyer's OCR text | 56 |
+| With the flyer's OCR text (its bar accounts' posts read without the bar rules) | 56 |
 | **With three clarifications (now the prompt), two runs** | **61, 61** |
 
 Two runs of the same reading differ by about 3 events, so a change needs more than that to count. The misses were

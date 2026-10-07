@@ -278,6 +278,39 @@ def test_flash_corrects_an_event_only_lighter_models_read_even_when_two_posts_an
     assert events[0]["id"] == event_id("Salsoteca DC - Acere")  # the URL shared meanwhile keeps working
 
 
+def test_flash_reading_another_start_time_than_lite_corrects_the_event_and_keeps_its_url():
+    """Review of 7 Oct 2026: Flash-Lite read the doors (18:00), Flash the show (23:00). The rules saw two start times,
+    so Flash's re-read made a new event beside the old one, and once both posts were re-read the event had a new id:
+    links shared meanwhile broke. A post's re-read is the event it announced before, on its day."""
+    instagram = FakeInstagram({"academia": [post("flyer", days_ago=3), post("reel", "VIDEO", days_ago=2)], "otra": []})
+    lite = {"title": "Acere", "start_time": "18:00"}
+    run(instagram, FakeExtractor({p: event_post(p, **lite) for p in ("flyer", "reel")}, flash_available=False))
+    first_id = read(config.EVENTS_FILE)[0]["id"]
+
+    flash = {"title": "Acere", "start_time": "23:00"}
+    run(instagram, FakeExtractor({p: event_post(p, **flash) for p in ("flyer", "reel")}))
+    events = read(config.EVENTS_FILE)
+    assert len(events) == 1 and events[0]["start_time"] == "23:00"
+    assert events[0]["id"] == first_id
+
+
+def test_flash_splitting_a_lighter_models_merged_workshops_keeps_them_apart():
+    """The fallback above takes the one event a post announced on its day: three workshops Flash-Lite merged into one
+    stay three when Flash reads them, the first keeping the event's URL."""
+    instagram = FakeInstagram({"academia": [post("flyer", days_ago=3), post("reel", "VIDEO", days_ago=2)], "otra": []})
+    merged = {p: event_post(p, title="Workshops Pro Fondos", start_time="15:00") for p in ("flyer", "reel")}
+    run(instagram, FakeExtractor(merged, flash_available=False))
+    first_id = read(config.EVENTS_FILE)[0]["id"]
+
+    hours = [("Reguetón", "15:00"), ("Sabroseo", "16:00"), ("Coreografía", "17:00")]
+    three = [extracted(title=title, start_time=hour) for title, hour in hours]
+    split = {p: PostAnalysis(is_event_post=True, reason="", events=three) for p in ("flyer", "reel")}
+    run(instagram, FakeExtractor(split))
+    events = sorted(read(config.EVENTS_FILE), key=lambda event: event["start_time"])
+    assert [event["title"] for event in events] == ["Reguetón", "Sabroseo", "Coreografía"]
+    assert events[0]["id"] == first_id and all(len(event["media"]) == 2 for event in events)
+
+
 def test_a_flash_read_keeps_its_title_when_flash_upgrades_a_reminder_of_the_same_event():
     """The first known title stays when it came from Flash: a reminder's caption doesn't rename the flyer's event."""
     flyer = post("flyer", days_ago=3)

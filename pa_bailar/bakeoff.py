@@ -18,6 +18,7 @@ a Gemini model ("gemini-3.5-flash-lite") or "<provider>:<model>" ("groq:qwen/qwe
 candidates for the list (no key, no quota).
 """
 
+import hashlib
 import io
 import json
 import random
@@ -133,16 +134,19 @@ def contents_for(item: Item, data_dir: Path, with_ocr: bool = False) -> list[typ
     return [*contents, prompt]
 
 
-def asker(gemini_key: Callable[[], str], external: ExternalTier | None = None) -> Ask:
+def asker(
+    gemini_key: Callable[[], str], external: ExternalTier | None = None, thinking: types.ThinkingLevel | None = None
+) -> Ask:
     """Reads with a Gemini model (config.MODEL_LIMITS) or a "<provider>:<model>" one, each client made when first
-    needed (Gemini's key too; the providers' keys come from the environment)."""
+    needed (Gemini's key too; the providers' keys come from the environment). `thinking`: a Gemini model's thinking
+    level, the model's default otherwise (as the sweep's extraction)."""
     gemini: ModelPool | None = None
 
     def ask(model: str, contents: list[types.PartUnionDict]) -> PostAnalysis:
         nonlocal gemini, external
         if model in config.MODEL_LIMITS:
             gemini = gemini or ModelPool(gemini_key())
-            return gemini.generate((model,), contents, PostAnalysis)[0]
+            return gemini.generate((model,), contents, PostAnalysis, thinking=thinking)[0]
         provider, _, name = model.partition(":")
         external = external or ExternalTier()
         return external.generate_with(provider, name, contents, PostAnalysis)[0]
@@ -159,6 +163,29 @@ def load_cache(path: Path) -> dict[str, Any]:
     return cached
 
 
+def request_fingerprint(contents: list[types.PartUnionDict]) -> str:
+    """What a request asked, in 16 hex digits: its text (the prompt with the account's rules, the caption, the OCR
+    text) and its images. A cached answer counts only for the same request: answers were cached by post alone, so
+    after the prompt changed (#149) the test set kept scoring the old prompt's answers (review, 7 Oct 2026)."""
+    digest = hashlib.sha256()
+    for part in contents:
+        if isinstance(part, str):
+            digest.update(part.encode("utf-8"))
+        elif isinstance(part, types.Part) and part.inline_data and part.inline_data.data:
+            digest.update(part.inline_data.data)
+    return digest.hexdigest()[:16]
+
+
+def stale_answers(picks: list[Item], cache: dict[str, Any], data_dir: Path, with_ocr: bool = False) -> int:
+    """How many cached answers were read with another request than the one asked today."""
+    return sum(
+        1
+        for item in picks
+        if "answer" in cache.get(item["post_id"], {})
+        and cache[item["post_id"]].get("request") != request_fingerprint(contents_for(item, data_dir, with_ocr))
+    )
+
+
 def run_model(
     model: str,
     picks: list[Item],
@@ -167,17 +194,25 @@ def run_model(
     cache_dir: Path = CACHE_DIR,
     say: Callable[[str], None] = print,
     with_ocr: bool = False,
+    label: str | None = None,
 ) -> None:
-    """One model on every picked post it hasn't answered yet: one request each, the answer or the error cached
-    (with the OCR text, under "<model>+ocr")."""
-    path = cache_file(model + ("+ocr" if with_ocr else ""), cache_dir)
+    """One model on every picked post it hasn't answered with today's request yet (request_fingerprint): one request
+    each, the answer or the error cached under `label` (by default the model, "<model>+ocr" with the OCR text)."""
+    path = cache_file(label or model + ("+ocr" if with_ocr else ""), cache_dir)
     cache = load_cache(path)
     for item in picks:
-        if "answer" in cache.get(item["post_id"], {}):
+        try:
+            contents = contents_for(item, data_dir, with_ocr)
+        except OSError as error:  # the flyer can't be read: nothing to ask
+            cache[item["post_id"]] = {"error": str(error)[:300]}
+            say(f"  {item['post_id']}: error: {str(error)[:120]}")
+            continue
+        request = request_fingerprint(contents)
+        if "answer" in cache.get(item["post_id"], {}) and cache[item["post_id"]].get("request") == request:
             continue
         started = time.monotonic()
         try:
-            answer = ask(model, contents_for(item, data_dir, with_ocr))
+            answer = ask(model, contents)
         except QuotaExhaustedError as error:
             say(f"  no quota left today: {error}. The rest waits for another day.")
             break
@@ -185,11 +220,12 @@ def run_model(
             say(f"  {item['post_id']}: not asked ({str(error)[:120]}): tried again on the next run")
             continue
         except (ExtractionError, OSError) as error:
-            cache[item["post_id"]] = {"error": str(error)[:300]}
+            cache[item["post_id"]] = {"error": str(error)[:300], "request": request}
             say(f"  {item['post_id']}: error: {str(error)[:120]}")
         else:
             seconds = round(time.monotonic() - started, 1)
-            cache[item["post_id"]] = {"answer": answer.model_dump(mode="json"), "seconds": seconds}
+            entry = {"answer": answer.model_dump(mode="json"), "seconds": seconds, "request": request}
+            cache[item["post_id"]] = entry
             say(f"  {item['post_id']}: {len(answer.events)} events ({seconds} s)")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -374,21 +410,41 @@ def score_gold(posts: list[Item], cache: dict[str, Any]) -> Score:
 
 
 def run_gold(
-    models: list[str], score_only: bool = False, with_ocr: bool = False, say: Callable[[str], None] = print
+    models: list[str],
+    score_only: bool = False,
+    with_ocr: bool = False,
+    thinking: str | None = None,
+    say: Callable[[str], None] = print,
 ) -> None:
     """`admin bakeoff --gold`: each model on the test set's posts it hasn't answered (unless `score_only`), scored
-    against the truth; `--ocr`, with the flyer's OCR text (cached apart). A Flash model takes 20 a day: the rest
-    waits in the cache for the next day."""
+    against the truth; `--ocr`, with the flyer's OCR text; `--thinking`, at that thinking level (each variant cached
+    apart: "<model>+ocr", "<model>+think-low"). A Flash model takes 20 a day: the rest waits in the cache for the
+    next day."""
+    if with_ocr and not ocr.available():
+        say("--ocr needs the OCR engine, not in requirements.txt: pip install rapidocr onnxruntime")
+        return
     posts = load_gold()
     say(f"{len(posts)} posts checked by hand ({GOLD_DIR}); answers cached in {GOLD_CACHE_DIR}")
+    suffix = ("+ocr" if with_ocr else "") + (f"+think-{thinking}" if thinking else "")
     if not score_only:
-        ask = asker(lambda: config.require_env("GEMINI_API_KEY"))
+        level = types.ThinkingLevel[thinking.upper()] if thinking else None
+        ask = asker(lambda: config.require_env("GEMINI_API_KEY"), thinking=level)
         for model in models:
-            say(f"\n{model}{' with OCR' if with_ocr else ''}:")
-            run_model(model, posts, ask, GOLD_DIR, cache_dir=GOLD_CACHE_DIR, say=say, with_ocr=with_ocr)
+            say(f"\n{model}{suffix}:")
+            run_model(
+                model, posts, ask, GOLD_DIR, cache_dir=GOLD_CACHE_DIR, say=say, with_ocr=with_ocr, label=model + suffix
+            )
     for model in models:
-        label = model + ("+ocr" if with_ocr else "")
-        say("\n" + score_text(label, score_gold(posts, load_cache(cache_file(label, GOLD_CACHE_DIR))), notes=40))
+        label = model + suffix
+        cache = load_cache(cache_file(label, GOLD_CACHE_DIR))
+        say("\n" + score_text(label, score_gold(posts, cache), notes=40))
+        _say_stale(stale_answers(posts, cache, GOLD_DIR, with_ocr), say)
+
+
+def _say_stale(count: int, say: Callable[[str], None]) -> None:
+    if count:
+        say(f"   ! {count} answers were read with another request (the prompt, the rules, a caption or the OCR text")
+        say("     changed since): this score mixes readings; run without --score to ask them again")
 
 
 # ---------- the command ----------
@@ -422,7 +478,9 @@ def run(
             say(f"\n{model}:")
             run_model(model, picks, ask, config.DATA_DIR, say=say)
     for model in models:
-        say("\n" + score_text(model, score(picks, load_cache(cache_file(model)))))
+        cache = load_cache(cache_file(model))
+        say("\n" + score_text(model, score(picks, cache)))
+        _say_stale(stale_answers(picks, cache, config.DATA_DIR), say)
 
 
 def discover(say: Callable[[str], None] = print) -> None:

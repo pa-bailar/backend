@@ -872,8 +872,10 @@ flowchart TD
   one-day events only) or different venues (when both are known); and one of:
   - one event names the other's account (its organizer, venue or contact, or a title word: "Bachatamanía"
     for `@bachatamania_bogota`, "Distrito Social" for `@distritosocialbog`, "Level" for `@levelupbfc`, or two or
-    three words in a row: "DJ set Salsa Culto" for `@salsaculto`), plus the same start time, a title word in
-    common, or, for one-day events, the same venue (a venue's calendar listing an organizer's night);
+    three words in a row: "DJ set Salsa Culto" for `@salsaculto`), plus the same start time or a title word in
+    common; or, when a TITLE names it, the same venue for one-day events (a venue's calendar listing an
+    organizer's night). Being held at the other account's venue names it too, but the venue alone isn't enough
+    then: an academy's afternoon workshop at a bar isn't the bar's night (review, 7 Oct 2026);
   - the same venue (both known), plus the same start time and a title word in common, or two or more
     distinctive title words in common, or two counting kinds of events as long as one isn't one ("Tour de la
     Salsa — Capítulo 001" and a partner's "Primer capítulo del Tour de la Salsa" without a time, 7 Oct 2026).
@@ -886,6 +888,11 @@ flowchart TD
   title naming an account; with an account named, or the same venue and time, "Halloween" in both is enough. The
   event stays under the account that posted it first, and gains the other post's flyer. Over the site's
   history this merges the one real duplicate (Sept 19, 2026) and nothing else.
+- **A post read again is the event it announced:** when an upgrade or "Volver a leer" re-reads a post and the
+  rules don't match its event (Flash-Lite read the doors at 18:00, Flash the show at 23:00), the event this post
+  announced before on that day is the one, if there's only one (`find_existing(announced=…)`): the event keeps its
+  id, so links shared meanwhile still work (review, 7 Oct 2026). Three workshops a lighter model merged into one
+  stay three when Flash reads them: the first takes the event, the others are new.
 - **Two events in the same post are never merged** with each other.
 - **One post, one identity:** the API and the post's public page (section 3.7) know a post by different
   ids (`public-<id>` for the page). Posts are matched by their link's code, so the same post is never
@@ -1399,7 +1406,7 @@ flowchart LR
 | `external.py` | `ExternalTier`: the last resort on OpenAI-compatible chat APIs (Groq, OpenRouter): order, budgets, Groq's token pacing, per-run quarantine, JSON checked against the schemas |
 | `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; the test set (`gold/`, `--gold`, `--ocr`); OpenRouter's free vision models |
 | `ocr.py` | A flyer's text by OCR (RapidOCR, on the CPU), in rows as printed; optional (`rapidocr` isn't in `requirements.txt` yet): the input of the checks, and of `bakeoff --ocr` |
-| `checks.py` | Rules (no AI) that flag a reading for a second look: dates in the text and no event, a time not read, a range read as one day, three or more times and one event. Measured on the test set; not yet called by the sweep |
+| `checks.py` | Rules (no AI) that flag a reading for a second look, worked out from the post's day: a coming date and no event, a time not read, a range or a list of dates not covered, three or more start times for one event (not a social's opening classes), a weekday's day or "este sábado" with no event, an event before the post. Measured on the test set and on the site's posts; not yet called by the sweep |
 | `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions; prices in another currency never shown as free |
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |
 | `ids.py` | Readable, stable event ids (the event's URL) |
