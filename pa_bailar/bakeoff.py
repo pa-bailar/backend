@@ -181,7 +181,8 @@ def run_model(
 
 
 def _words(text: str | None) -> set[str]:
-    return {word for word in fold(text).replace(",", " ").split() if len(word) > 2}
+    """Letters and digits only ("Tributo." is "tributo"), words of three or more."""
+    return {word for word in "".join(c if c.isalnum() else " " for c in fold(text)).split() if len(word) > 2}
 
 
 def compare(reference: dict[str, Any], answer: dict[str, Any]) -> dict[str, bool]:
@@ -257,6 +258,115 @@ def score_text(model: str, result: Score, notes: int = 12) -> str:
         *(f"   - {note[:170]}" for note in result.notes[:notes]),
     ]
     return "\n".join(lines)
+
+
+# ---------- 4. the test set (gold/) ----------
+# Posts checked by hand against their flyers (gold/posts.json; gold/README.md): scoring against the truth, not against
+# Flash, so Flash is measured too and a change to the reading (a prompt, OCR, a second look) can be judged before it
+# ships. An expected event names only the fields its flyer settles; a list means any of those values is right.
+
+GOLD_DIR = config.ROOT_DIR / "gold"
+GOLD_CACHE_DIR = CACHE_DIR / "gold"
+GOLD_MODELS = (config.LITE_MODELS[0],)
+
+
+def load_gold(gold_dir: Path = GOLD_DIR) -> list[Item]:
+    posts: list[Item] = json.loads((gold_dir / "posts.json").read_text(encoding="utf-8"))["posts"]
+    return posts
+
+
+def _options(expected: Any) -> list[Any]:
+    return expected if isinstance(expected, list) else [expected]
+
+
+def _title_ok(expected: dict[str, Any], title: str | None) -> bool:
+    """At least half the words of one of the right titles, and none of the words that make it wrong ("Salsoteca")."""
+    words = _words(title)
+    if words & {fold(word) for word in expected.get("title_wrong", [])}:
+        return False
+    return any(
+        _words(right) and len(_words(right) & words) / len(_words(right)) >= 0.5
+        for right in _options(expected["title"])
+    )
+
+
+def compare_gold(expected: dict[str, Any], answer: dict[str, Any]) -> dict[str, bool]:
+    """Field by field, an expected event against the model's: only the fields the flyer settles."""
+    checks: dict[str, bool] = {
+        "title": _title_ok(expected, answer.get("title")),
+        "date": answer.get("date") == expected["date"],
+    }
+    checks["event_type"] = answer.get("event_type") in _options(expected["event_type"])
+    for name in ("end_date", "start_time", "end_time"):
+        if name in expected:
+            value = (answer.get(name) or "")[: 10 if name == "end_date" else 5] or None
+            checks[name] = value in _options(expected[name])
+    if "sessions" in expected:
+        checks["sessions"] = [s.get("date") for s in answer.get("sessions") or []] == (expected["sessions"] or [])
+    if "venue" in expected:
+        venue = _words(answer.get("venue"))
+        rights = _options(expected["venue"])
+        checks["venue"] = not venue if rights == [None] else any(_words(right) & venue for right in rights if right)
+    if "prices" in expected:
+        checks["prices"] = {p.get("amount_cop") for p in answer.get("prices") or []} == set(expected["prices"])
+    if "styles" in expected:
+        styles = set(answer.get("styles") or [])
+        checks["styles"] = set(expected["styles"]) <= styles <= {*expected["styles"], *expected.get("styles_ok", [])}
+    return checks
+
+
+def _closeness(expected: dict[str, Any], answer: dict[str, Any]) -> tuple[bool, bool, int]:
+    """Which answer on the expected event's date is it: the right title, then the right start, then shared words."""
+    start = (answer.get("start_time") or "")[:5] or None
+    shared = max(len(_words(right) & _words(answer.get("title"))) for right in _options(expected["title"]))
+    return _title_ok(expected, answer.get("title")), start in _options(expected.get("start_time")), shared
+
+
+def score_gold(posts: list[Item], cache: dict[str, Any]) -> Score:
+    """A model's cached answers against the test set: each expected event matched to one answer on its date (an
+    optional one, like a meet & greet only in a VIP pack, is neither missed nor extra)."""
+    result = Score()
+    for post in posts:
+        entry = cache.get(post["post_id"]) or {}
+        if "answer" not in entry:
+            result.errors += 1
+            continue
+        result.seconds.append(entry["seconds"])
+        left = [event for event in entry["answer"]["events"] if not event.get("is_recurring")]
+        for expected in sorted(post["events"], key=lambda event: bool(event.get("optional"))):
+            same_day = [event for event in left if event.get("date") == expected["date"]]
+            if not same_day:
+                if not expected.get("optional"):
+                    result.missed += 1
+                    result.notes.append(f"{post['post_id']}/{expected['id']}: missed ({expected['date']})")
+                continue
+            best = max(same_day, key=lambda event: _closeness(expected, event))
+            left.remove(best)
+            result.found += 1
+            for name, same in compare_gold(expected, best).items():
+                counts = result.fields.setdefault(name, [0, 0])
+                counts[0] += same
+                counts[1] += 1
+                if not same:
+                    where = f"{post['post_id']}/{expected['id']}"
+                    result.notes.append(f"{where} {name}: expected {expected.get(name)}, read {best.get(name)}")
+        result.extra += len(left)
+        result.notes += [f"{post['post_id']}: extra {event.get('date')} {event.get('title')}" for event in left]
+    return result
+
+
+def run_gold(models: list[str], score_only: bool = False, say: Callable[[str], None] = print) -> None:
+    """`admin bakeoff --gold`: each model on the test set's posts it hasn't answered (unless `score_only`), scored
+    against the truth. A Flash model takes 20 a day: the rest waits in the cache for the next day."""
+    posts = load_gold()
+    say(f"{len(posts)} posts checked by hand ({GOLD_DIR}); answers cached in {GOLD_CACHE_DIR}")
+    if not score_only:
+        ask = asker(lambda: config.require_env("GEMINI_API_KEY"))
+        for model in models:
+            say(f"\n{model}:")
+            run_model(model, posts, ask, GOLD_DIR, cache_dir=GOLD_CACHE_DIR, say=say)
+    for model in models:
+        say("\n" + score_text(model, score_gold(posts, load_cache(cache_file(model, GOLD_CACHE_DIR))), notes=40))
 
 
 # ---------- the command ----------

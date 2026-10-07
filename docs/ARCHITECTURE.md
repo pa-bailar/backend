@@ -1221,7 +1221,8 @@ guide.
 - **`admin bakeoff`** (`pa_bailar/bakeoff.py`): re-checks the last resort's models (section 7.3): runs
   Flash-Lite and each of them on recent posts Flash read and scores their events against Flash's, field by
   field, spending requests from the sweeps' daily quotas. On your computer only. ADMIN.md, "Re-checking the
-  last resort's models".
+  last resort's models". `--gold` scores any model against the test set in `gold/` instead: 40 posts checked by
+  hand against their flyers, the measure for changes to the reading (7 Oct 2026).
 
 ---
 
@@ -1395,7 +1396,7 @@ flowchart LR
 | `account_options.py` | What an `accounts.txt` line says besides the name: `bar` (only special nights) and `solo:<styles>` (the caption filter's words, `FOCUS_KEYWORDS`, from `normalize.TEXT_STYLE_WORDS` plus looser ones), parsed strictly (a typo fails) |
 | `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback and the last resort (extraction only), and no request after the run's time budget |
 | `external.py` | `ExternalTier`: the last resort on OpenAI-compatible chat APIs (Groq, OpenRouter): order, budgets, Groq's token pacing, per-run quarantine, JSON checked against the schemas |
-| `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; OpenRouter's free vision models |
+| `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; the test set (`gold/`, `--gold`); OpenRouter's free vision models |
 | `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions; prices in another currency never shown as free |
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |
 | `ids.py` | Readable, stable event ids (the event's URL) |
