@@ -22,7 +22,7 @@ skipped for the rest of the day like a spent one, and listed in `unavailable` fo
 import logging
 import time
 from collections import Counter
-from datetime import datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Literal
 from zoneinfo import ZoneInfo
 
@@ -76,9 +76,14 @@ _BLOCKED = {"SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII", "IMAGE_SAFETY",
 _TOO_LONG = "MAX_TOKENS"
 
 
+def quota_date(moment: datetime) -> date:
+    """The Gemini quota day `moment` falls in: daily quotas reset at midnight Pacific time."""
+    return moment.astimezone(ZoneInfo(config.QUOTA_TIMEZONE)).date()
+
+
 def quota_day() -> str:
-    """Gemini daily quotas reset at midnight Pacific time."""
-    return datetime.now(ZoneInfo(config.QUOTA_TIMEZONE)).date().isoformat()
+    """Today's Gemini quota day (Pacific), as the usage file stores it."""
+    return quota_date(datetime.now(UTC)).isoformat()
 
 
 def quota_reset(now: datetime) -> datetime:

@@ -75,8 +75,9 @@ FFMPEG = os.environ.get("FFMPEG", "ffmpeg")
 HTTP_TIMEOUT_SECONDS = 30
 
 # ---------- Gemini ----------
-# Free-tier limits as shown in AI Studio (aistudio.google.com/rate-limit) on 2026-10-02.
-# Update them here if Google changes the quotas.
+# Free-tier limits as shown in AI Studio (aistudio.google.com/rate-limit): update them here if Google changes the
+# quotas. The model ids: list them with the API (client.models.list()); one listed may still be refused to this key
+# (gemini-2.5-flash: "no longer available to new users", 6 Oct 2026).
 
 
 @dataclass(frozen=True)
