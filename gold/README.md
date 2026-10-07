@@ -28,7 +28,7 @@ values is right (a title, a type, a start time: doors or show).
 | `date`, `end_date`, `sessions` | exactly (`end_date` may list `null` as right) |
 | `start_time`, `end_time` | HH:MM, `null` when the post gives none |
 | `event_type` | one of the listed types |
-| `venue` | a word in common with one of the listed names; `null`: none given |
+| `venue` | a word in common with one of the listed names; `null` among them: no venue is right too |
 | `prices` | the same set of amounts (`[]`: no price given, `[0]`: free) |
 | `styles` | all of these, and nothing outside them and `styles_ok` |
 | `optional` | neither missed nor extra (a meet & greet only in a VIP pack) |
