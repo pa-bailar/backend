@@ -33,10 +33,11 @@ from google.genai import types
 from PIL import Image
 
 from . import config, ocr, storage, sweep_state
+from .account_options import AccountOptions
 from .external import ExternalTier, SkippedError, recorded_name
 from .gemini import ExtractionError, ModelPool, QuotaExhaustedError
 from .models import PostAnalysis
-from .prompts import EXTRACTION_PROMPT, OCR_NOTE
+from .prompts import EXTRACTION_PROMPT, OCR_NOTE, account_rules
 from .text import fold
 
 CACHE_DIR = config.STATE_DIR / "bakeoff"
@@ -100,6 +101,16 @@ def pick(found: list[Item], count: int, seed: int = SEED) -> list[Item]:
 # ---------- 2. run ----------
 
 
+def _rules(account: str) -> str:
+    """The account's own rules, as the sweep adds them (a bar's: only special nights; a style focus): without them,
+    a bar's post was read more loosely than in the sweep (until 7 Oct 2026). No accounts.txt: none."""
+    try:
+        options = storage.read_account_options().get(account, AccountOptions())
+    except FileNotFoundError:
+        return ""
+    return account_rules(options.bar, options.focus)
+
+
 def contents_for(item: Item, data_dir: Path, with_ocr: bool = False) -> list[types.PartUnionDict]:
     """What the sweep sends for an extraction, as on the day Flash read the post: its flyer, then the prompt.
     `with_ocr`: the flyer's OCR text right after it (prompts.OCR_NOTE), the change being measured."""
@@ -110,7 +121,7 @@ def contents_for(item: Item, data_dir: Path, with_ocr: bool = False) -> list[typ
         published=published.astimezone(config.BOGOTA_TZ).strftime("%Y-%m-%d %A"),
         today=today.strftime("%Y-%m-%d %A"),
         caption=item["caption"] or "(sin texto)",
-        account_rules="",
+        account_rules=_rules(item["account"]),
         known_events="(none)",
     )
     buffer = io.BytesIO()

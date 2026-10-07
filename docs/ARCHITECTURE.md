@@ -472,7 +472,8 @@ flowchart TD
   - `bar`: a bar or club, open every week (the owner, 5 October 2026: salsa bars hold special nights, but most of
     their posts are their regular ones). The triage and the extraction get `prompts.BAR_RULES` after the caption:
     its regular nights aren't events, only special one-time occasions (a live band, a billed guest, an
-    anniversary…); when unsure, it isn't. Its
+    anniversary…); a band named for a date is special even at a bar with live music most weeks (7 Oct 2026: the
+    test set showed Flash-Lite taking those for regular nights); when unsure, it isn't. Its
     events carry `bar: true` (`StoredEvent.bar`, docs/DATA.md in the site), set from `accounts.txt` on every run,
     so marking or unmarking an account updates its stored events. Its nights are a `party` ("Rumba" on the site),
     not a `social` (the owner, 6 October 2026: a bar's party isn't a dancers' social): the prompt says so, and

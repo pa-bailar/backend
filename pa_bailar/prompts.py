@@ -21,9 +21,10 @@ This account is a BAR or club, open every week. Its regular nights are NOT event
 or most weeks ("viernes de salsa", "noche de…" with its resident DJs, "todos los jueves", "este sábado rumba",
 "hoy abrimos"), happy hours, menus and drink offers. Only a special one-time occasion counts: a live band or
 orchestra, a guest artist or DJ announced by name as the night's draw, the bar's anniversary, a holiday party
-(Halloween, Navidad, Año Nuevo…), a workshop or class with a guest teacher, a competition or a show. When unsure
-whether a night is special, it isn't. Its nights are a "party" (type), not a "social", unless the post announces a
-dancers' social; a live band or orchestra's night is a "concert"."""
+(Halloween, Navidad, Año Nuevo…), a workshop or class with a guest teacher, a competition or a show. A live band,
+orchestra or guest artist named for a specific date IS special, even if the bar has live music most weeks: never
+is_recurring. When unsure whether a night is special, it isn't. Its nights are a "party" (type), not a "social",
+unless the post announces a dancers' social; a live band or orchestra's night is a "concert"."""
 
 FOCUS_RULES = """
 
@@ -71,7 +72,8 @@ What does NOT count:
   abiertas" to regular classes, "cursos" by levels, monthly fees ("mensualidad"), memberships, and courses
   or programs whose sessions aren't each dated ("8 semanas", "todos los sábados de noviembre", "inicia el 3
   de noviembre"), have more than 12 sessions or last more than 4 months. Only a workshop series with every
-  session dated (above) counts;
+  session dated (above) counts. The word "curso" or "clases" doesn't decide: a course with each of its dates
+  written ("4 sábados: 3, 10, 17 y 24 de octubre") IS a workshop series;
 - things that already happened: recaps ("gracias a todos", "así se vivió"), photos or videos of past
   events, results;
 - student showcases, wedding choreographies ("coreografía de boda"), tutorials, challenges, motivational
@@ -154,7 +156,9 @@ mentions it in passing (a song release, a profile) or that gives it another date
 
 Rules:
 - A post can contain several events (e.g. a monthly schedule): return each one separately. A flyer listing
-  different events is one event per occasion.
+  different events is one event per occasion: classes or workshops at different times, each with its own
+  teacher or style ("3:00 pm Reguetón · María", "4:00 pm Sabroseo · Blado"), are one event each, even under one
+  title.
 - date: the event's day, or its FIRST day for an event over several consecutive days. end_date: its LAST
   day ("NOV 13-15 2026" → date 2026-11-13, end_date 2026-11-15; "31 Oct, 1 y 2 Nov" → 2026-10-31 and
   2026-11-02). end_date is null for a one-day event, including a night that goes on past midnight.

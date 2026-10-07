@@ -207,11 +207,21 @@ answer, not against Flash; `--gold --score` scores what's cached. Any change to 
 a second look) is measured on it before it ships. `--gold --ocr` adds each flyer's OCR text after it
 (`pa_bailar/ocr.py`; needs `pip install rapidocr onnxruntime`), cached apart as `<model>+ocr`.
 
-What it showed (7 Oct 2026, Flash-Lite, three runs): 55, 58 and 56 of 60 events found, every date right; two runs
-of the same reading differ by about 3 events, so a change needs more than that to count. The OCR text in the prompt
-gave no measurable gain. Flash-Lite's misses are judgments (a course or a bar's nights dropped as "regular", three
-workshops merged), different from run to run; the rules in `pa_bailar/checks.py`, given the caption and the OCR
-text, flagged every post with a dropped event in all three runs, and 2 of about 33 right ones.
+What it showed (7 Oct 2026, Flash-Lite; the test reads each post with its account's rules from `accounts.txt`, as
+the sweep does):
+
+| Reading | Events found (of 61) |
+|---|---|
+| The prompt as it was, two runs | 57, 58 |
+| With the flyer's OCR text | 56 |
+| **With three clarifications (now the prompt), two runs** | **61, 61** |
+
+Two runs of the same reading differ by about 3 events, so a change needs more than that to count. The misses were
+judgments the prompt itself invited: a course with every date written dropped because it said "curso", a bar's
+dated night with a named band taken as a regular night, three workshops at three times merged. The clarifications
+(prompts.py: the course and bar rules, "one event per occasion") remove them; what's left is a style too general
+now and then, a venue or a title. The rules in `pa_bailar/checks.py`, given the caption and the OCR text, flagged
+every post with a dropped event or an unread time in every run, and none of the right ones.
 
 ## What the answers mean
 
