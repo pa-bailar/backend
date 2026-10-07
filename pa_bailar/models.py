@@ -432,3 +432,16 @@ class AccountState(BaseModel):
     # Post id → the runs on which no model gave valid JSON for it (gemini.UnreadableAnswerError): at
     # config.UNREADABLE_RUNS it's recorded as rejected, so it stops spending Flash's quota.
     unreadable: dict[str, int] = {}
+
+
+class GeminiUsage(BaseModel):
+    """state/gemini_usage.json: one Gemini quota day (Pacific, gemini.quota_day) of requests per model, and the models
+    Gemini said the key can't use that day (gemini.ModelPool). The sweeps share it through the sweep-state branch."""
+
+    day: str = ""
+    requests: dict[str, int] = Field(default_factory=dict)
+    unavailable: list[str] = Field(default_factory=list)
+
+    def on(self, day: str) -> "GeminiUsage":
+        """This usage if it's `day`'s, else none: a new quota day starts from nothing."""
+        return self if self.day == day else GeminiUsage(day=day)

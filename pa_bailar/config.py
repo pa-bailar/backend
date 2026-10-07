@@ -103,10 +103,10 @@ LITE_ONLY = os.environ.get("GEMINI_LITE_ONLY", "").strip() == "1"
 # the binding limit while 3.7 and 3.6 Flash and a second Flash-Lite sat unused). Roles:
 LITE_MODELS = ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite")
 TRIAGE_MODELS = LITE_MODELS  # cheap yes/no: does the post announce an event?
-# Full details, best quality: Flash of this generation (80 a day). Lite-only mode: Flash-Lite, as final results.
-EXTRACTION_MODELS = (
-    LITE_MODELS if LITE_ONLY else ("gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash")
-)
+# Full details, best quality: Flash of this generation (80 a day; the bake-off's baseline). Lite-only mode:
+# Flash-Lite, as final results.
+FLASH_MODELS = ("gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash")
+EXTRACTION_MODELS = LITE_MODELS if LITE_ONLY else FLASH_MODELS
 # When those are out: saved, then upgraded on a later run (none in lite-only mode). An older Flash first (its reads
 # weren't compared with this generation's yet: a 6 Oct bake-off met Google's overload), then Flash-Lite.
 PROVISIONAL_MODELS: tuple[str, ...] = () if LITE_ONLY else ("gemini-3-flash-preview", *LITE_MODELS)

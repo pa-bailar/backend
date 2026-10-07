@@ -7,7 +7,7 @@ import pytest
 from google.genai import errors
 
 from pa_bailar import config, gemini
-from pa_bailar.models import Triage
+from pa_bailar.models import GeminiUsage, Triage
 
 
 class FakeModels:
@@ -148,7 +148,7 @@ def test_usage_is_saved_and_counted_per_day(pool):
     with_models(pool, {"gemini-3.5-flash-lite": [ANSWER]})
     pool.generate(["gemini-3.5-flash-lite"], [], Triage)
     saved = gemini.storage.load_gemini_usage()
-    assert saved == {"day": gemini.quota_day(), "requests": {"gemini-3.5-flash-lite": 1}, "unavailable": []}
+    assert saved == GeminiUsage(day=gemini.quota_day(), requests={"gemini-3.5-flash-lite": 1})
 
 
 def test_a_request_gemini_refuses_is_permanent_not_retried(pool):
