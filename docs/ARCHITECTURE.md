@@ -1060,10 +1060,10 @@ They run after every sweep. No AI, no quota.
 | Instagram's rate limit stopped the run early | Notice, then **warning** after 3 runs in a row | Too many accounts for the app's quota? Discovery or tests using it? |
 | The run used its whole time budget | Notice, then **warning** after 3 runs in a row | Is the backlog too big? |
 | Posts failed | Notice, then **warning** after 3 runs in a row | Gemini rejections, image downloads, unexpected errors. Posts waiting for quota aren't failures |
-| A Gemini model the key can't use | Notice, then **warning** after 3 runs in a row | Google may have changed the free tier: extraction falls back to Flash-Lite; `GEMINI_LITE_ONLY=1` makes that the plan |
+| A Gemini model the key can't use | Notice, then **warning** after 3 runs in a row (every run of the day reports it: asked again after midnight Pacific) | Google may have dropped it: the next model of the same role reads meanwhile, so take it out of `config.py`'s lists; only with every Flash of the extraction gone, `GEMINI_LITE_ONLY=1` (Flash-Lite as final results) |
 | Pending posts | Notice, or **warning** when the backlog hasn't gone down in 4 runs | The quotas or the time are too small for the accounts followed |
 | No events in a week | **Warning** | 14 runs with at least 10 posts analyzed and not a single event: are triage or extraction rejecting everything? |
-| Flash's quota ran out | Notice | Posts were extracted provisionally |
+| Posts read provisionally | Notice | Read without this generation's Flash (out of quota, busy, or kept for a later sweep that day): by an older Flash, Flash-Lite or the last resort, re-read with Flash on later runs |
 | The last resort was used | Notice | Gemini ran out: requests per provider, what each model did (answered, busy, invalid, skipped…) and the ones set aside after failing twice |
 | A provider of the last resort turned off | Notice, then **warning** after 3 runs in a row | Groq or OpenRouter answered 401, 402 or 403: check its key secret and the account, or delete the secret to stop using it |
 | Account inactive | Notice | No post in 45 days (or none at all) |

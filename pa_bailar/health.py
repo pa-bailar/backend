@@ -156,14 +156,22 @@ def _model_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
     reads), and the last resort (Groq, OpenRouter): used (Gemini ran out) or refused."""
     findings: list[Finding] = []
     unavailable = ", ".join(run.models_unavailable)
+    # Each role has several models (config.py): the next one reads meanwhile. Only with every Flash of the extraction
+    # gone does the lite-only mode make sense.
+    no_flash = bool(config.EXTRACTION_MODELS) and set(config.EXTRACTION_MODELS) <= set(run.models_unavailable)
+    advice = (
+        "No Flash is left for the extraction: to read with Flash-Lite as final results, set the repository variable "
+        "GEMINI_LITE_ONLY to 1 (docs/ARCHITECTURE.md, Gemini)."
+        if no_flash
+        else "The next model of the same role reads meanwhile; take it out of config.py's model lists."
+    )
     findings += _repeated(
         runs,
         lambda r: bool(r.models_unavailable),
         "models-unavailable",
-        f"Gemini said this key can't use {unavailable} in the last {{runs}} runs: did Google change the free "
-        "tier? Extraction falls back to Flash-Lite meanwhile. To make that the plan, set the repository "
-        "variable GEMINI_LITE_ONLY to 1 (docs/ARCHITECTURE.md, Gemini).",
-        f"Gemini said this key can't use {unavailable} this run (it's tried again next run).",
+        f"Gemini said this key can't use {unavailable} in the last {{runs}} runs: did Google drop it? {advice}",
+        f"Gemini said this key can't use {unavailable} this run (asked again after midnight Pacific, when the "
+        "quotas reset).",
     )
 
     findings += _external_findings(runs, run)
@@ -173,8 +181,9 @@ def _model_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
             Finding(
                 "notice",
                 "provisional",
-                f"Flash's daily quota ran out: {run.provisional} posts were extracted with the light model "
-                "or the last resort, Groq and OpenRouter (upgraded on later runs).",
+                f"{run.provisional} posts were read without this generation's Flash (out of quota, busy, or kept "
+                "for a later sweep today): by an older Flash, Flash-Lite or the last resort, re-read with Flash on "
+                "later runs.",
             )
         )
     return findings

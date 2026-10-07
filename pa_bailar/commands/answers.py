@@ -146,7 +146,12 @@ def added_story_markdown(added: AddedStory) -> str:
         lines += [_story_event_line(event) for event in added.events]
     elif published:
         verb = "Se unió a" if added.outcome == "merged" else "Publiqué"
-        light = " Flash-Lite (Flash no tenía cuota)" if added.provisional else f" {added.model}"
+        # A story isn't seen again by a later sweep: a reading without Flash stays as it is.
+        light = (
+            f" {model_label(added.model or '')} (Flash no estaba disponible)"
+            if added.provisional
+            else f" {added.model}"
+        )
         lines.append(f"✅ **{verb} {len(added.events)} evento(s)** desde la historia, leída con{light}:")
         lines += [_story_event_line(event) for event in added.events]
         lines += _story_receipt(added)

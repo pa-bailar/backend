@@ -92,7 +92,6 @@ MODEL_LIMITS = {
     "gemini-3.6-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3.5-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3-flash-preview": ModelLimit(requests_per_minute=5, requests_per_day=20),
-    "gemini-2.5-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3.5-flash-lite": ModelLimit(requests_per_minute=15, requests_per_day=500),
     "gemini-3.1-flash-lite": ModelLimit(requests_per_minute=15, requests_per_day=500),
 }
