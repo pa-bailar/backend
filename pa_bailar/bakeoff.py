@@ -305,8 +305,8 @@ def compare_gold(expected: dict[str, Any], answer: dict[str, Any]) -> dict[str, 
         checks["sessions"] = [s.get("date") for s in answer.get("sessions") or []] == (expected["sessions"] or [])
     if "venue" in expected:
         venue = _words(answer.get("venue"))
-        rights = _options(expected["venue"])
-        checks["venue"] = not venue if rights == [None] else any(_words(right) & venue for right in rights if right)
+        rights = _options(expected["venue"])  # None among them: no venue is right too (a logo, an address only)
+        checks["venue"] = None in rights if not venue else any(_words(right) & venue for right in rights if right)
     if "prices" in expected:
         checks["prices"] = {p.get("amount_cop") for p in answer.get("prices") or []} == set(expected["prices"])
     if "styles" in expected:

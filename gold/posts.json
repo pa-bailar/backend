@@ -4,12 +4,52 @@
   {
    "post_id": "17873536227593859",
    "account": "elgocepagano",
-   "why": "A venue's month as a grid: each cell is one night's act; 'Salsoteca DC' is only Saturday 3's (Flash-Lite put it on every night). Doors 6 pm and shows 11 pm and 1 am in the caption hold for every night.",
+   "why": "A venue's month as a grid: each cell is one night's act; 'Salsoteca DC' is only Saturday 3's (Flash-Lite put it on every night). Doors 6 pm, shows 11 pm and 1 am and the 20k cover in the caption may hold for every night: prices aren't checked.",
    "flyer": "flyers/17873536227593859-1.webp",
    "caption": "🔥Concierto salsero, en elgocepagano 🔥\nSalsa bogotana, sabor, calle y goce en una sola noche\n\n🕔 Puertas: 6 pm | 🎶 Shows: 11 pm y 1 am\n📍 Diagonal 20A No. 82 – Bogotá\n\n✨🔥¡A bailar!🔥✨\nCover 20k\n#salsaenvivo #salsa\n#concierto #envivo\n#conciertobogota #salsaenbogotá",
    "published": "2026-10-01T00:15:22+0000",
    "processed_at": "2026-10-01T09:00:00-05:00",
    "events": [
+    {
+     "id": "charanga",
+     "title": "Real Charanga",
+     "date": "2026-10-02",
+     "event_type": [
+      "concert",
+      "party"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "title_wrong": [
+      "salsoteca"
+     ]
+    },
+    {
+     "id": "salsoteca",
+     "title": "Salsoteca DC",
+     "date": "2026-10-03",
+     "event_type": [
+      "concert",
+      "party"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "title_wrong": []
+    },
     {
      "id": "canamelao",
      "title": "Cañamelao",
@@ -27,7 +67,6 @@
       "23:00",
       null
      ],
-     "prices": [],
      "title_wrong": [
       "salsoteca"
      ]
@@ -49,7 +88,6 @@
       "23:00",
       null
      ],
-     "prices": [],
      "title_wrong": [
       "salsoteca"
      ]
@@ -72,7 +110,6 @@
       "23:00",
       null
      ],
-     "prices": [],
      "title_wrong": [
       "salsoteca"
      ]
@@ -94,7 +131,6 @@
       "23:00",
       null
      ],
-     "prices": [],
      "title_wrong": [
       "salsoteca"
      ]
@@ -116,7 +152,6 @@
       "23:00",
       null
      ],
-     "prices": [],
      "title_wrong": [
       "salsoteca"
      ]
@@ -139,7 +174,6 @@
       "23:00",
       null
      ],
-     "prices": [],
      "title_wrong": [
       "salsoteca"
      ]
@@ -161,7 +195,6 @@
       "23:00",
       null
      ],
-     "prices": [],
      "title_wrong": [
       "salsoteca"
      ]
@@ -183,7 +216,6 @@
       "23:00",
       null
      ],
-     "prices": [],
      "title_wrong": [
       "salsoteca"
      ]
@@ -205,7 +237,6 @@
       "23:00",
       null
      ],
-     "prices": [],
      "title_wrong": [
       "salsoteca"
      ]
@@ -227,7 +258,6 @@
       "23:00",
       null
      ],
-     "prices": [],
      "title_wrong": [
       "salsoteca"
      ]
@@ -498,7 +528,10 @@
    "events": [
     {
      "id": "callejon",
-     "title": "Marediaguamusic",
+     "title": [
+      "Marediaguamusic",
+      "Marediagua"
+     ],
      "date": "2026-10-10",
      "event_type": "concert",
      "start_time": [
@@ -601,7 +634,8 @@
      ],
      "venue": [
       "PUD",
-      "Proyecto Urban Dance"
+      "Proyecto Urban Dance",
+      null
      ],
      "styles": [
       "urbano"
@@ -624,7 +658,8 @@
      ],
      "venue": [
       "PUD",
-      "Proyecto Urban Dance"
+      "Proyecto Urban Dance",
+      null
      ],
      "styles": [
       "urbano"
@@ -647,7 +682,8 @@
      ],
      "venue": [
       "PUD",
-      "Proyecto Urban Dance"
+      "Proyecto Urban Dance",
+      null
      ],
      "styles": [
       "urbano"
@@ -1024,6 +1060,9 @@
      ],
      "styles": [
       "salsa caleña"
+     ],
+     "styles_ok": [
+      "salsa"
      ]
     }
    ]
@@ -1445,6 +1484,9 @@
      "styles": [
       "salsa en línea",
       "salsa cubana"
+     ],
+     "styles_ok": [
+      "salsa"
      ]
     }
    ]
