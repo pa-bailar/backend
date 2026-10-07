@@ -19,7 +19,7 @@ from typing import Any
 from . import config, discovery, links, storage, sweep_state
 from .external import usage_day, usage_reset
 from .gemini import daily_budget, quota_day, quota_reset
-from .models import AccountState, StoredEvent
+from .models import AccountState, GeminiUsage, StoredEvent
 from .pipeline import hours_overdue
 from .text import WEEKDAYS, clock, parse_hhmm, sessions_label
 
@@ -129,8 +129,7 @@ def collect(
     today = now.date().isoformat()
 
     history = read(config.RUN_HISTORY_FILE.name, [])
-    usage = read(config.GEMINI_USAGE_FILE.name, {})
-    used = usage.get("requests", {}) if usage.get("day") == quota_day() else {}
+    used = GeminiUsage.model_validate(read(config.GEMINI_USAGE_FILE.name, {})).on(quota_day()).requests
     external = read(config.EXTERNAL_USAGE_FILE.name, {})
     external_used = external.get("providers", {}) if external.get("day") == usage_day(now) else {}
     states = {

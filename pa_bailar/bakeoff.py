@@ -42,10 +42,11 @@ from .text import fold
 CACHE_DIR = config.STATE_DIR / "bakeoff"
 DEFAULT_POSTS = 15
 SEED = 5  # the same posts each time for the same data
-FLASH_MODELS = tuple(model for model in config.MODEL_LIMITS if not model.endswith("-lite"))
-# The baseline (Flash-Lite, the first fallback), then every model of the last resort.
+# The readings compared against: this generation's Flash, final (an older Flash's reads are provisional).
+FLASH_MODELS = config.FLASH_MODELS
+# The baseline (the first Flash-Lite), then every model of the last resort.
 DEFAULT_MODELS = (
-    "gemini-3.5-flash-lite",
+    config.LITE_MODELS[0],
     *(recorded_name(provider.name, model.name) for provider in config.EXTERNAL_PROVIDERS for model in provider.models),
 )
 JPEG_QUALITY = 90

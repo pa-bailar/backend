@@ -10,7 +10,7 @@ from google.genai import types
 from pa_bailar import config, external, gemini, storage
 from pa_bailar.external import ExternalTier, parse_answer, request_parts
 from pa_bailar.extraction import EventExtractor
-from pa_bailar.models import PostAnalysis, Triage
+from pa_bailar.models import GeminiUsage, PostAnalysis, Triage
 from pa_bailar.pipeline import Sweep
 from pa_bailar.prompts import EXTRACTION_PROMPT
 from tests.factories import make_image
@@ -465,7 +465,7 @@ def test_with_gemini_out_the_sweep_extracts_with_groq_one_post_a_minute_and_flas
     no_event = {"is_event_post": False, "reason": "un meme", "events": []}
     api = FakeAPI({GROQ: [no_event, no_event]})
     spent = {model: limit.requests_per_day for model, limit in config.MODEL_LIMITS.items()}
-    storage.save_gemini_usage({"day": gemini.quota_day(), "requests": spent})  # today's Gemini quotas are used
+    storage.save_gemini_usage(GeminiUsage(day=gemini.quota_day(), requests=spent))  # today's Gemini quotas are used
     out = extractor({}, api, keys={"groq": "k", "openrouter": None})
     Sweep(lookback_days=7, instagram=instagram, extractor=out, all_accounts=True).run()
 
@@ -474,7 +474,7 @@ def test_with_gemini_out_the_sweep_extracts_with_groq_one_post_a_minute_and_flas
     assert len(api.bodies) == 2 and all("Image 0:" in str(body) for body in api.bodies)  # extractions, no triage
     assert any(pause > 50 for pause in sleeps)  # the second waited for the first to leave Groq's minute
 
-    storage.save_gemini_usage({})  # the next quota day: Flash-Lite screens Groq's "no" first
+    storage.save_gemini_usage(GeminiUsage())  # the next quota day: Flash-Lite screens Groq's "no" first
     lite = gemini.ModelPool("unused-key", client=FakeClient())
     lite._client.models.behaviour = {
         "gemini-3.5-flash-lite": [Triage(is_event_post=True, reason="social"), Triage(is_event_post=False, reason="x")],

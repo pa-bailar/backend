@@ -14,7 +14,7 @@ from pydantic import TypeAdapter
 from . import config
 from .account_options import AccountOptions, parse_line
 from .merging import ordered_media
-from .models import AccountState, HiddenEvent, ProcessedPost, StoredEvent
+from .models import AccountState, GeminiUsage, HiddenEvent, ProcessedPost, StoredEvent
 
 _events_adapter = TypeAdapter(list[StoredEvent])
 _processed_adapter = TypeAdapter(dict[str, ProcessedPost])
@@ -106,13 +106,12 @@ def save_account_state(accounts: dict[str, AccountState]) -> None:
 # ---------- Gemini usage (requests per model on the current quota day) ----------
 
 
-def load_gemini_usage() -> dict[str, Any]:
-    usage: dict[str, Any] = read_json(config.GEMINI_USAGE_FILE, {})
-    return usage
+def load_gemini_usage() -> GeminiUsage:
+    return GeminiUsage.model_validate(read_json(config.GEMINI_USAGE_FILE, {}))
 
 
-def save_gemini_usage(usage: dict[str, Any]) -> None:
-    write_json(config.GEMINI_USAGE_FILE, usage)
+def save_gemini_usage(usage: GeminiUsage) -> None:
+    write_json(config.GEMINI_USAGE_FILE, usage.model_dump())
 
 
 # ---------- External providers' usage (per provider on the current UTC day: external.py) ----------

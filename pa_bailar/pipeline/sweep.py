@@ -3,16 +3,25 @@ statistics), with the admin tools' operations mixed in (manual_post.py, story_ad
 
 import logging
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import UTC, date, datetime, timedelta
-from zoneinfo import ZoneInfo
 
 from .. import config, links, storage
 from ..account_options import AccountOptions, mentions_focus
 from ..external import is_external
-from ..gemini import GeminiKeyError, OutOfTimeError, QuotaExhaustedError, RejectedRequestError, UnreadableAnswerError
+from ..gemini import (
+    GeminiKeyError,
+    OutOfTimeError,
+    QuotaExhaustedError,
+    RejectedRequestError,
+    UnreadableAnswerError,
+    quota_date,
+)
 from ..instagram import InstagramError, Post, is_rate_limited, published_at, slide_count
 from ..models import AccountState, ProcessedPost, StoredEvent
+from ..text import parse_hhmm
 from . import common
 from .common import RETRYABLE_ERRORS, RunStats, caption_hash, clip_for, flyer_slide
 from .hiding import Hiding
@@ -39,17 +48,15 @@ def hours_overdue(state: AccountState | None, now: datetime) -> float:
 def later_sweeps_in_quota_day(now: datetime) -> int:
     """How many scheduled sweeps (config.SWEEP_TIMES, Bogotá) still start in `now`'s Gemini quota day (Pacific), past
     the margin that makes a sweep starting late this run."""
-    quota = ZoneInfo(config.QUOTA_TIMEZONE)
-    day = now.astimezone(quota).date()
+    day = quota_date(now)
     soonest = now + timedelta(minutes=config.LATER_SWEEP_MARGIN_MINUTES)
     today = now.astimezone(config.BOGOTA_TZ).date()
     later = 0
     for offset in (0, 1):
         on = today + timedelta(days=offset)
         for clock in config.SWEEP_TIMES:
-            hour, minute = (int(part) for part in clock.split(":"))
-            starts = datetime(on.year, on.month, on.day, hour, minute, tzinfo=config.BOGOTA_TZ)
-            if starts > soonest and starts.astimezone(quota).date() == day:
+            starts = datetime.combine(on, parse_hhmm(clock), config.BOGOTA_TZ)
+            if starts > soonest and quota_date(starts) == day:
                 later += 1
     return later
 
@@ -106,13 +113,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             if self._out_of_time():  # no Gemini work would start: they wait, first next run (_due_accounts)
                 break
             self.stats.accounts += 1
-            try:
+            with self._contained(account, f"@{account}"):
                 self._process_account(account)
-            except GeminiKeyError as error:  # every post would fail: stop, and let the run fail loudly
-                raise _bad_key(error) from error
-            except Exception:  # unexpected (e.g. a malformed answer): lose this account's run, not everyone's
-                log.exception("   unexpected error with @%s, continuing with the next account", account)
-                self.stats.count(account, "errors")
 
         self._upgrade_by_urgency()
         self._apply_retention()
@@ -157,13 +159,20 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
                 log.info("   no Flash (or time) left: %d wait for a later run", len(queue) - done)
                 break
             log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
-            try:
+            with self._contained(account, f"the upgrade of {post['permalink']}"):
                 self._upgrade_post(account, post, published)
-            except GeminiKeyError as error:
-                raise _bad_key(error) from error
-            except Exception:  # unexpected, as in the accounts' loop: lose this upgrade, not the run's records
-                log.exception("   unexpected error upgrading %s, continuing", post["permalink"])
-                self.stats.count(account, "errors")
+
+    @contextmanager
+    def _contained(self, account: str, what: str) -> Iterator[None]:
+        """An unexpected error (e.g. a malformed answer) loses `what`, an account's run or an upgrade, not the run's:
+        logged and counted against `account`. A key that doesn't work ends the run loudly: every request would fail."""
+        try:
+            yield
+        except GeminiKeyError as error:
+            raise _bad_key(error) from error
+        except Exception:
+            log.exception("   unexpected error with %s, continuing", what)
+            self.stats.count(account, "errors")
 
     def _share_per_run(self) -> int:
         """How many accounts one sweep reads: its share of the day's sweeps, plus a margin for late ones."""

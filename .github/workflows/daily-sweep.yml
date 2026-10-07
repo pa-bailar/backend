@@ -1,7 +1,7 @@
 # Twice a day: collect new events from Instagram and publish real changes to the (public) site
 # repository through a pull request.
 #
-#   this repo (private): sweep ── images ──▶ pa-bailar/media (pushed directly)
+#   this repo (public): sweep ── images ──▶ pa-bailar/media (pushed directly)
 #                              └─ data PR ──▶ pa-bailar.github.io: ci → auto-merge → deploy (copies the images in)
 #
 # - The site and images repositories are reached with the pa-bailar-bot GitHub App (vars.APP_ID,
@@ -238,7 +238,10 @@ jobs:
       # Before anything is checked out: a copy of the site taken before that PR merged lacks its events, and the run
       # would then delete their flyers from the images repository and open a PR that conflicts with it for good
       # (tests/test_workflows.py).
+      # When it fails, nothing was checked out: the steps that keep a failed sweep's progress (`!cancelled()`) need it
+      # too, or they fail in turn on folders that aren't there; the health check and the answer still report it.
       - name: Make sure the last data PR merged
+        id: wait
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -345,7 +348,7 @@ jobs:
       # The admin page (admin-web/, docs/ADMIN.md) shows this: `admin status` as data, saved with the state.
       # One Graph API call (is the token working, the app's hourly usage); no Gemini.
       - name: Write the status for the admin page
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.wait.outcome == 'success' }}
         continue-on-error: true # the page can wait; the state must still be saved
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
@@ -355,7 +358,7 @@ jobs:
 
       - name: Get a token for the site repository (pa-bailar-bot)
         id: app
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.wait.outcome == 'success' }}
         uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ vars.APP_ID }}
@@ -370,7 +373,7 @@ jobs:
       # If it fails, no data PR is opened: this run's posts stay unread and are read again next run.
       - name: Save the images to their repository
         id: media
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.wait.outcome == 'success' }}
         working-directory: media
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
@@ -390,7 +393,7 @@ jobs:
       - name: Open a data pull request in the site repository if events or flyers changed
         id: pr
         # Keep progress from a sweep that failed partway (it still shows as failed), unless the images weren't saved.
-        if: ${{ !cancelled() && steps.media.outcome != 'failure' }}
+        if: ${{ !cancelled() && steps.wait.outcome == 'success' && steps.media.outcome != 'failure' }}
         working-directory: site
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
@@ -430,7 +433,7 @@ jobs:
       # If the data PR couldn't be opened (the App token, GitHub's API, the push), the sweep's events and flyers
       # would die with the runner: keep them for 14 days, to recover by hand (docs/ARCHITECTURE.md, section 15).
       - name: Keep the site data of a data PR that wasn't opened
-        if: ${{ !cancelled() && steps.pr.outcome == 'failure' }}
+        if: ${{ !cancelled() && steps.wait.outcome == 'success' && steps.pr.outcome == 'failure' }}
         uses: actions/upload-artifact@v7
         with:
           name: site-data-${{ github.run_id }}
@@ -442,7 +445,7 @@ jobs:
       # in the artifact above), so the posts stay unread and the accounts due, and the next run reads them again.
       # Gemini's usage, the run history and the status are kept either way (the quota was spent).
       - name: Save the sweep state
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.wait.outcome == 'success' }}
         working-directory: sweep-state
         env:
           GH_TOKEN: ${{ github.token }}
@@ -465,7 +468,7 @@ jobs:
 
       # add-post and add-story add the account when it isn't swept yet (storage.add_account).
       - name: Save an account added by hand
-        if: ${{ !cancelled() && (inputs.post_url != '' || inputs.story != '') }}
+        if: ${{ !cancelled() && steps.wait.outcome == 'success' && (inputs.post_url != '' || inputs.story != '') }}
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ inputs.issue }}
@@ -482,7 +485,7 @@ jobs:
       # warnings, one open issue holds the latest report; a comment (which GitHub emails) is added only when
       # the warnings change, and the issue closes itself once they're gone.
       - name: Update the sweep health issue
-        if: ${{ !cancelled() && steps.sweep.outputs.fingerprint != '' }}
+        if: ${{ !cancelled() && steps.wait.outcome == 'success' && steps.sweep.outputs.fingerprint != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -508,11 +511,11 @@ jobs:
           fi
 
       # Its merge triggers the site's deploy (with meta.json's time, which is this sweep's). Only for the owner's requests,
-      # whose answer on the issue should come once the events are live: a scheduled sweep doesn't wait (about 5 minutes
-      # of this private repository's Actions minutes, twice a day, waiting on the site's own ci; 6 Oct 2026). A data PR
+      # whose answer on the issue should come once the events are live: a scheduled sweep doesn't wait (it saved about 5
+      # Actions minutes twice a day while the repository was private; now it keeps the runs short; 6 Oct 2026). A data PR
       # that doesn't merge still stops the next run ("Make sure the last data PR merged"), which fails and emails.
       - name: Wait for the data PR to merge
-        if: ${{ !cancelled() && steps.pr.outputs.url != '' && inputs.issue != '' }}
+        if: ${{ !cancelled() && steps.wait.outcome == 'success' && steps.pr.outputs.url != '' && inputs.issue != '' }}
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           PR_URL: ${{ steps.pr.outputs.url }}

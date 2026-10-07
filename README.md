@@ -1,4 +1,4 @@
-# Pa' Bailar · backend (private)
+# Pa' Bailar · backend
 
 Collects one-time dance events (socials, workshops and dated workshop series, festivals, congresses,
 competitions, shows and concerts for dancing) from the Instagram accounts of Bogotá's
@@ -123,9 +123,9 @@ Everything runs on GitHub Actions:
 | `admin` | A new issue or comment from `jzamora5` (the admin page opens such issues) | The admin inbox (only issues labelled `admin`, or texts with a request): answers with a comment (check a post, add an account, the status); adding a post (or reading one again) or a story, and hiding a story or an event, start `daily-sweep` for that one request. See [docs/ADMIN.md](docs/ADMIN.md) |
 | `daily-sweep` | Every day at 9:00 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (each about once a day, half per sweep), writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is then saved to the `sweep-state` branch (if the data PR couldn't be opened, the run's posts stay unread for the next run, and `site/data` is kept as the run's artifact). With `post_url` (from `admin`), it adds that one post instead (with `again`, even if it was read before and hasn't changed) and answers on the admin issue; with `story` or `hide`, it adds a story or takes a story or an event off the site. |
 
-`main` is **not protected**: rulesets on private repositories need a paid GitHub plan (Pro or Team).
-Changes go through squash-merged pull requests and `ci` runs on every one of them by convention, but
-nothing enforces it. The site repository, which is public, does enforce it (`protect-main`).
+`main` is **protected** (`protect-main`, since the repository went public on 6 Oct 2026): changes only through
+squash-merged pull requests that pass `ci`, force pushes and deletion blocked, no bypass. The site repository's
+`main` too. Public means every push is public: keys only in GitHub secrets, `.env` and `private/`.
 
 Settings → Secrets and variables → Actions:
 - Secrets: `GEMINI_API_KEY`, `META_ACCESS_TOKEN`, `IG_USER_ID`, `APP_PRIVATE_KEY` (the pa-bailar-bot

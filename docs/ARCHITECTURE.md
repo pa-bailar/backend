@@ -1,7 +1,7 @@
 # Pa' Bailar: architecture and infrastructure (backend)
 
 How the whole system works, from an academy posting a flyer on Instagram to that event showing up on
-<https://pa-bailar.github.io>. This document covers the **backend** (this private repository,
+<https://pa-bailar.github.io>. This document covers the **backend** (this repository, public since 6 Oct 2026,
 `pa-bailar/backend`) in depth, and every service around it. The site's side is in the site
 repository's `docs/ARCHITECTURE.md` (`pa-bailar/pa-bailar.github.io`).
 
@@ -46,7 +46,7 @@ flowchart LR
         HC["healthchecks.io"]
     end
 
-    subgraph Backend["pa-bailar/backend (private)"]
+    subgraph Backend["pa-bailar/backend (public)"]
         WF["daily-sweep workflow<br/>(GitHub Actions)"]
         SS[("sweep-state branch<br/>state/*.json")]
         ISS["Sweep health issue"]
@@ -100,13 +100,15 @@ In words:
 
 | Repository | Visibility | Owns | Does not own |
 |---|---|---|---|
-| `pa-bailar/backend` (this one) | Private | The collector: the `pa_bailar` Python package, `accounts.txt`, the prompts, the sweep workflow, the sweep state (`sweep-state` branch), the health checks, local tools (`discover`, `refresh-token`), the admin page (`admin-web/`, docs/ADMIN.md), the video toolkit (`media/`, its README) | The data files and the site: it only writes them into a checkout of the site repository and proposes them through a PR |
+| `pa-bailar/backend` (this one) | Public (since 6 Oct 2026) | The collector: the `pa_bailar` Python package, `accounts.txt`, the prompts, the sweep workflow, the sweep state (`sweep-state` branch), the health checks, local tools (`discover`, `refresh-token`), the admin page (`admin-web/`, docs/ADMIN.md), the video toolkit (`media/`, its README) | The data files and the site: it only writes them into a checkout of the site repository and proposes them through a PR |
 | `pa-bailar/pa-bailar.github.io` | Public | The site (`frontend/`, Astro), the published data (`data/events.json`, `data/meta.json`, `data/flyers/`, `data/previews/`), the data contract (`docs/DATA.md`), its CI and the GitHub Pages deploy | Collecting data. It never calls Instagram or Gemini |
 
 **Why two repositories:**
-- **The collector's code stays private:** the prompts, which accounts are followed, and the tooling.
-- **The site repository has to be public:** GitHub Pages is free for public repositories, and so are
-  unlimited Actions minutes.
+- **The collector apart from the site:** its secrets, state and workflows, with their own checks and history. It
+  was private until 6 Oct 2026 (the owner made it public; its history was checked for secrets first: none). The
+  keys live only in GitHub secrets, `.env` and `private/`, never in a commit: every push is public.
+- **The site repository has to be public:** GitHub Pages is free for public repositories. Both have unlimited
+  Actions minutes, being public.
 
 The site repository's name (`<org>.github.io`) makes the site live at the organization's root,
 `https://pa-bailar.github.io`.
@@ -155,14 +157,14 @@ Every service the system depends on. All of them are on free plans.
 | Piece | What for |
 |---|---|
 | **Repositories** | Section 2 |
-| **GitHub Actions** | Runs the sweep (`daily-sweep.yml`), the admin inbox (`admin.yml`, section 12.3) and the backend's checks (`ci.yml`) on `ubuntu-latest` runners. The private repository gets **2,000 free minutes a month**, and the public site repository unlimited |
+| **GitHub Actions** | Runs the sweep (`daily-sweep.yml`), the admin inbox (`admin.yml`, section 12.3) and the backend's checks (`ci.yml`) on `ubuntu-latest` runners. Both repositories are public: their minutes are free and unlimited (the backend had 2,000 a month while it was private, until 6 Oct 2026) |
 | **Actions secrets and variables** | Hold the keys (section 4) |
 | **`sweep-state` branch** | The sweep's memory between runs (section 10.1). An orphan branch that only holds JSON files |
 | **pa-bailar-bot (GitHub App)** | App id `5164772`, installed on the `pa-bailar` organization for the site repository. The sweep uses it to push the data branch, open the data PR, enable auto-merge and start the site's deploy. A short-lived token is minted per run with `actions/create-github-app-token`. Using an App, rather than the workflow's own token, means its PR runs the site's `ci` like anyone's |
 | **Issues** | The `Sweep health` issue (label `sweep-health`), opened and updated by the sweep (section 11). The admin inbox: requests to the admin tools (label `admin`), answered by `admin.yml` and, for adding a post, by the sweep ([`docs/ADMIN.md`](ADMIN.md)) |
 | **Dependabot** | Weekly update PRs for the Python dependencies and the GitHub Actions used (`.github/dependabot.yml`) |
 | **GitHub Pages** | Hosts the site, deployed by the site repository's `deploy` workflow |
-| **Rulesets** | The site repository's `main` is protected (`protect-main`): changes only through squash-merged PRs that pass `ci`; force pushes and deletion blocked; no bypass. **The backend's `main` is not protected:** rulesets on private repositories need a paid plan (GitHub Pro or Team). Changes still go through PRs by convention, and `ci` runs on every PR and on `main`, but nothing enforces it |
+| **Rulesets** | The site repository's `main` is protected (`protect-main`): changes only through squash-merged PRs that pass `ci`; force pushes and deletion blocked; no bypass. The backend's `main` likewise since it went public (6 Oct 2026; rulesets on private repositories need a paid plan): PRs only, `ci` required (so `ci.yml` has no path filter: a skipped required check leaves a PR unmergeable), force pushes and deletion blocked, no bypass |
 
 ### 3.4 cron-job.org
 
@@ -364,7 +366,7 @@ sequenceDiagram
 | 11 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real. **If the data PR step didn't succeed**, `processed_posts.json` and `accounts.json` keep their previous versions (a warning says so): this run's posts stay unread and its accounts due, so the next run reads them again and its PR carries their events. Gemini's usage, the run history and `status.json` are saved either way | `GITHUB_TOKEN` (this step only) |
 | 11b | Save an account added by hand | `post_url` or `story`, and `accounts.txt` changed | Commits `accounts.txt` to `main` | `GITHUB_TOKEN` (this step only) |
 | 12 | Update the sweep health issue | Unless cancelled, and the sweep produced its health output | Opens, updates, comments on or closes the `Sweep health` issue (section 11.3) | `GITHUB_TOKEN` (issues) |
-| 13 | Wait for the data PR to merge | A PR was opened, for an owner's request (admin): a scheduled sweep doesn't wait, to save Actions minutes; the next run's step 1b catches a PR that didn't merge | Polls every 30 s, up to 20 minutes. Fails if the PR is closed or doesn't merge in time | App token |
+| 13 | Wait for the data PR to merge | A PR was opened, for an owner's request (admin): a scheduled sweep doesn't wait (it saved Actions minutes while the repository was private; now it keeps runs short); the next run's step 1b catches a PR that didn't merge | Polls every 30 s, up to 20 minutes. Fails if the PR is closed or doesn't merge in time | App token |
 | 14 | Republish the site | Success, no PR, not an admin request (`issue`) | `gh workflow run deploy.yml -f checked_at=<now in Bogotá>`, so "Actualizado el" stays current on days without new events | App token |
 | 15 | Report to the health check | Always, except admin requests (`issue`) | Pings `HEALTHCHECK_URL` (success) or `HEALTHCHECK_URL/fail`, with the report as the body | `HEALTHCHECK_URL` |
 | 16 | Answer on the admin issue | `issue` given (admin tools) | Writes the result of adding the post or story, or hiding the story or event (`ADMIN_REPORT_FILE`), and the data PR; `.github/actions/answer-issue` comments it and closes the issue, only if it's an open `admin` issue by `jzamora5` | `GITHUB_TOKEN` |
@@ -627,7 +629,7 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 | Extraction | Flash: `gemini-3.8-flash`, `3.7`, `3.6`, then `3.5` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day and a series' sessions, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `sessions`, `image_index`, `same_as` and `in_bogota`, the last three never stored) | Model default |
 | Provisional extraction | `gemini-3-flash-preview`, then Flash-Lite | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
 | Story (admin tools) | Extraction's models, Flash-Lite when Flash is out (kept as it is) | Up to 4 screenshots of one story (numbered), when the screenshot was taken, the admin's notes and account, the account's known events | `StoryAnalysis`: the header's account, a reshared post's author, mentions, location sticker, the story's age, a `content_box` per screenshot, `events[]` (`StoryEvent`: dates as printed, a series' sessions too (`StorySession`), worked out in code by `stories.resolve_date`) | Model default |
-| Discovery | `gemini-3.5-flash-lite` | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, whether it announces one-time events, reason | Model default |
+| Discovery | Flash-Lite (`LITE_MODELS`, the triage's) | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, whether it announces one-time events, reason | Model default |
 
 Notes on the prompts and parameters:
 - **The prompts** are in `pa_bailar/prompts.py`, and the JSON schemas are the Pydantic models in
@@ -983,7 +985,7 @@ memory between runs; the site never sees it.
 |---|---|---|
 | `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha`, `fuera de Bogotá`, `ya pasó` or `cancelado`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined. Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
 | `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post`, and `unreadable` (post id → runs on which no model gave valid JSON for it, section 7.2) | Whether the account still gets the deeper first sweep, and when its next turn is |
-| `gemini_usage.json` | Today's quota day (Pacific), requests per model, and the models not available to the key today | The day's runs share the daily budgets |
+| `gemini_usage.json` | Today's quota day (Pacific), requests per model, and the models not available to the key today (`models.GeminiUsage`) | The day's runs share the daily budgets |
 | `external_usage.json` | The last resort's day (UTC) and, per provider, requests, tokens and the answers per model | The day's runs share Groq's and OpenRouter's budgets (section 7.3) |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
 | `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load. Adding one of its posts by hand publishes it again (ADMIN.md, "Ocultar evento") |
@@ -1232,10 +1234,9 @@ guide.
   (`media/tests`), only on pull requests that change `media/` outside `media/site-checks/` (its Python tests run
   with the rest under `pytest`).
 
-**Actions minutes** (private repository: 2,000 a month free; each job bills at least a whole minute): from 1 to 5
-October 2026 CI took 246 of 533 minutes (177 runs in a busy week of pull requests), the sweeps about 180. So CI
-doesn't run again after merges, and the toolkit's job only starts when `media/` changes. A quiet month is mostly
-the sweeps: 2 a day × 10–15 minutes.
+**Actions minutes** are free since the repository went public (6 Oct 2026). While it was private (2,000 a month,
+each job billed as at least a whole minute: from 1 to 5 October 2026 CI took 246 of 533 minutes), CI stopped running
+again after merges and the toolkit's job started only when `media/` changes; both stay, to keep the queue short.
 
 Both test suites check the shapes the admin tools accept (`pa_bailar/patterns.py`, `admin-web/public/patterns.js`)
 against the same examples, `tests/fixtures/patterns.json`, so the inbox and the admin page can't drift apart.
@@ -1269,7 +1270,7 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 | A script injected into the admin page (e.g. through a request's title or an answer) using your session | Everything shown is escaped (`app.js`), and the Content Security Policy (`admin-web/public/_headers`) runs only the page's own `app.js`: no inline scripts, no other hosts, no `style=""`. The session cookie is `HttpOnly`, so scripts can't read it |
 | Another site framing the admin page, or sending requests as you | `frame-ancestors 'none'` and `X-Frame-Options: DENY`. The cookie is `SameSite=Lax`, and the Worker only accepts POSTs whose `Origin` is the page's |
 | Someone reading or deleting the story screenshots waiting in KV | Uploading needs your session; reading and deleting need GitHub's identity token (OIDC) from this repository's `daily-sweep.yml` on `main` (ADMIN.md, "The admin page"). Ids are 128 random bits. Only the flyer's crop is ever published, and the screenshots expire after 7 days anyway |
-| Unreviewed changes to the backend's `main` | **Not enforced** (section 3.3): rulesets need a paid plan on private repositories. Work goes through PRs with `ci` by convention |
+| Unreviewed changes to the backend's `main` | Enforced since it went public (section 3.3, `protect-main`): PRs only, `ci` required, no bypass |
 
 ---
 
@@ -1285,7 +1286,7 @@ day, quiet ones less often: section 5, "Whose turn it is"):
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
 | Gemini Flash (four for extraction, one older for provisional reads) | 20 / day each (72 usable for extraction, 18 more provisional) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read by Flash-Lite (provisional) | The binding limit, but it loses no events: the overflow is read by Flash-Lite and shown. Both sweeps share one quota day (midnight Pacific), so a sweep leaves the later ones their share (`later_sweeps_in_quota_day`: the 9:00 one keeps half for 21:00), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end |
-| GitHub Actions minutes (private repository) | 2,000 / month | 15–30 min (measured 6 Oct 2026: Gemini's pacing and busy retries, Instagram; no longer waiting for the data PR, #124) | ~35–50 | About 1,100–1,500 a month for the sweeps, plus ci on pull requests (1 min each: development weeks add a few hundred). The binding limit to watch. Admin requests add 1–2 min each, plus the wait for a running sweep. Set an Actions spending limit of $0 so runs stop instead of being charged |
+| GitHub Actions minutes (backend, public since 6 Oct 2026) | Unlimited | 15–30 min (measured 6 Oct 2026: Gemini's pacing and busy retries, Instagram; no longer waiting for the data PR, #124) | ~35–50 | Free. Before (private: 2,000 a month), about 1,100–1,500 a month went to the sweeps, plus ci on pull requests |
 | GitHub Actions minutes (public site repository) | Unlimited | ci + deploy, ~2 min | | |
 | cron-job.org | Unlimited jobs | 1 call | 2 | |
 | healthchecks.io | Free plan | 1 ping | 2 | |

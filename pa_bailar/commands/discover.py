@@ -21,7 +21,7 @@ from pa_bailar import config, discovery, storage, sweep_state
 from pa_bailar.gemini import ExtractionError, GeminiKeyError, ModelPool, daily_budget, quota_day
 from pa_bailar.instagram import InstagramClient, InstagramError, is_not_visible, is_rate_limited
 from pa_bailar.logs import setup_logging
-from pa_bailar.models import AccountClassification
+from pa_bailar.models import AccountClassification, GeminiUsage
 
 CACHE_FILE = config.PRIVATE_DIR / "discovery.json"
 REPORT_FILE = config.PRIVATE_DIR / "discovery_report.md"
@@ -36,14 +36,14 @@ log = logging.getLogger("discover")
 
 
 def gemini_allowance(pool: ModelPool) -> int:
-    """Flash-Lite requests discovery may still use today. The key's quota is shared with the sweeps, whose
-    usage is on the sweep-state branch, not in this computer's state/: the daily budget, minus what the
-    sweeps used, what discovery used, and config.DISCOVERY_LEAVES_FOR_SWEEPS for today's later sweeps."""
-    model = config.TRIAGE_MODELS[0]
+    """Flash-Lite requests discovery may still use today, over the models it asks (config.TRIAGE_MODELS, each with its
+    own quota). The key's quota is shared with the sweeps, whose usage is on the sweep-state branch, not in this
+    computer's state/: the daily budgets, minus what the sweeps used, what discovery used, and
+    config.DISCOVERY_LEAVES_FOR_SWEEPS for today's later sweeps."""
     sweep_state.refresh()
-    usage = sweep_state.read(config.GEMINI_USAGE_FILE.name, {})
-    by_sweeps = usage.get("requests", {}).get(model, 0) if usage.get("day") == quota_day() else 0
-    return max(0, daily_budget(model) - by_sweeps - pool.used(model) - config.DISCOVERY_LEAVES_FOR_SWEEPS)
+    by_sweeps = GeminiUsage.model_validate(sweep_state.read(config.GEMINI_USAGE_FILE.name, {})).on(quota_day()).requests
+    left = sum(daily_budget(model) - by_sweeps.get(model, 0) - pool.used(model) for model in config.TRIAGE_MODELS)
+    return max(0, left - config.DISCOVERY_LEAVES_FOR_SWEEPS)
 
 
 def check_profiles(

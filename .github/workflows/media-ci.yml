@@ -1,7 +1,8 @@
 # The video toolkit (media/): type-check the Remotion library and compositions, and its Node tests (the weekend rule,
 # words and moments, the captions, the media home's paths: media/README.md). Its Python tests (media/tests) run in
 # ci.yml's job (pytest collects them; standard library only). A workflow of its own so it only starts when media/ (or
-# this file) changes: a job that starts just to skip its steps still bills a whole Actions minute. No secrets.
+# this file) changes (it saved Actions minutes while the repository was private; it keeps the queue short now). No
+# secrets.
 name: media
 
 on:

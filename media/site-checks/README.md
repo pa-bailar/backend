@@ -40,6 +40,7 @@ node media/site-checks/run.mjs --help        the scenarios and what each covers
 | `panel` | desktop | The side panel and the image beside it: the panel follows the card clicked or focused, its buttons stay usable, → moves both, Escape, × and back close both, the list stays where it was |
 | `stage` | desktop | ← → through an event's photos then the next event (← back: its last photo); from the details, every period's block opens on the way down; Escape, back, forward and a reload after a block opened that way |
 | `tab` | desktop | Tab: one stop per event, in the list's reading order (like →), never a card's own button, the panel following; Enter into the panel, past its end on to the next event, Shift+Tab back, Escape; out of the page without looping. WebKit: Safari's default (links skipped) |
+| `places` | desktop | Where the keys start and the page keeping its place (the fixes of site #145): a click in the list's gaps, a card clicked then Escape (Safari doesn't focus it), the skip link, scrolled away from the card in focus; closing the panel after scrolling; Escape in the search, then again; Enter on "Ver N más" with the panel open |
 
 The scenarios find what they need in today's data (the first card with a carousel, the first folded period…) and
 skip a part, saying why, when the data has none.

@@ -173,7 +173,8 @@ def test_discover_lists_free_models_with_image_input_and_text_answers():
 
 
 def test_the_default_models_are_flash_lite_and_every_external_one():
-    assert bakeoff.DEFAULT_MODELS[0] == "gemini-3.5-flash-lite"
+    assert bakeoff.DEFAULT_MODELS[0] == config.LITE_MODELS[0]
+    assert bakeoff.FLASH_MODELS == config.FLASH_MODELS  # not 3 Flash, whose reads are provisional
     assert "groq:qwen/qwen3.8-27b" in bakeoff.DEFAULT_MODELS
     assert "openrouter:google/gemma-4-31b-it:free" in bakeoff.DEFAULT_MODELS
 
