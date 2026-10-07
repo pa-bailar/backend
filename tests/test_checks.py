@@ -101,3 +101,82 @@ def test_a_spans_end_is_a_time_but_not_a_start():
 def test_an_event_over_before_the_post_is_flagged():
     assert checks.BEFORE_POST in checks.flags("", [event(date="2026-09-26")], WEDNESDAY)
     assert checks.flags("", [event(date="2026-10-07")], WEDNESDAY) == []
+
+
+# ---------- the review of 7 Oct 2026: right readings that were flagged, and a missed one ----------
+
+
+def test_a_festivals_list_of_days_is_covered_by_the_festival():
+    days = "Festival del 13 al 16 de noviembre: 13, 14, 15 y 16 de noviembre"
+    festival = [event(date="2026-11-13", end_date="2026-11-16")]
+    assert checks.flags(days, festival, WEDNESDAY) == []
+
+
+def test_two_nights_in_a_row_read_as_two_events_arent_a_range_read_as_one_day():
+    nights = [event(date="2026-10-09"), event(date="2026-10-10")]
+    assert checks.flags("Concierto 9 y 10 de octubre", nights, WEDNESDAY) == []
+    assert checks.RANGE_AS_ONE_DAY in checks.flags("Concierto 9 y 10 de octubre", nights[:1], WEDNESDAY)
+
+
+def test_dates_already_past_when_posted_arent_dates_without_an_event():
+    """A recap names the night it thanks people for: no event is right."""
+    assert checks.flags("Gracias a todos por venir el 3 de octubre", [], WEDNESDAY) == []
+    assert checks.DATES_WITHOUT_EVENT in checks.flags("Nos vemos el 24 de octubre", [], WEDNESDAY)
+
+
+def test_an_end_time_on_an_events_line_isnt_a_deadline():
+    text = "Sábado 10 de octubre, de 8 pm hasta las 2 am"
+    assert checks.DAY_WITHOUT_EVENT in checks.flags(text, [event(date="2026-10-17")], WEDNESDAY)
+    deadline = "Preventa hasta el viernes 9 de octubre"
+    assert checks.DAY_WITHOUT_EVENT not in checks.flags(deadline, [event(date="2026-10-17")], WEDNESDAY)
+
+
+def test_a_past_weekday_isnt_a_coming_one():
+    assert checks.flags("Así se vivió el sábado pasado", [event(date="2026-10-17")], WEDNESDAY) == []
+
+
+def test_the_same_time_with_and_without_its_pm_is_one_start():
+    """The caption says "8:30 pm", the flyer's OCR "8:30": one start, not two."""
+    text = "Clase 7 pm · Social 8:30 pm\n8:30"
+    assert checks.TIMES_OVER_EVENTS not in checks.flags(text, [event(start_time="19:00")], WEDNESDAY)
+
+
+def test_a_span_past_midnight_starts_at_night():
+    starts, _ = checks.clock_times("Rumba de 11 a 2 am")
+    assert starts == {"23:00"}
+
+
+# ---------- false flags found on the site's own posts (7 Oct 2026), not the test set the rules were tuned on ----------
+
+
+def test_classes_before_a_social_are_the_social():
+    """@showstarscol: bachata 7–8 pm, bachazouk 8–9 pm, the social 9 pm–1 am: one night, read right."""
+    text = (
+        "De 7:00 PM a 8:00 PM Bachata Tradicional\nDe 8:00 PM a 9:00 PM Bachazouk\n9:00 PM a 1:00 AM — SOCIAL CROSSOVER"
+    )
+    social = [event(start_time="19:00", event_type="social", date="2026-09-12")]
+    assert checks.flags(text, social, date(2026, 9, 8)) == []
+    workshops = [event(start_time="19:00", event_type="workshop", date="2026-09-12")]
+    assert checks.TIMES_OVER_EVENTS in checks.flags(text, workshops, date(2026, 9, 8))
+
+
+def test_a_relative_day_after_its_date_is_that_date():
+    """@salsaysonoficial, posted on Monday 5 Oct: "este sábado 24 de octubre … Este sábado nos vemos"."""
+    text = "este sábado 24 de octubre la cita es en Salsa y Son\nEste sábado nos vemos en Salsa y Son."
+    assert checks.flags(text, [event(date="2026-10-24", start_time=None)], date(2026, 10, 5)) == []
+
+
+def test_a_ticket_tier_isnt_the_events_days():
+    """@elratonsalsaclub: "Del 16 al 30 de Octubre: $70.000" is when a price holds."""
+    text = "De 3pm a 3am este 31 de Octubre\n🎟️ Hasta el 15 de Octubre: $50.000\n🎟️ Del 16 al 30 de Octubre: $70.000"
+    assert checks.flags(text, [event(date="2026-10-31", start_time="15:00")], date(2026, 9, 29)) == []
+
+
+def test_a_deadlines_time_and_a_festivals_hours_arent_a_start_not_read():
+    """@casineafest: "FECHA LÍMITE: 1 DE NOVIEMBRE · 11:59 p. m." for a festival of 13–16 Nov."""
+    text = (
+        "Festival del 13 al 16 de noviembre 2026\nFECHA LÍMITE: 1 DE NOVIEMBRE DE 2026\n⏰ 11:59 p. m. — hora Colombia"
+    )
+    festival = [event(date="2026-11-13", end_date="2026-11-16", start_time=None)]
+    assert checks.flags(text, festival, date(2026, 9, 22)) == []
+    assert checks.TIME_NOT_READ in checks.flags("Social 13 de noviembre 8 pm", [event(start_time=None)], WEDNESDAY)
