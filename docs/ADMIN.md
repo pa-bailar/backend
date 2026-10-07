@@ -199,6 +199,13 @@ report shows them failing) check them against Gemini Flash:
   listed and whether each takes structured output. To use a new one, add it to `config.EXTERNAL_PROVIDERS`
   (`structured=True` if it does) in a pull request: nothing switches by itself.
 
+**Against the truth: `--gold`.** The test set in `gold/` (its README) is 40 posts checked by hand against their
+flyers (7 Oct 2026): this weekend's backup reads and their errors, a venue's month as a grid, a date range, series,
+festivals, several events per image. `admin bakeoff --gold` runs Flash-Lite on them (or `--models …`, Flash too:
+20 a day per Flash model, so the rest waits in the cache for the next day) and scores each field against the right
+answer, not against Flash; `--gold --score` scores what's cached. Any change to the reading (the prompt, OCR text,
+a second look) is measured on it before it ships.
+
 ## What the answers mean
 
 ### Revisar (`admin why`, `pa_bailar/why.py`)

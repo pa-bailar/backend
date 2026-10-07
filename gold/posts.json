@@ -1,0 +1,1512 @@
+{
+ "checked": "2026-10-07",
+ "posts": [
+  {
+   "post_id": "17873536227593859",
+   "account": "elgocepagano",
+   "why": "A venue's month as a grid: each cell is one night's act; 'Salsoteca DC' is only Saturday 3's (Flash-Lite put it on every night). Doors 6 pm and shows 11 pm and 1 am in the caption hold for every night.",
+   "flyer": "flyers/17873536227593859-1.webp",
+   "caption": "🔥Concierto salsero, en elgocepagano 🔥\nSalsa bogotana, sabor, calle y goce en una sola noche\n\n🕔 Puertas: 6 pm | 🎶 Shows: 11 pm y 1 am\n📍 Diagonal 20A No. 82 – Bogotá\n\n✨🔥¡A bailar!🔥✨\nCover 20k\n#salsaenvivo #salsa\n#concierto #envivo\n#conciertobogota #salsaenbogotá",
+   "published": "2026-10-01T00:15:22+0000",
+   "processed_at": "2026-10-01T09:00:00-05:00",
+   "events": [
+    {
+     "id": "canamelao",
+     "title": "Cañamelao",
+     "date": "2026-10-09",
+     "event_type": [
+      "concert",
+      "party"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "prices": [],
+     "title_wrong": [
+      "salsoteca"
+     ]
+    },
+    {
+     "id": "acere",
+     "title": "Acere",
+     "date": "2026-10-10",
+     "event_type": [
+      "concert",
+      "party"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "prices": [],
+     "title_wrong": [
+      "salsoteca"
+     ]
+    },
+    {
+     "id": "dj-set",
+     "title": "DJ set Salsa Culto",
+     "date": "2026-10-11",
+     "event_type": [
+      "party",
+      "concert",
+      "social"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "prices": [],
+     "title_wrong": [
+      "salsoteca"
+     ]
+    },
+    {
+     "id": "bambas",
+     "title": "The Bambas",
+     "date": "2026-10-16",
+     "event_type": [
+      "concert",
+      "party"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "prices": [],
+     "title_wrong": [
+      "salsoteca"
+     ]
+    },
+    {
+     "id": "fidel",
+     "title": "Fidel Peña y su Tono Mayor",
+     "date": "2026-10-17",
+     "event_type": [
+      "concert",
+      "party"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "prices": [],
+     "title_wrong": [
+      "salsoteca"
+     ]
+    },
+    {
+     "id": "cita",
+     "title": "Una Cita con la Salsa",
+     "date": "2026-10-18",
+     "event_type": [
+      "party",
+      "concert",
+      "social"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "prices": [],
+     "title_wrong": [
+      "salsoteca"
+     ]
+    },
+    {
+     "id": "candombe",
+     "title": "Candombé",
+     "date": "2026-10-23",
+     "event_type": [
+      "concert",
+      "party"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "prices": [],
+     "title_wrong": [
+      "salsoteca"
+     ]
+    },
+    {
+     "id": "pambele",
+     "title": "La Pambelé",
+     "date": "2026-10-24",
+     "event_type": [
+      "concert",
+      "party"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "prices": [],
+     "title_wrong": [
+      "salsoteca"
+     ]
+    },
+    {
+     "id": "infierno",
+     "title": "Salsa Infierno",
+     "date": "2026-10-30",
+     "event_type": [
+      "concert",
+      "party"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "prices": [],
+     "title_wrong": [
+      "salsoteca"
+     ]
+    },
+    {
+     "id": "bbyb",
+     "title": "Bbyb",
+     "date": "2026-10-31",
+     "event_type": [
+      "concert",
+      "party"
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ],
+     "start_time": [
+      "18:00",
+      "23:00",
+      null
+     ],
+     "prices": [],
+     "title_wrong": [
+      "salsoteca"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "17954021634253041",
+   "account": "zaimora24",
+   "why": "'11 OCT — 01 NOV 2026' on the slide: a training over weeks, not one day (Flash-Lite kept only the first). The slide has no times, sessions or prices.",
+   "flyer": "flyers/17954021634253041-2.webp",
+   "caption": "¿Cuánto de Jazz Dance conoces realmente?\n\nJAZZ THROUGH TIME es un training presencial para recorrer su historia y evolución a través del cuerpo.\n\n4 capítulos.\n4 momentos.\nUna historia que probablemente es mucho más grande de lo que imaginabas.\n\nROOTS · THEATRICAL · THE TECHNIQUE · THE INDUSTRY\n\nPuedes elegir un capítulo o comenzar el journey con dos.\n\n📍 Bogotá\n📅 ROOTS · 11 OCT — 01 NOV 2026\n👥 Cupo máximo: 25 personas\n\nINSCRIPCIONES ABIERTAS.\n\nAre you ready to go deeper? 🎷\n\n#bogota #arte #danza #history",
+   "published": "2026-09-15T20:33:26+0000",
+   "processed_at": "2026-09-16T09:00:00-05:00",
+   "events": [
+    {
+     "id": "roots",
+     "title": [
+      "Jazz Through Time",
+      "Back to the Roots"
+     ],
+     "date": "2026-10-11",
+     "event_type": [
+      "workshop",
+      "other"
+     ],
+     "end_date": "2026-11-01",
+     "start_time": null,
+     "prices": [],
+     "styles": [
+      "swing",
+      "afro"
+     ],
+     "styles_ok": [
+      "otro"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18137899501621419",
+   "account": "frank.de.latorre",
+   "why": "A four-Saturday course in the caption: a series with sessions.",
+   "flyer": "flyers/18137899501621419-0.webp",
+   "caption": "🙌Esta es tu señal para aprender a bailar el estilo internacional!… 🙌\n\nSi quieres aprender desde ceros y entender las bases del baile social (línea on1 en parejas) esta curso de iniciación es para ti! 🏁\n\n📔4 Sabados 3, 10, 17 y 24 de octubre\n\n⏰Hora de 5pm a 6pm\n💵Valor del paquete por persona 150k\n📍Academia de baile Efa Danza; Cra 19 #51 76, Bogotá\nefadanza \n\nPara más información deja tu mensaje al interno! 💬",
+   "published": "2026-09-11T02:50:52+0000",
+   "processed_at": "2026-09-11T09:00:00-05:00",
+   "events": [
+    {
+     "id": "iniciacion",
+     "title": "Iniciación a la Salsa en Línea",
+     "date": "2026-10-03",
+     "event_type": "workshop",
+     "sessions": [
+      "2026-10-03",
+      "2026-10-10",
+      "2026-10-17",
+      "2026-10-24"
+     ],
+     "end_date": "2026-10-24",
+     "start_time": "17:00",
+     "end_time": "18:00",
+     "prices": [
+      150000
+     ],
+     "venue": [
+      "Efa Danza"
+     ],
+     "styles": [
+      "salsa en línea"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18125251684893474",
+   "account": "pachanga_y_pochola",
+   "why": "A video frame: date and address, no time or price.",
+   "flyer": "flyers/18125251684893474-0.webp",
+   "caption": "El maestro issacdelgadoofficial tiene un mensaje para ti… ¿Ya lo viste? Este 9 de octubre la salsa se vive en Pachanga & Pochola. 🔥🔥🔥🕺🏾 #lasalsavuelveabrillar  #pachanga",
+   "published": "2026-10-05T15:24:06+0000",
+   "processed_at": "2026-10-06T09:00:00-05:00",
+   "events": [
+    {
+     "id": "issac",
+     "title": "Issac Delgado",
+     "date": "2026-10-09",
+     "event_type": "concert",
+     "start_time": null,
+     "prices": [],
+     "venue": "Pachanga & Pochola",
+     "styles": [
+      "salsa cubana"
+     ],
+     "styles_ok": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18091170308199633",
+   "account": "casavander_",
+   "why": "Date and time only on the flyer.",
+   "flyer": "flyers/18091170308199633-0.webp",
+   "caption": "EL VERDADERO VERSUS. \nEste viernes Orquesta de Salsa en vivo con lacitrikaband este 9 de Octubre con una orquesta que pone a bailar a todo el salón. \n\nSi Ud es de los amantes de las buenas escenas y de la buena música este viernes es el suyo. \n\nCaiga a bailar, a gozar y a cantar. \nOrquesta en vivo. \nReservas en el link de la bio.",
+   "published": "2026-10-07T02:11:30+0000",
+   "processed_at": "2026-10-07T09:00:00-05:00",
+   "events": [
+    {
+     "id": "versus",
+     "title": "Cumbia vs. Salsa",
+     "date": "2026-10-09",
+     "event_type": "concert",
+     "start_time": "20:30",
+     "prices": [],
+     "styles": [
+      "salsa"
+     ],
+     "styles_ok": [
+      "otro"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "17905517667577063",
+   "account": "salsacamaraoficial",
+   "why": "Two nights in one caption, each with its price.",
+   "flyer": "flyers/17905517667577063-0.webp",
+   "caption": "Conoce nuestro repertorio salsero de este fin de semana\n\n📆 Jueves 08 de Octubre\n🎺 Orlando y su sonora\n🎟️ Aporte cultural: 15K\n\n📆 Sábado 10 de Octubre\n🎺 Zafra Son\n🎟️ Aporte cultural: 20K\n\n⏳ Desde las 4 PM\n📍 Carrera 11 #70A-22\n📲 Reserva por WhatsApp: 313 830 8844",
+   "published": "2026-10-05T22:05:57+0000",
+   "processed_at": "2026-10-06T09:00:00-05:00",
+   "events": [
+    {
+     "id": "orlando",
+     "title": "Orlando y su Sonora",
+     "date": "2026-10-08",
+     "event_type": "concert",
+     "start_time": "16:00",
+     "prices": [
+      15000
+     ],
+     "styles": [
+      "salsa"
+     ],
+     "styles_ok": [
+      "son"
+     ]
+    },
+    {
+     "id": "zafra",
+     "title": "Zafra",
+     "date": "2026-10-10",
+     "event_type": "concert",
+     "start_time": "16:00",
+     "prices": [
+      20000
+     ],
+     "styles": [
+      "salsa"
+     ],
+     "styles_ok": [
+      "son"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18116534044809233",
+   "account": "tributo.salsayjazz",
+   "why": "Doors 6 pm, orchestra 10 pm: either start.",
+   "flyer": "flyers/18116534044809233-0.webp",
+   "caption": "¡LLEGÓ EL SÁBADO PARA VIVIR UNA VERDADERA NOCHE CON SABOR! 💃🕺🔥 Porque el fin de semana se goza como se debe, te esperamos en tu casa: ¡Tributo Salsa y Jazz! Este sábado 10 de octubre prepárate para una rumba cargada de buena clave, golpe y la mejor energía. Ven a disfrutar de un buen trago con tus amigos, alístate para azotar baldosa y déjate llevar por el talento y la potencia de Tributo Orquesta en vivo. ¡Puro sabor para encender la noche! 🥂🎺🔥 📍 Lugar: Av. Boyacá #64c 97 (Zona 6) ⏰ Apertura: 6:00 PM | Orquesta en vivo: 10:00 PM 📲 Reservas: 310 5714824 ¡Asegura tu mesa antes de que se llene! RESERVA, arma tu parche salsero y nos vemos en la pista para gozar. 👇✨https://wa.me/573105714824",
+   "published": "2026-10-06T19:32:57+0000",
+   "processed_at": "2026-10-07T09:00:00-05:00",
+   "events": [
+    {
+     "id": "sabor",
+     "title": "Noche con Sabor",
+     "date": "2026-10-10",
+     "event_type": [
+      "concert",
+      "party"
+     ],
+     "start_time": [
+      "18:00",
+      "22:00"
+     ],
+     "prices": [],
+     "venue": "Tributo Salsa y Jazz",
+     "styles": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18033111722852845",
+   "account": "madyumdance",
+   "why": "'Este sábado 6pm' on the flyer, posted Wednesday 7 Oct: Saturday 10.",
+   "flyer": "flyers/18033111722852845-0.webp",
+   "caption": "🇪🇸 FLAMENCO 🇪🇸\n\nY llega nuestro espectacular taller de escándalo al ritmo español del taconeo, el braceo, la conexión y el sentimiento a cargo de la gran maestra adri_famo\n\nNo importa si nunca has tomado una clase de Flamenco en tu vida, eres principiante o ya tienes idea de este espectacular ritmo. El taller se compondrá de fundamentos, bases, conceptos, pilares y por su puesto una exquisita coreografia. Los esperamos ❤️✍️✔️\n\nNivel: MULTINIVEL (apto para todo el público)\nHora: 6:00 pm\n\n#flamenco #aprendeabailar #escueladebaile #madelena #dancers",
+   "published": "2026-10-07T02:10:05+0000",
+   "processed_at": "2026-10-07T09:00:00-05:00",
+   "events": [
+    {
+     "id": "flamenco",
+     "title": "Flamenco Gran Taller",
+     "date": "2026-10-10",
+     "event_type": "workshop",
+     "start_time": "18:00",
+     "end_time": [
+      null,
+      "19:30"
+     ],
+     "prices": [],
+     "styles": [
+      "otro"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "17981434907897551",
+   "account": "jaleocompetencia_",
+   "why": "Workshops 8:40 pm and 9:20 pm, until 5 am; three prices.",
+   "flyer": "flyers/17981434907897551-0.webp",
+   "caption": "EL PARCHE DONDE EL BAILE SE VIVE\n\nEste 10 de octubre nos vemos en Jaleo Social Pal’Parche.\n\nTaller de dancehall y reggaeton - 8:40 pm\n\ntaller de  salsa y bachata - 9:20 pm\n\nCon la mejor música 🎧 \nSalsa • Bachata • Urbano\n\nBatallas de Urbano open style dúos  2 🆚 2 con premiación en efectivo 🤑🤑\nEl público es jurado👩‍⚖️👨‍⚖️ !! Así que dalo todo en la pista !\n\nSet de dj’s camilo_barretto frank.de.latorre 🥁\n\ngiovabreakill djfeyder 🍑\n\n📍 algarete.oficial - Zona T, Bogotá\n\nHasta las 5:00 a.m.\nFieles 20K | Preventa 30K | Taquilla 40K\n\n“Salsa Bachata y Urbano muestra mezcla”\n\nLas preventas son limitadas y el aforo también. \n\nNo esperes a ver las historias de otros... \n\nArma tu dupla, invita a tu parche y asegura tu entrada. ¡Nos\nvemos en la pista!\n-\n-\n-\n#eventosbogota #fiesta #socialdancing #rumba",
+   "published": "2026-09-22T22:46:07+0000",
+   "processed_at": "2026-09-23T09:00:00-05:00",
+   "events": [
+    {
+     "id": "jaleo",
+     "title": "Social Pal Parche",
+     "date": "2026-10-10",
+     "event_type": [
+      "social",
+      "party"
+     ],
+     "start_time": "20:40",
+     "end_time": "05:00",
+     "prices": [
+      20000,
+      30000,
+      40000
+     ],
+     "venue": "Algarete",
+     "styles": [
+      "salsa",
+      "bachata",
+      "urbano"
+     ],
+     "styles_ok": [
+      "dancehall"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18135744943634406",
+   "account": "callejonsalsa",
+   "why": "'Este sábado' in the caption, posted Tuesday 6 Oct; DJ 9 pm, concert 10 pm.",
+   "flyer": "flyers/18135744943634406-0.webp",
+   "caption": "​Pura candela y mucho sabor este sábado en El Callejón! 🔥💃🏽\n\nDesde Medellín llega marediaguamusic junto a músicas increíbles como carito.percu y amparo_arrebato para una noche de salsa, son cubano y latin jazz que te pondrán a azotar baldosa! 🎺✨ También presentará canciones de su nuevo disco en cocción: Selva Ancestral.\n \n​🎧 9:00 PM - Calentamos con el DJ Set de Amparo Arrebato.\n🎤 10:00 PM - Concierto en vivo! \n\n​📍 El Callejón, mecato & salsa - Cll 12 #3-84, La Candelaria.\n🎟️ Preventa: $15K | Taquilla: $20K\n📲 Info y reservas: 300 6924505 \n\n​Les esperamos para cantar y gozar 🍻💃🏻",
+   "published": "2026-10-06T02:53:00+0000",
+   "processed_at": "2026-10-06T09:00:00-05:00",
+   "events": [
+    {
+     "id": "callejon",
+     "title": "Marediaguamusic",
+     "date": "2026-10-10",
+     "event_type": "concert",
+     "start_time": [
+      "21:00",
+      "22:00"
+     ],
+     "prices": [
+      15000,
+      20000
+     ],
+     "venue": "El Callejón",
+     "styles": [
+      "salsa",
+      "son"
+     ],
+     "styles_ok": [
+      "otro"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "17998000296034443",
+   "account": "parchexbogota",
+   "why": "A partner's post of the Tour: date, venue and prices, no time (the organizer's caption has it).",
+   "flyer": "flyers/17998000296034443-0.webp",
+   "caption": "🚨Y si aprendemos a bailar y conocemos los mejores sitios de salsa de bogota?🚨 💃🏻🕺🏼\n\nPor eso creamos Tour de la Salsa: un recorrido por algunos de los lugares que mantienen viva la cultura salsera de Bogotá.\n\nQueremos que cada parada sea una oportunidad para aprender a bailar, descubrir nuevos lugares, escuchar buena música, conocer gente y conectar con la comunidad salsera.\n\nY todo comienza este 11 de octubre en un lugar que respira salsa:\n\n📍 elgocepagano\n\nPrimer capítulo del Tour:\n💃🏽 Clase de salsa\n❤️ Tinder Salsero\n🎧 DJ invitada: La Guancona\n🥃 Trago de bienvenida\n🔥 Y una pista lista para bailar\n\nEste es apenas el comienzo. Cada 15 días tendremos una nueva parada.\n\nBogotá se baila por capítulos.\n\n¿Se viene con nosotros?\n\n📅 11 de octubre\n📍 El Goce Pagano\n📲 Info y reservas: +57 300 257 7024",
+   "published": "2026-10-05T14:05:14+0000",
+   "processed_at": "2026-10-06T09:00:00-05:00",
+   "events": [
+    {
+     "id": "tour",
+     "title": "Tour de la Salsa",
+     "date": "2026-10-11",
+     "event_type": [
+      "social",
+      "party"
+     ],
+     "start_time": null,
+     "prices": [
+      45000,
+      80000
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18130057825689666",
+   "account": "bulevarsalsarooftop",
+   "why": "A video frame and a short caption: no time, no price.",
+   "flyer": "flyers/18130057825689666-0.webp",
+   "caption": "El Golazo de Bulevar 🥳🥃❤️‍🔥\nPagas el cover y puedes ingresar todas las bebidas que quieras una única vez 🥃🥳\n\nDomingo 11 Octubre\nBULEVAR ROOFTOP\n📍 Calle 13 # 82 - 37",
+   "published": "2026-10-05T01:48:35+0000",
+   "processed_at": "2026-10-05T09:00:00-05:00",
+   "events": [
+    {
+     "id": "golazo",
+     "title": "El Golazo de Bulevar",
+     "date": "2026-10-11",
+     "event_type": [
+      "party",
+      "social"
+     ],
+     "start_time": null,
+     "prices": [],
+     "venue": "Bulevar Rooftop",
+     "styles": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18010811948986920",
+   "account": "proyectourbandance",
+   "why": "Three workshops, one per hour, each with its teacher; the 3 pm one is Reguetón with María Mutante.",
+   "flyer": "flyers/18010811948986920-0.webp",
+   "caption": "Los invitamos a este plan espectacular, y de paso nos apoyan, se divierten y todos ganamos.",
+   "published": "2026-09-30T15:44:34+0000",
+   "processed_at": "2026-10-01T09:00:00-05:00",
+   "events": [
+    {
+     "id": "regueton",
+     "title": [
+      "Reguetón",
+      "María Mutante"
+     ],
+     "date": "2026-10-11",
+     "event_type": "workshop",
+     "start_time": "15:00",
+     "prices": [
+      30000,
+      50000,
+      70000,
+      65000
+     ],
+     "venue": [
+      "PUD",
+      "Proyecto Urban Dance"
+     ],
+     "styles": [
+      "urbano"
+     ],
+     "styles_ok": [
+      "otro"
+     ]
+    },
+    {
+     "id": "sabroseo",
+     "title": "Sabroseo",
+     "date": "2026-10-11",
+     "event_type": "workshop",
+     "start_time": "16:00",
+     "prices": [
+      30000,
+      50000,
+      70000,
+      65000
+     ],
+     "venue": [
+      "PUD",
+      "Proyecto Urban Dance"
+     ],
+     "styles": [
+      "urbano"
+     ],
+     "styles_ok": [
+      "otro"
+     ]
+    },
+    {
+     "id": "coreo",
+     "title": "Coreografía",
+     "date": "2026-10-11",
+     "event_type": "workshop",
+     "start_time": "17:00",
+     "prices": [
+      30000,
+      50000,
+      70000,
+      65000
+     ],
+     "venue": [
+      "PUD",
+      "Proyecto Urban Dance"
+     ],
+     "styles": [
+      "urbano"
+     ],
+     "styles_ok": [
+      "otro"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18106363337210678",
+   "account": "parchexbogota",
+   "why": "The date is only on the flyer; four prices between flyer and caption.",
+   "flyer": "flyers/18106363337210678-0.webp",
+   "caption": "Quién dice que la salsa no entuca 😏❣️\n\nUna noche pa’ soltar la pena, aprender unos pasos y conocer gente nuevas personas. \n\nArrancamos desde las 7:00 PM. con un torneo de beer pong para calentar, luego la clase y por último un cierre pa celebrar. 🍾 \n\nCupos limitados y bebida de bienvenida incluida. 🍹\n\nPreventa: $25K individual / $40K pareja\nTaquilla: $30K individual / $50K pareja\n📍Viajero Bogotá - Cra 3 #20-35\n\nReserva tu cupo por DM a parchexbogota 💬",
+   "published": "2026-10-06T16:52:31+0000",
+   "processed_at": "2026-10-07T09:00:00-05:00",
+   "events": [
+    {
+     "id": "parchese",
+     "title": [
+      "Párchese La Salsa",
+      "Salsa Pa' Entucar"
+     ],
+     "date": "2026-10-09",
+     "event_type": "social",
+     "start_time": "19:00",
+     "prices": [
+      25000,
+      40000,
+      30000,
+      50000
+     ],
+     "venue": "Viajero",
+     "styles": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18118799581975237",
+   "account": "bogotadanceclub",
+   "why": "3 pm to 10 pm, presale and door prices.",
+   "flyer": "flyers/18118799581975237-0.webp",
+   "caption": "😇 Este sábado atrévete a conocer gente nueva en nuestra segunda fiesta temática de octubre: ANGELITOS 🪽\nUna noche para venir con tu parche o llegar solo y salir con amigos  nuevos 🔥\n\n📢 Comunidad bailadora de 18 a 45 años ✨\n🗓️ 10 de octubre | 🕒 3PM a 10PM\n📍 Calle 25F # 36-15 – Bogotá Dance Club\n\n🤓 Clase de baile pre fiesta (para romper el hielo 🧊)\n\n💵 Preventa: $25.000 *(limitada)\n💰 Puerta: $30.000\n(Incluye aureola + clase + 1 bebida)\n\nPrepárate para una noche de baile, gente nueva y mucha fiesta 💃🏻 Si no tenías plan, este sábado ya sabes dónde caer 😏\n\n#baile #planesenbogotá #bogota #salsa",
+   "published": "2026-10-07T01:16:35+0000",
+   "processed_at": "2026-10-07T09:00:00-05:00",
+   "events": [
+    {
+     "id": "tardeo",
+     "title": [
+      "Tardeo Latino",
+      "Angelitos",
+      "Ángeles"
+     ],
+     "date": "2026-10-10",
+     "event_type": [
+      "social",
+      "party"
+     ],
+     "start_time": "15:00",
+     "end_time": "22:00",
+     "prices": [
+      25000,
+      30000
+     ],
+     "venue": "Bogotá Dance Club",
+     "styles": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18154168786450664",
+   "account": "ludancestudios",
+   "why": "An anniversary party with a show; the presale had ended a week before.",
+   "flyer": "flyers/18154168786450664-0.webp",
+   "caption": "🌹¡CELEBRAMOS NUESTRO PRIMER  ANIVERSARIO! 🌹\n\n AMORE ❤️‍🔥\n¿Cómo se arranca para siempre un amor del corazón? 🎶\n\nCoreógrafa salsa : karenmalagon.dance\nCoreógrafa bachata: valentina.acostaa_\n\nDirige: ricardoludance\nFotografia: wpenuelac\n\nEn esta puesta en escena, Nuestras chicas dan vida a esos sentimientos y emociones que nunca dejan de bailar en nuestros corazones, ya que hay amores que nunca terminan, solo se transforman.\n\nEste 10 de octubre queremos celebrar contigo nuestro primer año de LuDance. \n\nPrepárate para una noche especial llena de baile, música, energía y mucho amor por la danza. 💃🕺\n\n📅 10 DE OCTUBRE\n🕗 8:00 PM\n\n🎟️ COVER: $30.000\n🔥 PREVENTA hasta el 3 de octubre: $25.000\n\n📍 LuDance Estudio\nCalle 3 #25-09, Santa Isabel\n📲 301 884 7358\n\nVen a celebrar con nosotros este capítulo tan especial. 🥂🌹\n\nLuDance — donde la danza se convierte en historia.",
+   "published": "2026-09-06T19:50:35+0000",
+   "processed_at": "2026-09-07T09:00:00-05:00",
+   "events": [
+    {
+     "id": "ludance",
+     "title": [
+      "Aniversario LuDance",
+      "Primer Aniversario"
+     ],
+     "date": "2026-10-10",
+     "event_type": [
+      "social",
+      "party"
+     ],
+     "start_time": "20:00",
+     "prices": [
+      25000,
+      30000
+     ],
+     "venue": "LuDance",
+     "styles": [
+      "salsa",
+      "bachata"
+     ],
+     "styles_ok": [
+      "otro"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18056050244572672",
+   "account": "restaurantecasadecitas",
+   "why": "A bar's special night: no cover (free).",
+   "flyer": "flyers/18056050244572672-0.webp",
+   "caption": "NOCHE DE BOLEROS ✨🍷\n🎤🎼 Jhon Álvaro Cardona en vivo.\n🗓️ Viernes 9 de Octubre.\n🎚️💃🏽 DJ Carlos - Rumba Caribe\n🎟️ NO COVER\n.\n#Musicaenvivo #rumba #restaurante #lacandelaria #bogota",
+   "published": "2026-10-07T00:19:21+0000",
+   "processed_at": "2026-10-07T09:00:00-05:00",
+   "events": [
+    {
+     "id": "boleros",
+     "title": "Noche de Boleros",
+     "date": "2026-10-09",
+     "event_type": "concert",
+     "start_time": "20:30",
+     "prices": [
+      0
+     ],
+     "venue": "Casa de Citas",
+     "styles": [
+      "otro"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18102247549996700",
+   "account": "casineafest",
+   "why": "A festival over four days, city only.",
+   "flyer": "flyers/18102247549996700-0.webp",
+   "caption": "10 EDICIONES. UNA HISTORIA QUE SE SIGUE BAILANDO.\n\nDiez ediciones construyendo un espacio para encontrarnos alrededor del casino, la música y las expresiones de la cultura cubana. Diez ediciones conectando bailarines, maestros, academias y comunidades de diferentes lugares en una misma pista.\n\nY para celebrar esta DÉCIMA EDICIÓN, Casinea reúne una programación de talleristas que representa la diversidad, trayectoria y evolución de nuestra comunidad.\n\nArtistas, bailarines, maestros y coreógrafos que llegan desde diferentes escenas para compartir sus conocimientos, sus estilos y sus maneras de entender el baile.\n\nDesde el casino y la rueda, hasta el son, mambo, chachachá, timba, reparto, estilo masculino y femenino, musicalidad, interpretación y trabajo corporal, cada taller será una oportunidad para aprender de quienes han hecho de la danza parte de su camino.\n\nCasinea 2026 no es solo una nueva edición. Es la celebración de diez ediciones de encuentros, aprendizaje, competencia, música y comunidad.\n\n🔥 10.ª EDICIÓN DEL FESTIVAL INTERNACIONAL CASINEA\n\n📅 13 al 16 de noviembre de 2026\n\n📍 Bogotá, Colombia\n\nUna década bailando juntos.\n\nY esto apenas sigue comenzando.\n\n#FestivalCasinea #Casinea2026 #DécimaEdición #SalsaCasino #CulturaCubana",
+   "published": "2026-09-15T07:38:40+0000",
+   "processed_at": "2026-09-16T09:00:00-05:00",
+   "events": [
+    {
+     "id": "casinea",
+     "title": "Festival Internacional Casinea",
+     "date": "2026-11-13",
+     "event_type": [
+      "festival",
+      "congress"
+     ],
+     "end_date": "2026-11-16",
+     "start_time": null,
+     "prices": [],
+     "styles": [
+      "salsa cubana"
+     ],
+     "styles_ok": [
+      "son",
+      "cha cha chá",
+      "salsa",
+      "salsa en línea",
+      "afro",
+      "urbano"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "17901976053669117",
+   "account": "jackandjilloficial",
+   "why": "A bootcamp inside the two-day Jack and Jill event: 120K, salsa and bachata, at Danceholic.",
+   "flyer": "flyers/17901976053669117-0.webp",
+   "caption": "✨ ¡Llega un bootcamp imperdible! ✨\nNos complace presentar el gran Bootcamp de Romina Velarde, quien llega desde Perú para deleitarnos con todo su talento, carisma y pasión por la danza.\n¡Llegó la gran oportunidad de aprender, disfrutar y bailar junto a ella! 🇵🇪🔥\n¡No te lo puedes perder! ❤",
+   "published": "2026-09-29T16:46:43+0000",
+   "processed_at": "2026-09-30T09:00:00-05:00",
+   "events": [
+    {
+     "id": "bootcamp",
+     "title": [
+      "Romina Velarde",
+      "Jack and Jill"
+     ],
+     "date": "2026-11-20",
+     "event_type": [
+      "workshop",
+      "congress",
+      "competition",
+      "festival"
+     ],
+     "end_date": [
+      "2026-11-21",
+      null
+     ],
+     "prices": [
+      120000
+     ],
+     "venue": "Danceholic",
+     "styles": [
+      "salsa",
+      "bachata"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "17910685500495782",
+   "account": "reyesdelasalsa.col",
+   "why": "A competition five months ahead, no venue.",
+   "flyer": "flyers/17910685500495782-0.webp",
+   "caption": "🔥 ¡Bogotá se prepara para vivir una experiencia inolvidable! 🔥\n\nDel 19 al 21 de marzo de 2027, llega Reyes de la Salsa, un encuentro lleno de talento, pasión, competencia y muchas sorpresas para todos los participantes. 👑💃🕺\n\nMuy pronto abriremos nuestras inscripciones.\n¡Prepárate para ser parte de esta gran experiencia!\n\nSíguenos en Instagram: reyesdelasalsa.col",
+   "published": "2026-09-22T19:06:17+0000",
+   "processed_at": "2026-09-23T09:00:00-05:00",
+   "events": [
+    {
+     "id": "reyes",
+     "title": "Reyes de la Salsa",
+     "date": "2027-03-19",
+     "event_type": "competition",
+     "end_date": "2027-03-21",
+     "start_time": null,
+     "prices": [],
+     "styles": [
+      "salsa"
+     ],
+     "styles_ok": [
+      "bachata"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18407884213094306",
+   "account": "academiaalmadetangoe",
+   "why": "Three moments: a concert, a milonga, and a meet & greet only in the VIP pack (optional).",
+   "flyer": "flyers/18407884213094306-2.webp",
+   "caption": "✨ Tango Bardo INTIMO una produccion de Ivan Ovalle y Alma de Tango ✨\n\nTres momentos. Tres experiencias para vivir el tango de una manera diferente. 🖤🍷\n\n🎶 CONCIERTO\n📅 6 de noviembre | 🕗 8:00 p. m.\n💰 $120.000\n🍷 Copa de vino + tortilla horneada\n\n💃 MILONGA\n📅 7 de noviembre | 🕘 9:00 p. m.\n💰 $100.000\n🍷 Copa de vino + empanada horneada\n\n🤝 MEET & GREET\n📅 7 de noviembre | 🕕 6:00 p. m.\n✨ Incluido exclusivamente en el Paquete VIP\n\n⭐ PAQUETE VIP — $280.000\nIncluye Concierto + Milonga + Meet & Greet.\n\nUna noche de música, tango, encuentro y momentos que se quedan en la memoria. ✨\n\n📍 Alma de Tango\n🎟️ Cupos limitados.\n\nReserva tu experiencia y déjate envolver por la magia de Íntimo. 🥂🎶\n\n#AlmaDeTango #TangoBardo #Íntimo #Tango #Milonga Concierto Bogotá TangoEnBogotá MúsicaEnVivo ExperienciaTango",
+   "published": "2026-09-24T01:00:54+0000",
+   "processed_at": "2026-09-24T09:00:00-05:00",
+   "events": [
+    {
+     "id": "concierto",
+     "title": "Concierto",
+     "date": "2026-11-06",
+     "event_type": [
+      "concert",
+      "show"
+     ],
+     "start_time": "20:00",
+     "prices": [
+      120000
+     ],
+     "venue": "Alma de Tango",
+     "styles": [
+      "tango"
+     ]
+    },
+    {
+     "id": "milonga",
+     "title": "Milonga",
+     "date": "2026-11-07",
+     "event_type": "social",
+     "start_time": "21:00",
+     "venue": "Alma de Tango",
+     "styles": [
+      "tango"
+     ]
+    },
+    {
+     "id": "meet",
+     "title": "Meet & Greet",
+     "date": "2026-11-07",
+     "event_type": "other",
+     "start_time": "18:00",
+     "optional": true
+    }
+   ]
+  },
+  {
+   "post_id": "18069630428738274",
+   "account": "ritmosacademiadebaile",
+   "why": "A musical at a theater, no time.",
+   "flyer": "flyers/18069630428738274-0.webp",
+   "caption": "ENTRE RITMOS Y LATIDOS \n  THE MUSICAL \n  01/11/2026\n\nUn lugar, múltiples historias, una sola pasión. 🎶🥁🎭\n\n¿Qué sucede cuando diferentes vidas coinciden en una misma pista de baile?\n\nPronto conocerás a los personajes y los secretos que laten en el escenario. \n\n#salsa #musical #ritmos",
+   "published": "2026-09-14T01:54:59+0000",
+   "processed_at": "2026-09-14T09:00:00-05:00",
+   "events": [
+    {
+     "id": "musical",
+     "title": "Entre Ritmos y Latidos",
+     "date": "2026-11-01",
+     "event_type": "show",
+     "start_time": null,
+     "prices": [],
+     "venue": "Teatro Libre",
+     "styles": [
+      "salsa"
+     ],
+     "styles_ok": [
+      "otro",
+      "urbano"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18129749683771543",
+   "account": "bembeacademiadebaile",
+   "why": "Doors at 8 pm; the academy's address.",
+   "flyer": "flyers/18129749683771543.webp",
+   "caption": "👻Este 24 de octubre prepárate para vivir nuestro SOCIAL DE HALLOWEEN en Bembé 🎃🔥\n\n✨ Show de bailarines\n👻 Premio al mejor disfraz\n🎶 Mucho baile, música y diversión\n\n¿Ya tienes tu disfraz listo? 😈🧛‍♀️🧟‍♂️",
+   "published": "2026-09-30T15:01:35+0000",
+   "processed_at": "2026-10-01T09:00:00-05:00",
+   "events": [
+    {
+     "id": "halloween-bembe",
+     "title": "Social de Halloween",
+     "date": "2026-10-24",
+     "event_type": "social",
+     "start_time": "20:00",
+     "prices": [],
+     "styles": [],
+     "styles_ok": [
+      "salsa",
+      "bachata"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18210323335323212",
+   "account": "pachanga_y_pochola",
+   "why": "A bar's Halloween night with prizes, no time.",
+   "flyer": "flyers/18210323335323212-0.webp",
+   "caption": "🎃🩸 BOGOTÁ, ¿ESTÁN PREPARADOS PARA UNA NOCHE DE TERROR, SALSA Y MUCHO FLOW? 🔥💀\n\nEste 31 de octubre, en Pachanga&Pochola, el miedo se baila y la noche se vive sin reglas. 👻🕺🏽 Una fiesta donde los disfraces, la buena salsa y los premios serán los protagonistas. 🏆🎃\n\n💰 ¡5 MILLONES EN PREMIOS! Y una pregunta: ¿ya tienes pensado tu disfraz? #salsa  #pachanga #lasalsavuelveabrillar",
+   "published": "2026-10-04T22:09:19+0000",
+   "processed_at": "2026-10-05T09:00:00-05:00",
+   "events": [
+    {
+     "id": "halloween-pachanga",
+     "title": "Halloween",
+     "date": "2026-10-31",
+     "event_type": "party",
+     "start_time": null,
+     "prices": [],
+     "venue": "Pachanga",
+     "styles": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "17902083543361973",
+   "account": "danceinmotionclub",
+   "why": "No caption: everything is on the flyer.",
+   "flyer": "flyers/17902083543361973-0.webp",
+   "caption": null,
+   "published": "2026-10-01T22:42:44+0000",
+   "processed_at": "2026-10-02T09:00:00-05:00",
+   "events": [
+    {
+     "id": "caleno",
+     "title": "Salsa Estilo Caleño",
+     "date": "2026-10-17",
+     "event_type": "workshop",
+     "start_time": "14:30",
+     "end_time": "16:30",
+     "prices": [
+      40000,
+      70000
+     ],
+     "styles": [
+      "salsa caleña"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18116044484470489",
+   "account": "imperiolatino",
+   "why": "A one-off workshop with a guest.",
+   "flyer": "flyers/18116044484470489-0.webp",
+   "caption": "🔥💃 ¡IMPERIO LATINO PRESENTA: TALLER ESPECIAL DE SALSA! 💃🔥\n\nPrepárate para vivir una experiencia llena de técnica, musicalidad, estilo y mucha energía. 🕺✨\n\n⭐ INVITADO ESPECIAL: Mateo Popayán\n📅 Sábado 17 de octubre de 2026\n⏰ 4:30 P. M.\n💰 Valor: $20.000\n📍 Cll 72 No. 80-23, Segundo Piso\n\n🚨 Cupos limitados 🚨\nNo te quedes por fuera de este taller especial y ven a llevar tu salsa a otro nivel. 🔥\n\n📲 Reservas e información: 316 450 1010\n\nImperio Latino Dance Studio\nDonde el ritmo se convierte en pasión. 💛🖤❤️\n\n#ImperioLatino #TallerDeSalsa #Salsa #SalsaColombia #clasedesalsa",
+   "published": "2026-10-05T19:37:19+0000",
+   "processed_at": "2026-10-06T09:00:00-05:00",
+   "events": [
+    {
+     "id": "imperio",
+     "title": "Taller Especial de Salsa",
+     "date": "2026-10-17",
+     "event_type": "workshop",
+     "start_time": "16:30",
+     "prices": [
+      20000
+     ],
+     "styles": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18411223324085711",
+   "account": "bachatamania_bogota",
+   "why": "Class 8:30 pm, social 9:30 pm, at another venue; three prices.",
+   "flyer": "flyers/18411223324085711-0.webp",
+   "caption": "Bachatamania Octubre ✨\n\nNo te pierdas este increíble social 100% Bachata dónde vas a bailar hasta que el cuerpo aguante 🤩\n\nLos mejores profes y artistas invitados para que bailes y disfrutes con todos ellos 🥳🥳🥳\n\n🗓️ 17 de Octubre\n🕗 8:30 PM Clase con Adriana Tibaduiza\n🕗 9:30 PM Social 100% Bachata\n🎶 DJ Laurin \n📍 Distrito Social \n\nNo te lo puedes perder, reserva tu boleta en nuestra web\n\nappdanza.com",
+   "published": "2026-09-27T16:19:15+0000",
+   "processed_at": "2026-09-28T09:00:00-05:00",
+   "events": [
+    {
+     "id": "bachatamania",
+     "title": "Bachatamanía",
+     "date": "2026-10-17",
+     "event_type": "social",
+     "start_time": [
+      "20:30",
+      "21:30"
+     ],
+     "prices": [
+      30000,
+      35000
+     ],
+     "venue": "Distrito Social",
+     "styles": [
+      "bachata"
+     ],
+     "styles_ok": [
+      "bachata dominicana"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18109663904592419",
+   "account": "esferalatinaoficial",
+   "why": "The date is only in the caption ('Martes 20'); no time.",
+   "flyer": "flyers/18109663904592419-0.webp",
+   "caption": "🔥 MARTES 20 DE OCTUBRE - Dos estilos, una sola clase y mucha energía. 🔥\n\nPrepárate para una clase diferente junto a manchoosorio & alexsalsitaoficial 💥\n\nReserva tu cupo y nos vemos en la pista! 💃🏽🕺🏽",
+   "published": "2026-10-06T18:00:06+0000",
+   "processed_at": "2026-10-07T09:00:00-05:00",
+   "events": [
+    {
+     "id": "cruzados",
+     "title": "Ritmos Cruzados",
+     "date": "2026-10-20",
+     "event_type": "workshop",
+     "start_time": null,
+     "prices": [
+      10000,
+      20000
+     ],
+     "styles": [
+      "salsa",
+      "urbano"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18077925755706373",
+   "account": "galeriacafelibro",
+   "why": "A concert at a bar, no time.",
+   "flyer": "flyers/18077925755706373-0.webp",
+   "caption": "Celebrando una vida de salsa 🌟 Llega Enrique Barrios junto a gerbandlatingroup con lo mejor de su repertorio y todo el poder de la salsa en vivo. \n\nColombia y Venezuela unidos en tarima 🇻🇪🇨🇴\n\nLa cita es este jueves, 22 de octubre, en Galeria Café Libro sede Parque 93.\n\n🎟️ $20k\n📍 Cra 11A#93-42",
+   "published": "2026-10-04T15:39:06+0000",
+   "processed_at": "2026-10-05T09:00:00-05:00",
+   "events": [
+    {
+     "id": "barrios",
+     "title": "Enrique Barrios",
+     "date": "2026-10-22",
+     "event_type": "concert",
+     "start_time": null,
+     "prices": [
+      20000
+     ],
+     "venue": "Galería Café Libro",
+     "styles": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "17902055949596846",
+   "account": "salsaysonoficial",
+   "why": "A concert at a bar, no time.",
+   "flyer": "flyers/17902055949596846-0.webp",
+   "caption": "🔥 argygomezoficial  EN SALSA & SON 🔥\n\nEste sábado 24 de octubre, prepárate para una noche de música, baile y mucho sabor junto a argygomezoficial 🎤✨\n\nUna noche para cantar, bailar y disfrutar al ritmo de la salsa. 💃🕺\n\n🎟️ Cover: $20.000 por persona\n📲 Reservas: 322 728 3910\n📍 Cra. 14A #82-87 — Zona T, Bogotá\n\n¿Listos para vivirla? 🔥\nNos vemos en Salsa & Son. ❤️‍🔥\n\n#SalsaYSon #ArgyGomez #SalsaEnBogota #ZonaT Salsa Bogota NocheDeSalsa MusicaEnVivo PlanEnBogota",
+   "published": "2026-09-30T02:29:47+0000",
+   "processed_at": "2026-09-30T09:00:00-05:00",
+   "events": [
+    {
+     "id": "argy",
+     "title": "Argy Gómez",
+     "date": "2026-10-24",
+     "event_type": "concert",
+     "start_time": null,
+     "prices": [
+      20000
+     ],
+     "venue": "Salsa & Son",
+     "styles": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18383470903236364",
+   "account": "danceholicproject",
+   "why": "Class 9–10 pm, social 10 pm to 2:30 am.",
+   "flyer": "flyers/18383470903236364-0.webp",
+   "caption": "LATINHOLIC 🔥\n\n💃🏽🔥 UNA NOCHE PARA BAILAR, CONECTAR CON MÁS GENTE Y PASARLA BUENO.\n\nEsta vez cambiamos el salón de clases por una noche de SALSA & BACHATA en Danceholic. 🕺🏽❤️‍🔥\n\nNo importa si bailas hace años, si estás empezando o si simplemente quieres venir a disfrutar. Aquí vienes a bailar.\n\n🎶 Salsa\n🎶 Bachata\n🤝🏽 Social\n💫Showcases \n🔥 Buena música\n❤️‍🔥 Mucha energía\n\nVen con tu parche, con tu pareja… o ven solo/a. Seguro terminas bailando con alguien.\n\n📍: DANCEHOLIC PROJECT\n🗓️: SÁBADO 24 OCTUBRE \n⏰: 9:00PM \n💸: 30K ( Incluye bebida ) \n\nGuarda la fecha, invita a tu combo y nos vemos por la mansión 🕺🏽💃🏽 🚨 NO OLVIDES RESERVAR POR DM 🚨\n\n#DanceholicProject #Salsa #Bachata #SocialDance #bogota",
+   "published": "2026-10-05T03:30:33+0000",
+   "processed_at": "2026-10-05T09:00:00-05:00",
+   "events": [
+    {
+     "id": "latinholic",
+     "title": "Latinholic",
+     "date": "2026-10-24",
+     "event_type": "social",
+     "start_time": [
+      "21:00",
+      "22:00"
+     ],
+     "end_time": "02:30",
+     "prices": [
+      30000
+     ],
+     "venue": "Danceholic",
+     "styles": [
+      "salsa",
+      "bachata"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18174896527445791",
+   "account": "distritosocialbog",
+   "why": "One night (the second social) of a three-day anniversary.",
+   "flyer": "flyers/18174896527445791-0.webp",
+   "caption": "👑 REYES DE LA PISTA 👑\n\nLa segunda noche de nuestro Aniversario Distrito Social se viste de gala. ✨\n\nEste 1 de noviembre, saca tu mejor pinta porque la pista será territorio de reyes y reinas. 👑🖤\n\nUna noche elegante, poderosa y llena de Salsa, Bachata y Kizomba.\n\nNuestro aniversario viene con todo: 17 horas de talleres + 12 horas de social, y este será nuestro segundo social del fin de semana. 🔥\n\n✨ SOCIAL ELEGANTE — REYES DE LA PISTA\n\n🕗 8:00 PM – 2:00 AM\n🎧 DJ CrisStian | DJ Frank\n💃 Salsa • Bachata • Kizomba\n🎟️ Cover: $50K\n✅ Incluido en Full Pass y Pase Social\n📍 Distrito Social — Cra. 29 #68-18\n\nLuce tu mejor pinta. Esta noche no vienes solo a bailar… vienes a ser parte de la realeza. 👑\n\n¿Quién será el rey o la reina de la pista? 👀🔥",
+   "published": "2026-10-03T23:31:47+0000",
+   "processed_at": "2026-10-04T09:00:00-05:00",
+   "events": [
+    {
+     "id": "reyes-pista",
+     "title": "Reyes de la Pista",
+     "date": "2026-11-01",
+     "event_type": [
+      "social",
+      "festival"
+     ],
+     "start_time": "20:00",
+     "end_time": "02:00",
+     "prices": [
+      50000
+     ],
+     "venue": "Distrito Social",
+     "styles": [
+      "salsa",
+      "bachata",
+      "kizomba"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18095873720432478",
+   "account": "mover__se",
+   "why": "A closing show; the date and time only on the flyer.",
+   "flyer": "flyers/18095873720432478-0.webp",
+   "caption": "🫧ECOS EN MOVIMIENTO 🫧\nDonde cada cuerpo deja una huella 🫆 \n.\n.\n.\nClausura Mover-sé 2026 💜\n\nacademiaalmadetangoe 📍\n\n💌Pronto más información💌",
+   "published": "2026-09-24T23:41:51+0000",
+   "processed_at": "2026-09-25T09:00:00-05:00",
+   "events": [
+    {
+     "id": "ecos",
+     "title": "Ecos en Movimiento",
+     "date": "2026-12-13",
+     "event_type": "show",
+     "start_time": "16:00",
+     "prices": [],
+     "venue": "Alma de Tango",
+     "styles": [],
+     "styles_ok": [
+      "otro",
+      "tango"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18148786210526643",
+   "account": "ebi_dancecompany",
+   "why": "A morning workshop, three prices, address only.",
+   "flyer": "flyers/18148786210526643-0.webp",
+   "caption": "Los invitamos a una mañana para bailar, aprender, experimentar y seguir creciendo juntos.\nUn encuentro pensado para quienes quieren acercarse a estos ritmos por primera vez, pero también para quienes ya bailan y quieren llevar su movimiento un poco más allá.\n💃🏽🕺🏽 Todo lo recaudado será destinado a nuestro proceso de competencia nacional.\nAsí que cada persona que participe no solo se lleva una experiencia de aprendizaje: también estará aportando directamente a un sueño que estamos construyendo como equipo.\n 💗🩵\n\n#guaguancó #afrocuban #reparto #culturacubana #bailarines",
+   "published": "2026-09-14T01:29:46+0000",
+   "processed_at": "2026-09-14T09:00:00-05:00",
+   "events": [
+    {
+     "id": "cubanos",
+     "title": "Ritmos Cubanos",
+     "date": "2026-10-04",
+     "event_type": "workshop",
+     "start_time": "09:00",
+     "end_time": "12:00",
+     "prices": [
+      90000,
+      150000,
+      35000
+     ],
+     "styles": [
+      "afro"
+     ],
+     "styles_ok": [
+      "salsa cubana",
+      "otro",
+      "urbano"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18101304254322591",
+   "account": "germanbaila",
+   "why": "Doors 2 pm, class 3 pm, party until 10 pm.",
+   "flyer": "flyers/18101304254322591-0.webp",
+   "caption": "Octubre es mes de los niños y que genial poder salir a celebrar y bailar con ellos en una fiesta salsera para toda la familia. 🕺💃\n🗓️ Domingo 4 de octubre en elgocepagano desde las 2PM \n🕺 Clase de baile 3PM\n🪩 Fiesta para toda la familia hasta las 10PM\n🎟️ Cover $15mil incluye una bebida\n☎️ Reserva la mesa para tu grupo 316 871 0646\n📍 Diagonal 20A #0-82 Bogotá.",
+   "published": "2026-09-29T00:33:13+0000",
+   "processed_at": "2026-09-29T09:00:00-05:00",
+   "events": [
+    {
+     "id": "cocacola",
+     "title": "Coca-Cola Bailable",
+     "date": "2026-10-04",
+     "event_type": [
+      "social",
+      "party"
+     ],
+     "start_time": [
+      "14:00",
+      "15:00"
+     ],
+     "end_time": "22:00",
+     "prices": [
+      15000
+     ],
+     "venue": "El Goce Pagano",
+     "styles": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18134469379672915",
+   "account": "tributo.salsayjazz",
+   "why": "Doors 6 pm, music 8 pm: either start.",
+   "flyer": "flyers/18134469379672915-0.webp",
+   "caption": "¡LLEGÓ EL JUEVES PARA VIVIR LOS GRANDES CLÁSICOS DEL LATIN JAZZ! 🪈🎶 Porque el fin de semana se empieza a gozar desde hoy, te esperamos en tu casa: ¡Tributo Salsa y Jazz! Este jueves 08 de octubre prepárate para un viaje musical único a través de los grandes clásicos de ayer y hoy. Ven a disfrutar de un buen trago con tus amigos, contágiate de la mejor atmósfera y alístate para dejarte llevar por el virtuosismo y la elegancia del solista Alejandro Castro en vivo. ¡Puro sabor para el alma melómana! 🥂🎷🔥 📍 Lugar: Av. Boyacá #64c 97 (Zona 6) ⏰ Apertura: 6:00 PM | Música en vivo: 8:00 PM 📲 Reservas: 310 5714824 ¡Asegura tu mesa antes de que se llene! RESERVA, arma tu parche melómano y nos vemos para disfrutar de la buena música. 👇✨https://wa.me/573105714824",
+   "published": "2026-10-06T19:06:54+0000",
+   "processed_at": "2026-10-07T09:00:00-05:00",
+   "events": [
+    {
+     "id": "latinjazz",
+     "title": [
+      "Latin Jazz",
+      "Alejandro Castro"
+     ],
+     "date": "2026-10-08",
+     "event_type": "concert",
+     "start_time": [
+      "18:00",
+      "20:00"
+     ],
+     "prices": [],
+     "venue": "Tributo",
+     "styles": [],
+     "styles_ok": [
+      "salsa",
+      "otro"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18409856125080489",
+   "account": "distritosocialbog",
+   "why": "A month's program as a table: six events (the last row is a deadline, not an event).",
+   "flyer": "flyers/18409856125080489-0.webp",
+   "caption": "Septiembre ✨\n\nTe dejamos nuestra programación de eventos del mes de Septiembre dónde tendrás mucho baile, aprendizaje y gozadera 🥳🥳🥳\n\n🔸 Domingo 13: Iniciamos a la 1PM con un Intensivo de Salsa Caleña dictada por Jenssy Gonzáles y Felipe Romero\n\n🔸Domingo 13: Seguimos ese mismo día a las 3:30 PM con un Intensivo de Jack & Jill Bachata dictado por Angel y Melanny \n\n🔸 Sábado 19: Iniciamos a las 7 PM con nuestra clasificatoria de Bachatamania Master League dónde pondrán a prueba todas sus habilidades \n\n🔸Sábado 19: Seguimos este día desde las 8:30 PM con clase de Bachata y social 100% Bachatero\n\n🔸Domingo 20: Como nunca es suficiente Bachata nos vamos a partir de las 4 PM a una clase Intensiva de Bachata Dominicana dictada por Adriana Tibaduiza\n\n🔸Sábado 26: El último sábado del mes es para bailar y nos vamos con SBK (Salsa, Bachata, Kizomba) desde las 7 PM con doble clase y un social increíble \n\n🔸 Miércoles 30: Cerramos el mes con la culminación de l segundo corte de nuestro aniversario que será el mes de Noviembre 🤩🤩🤩\n\nNo dejes que te lo cuenten reserva en nuestras Webs:\n\ndistrito-social-academy.com/eventos\nappdanza.com",
+   "published": "2026-09-05T16:09:09+0000",
+   "processed_at": "2026-09-06T09:00:00-05:00",
+   "events": [
+    {
+     "id": "chontaduro",
+     "title": "Salsa y Chontaduro",
+     "date": "2026-09-13",
+     "event_type": "workshop",
+     "start_time": "13:00",
+     "styles": [
+      "salsa caleña"
+     ]
+    },
+    {
+     "id": "jackjill",
+     "title": "Intensivo Jack & Jill",
+     "date": "2026-09-13",
+     "event_type": "workshop",
+     "start_time": "15:30",
+     "styles": [
+      "bachata"
+     ]
+    },
+    {
+     "id": "master",
+     "title": "Bachatamanía Master League",
+     "date": "2026-09-19",
+     "event_type": "competition",
+     "start_time": "19:00",
+     "styles": [
+      "bachata"
+     ]
+    },
+    {
+     "id": "social19",
+     "title": "Bachatamanía",
+     "date": "2026-09-19",
+     "event_type": "social",
+     "start_time": "20:30",
+     "styles": [
+      "bachata"
+     ]
+    },
+    {
+     "id": "carrandales",
+     "title": "Estilo Carrandales",
+     "date": "2026-09-20",
+     "event_type": "workshop",
+     "start_time": "16:00",
+     "styles": [
+      "bachata dominicana"
+     ],
+     "styles_ok": [
+      "bachata"
+     ]
+    },
+    {
+     "id": "sbk",
+     "title": "Social SBK",
+     "date": "2026-09-26",
+     "event_type": "social",
+     "start_time": "19:00",
+     "styles": [
+      "salsa",
+      "bachata",
+      "kizomba"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18044150648816300",
+   "account": "sondehabana",
+   "why": "The academy's night, but at another venue ('Live at Sin Visa Bogotá'); four prices.",
+   "flyer": "flyers/18044150648816300-0.webp",
+   "caption": "ESTE VIERNES 25 DE SEPTIEMBRE 🚨 taller de 1 hora y media más práctica social de 1 hora y media junto a los maestros paulapopayancortes y jepherson_mc 😍\n\nPodrás aprender diferentes pasos de salsa en línea y salsa cubana y cómo aplicarlos al social 🔥 te esperamos 8pm aquí en nuestra sede sondehabana \n\n#salsa #estilocubano #baile #parches #amoryamistad",
+   "published": "2026-09-17T23:00:06+0000",
+   "processed_at": "2026-09-18T09:00:00-05:00",
+   "events": [
+    {
+     "id": "viernes",
+     "title": "Viernes para Bailadores",
+     "date": "2026-09-25",
+     "event_type": [
+      "social",
+      "workshop"
+     ],
+     "start_time": "20:00",
+     "prices": [
+      30000,
+      50000,
+      35000,
+      60000
+     ],
+     "venue": "Sin Visa",
+     "styles": [
+      "salsa en línea",
+      "salsa cubana"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18001960326003074",
+   "account": "la33orquesta",
+   "why": "A big concert; the caption's second-stage price (until 5 Oct).",
+   "flyer": "flyers/18001960326003074-1.webp",
+   "caption": "BOGOTÁ, nos vemos en el royalbogota \r𝗟𝗼𝘀 𝟮𝟱 𝗱𝗲 𝗹𝗮-𝟯𝟯, se celebran a lo grande 🎉🇨🇴🔥\r\n\r\nEste 21 de noviembre nos encontramos para celebrar 25 años de historia, música y salsa. LA-33 EN VIVO + invitados especiales\r\n\r\nY la celebración se prende aún más con loscorralerosdemajagual_ una de las agrupaciones más emblemáticas de la música tropical colombiana 🥳🔥🔥\r\n\r\n🗓️ Fecha: Sábado 21 de noviembre de 2026\r\n📍Lugar: royalbogota (Cra 13 # 66-80 Bogotá) 🇨🇴\r\n🔥 DJ´S: loa_malbec y rivas_santiago \r\n\r\n🎟️ Entradas en: royalcenter.com.co (el enlace en la bio)\r\n🎟️ 2da etapa $135.000 + servicio, hasta el 5 de octubre\r\n*Aplican términos y condiciones*\r\n\r\nNo dejes que te lo cuenten. Ven a celebrar con nosotros. 🔥🥳💃🕺\r📲 Informes al: 317 331 3956 – 300 660 1156\n.\n.\n.\n🌟 Arte: sebastianbravoguerrero",
+   "published": "2026-09-15T23:59:23+0000",
+   "processed_at": "2026-09-16T09:00:00-05:00",
+   "events": [
+    {
+     "id": "la33",
+     "title": [
+      "La-33",
+      "Los 25 de la-33"
+     ],
+     "date": "2026-11-21",
+     "event_type": "concert",
+     "start_time": null,
+     "prices": [
+      135000
+     ],
+     "venue": "Royal Center",
+     "styles": [
+      "salsa"
+     ]
+    }
+   ]
+  },
+  {
+   "post_id": "18122042672487029",
+   "account": "soywiwioficial",
+   "why": "A morning Bailatón at a rooftop (stored with a wrong venue).",
+   "flyer": "flyers/18122042672487029-0.webp",
+   "caption": "Próxima Bailatón con Los Morochos 🍫❤️‍🔥\n\n🔗en nuestro perfil encuentras el link para asegurar tu cupo ( AFORO LIMITADO ‼️)\n\nDomingo 8 Noviembre \n⏰ 9 AM\n\nBULEVAR ROOFTOP\n📍Carrera 13 # 82 - 37",
+   "published": "2026-10-03T18:09:06+0000",
+   "processed_at": "2026-10-04T09:00:00-05:00",
+   "events": [
+    {
+     "id": "bailaton",
+     "title": "Bailatón",
+     "date": "2026-11-08",
+     "event_type": [
+      "social",
+      "party",
+      "other"
+     ],
+     "start_time": "09:00",
+     "prices": [],
+     "venue": "Bulevar Rooftop",
+     "styles": [],
+     "styles_ok": [
+      "urbano",
+      "salsa",
+      "otro",
+      "champeta"
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -158,6 +158,11 @@ def main(argv: list[str] | None = None) -> None:
     bake_parser.add_argument(
         "--discover", action="store_true", help="list OpenRouter's free models with image input now (no key)"
     )
+    bake_parser.add_argument(
+        "--gold",
+        action="store_true",
+        help="score against the test set checked by hand (gold/), not against Flash; default model: Flash-Lite",
+    )
     args = parser.parse_args(argv)
     _utf8_stdout()
     if not sweep_state.refresh():
@@ -176,6 +181,9 @@ def main(argv: list[str] | None = None) -> None:
     elif args.tool == "bakeoff":
         if args.discover:
             bakeoff.discover()
+        elif args.gold:
+            gold_models = args.models if args.models != list(bakeoff.DEFAULT_MODELS) else list(bakeoff.GOLD_MODELS)
+            bakeoff.run_gold(gold_models, score_only=args.score)
         else:
             bakeoff.run(args.posts, args.models, repick=args.repick, score_only=args.score)
     elif args.tool == "inbox":

@@ -1,12 +1,13 @@
 """`admin bakeoff`: picking posts, running models on them (fake), scoring against Flash, OpenRouter's free list."""
 
 from datetime import datetime
+from typing import get_args
 
 import httpx
 
 from pa_bailar import bakeoff, config, external, health, status, why
 from pa_bailar.external import ExternalReport, ExternalTier
-from pa_bailar.models import PostAnalysis
+from pa_bailar.models import STYLES, EventType, PostAnalysis
 from pa_bailar.pipeline import RunStats
 from tests.factories import DETAILS, make_image
 from tests.test_admin_tools import LINK, record, state
@@ -69,6 +70,91 @@ def test_scoring_counts_found_missed_extra_and_errors():
     assert (result.found, result.missed, result.extra, result.errors) == (1, 1, 0, 1)
     assert result.fields["date"] == [1, 1] and result.average_seconds == 10
     assert "found 1, missed 1" in bakeoff.score_text("groq:qwen/qwen3.8-27b", result)
+
+
+# ---------- the test set (gold/) ----------
+
+CALENDAR_NIGHT = {
+    "id": "acere",
+    "title": "Acere",
+    "title_wrong": ["salsoteca"],
+    "date": "2026-10-10",
+    "event_type": ["concert", "party"],
+    "start_time": ["18:00", None],
+    "venue": "El Goce Pagano",
+    "prices": [],
+    "styles": ["salsa"],
+}
+
+
+def test_gold_checks_only_what_the_flyer_settles_and_takes_any_right_value():
+    read = {
+        "title": "Acere en vivo",
+        "date": "2026-10-10",
+        "event_type": "party",
+        "start_time": None,
+        "venue": "Goce Pagano",
+        "prices": [],
+        "styles": ["salsa"],
+        "end_time": "03:00",
+    }
+    assert all(bakeoff.compare_gold(CALENDAR_NIGHT, read).values())
+    assert "end_time" not in bakeoff.compare_gold(CALENDAR_NIGHT, read)  # not on the flyer: not checked
+    wrong = {**read, "title": "Salsoteca DC - Acere", "start_time": "23:30:00", "styles": ["salsa", "bachata"]}
+    assert {name for name, ok in bakeoff.compare_gold(CALENDAR_NIGHT, wrong).items() if not ok} == {
+        "title",
+        "start_time",
+        "styles",
+    }
+    range_read = bakeoff.compare_gold({**CALENDAR_NIGHT, "end_date": "2026-11-01"}, read)
+    assert range_read["end_date"] is False  # "11 OCT — 01 NOV" read as one day
+
+
+def test_gold_scoring_matches_each_expected_event_once_and_skips_optional_ones():
+    workshops = [
+        {
+            "id": "regueton",
+            "title": ["Reguetón", "María Mutante"],
+            "date": "2026-10-11",
+            "event_type": "workshop",
+            "start_time": "15:00",
+        },
+        {"id": "sabroseo", "title": "Sabroseo", "date": "2026-10-11", "event_type": "workshop", "start_time": "16:00"},
+        {"id": "meet", "title": "Meet & Greet", "date": "2026-10-11", "event_type": "other", "optional": True},
+    ]
+    read = [
+        {
+            "title": "Workshop Pro Fondos: Sabroseo",
+            "date": "2026-10-11",
+            "event_type": "workshop",
+            "start_time": "16:00",
+        },
+        {"title": "Workshops Pro Fondos", "date": "2026-10-11", "event_type": "workshop", "start_time": "15:00"},
+    ]
+    posts = [{"post_id": "pud", "events": workshops}, {"post_id": "gone", "events": workshops[:1]}]
+    result = bakeoff.score_gold(posts, {"pud": {"answer": {"events": read}, "seconds": 4}})
+    assert (result.found, result.missed, result.extra, result.errors) == (2, 0, 0, 1)
+    assert result.fields["title"] == [1, 2] and result.fields["start_time"] == [2, 2]
+    assert any("regueton title" in note for note in result.notes)
+
+
+def test_the_test_set_is_well_formed():
+    """gold/posts.json: every post has its flyer and dates; every expected event a title, a date and only known
+    types and styles (a typo would make a check fail for every model)."""
+    posts = bakeoff.load_gold()
+    assert len(posts) >= 40 and len({post["post_id"] for post in posts}) == len(posts)
+    for post in posts:
+        assert (bakeoff.GOLD_DIR / post["flyer"]).exists(), post["flyer"]
+        datetime.fromisoformat(post["processed_at"])
+        assert post["events"] and post["why"]
+        ids = [event["id"] for event in post["events"]]
+        assert len(set(ids)) == len(ids)
+        for event in post["events"]:
+            datetime.fromisoformat(event["date"])
+            assert set(bakeoff._options(event["event_type"])) <= set(get_args(EventType))
+            assert set(event.get("styles", [])) | set(event.get("styles_ok", [])) <= set(STYLES)
+            known = {"id", "title", "title_wrong", "date", "end_date", "sessions", "start_time", "end_time"}
+            assert set(event) <= known | {"event_type", "venue", "prices", "styles", "styles_ok", "optional"}
 
 
 def test_running_a_model_caches_answers_and_retries_only_failures(tmp_path):
