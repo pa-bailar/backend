@@ -53,16 +53,25 @@ def _with_doubt(event: ExtractedEvent, doubt: str) -> ExtractedEvent:
     return event if doubt in event.doubts else event.model_copy(update={"doubts": [*event.doubts, doubt]})
 
 
-# A caption or Gemini's reason saying the event is off (folded text: lowercase, no accents).
+# A caption or Gemini's reason saying the event is off (folded text: lowercase, no accents). With the past and the
+# other verbs a caption uses ("se canceló", "reprogramado", "no habrá": the audit of 7 Oct 2026).
 _CANCELLED = re.compile(
-    r"\b(cancelad[oa]s?|cancelamos|se cancela|cancell?ed|aplazad[oa]s?|aplazamos|se aplaza|pospuest[oa]s?"
-    r"|posponemos|se pospone|postponed|suspendid[oa]s?|suspendemos)\b"
+    r"\b(cancelad[oa]s?|cancelamos|se cancela|se cancelo|cancelacion|cancell?ed|aplazad[oa]s?|aplazamos|se aplaza"
+    r"|pospuest[oa]s?|posponemos|se pospone|postponed|suspendid[oa]s?|suspendemos|reprogramad[oa]s?|reprogramamos"
+    r"|se reprograma|postergad[oa]s?|postergamos|se posterga|no habra|nueva fecha)\b"
+)
+# In Colombia "cancelar" is also "to pay": "la entrada se cancela en la puerta", "el valor se cancela en efectivo".
+_PAID = re.compile(
+    r"\b(?:entrada|cover|valor|precio|costo|inscripcion|boleta|cuota|pago|mensualidad|reserva)\b[^.!?\n]{0,40}?"
+    r"\bse cancela\b|\bse cancela (?:en|con|al|por|antes|directamente|a la entrada)\b"
 )
 
 
 def _says_cancelled(post: Post, analysis: PostAnalysis) -> bool:
-    """Whether the post's caption, or Gemini's reason for finding no event in it, says it's cancelled or postponed."""
-    return bool(_CANCELLED.search(fold(f"{post.get('caption') or ''} {analysis.reason}")))
+    """Whether the post's caption, or Gemini's reason for finding no event in it, says it's cancelled or postponed (not
+    "se cancela" meaning it's paid)."""
+    text = _PAID.sub(" ", fold(f"{post.get('caption') or ''} {analysis.reason}"))
+    return bool(_CANCELLED.search(text))
 
 
 def _days(event: EventDetails) -> str:

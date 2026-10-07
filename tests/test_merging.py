@@ -423,6 +423,17 @@ def test_a_different_kind_of_event_with_the_same_guest_stays_apart():
     assert not looks_like_same_event(social, "academia", extracted(title="Social", start_time=None))
 
 
+def test_a_workshop_and_the_social_the_same_day_stay_two_events():
+    """The audit of 7 Oct 2026: "Taller" and "Social" are common words, dropped before comparing titles, so a guest's
+    workshop and the night's social merged when a post had no time. Different kinds of event now stay apart."""
+    social = stored("social-juan", title="Social con Juan", start_time=None)
+    for title in ("Taller con Juan", "Clases con Juan", "Concierto con Juan", "Concurso con Juan", "Show con Juan"):
+        assert not looks_like_same_event(social, "academia", extracted(title=title, start_time=None)), title
+    # One kind in common, or a party and a social (an academy's "Fiesta" is its social): still one event.
+    for title in ("Clase y social con Juan", "Fiesta con Juan", "Gran social con Juan"):
+        assert looks_like_same_event(social, "academia", extracted(title=title, start_time=None)), title
+
+
 def test_stored_duplicates_are_merged_into_the_fuller_one():
     with_address = stored(
         "salsoteca-dc-acere",

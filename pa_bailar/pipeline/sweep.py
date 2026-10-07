@@ -30,6 +30,10 @@ from .story_admin import StoryAdmin
 
 log = logging.getLogger(__name__)
 
+# How the style filter's reason ends (accounts.txt `solo:`): a post recorded with it is filtered again, with the day's
+# words, whenever it comes back in the window (_filtered_before).
+_OUTSIDE_FOCUS = "(la cuenta es solo para esos estilos)"
+
 
 def hours_overdue(state: AccountState | None, now: datetime) -> float:
     """How long past its turn an account is (negative: not its turn yet). Never read: always due."""
@@ -302,6 +306,12 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
                 self.stats.reanalyzed += 1
             else:  # no quota or time left, or an error: the account stays due, so the edit ("CANCELADO") is read soon
                 self.stats.count(account, "pending")
+        elif self._filtered_before(account, post, record):
+            log.info("   %s now names the account's styles, analyzing %s", f"{published:%Y-%m-%d}", post["permalink"])
+            if self._out_of_time() or not self._analyze_new_post(account, post, published):
+                self.stats.count(account, "pending")
+            else:
+                self.stats.reanalyzed += 1
         elif record.provisional:
             self._to_upgrade.append((account, post, published))  # re-read after every account, by urgency
 
@@ -432,9 +442,16 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         focus = self.options.get(account, AccountOptions()).focus
         if self._by_hand(post["id"]) or mentions_focus(post.get("caption"), focus):
             return False
-        reason = f"no menciona {' ni '.join(focus)} (la cuenta es solo para esos estilos)"
+        reason = f"no menciona {' ni '.join(focus)} {_OUTSIDE_FOCUS}"
         self._record_not_event(account, post, reason, "-")
         return True
+
+    def _filtered_before(self, account: str, post: Post, record: ProcessedPost) -> bool:
+        """A post the style filter left out that passes it now: the filter's words grew since (the audit of 7 Oct
+        2026 added "salsoteca", "Fania", "bachazouk"…), or the account lost its `solo:`. Checked again for free each
+        time it's in the window."""
+        focus = self.options.get(account, AccountOptions()).focus
+        return (record.reason or "").endswith(_OUTSIDE_FOCUS) and mentions_focus(post.get("caption"), focus)
 
     def _upgrade_post(self, account: str, post: Post, published: datetime) -> None:
         """Re-extract a provisional post with Flash; keep the provisional result if that fails. A post the last

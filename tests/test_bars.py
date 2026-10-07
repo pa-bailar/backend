@@ -85,6 +85,22 @@ def test_a_limited_accounts_post_without_its_styles_never_reaches_gemini():
     assert "BAR or club" in extractor.rules_seen["p2"] and "salsa or bachata" in extractor.rules_seen["p2"]
 
 
+def test_a_post_the_filter_left_out_is_read_once_its_words_name_a_style(monkeypatch):
+    """The filter's words grew (the audit of 7 Oct 2026: "salsoteca"): a post it left out before, still in the window,
+    is filtered again with the new words and read, without its caption changing. One it still leaves out costs
+    nothing."""
+    salsoteca, perreo = captioned("s1", "SALSOTECA este viernes 🔥"), captioned("s2", "Perreo hasta abajo")
+    instagram = FakeInstagram({"academia": [], "salsabar": [], "club": [salsoteca, perreo]})
+    monkeypatch.setattr("pa_bailar.pipeline.sweep.mentions_focus", lambda caption, focus: False)  # the old words
+    run(instagram, FakeExtractor({}))
+    assert storage.load_processed_posts()["s1"].reason.endswith("(la cuenta es solo para esos estilos)")
+    monkeypatch.setattr("pa_bailar.pipeline.sweep.mentions_focus", mentions_focus)  # today's words
+    extractor = FakeExtractor({"s1": one_event("s1", "Salsoteca")})
+    run(instagram, extractor)
+    assert "s1" in extractor.extracted_posts and "s2" not in extractor.rules_seen
+    assert [event["title"] for event in read(config.EVENTS_FILE)] == ["Salsoteca"]
+
+
 def test_bar_events_are_tagged_and_other_accounts_get_the_usual_prompt():
     instagram = FakeInstagram(
         {"academia": [captioned("a1", "Taller")], "salsabar": [captioned("b1", "Aniversario")], "club": []}
@@ -179,6 +195,25 @@ def test_every_word_that_names_a_focus_style_passes_its_filter():
         assert all(mentions_focus(word, (style,)) for word in words), style
 
 
+def test_a_salsa_nights_other_words_pass_the_filter_and_a_reggaeton_night_doesnt():
+    """The audit of 7 Oct 2026: these posts were dropped before Gemini at the 9 `solo:` accounts, their events lost."""
+    salsa_bachata = ("salsa", "bachata")
+    for caption in [
+        "SALSOTECA este viernes 🔥",
+        "Salsotecas de octubre",
+        "Noche Fania con DJ Pacho",
+        "Soneros en vivo",
+        "Orquesta en vivo desde las 9",
+        "Bachazouk night",
+        "Rumba salsera hasta el amanecer",
+    ]:
+        assert mentions_focus(caption, salsa_bachata), caption
+    assert mentions_focus("Kiz night con DJ invitado", ("kizomba",))
+    assert mentions_focus("Para tangueros y tangueras", ("tango",))
+    assert not mentions_focus("Noche de reggaeton y dancehall con DJ", salsa_bachata)
+    assert not mentions_focus("Halloween party: disfraces y premios", salsa_bachata)
+
+
 # ---------- a bar's night is a party ("Rumba"), not a dancers' social (the owner, 6 Oct 2026) ----------
 
 
@@ -193,6 +228,12 @@ def test_the_party_rule_keeps_socials_announced_as_such_and_other_types():
     assert party_at_a_bar("social", "Noche de Halloween en Sonora Social Club") == "party"
     assert party_at_a_bar("social", "Aniversario del bar por una causa social") == "party"
     assert party_at_a_bar("social", "Social de bachata · síguenos en redes sociales") == "social"
+    # Its other names stay socials; more of the word's other uses don't (the audit of 7 Oct 2026).
+    assert party_at_a_bar("social", "Milonga de tango con orquesta") == "social"
+    assert party_at_a_bar("social", "Práctica libre de salsa") == "social"
+    assert party_at_a_bar("social", "Viernes en el Club Social") == "party"
+    assert party_at_a_bar("social", "Eventos sociales y empresariales: reserva el bar") == "party"
+    assert party_at_a_bar("social", "Síguenos en nuestra red social") == "party"
     assert party_at_a_bar("concert", "Orquesta en vivo") == "concert"
     assert party_at_a_bar("workshop", "Taller con invitado") == "workshop"
 

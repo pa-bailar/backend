@@ -148,7 +148,7 @@ def test_guessed_styles_dont_make_an_accounts_usual_style():
 @pytest.mark.parametrize(
     "text",
     [
-        "La mejor rumba salsera de Bogotá",
+        "La mejor rumba de Bogotá",
         "Con la orquesta Swing Latino",
         "Este viernes en Mambo Cafe",
         "Noche en el Casino Royal",
@@ -171,6 +171,19 @@ def test_the_phrases_that_do_name_those_styles():
     assert styles_in_text("Noche de boogaloo y salsa brava") == ["salsa"]
     assert styles_in_text("Salsa dura, salsa choke y bugalú") == ["salsa"]
     assert styles_in_text("Taller de salsa estilo cubano") == ["salsa cubana"]
+
+
+def test_the_words_around_a_style_name_it_too():
+    """A caption's words for the style instead of its name (the audit of 7 Oct 2026: these named none)."""
+    assert styles_in_text("La mejor rumba salsera de Bogotá") == ["salsa"]  # a salsa party: "rumba" isn't afro here
+    assert styles_in_text("SALSOTECA con DJ y homenaje a la Fania") == ["salsa"]
+    assert styles_in_text("Clase para bachateros y bachateras") == ["bachata"]
+    assert styles_in_text("Taller de Salsa On 2") == ["salsa en línea"]
+    assert styles_in_text("Noche de salsa estilo Cali") == ["salsa caleña"]
+    assert styles_in_text("Perreo, dembow y afrobeats") == ["urbano", "afro"]
+    assert styles_in_text("Milonga del sábado con orquesta típica") == ["tango"]
+    assert styles_in_text("Kiz night: semba y tarraxinha") == ["kizomba"]
+    assert styles_in_text("Ellos son los mejores") == []  # still a plain word
 
 
 @pytest.mark.parametrize(
