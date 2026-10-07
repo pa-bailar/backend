@@ -336,7 +336,9 @@ sequenceDiagram
   `id-token: write` on this job only, which runs no third-party package), and hands them to `sweep` as an
   artifact kept a day. If it can't, it answers on the issue (an open `admin` issue by `jzamora5` only).
 - **`sweep`** (after `request` and `story-images`, or without them: neither failed), the steps below. Job
-  limit: 60 minutes. Its output `delete_story` lists the screenshots to delete when the story is published.
+  limit: 90 minutes, for the longest run (a 20-minute wait for an earlier data PR, the 35-minute sweep, an owner's
+  request's 20-minute wait for its own PR; usual runs take 20 to 35 minutes): a job timeout would cancel the state's
+  save. Its output `delete_story` lists the screenshots to delete when the story is published.
 - **`story-cleanup`** (after a successful `sweep` with `delete_story`): deletes those screenshots from the
   Worker's KV, with its own identity token.
 

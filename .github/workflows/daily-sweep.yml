@@ -81,7 +81,7 @@ env:
   MEDIA_REPO: media # the flyers and clips (pa_bailar/media_store.py)
   STATE_FILES: state # where the code keeps its state (config.STATE_DIR); copied to/from the sweep-state branch
   MERGE_TIMEOUT_MINUTES: 20
-  OPEN_DATA_PR_WAIT_MINUTES: 20 # a data PR still in the site's ci when the next run starts (step 6c): as long as the old wait
+  OPEN_DATA_PR_WAIT_MINUTES: 20 # a data PR still in the site's ci when the next run starts (step 1b): as long as the old wait
   HEALTH_REPORT_FILE: ${{ github.workspace }}/health.md # written by the sweep (pa_bailar/health.py)
   NOTIFY: jzamora5 # mentioned in the health issue, so GitHub emails them
   ADMIN_URL: https://pa-bailar-admin.jzamorac-9.workers.dev # the admin page's Worker: story screenshots
@@ -219,10 +219,12 @@ jobs:
       # The screenshots to delete from the admin page (story-cleanup): only once the story's event is published
       # (or already was) and this job succeeded, data PR merged included. Otherwise they stay for a retry.
       delete_story: ${{ steps.sweep.outputs.story_done == 'true' && inputs.story || '' }}
-    # The sweep step stops at 35 minutes (its own budget is 30); the rest (state, PR, merge wait) fits in
-    # the remaining time. A step timeout counts as a failure, so the steps that keep progress still run;
-    # a job timeout would cancel them.
-    timeout-minutes: 60
+    # The longest run: the wait for an earlier data PR (step 1b, OPEN_DATA_PR_WAIT_MINUTES), setup (~3 min), the
+    # sweep step (35: its own budget is 30), the PR and the state (~3), and an owner's request's wait for its own PR
+    # (MERGE_TIMEOUT_MINUTES): about 81 minutes. A step timeout counts as a failure, so the steps that keep progress
+    # still run; a job timeout would cancel them (the state's save, the answer on the issue), so the job's limit
+    # leaves room (tests/test_workflows.py). Actions minutes are free: the repository is public.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
         with:
