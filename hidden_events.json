@@ -112,5 +112,62 @@
       ],
       "bar": false
     }
+  },
+  "dj-set-salsa-culto-11-oct": {
+    "hidden_at": "2026-10-07T12:07:44-05:00",
+    "event": {
+      "title": "DJ set Salsa Culto",
+      "event_type": "party",
+      "is_recurring": false,
+      "styles": [
+        "salsa"
+      ],
+      "organizer": "El Goce Pagano",
+      "venue": "El Goce Pagano",
+      "address": "Diagonal 20A N.0-82",
+      "area": null,
+      "date": "2026-10-11",
+      "end_date": null,
+      "sessions": null,
+      "weekday": "domingo",
+      "start_time": null,
+      "end_time": null,
+      "prices": [],
+      "artists": [],
+      "activities": [
+        "DJ set"
+      ],
+      "contact": "WhatsApp 3168710646",
+      "confidence": "high",
+      "doubts": [
+        "sin precio",
+        "varios eventos en una publicación, leída por un modelo ligero: confirma horas y precios"
+      ],
+      "id": "dj-set-salsa-culto-11-oct",
+      "account": "elgocepagano",
+      "media": [
+        {
+          "post_id": "17873536227593859",
+          "permalink": "https://www.instagram.com/p/Dd7mV70jn6J/",
+          "media_type": "CAROUSEL_ALBUM",
+          "published": "2026-10-01T00:15:22+0000",
+          "flyer": "flyers/17873536227593859-1.webp",
+          "caption": "🔥Concierto salsero, en elgocepagano 🔥\nSalsa bogotana, sabor, calle y goce en una sola noche\n\n🕔 Puertas: 6 pm | 🎶 Shows: 11 pm y 1 am\n📍 Diagonal 20A No. 82 – Bogotá\n\n✨🔥¡A bailar!🔥✨\nCover 20k\n#salsaenvivo #salsa\n#concierto #envivo\n#conciertobogota #salsaenbogotá",
+          "preview": null,
+          "slides": 2
+        },
+        {
+          "post_id": "18079187786372305",
+          "permalink": "https://www.instagram.com/reel/Dd7pwCYOCNs/",
+          "media_type": "VIDEO",
+          "published": "2026-10-01T00:45:26+0000",
+          "flyer": "flyers/18079187786372305-0.webp",
+          "caption": "Un mes con eventos inolvidables!",
+          "preview": null,
+          "slides": null
+        }
+      ],
+      "bar": true
+    }
   }
 }
