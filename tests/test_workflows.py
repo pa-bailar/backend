@@ -31,6 +31,18 @@ def test_a_run_waits_for_an_open_data_pr_before_it_copies_the_site():
     assert wait < step("Run the sweep")
 
 
+def test_the_steps_that_keep_progress_need_the_wait_to_have_passed():
+    """When the wait for an earlier data PR fails, nothing was checked out: a step that runs unless cancelled (to keep
+    a failed sweep's progress) would fail in turn on folders that aren't there (the review pass, 7 Oct)."""
+    job = SWEEP[SWEEP.index("\n  sweep:\n") :]
+    after_wait = job[job.index("- name: Make sure the last data PR merged\n") :]
+    assert "        id: wait\n" in after_wait
+    conditions = re.findall(r"^        if: \$\{\{ !cancelled\(\)(.*)\}\}", after_wait, re.MULTILINE)
+    assert conditions, "no step runs unless cancelled?"
+    for condition in conditions:
+        assert condition.startswith(" && steps.wait.outcome == 'success'"), condition
+
+
 def test_the_sweep_job_has_room_for_its_longest_run():
     """A job timeout cancels the steps after it, the state's save among them: the job's limit must hold the wait for
     an earlier data PR, the sweep step, an owner's request's wait for its own PR, and ~10 minutes for the rest
