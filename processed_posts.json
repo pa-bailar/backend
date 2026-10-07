@@ -8019,12 +8019,10 @@
     "is_event_post": true,
     "reason": "El post anuncia la primera parada de un tour de salsa con clase de fiesta y baile en Bogotá.",
     "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "provisional": false,
     "caption_hash": "c5b099598de3e3ab",
-    "outcome": "event",
-    "event_ids": [
-      "primer-capitulo-del-tour-de-la-salsa-11-oct"
-    ],
+    "outcome": "hidden",
+    "event_ids": [],
     "detail": null,
     "image_hashes": [],
     "by_hand": false

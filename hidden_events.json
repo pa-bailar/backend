@@ -51,5 +51,66 @@
       ],
       "bar": false
     }
+  },
+  "primer-capitulo-del-tour-de-la-salsa-11-oct": {
+    "hidden_at": "2026-10-07T11:50:08-05:00",
+    "event": {
+      "title": "Primer capítulo del Tour de la Salsa",
+      "event_type": "social",
+      "is_recurring": false,
+      "styles": [
+        "salsa"
+      ],
+      "organizer": "Tour de la Salsa",
+      "venue": "El Goce Pagano",
+      "address": "Diagonal 20 A # 0 82",
+      "area": "Bogotá",
+      "date": "2026-10-11",
+      "end_date": null,
+      "sessions": null,
+      "weekday": "domingo",
+      "start_time": null,
+      "end_time": null,
+      "prices": [
+        {
+          "label": "Preventa Individual",
+          "amount_cop": 45000,
+          "condition": null
+        },
+        {
+          "label": "Preventa Pareja",
+          "amount_cop": 80000,
+          "condition": null
+        }
+      ],
+      "artists": [
+        "La Guancona",
+        "Hermanos Baez"
+      ],
+      "activities": [
+        "clase de salsa",
+        "Tinder Salsero",
+        "Trago de bienvenida",
+        "fiesta"
+      ],
+      "contact": "WhatsApp 300 257 7024",
+      "confidence": "high",
+      "doubts": [],
+      "id": "primer-capitulo-del-tour-de-la-salsa-11-oct",
+      "account": "parchexbogota",
+      "media": [
+        {
+          "post_id": "17998000296034443",
+          "permalink": "https://www.instagram.com/reel/DeHYQm0BTuK/",
+          "media_type": "VIDEO",
+          "published": "2026-10-05T14:05:14+0000",
+          "flyer": "flyers/17998000296034443-0.webp",
+          "caption": "🚨Y si aprendemos a bailar y conocemos los mejores sitios de salsa de bogota?🚨 💃🏻🕺🏼\n\nPor eso creamos Tour de la Salsa: un recorrido por algunos de los lugares que mantienen viva la cultura salsera de Bogotá.\n\nQueremos que cada parada sea una oportunidad para aprender a bailar, descubrir nuevos lugares, escuchar buena música, conocer gente y conectar con la comunidad salsera.\n\nY todo comienza este 11 de octubre en un lugar que respira salsa:\n\n📍 elgocepagano\n\nPrimer capítulo del Tour:\n💃🏽 Clase de salsa\n❤️ Tinder Salsero\n🎧 DJ invitada: La Guancona\n🥃 Trago de bienvenida\n🔥 Y una pista lista para bailar\n\nEste es apenas el comienzo. Cada 15 días tendremos una nueva parada.\n\nBogotá se baila por capítulos.\n\n¿Se viene con nosotros?\n\n📅 11 de octubre\n📍 El Goce Pagano\n📲 Info y reservas: +57 300 257 7024",
+          "preview": "previews/17998000296034443-0.mp4",
+          "slides": null
+        }
+      ],
+      "bar": false
+    }
   }
 }
