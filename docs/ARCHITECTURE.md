@@ -870,10 +870,12 @@ flowchart TD
   across accounts it's rules only. A day in common; never with different start times (compared between
   one-day events only) or different venues (when both are known); and one of:
   - one event names the other's account (its organizer, venue or contact, or a title word: "Bachatamanía"
-    for `@bachatamania_bogota`, "Distrito Social" for `@distritosocialbog`, "Level" for `@levelupbfc`),
-    plus the same start time or a title word in common;
+    for `@bachatamania_bogota`, "Distrito Social" for `@distritosocialbog`, "Level" for `@levelupbfc`, or two or
+    three words in a row: "DJ set Salsa Culto" for `@salsaculto`), plus the same start time, a title word in
+    common, or, for one-day events, the same venue (a venue's calendar listing an organizer's night);
   - the same venue (both known), plus the same start time and a title word in common, or two or more
-    distinctive title words in common.
+    distinctive title words in common, or two counting kinds of events as long as one isn't one ("Tour de la
+    Salsa — Capítulo 001" and a partner's "Primer capítulo del Tour de la Salsa" without a time, 7 Oct 2026).
 
   **Titles alone never merge two accounts' events:** two academies' "Halloween Party 2026", or "Bachata
   Congress 2026" and "Salsa Congress 2026" on the same weekend, are as likely two events as one. Words every
@@ -897,6 +899,10 @@ flowchart TD
   `date`, `end_date`, `weekday`, `start_time`, `end_time` and `prices` come from the newest post. Everything
   else keeps its first value (the flyer's title beats a reminder's caption) and is only filled in when it was
   missing (for example, a venue "to be confirmed" on the flyer and given later).
+  - **Except over a lighter model's reading:** when Flash re-reads a post (an upgrade, "Volver a leer") of an
+    event every post of which was read by a lighter model (provisional), what Flash read replaces it all, title
+    included (`Sweep._only_lighter_reads`, `merge_into(correcting=True)`). Without this, an event announced twice
+    (a venue's calendar as a post and as a reel) kept Flash-Lite's wrong title through every upgrade (7 Oct 2026).
   - An empty value never clears a known one, so a reminder without dates keeps an event's last day.
   - A post about one day of an event over several days (one day of its own, within the event's) doesn't
     change its days or times: a teacher's class isn't the festival's new date.
