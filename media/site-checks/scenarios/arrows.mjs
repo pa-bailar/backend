@@ -1,7 +1,7 @@
 // The keyboard's ↑ ↓ on a desktop (bug-squash and the owner, 6 Oct): from nothing selected, on the list, with the
 // details and the image open; mid-page (the card focused is on screen, clear of the pinned bar); the Cuándo menu keeps
 // its own arrows; the calendar's cards are reached.
-import { Skip } from "../lib.mjs";
+import { Skip, focusedCardId } from "../lib.mjs";
 
 /** A card's place on the page: [left, top + scrollY], or null. */
 const place = (page, id) =>
@@ -29,7 +29,6 @@ const focusedCard = (page) =>
     };
   });
 
-const cardId = (s) => (s.focus.startsWith("card:") ? s.focus.slice(5) : null);
 
 export default {
   name: "arrows",
@@ -44,19 +43,19 @@ export default {
 
     await ctx.key("ArrowDown");
     const b = await ctx.step("↓ (nothing selected)");
-    check("↓ from nothing focuses a card, the page stays", cardId(b) && b.y === a.y, b);
+    check("↓ from nothing focuses a card, the page stays", focusedCardId(b) && b.y === a.y, b);
     await ctx.key("ArrowDown");
     const c = await ctx.step("↓ on the list");
-    const [pb, pc] = [await place(page, cardId(b)), await place(page, cardId(c))];
+    const [pb, pc] = [await place(page, focusedCardId(b)), await place(page, focusedCardId(c))];
     check(
       "↓ on the list: the card below, same column",
-      cardId(c) && pb && pc && pc[0] === pb[0] && pc[1] > pb[1],
+      focusedCardId(c) && pb && pc && pc[0] === pb[0] && pc[1] > pb[1],
       `${b.focus} ${pb} → ${c.focus} ${pc}`,
     );
 
     await ctx.key("Enter");
     const d = await ctx.step("Enter");
-    check("Enter opens the details and the image", d.drawer === cardId(c) && d.stage, d);
+    check("Enter opens the details and the image", d.drawer === focusedCardId(c) && d.stage, d);
     await ctx.key("ArrowDown");
     const e = await ctx.step("↓ in the details");
     const [pd, pe] = [await place(page, d.drawer), await place(page, e.drawer)];
@@ -135,7 +134,7 @@ export default {
       check("calendar: ↓ reaches a card on screen", fc1?.onScreen && !fc1.coveredBy, fc1 ?? k1);
       check(
         "calendar: → the next card, on screen",
-        cardId(k2) && cardId(k2) !== cardId(k1) && fc2?.onScreen,
+        focusedCardId(k2) && focusedCardId(k2) !== focusedCardId(k1) && fc2?.onScreen,
         `${k1.focus} → ${k2.focus} ${JSON.stringify(fc2)}`,
       );
     }

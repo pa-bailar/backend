@@ -11,7 +11,9 @@ import { back, cli, cards, forward, fmt, goto, key, open, shot, snapshot, tapOrC
 
 const args = cli({ do: { type: "string", multiple: true }, path: { type: "string" } });
 if (args.help || !args.do?.length) {
-  console.log("usage: probe.mjs [--live|--url u] [--engine e] [--device d] [--theme t] [--path p] --do <action> …");
+  console.log(
+    "usage: probe.mjs [--live|--url u] [--engine e] [--device d] [--size WxH] [--theme t] [--now iso] [--fresh] [--path p] --do <action> …",
+  );
   console.log("actions: click:<sel> tap:<sel> key:<Key>[*n] type:<text> scroll:<y|+dy|-dy> goto:<path> back forward");
   console.log("         reload wait:<ms> eval:<js> shot:<name> snap   (<sel>: CSS, or card:<n> / hit:<n>)");
   process.exit(args.help ? 0 : 1);
