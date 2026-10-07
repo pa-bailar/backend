@@ -1,6 +1,8 @@
 """The rule checks (checks.py) and OCR's rows (ocr.group_rows): what flags a lighter model's reading for a second
 look. The cases are the test set's (gold/), from Flash-Lite's run of 7 Oct 2026."""
 
+from datetime import date
+
 from pa_bailar import checks, ocr
 
 
@@ -53,3 +55,49 @@ def test_ocr_pieces_on_one_line_share_a_row_left_to_right():
 
     found = [piece(500, 210, "Acere"), piece(40, 205, "10"), piece(40, 100, "Real"), piece(300, 330, "福", 0.4)]
     assert ocr.group_rows(found) == ["Real", "10 | Acere"]  # the stray mark read with low confidence is left out
+
+
+# ---------- the second round (7 Oct 2026, after the package research): lists, weekdays, relative days, spans ----------
+
+WEDNESDAY = date(2026, 10, 7)
+
+
+def test_a_list_of_dates_isnt_a_range_and_needs_as_many_dates_read():
+    course = "4 Sabados 3, 10, 17 y 24 de octubre"
+    one = [event(date="2026-10-03")]
+    assert checks.RANGE_AS_ONE_DAY not in checks.flags(course, one)  # "17 y 24" isn't a range
+    assert checks.LIST_NOT_READ in checks.flags(course, one)
+    series = [event(date="2026-10-03", sessions=[{"date": f"2026-10-{d:02d}"} for d in (3, 10, 17, 24)])]
+    assert checks.flags(course, series) == []
+    assert checks.RANGE_AS_ONE_DAY in checks.flags("20 y 21 noviembre", [event()])  # consecutive: a range
+
+
+def test_a_weekday_and_its_day_need_an_event_that_day():
+    text = "📆 Jueves 08 de Octubre 🎺 Orlando\n📆 Sábado 10 de Octubre 🎺 Zafra Son"
+    only_saturday = [event(date="2026-10-10")]
+    assert checks.DAY_WITHOUT_EVENT in checks.flags(text, only_saturday, date(2026, 10, 5))
+    both = [event(date="2026-10-08"), event(date="2026-10-10")]
+    assert checks.flags(text, both, date(2026, 10, 5)) == []
+    # A deadline's line, a weekday that doesn't fit its day (an OCR misread), a day already past: nothing to say.
+    assert checks.flags("Miércoles 30 | Fin segundo corte aniversario", both, date(2026, 9, 5)) == []
+    assert checks.flags("Domingo 7 noviembre", both, date(2026, 10, 3)) == []  # 7 Nov 2026 is a Saturday
+
+
+def test_a_relative_day_needs_an_event_that_day():
+    assert checks.RELATIVE_WITHOUT_EVENT in checks.flags("Este sábado 6PM", [event(date="2026-10-17")], WEDNESDAY)
+    assert checks.flags("Este sábado 6PM", [event(date="2026-10-10", start_time="18:00")], WEDNESDAY) == []
+    # With its date after it, it's that date ("este jueves, 22 de octubre"): no relative day.
+    assert checks.flags("este jueves, 22 de octubre", [event(date="2026-10-22")], date(2026, 10, 4)) == []
+
+
+def test_a_spans_end_is_a_time_but_not_a_start():
+    starts, every = checks.clock_times("Clase de 9 a 10 pm / Social 10pm. a 2:30 am")
+    assert starts == {"21:00", "22:00"} and every == {"21:00", "22:00", "02:30"}
+    starts, _ = checks.clock_times("desde las 2PM · Clase 3PM · Fiesta hasta las 10PM")
+    assert starts == {"14:00", "15:00"}
+    assert checks.times("Duración 2 hrs · clase de 1h · 20h30 · 21h") == {"20:30", "21:00"}
+
+
+def test_an_event_over_before_the_post_is_flagged():
+    assert checks.BEFORE_POST in checks.flags("", [event(date="2026-09-26")], WEDNESDAY)
+    assert checks.flags("", [event(date="2026-10-07")], WEDNESDAY) == []
