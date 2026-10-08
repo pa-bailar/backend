@@ -75,6 +75,8 @@ A module in `scenarios/` exporting `{ name, summary, devices, run(ctx) }`; `run.
   records `details`: a string, a snapshot or a value), `skip(label, reason)`, `log(label, value)`; `snap()` and
   `step(label)` (the state, logged); `goto(path)`, `tap(locator)` (a tap on touch devices, a click otherwise),
   `key(k, n)`, `back()`, `forward()`, `settle()`, `cards()` (the visible view's cards), `shot(name)` (with `--shots`).
+- `lib.mjs` also exports `VIEW` (the view on screen's selector: the other views keep their old cards, hidden),
+  `focusedCardId(snapshot)` and `fmt(snapshot)` (a snapshot as one line, for a check's details).
 - Throw `new Skip(reason)` (from `lib.mjs`) when the scenario doesn't apply (a desktop feature on a phone).
 - Read the page through stable hooks (ids, `data-*` attributes, roles), never through text or layout that changes
   with the day's events; prefer `ctx.settle()` (waits until animations and the scroll stop) over fixed waits.

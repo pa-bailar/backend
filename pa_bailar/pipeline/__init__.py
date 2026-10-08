@@ -30,7 +30,7 @@ from .common import RETRYABLE_ERRORS, AccountStats, AddPostError, Extractor, Pos
 from .hiding import HiddenFromSite, HiddenStory
 from .manual_post import SETTLED_OUTCOMES, AddedPost
 from .story_admin import AddedStory
-from .sweep import Sweep, hours_overdue, unproductive_accounts
+from .sweep import Sweep, overdue_by_account, unproductive_accounts
 
 __all__ = [
     "RETRYABLE_ERRORS",
@@ -45,6 +45,6 @@ __all__ = [
     "PostSource",
     "RunStats",
     "Sweep",
-    "hours_overdue",
+    "overdue_by_account",
     "unproductive_accounts",
 ]

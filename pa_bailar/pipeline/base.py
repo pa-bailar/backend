@@ -6,7 +6,7 @@ import logging
 import re
 import time
 from datetime import datetime, timedelta
-from typing import Any, cast
+from typing import Any, NamedTuple, cast
 
 from .. import config, links, public_post, storage
 from ..account_options import AccountOptions
@@ -44,7 +44,7 @@ from ..normalize import (
 from ..prompts import account_rules
 from ..text import PRICE_WORDS, fold
 from . import common
-from .common import Extractor, PostSource, RunStats, caption_hash, has_ended, media_for, unpublishable
+from .common import Extractor, Flyer, PostSource, RunStats, caption_hash, has_ended, media_for, unpublishable
 
 log = logging.getLogger(__name__)
 
@@ -53,41 +53,71 @@ def _with_doubt(event: ExtractedEvent, doubt: str) -> ExtractedEvent:
     return event if doubt in event.doubts else event.model_copy(update={"doubts": [*event.doubts, doubt]})
 
 
-# A caption or Gemini's reason saying the event is off (folded text: lowercase, no accents). Only words that say it
-# of the event: a reminder Flash finds no event in takes the account's events it announced off the site, so a word
-# that also means something else loses an event for good. Not "no habrá" ("no habrá venta de boletas en taquilla"),
-# "cancelación" ("política de cancelación") nor "nueva fecha" ("abrimos nueva fecha en noviembre"): the audit of 7 Oct
-# 2026, after #151 added them; "se canceló" paid ("ya se canceló") is _PAID's. The participles ("cancelado",
-# "aplazadas"…) are also how a doubt says an event may be off (health.PLACE_DOUBT): one list for both. Their verbs'
-# other forms say it as well ("se suspende", "se canceló", "se aplazan", "tuvimos que cancelar", "no se llevará a
-# cabo"): without them a cancelled event stayed on the site while another post announced it (the bug-squash pass of 8
-# Oct 2026).
+# A caption or Gemini's reason saying the event is off (folded text: lowercase, no accents), in the pieces below. Only
+# words that say it of the event: a reminder Flash finds no event in takes the account's events it announced off the
+# site, so a word that also means something else loses an event for good. Not "no habrá" ("no habrá venta de boletas
+# en taquilla"), "cancelación" ("política de cancelación") nor "nueva fecha" ("abrimos nueva fecha en noviembre"): the
+# audit of 7 Oct 2026, after #151 added them. The verbs' forms besides the participles joined in the bug-squash pass of
+# 8 Oct 2026: without them, "se suspende el social de hoy" left a cancelled event on the site while another post
+# announced it.
+#
+# The participles ("cancelado", "aplazadas"…) are also how a doubt says an event may be off (health.PLACE_DOUBT): one
+# list for both.
 CANCELLED_PARTICIPLES = r"cancelad[oa]s?|aplazad[oa]s?|pospuest[oa]s?|suspendid[oa]s?|reprogramad[oa]s?|postergad[oa]s?"
-_CANCELLED = re.compile(
-    rf"\b({CANCELLED_PARTICIPLES}|cancell?ed|postponed"
-    r"|se cancel(?:an?|o|aron)|se (?:aplaz|reprogram|posterg)(?:an?|o|aron)|se pospon(?:e|en)|se pospus(?:o|ieron)"
-    r"|se suspend(?:e|en|io|ieron)|cancelamos|aplazamos|posponemos|pospusimos|suspendemos|suspendimos|reprogramamos"
-    r"|postergamos|no se realizara|no se llevara a cabo"
-    r"|(?:tuvimos|tenemos|debemos|decidimos|hemos decidido|nos toca|nos toco|nos vemos obligados a"
-    r"|nos vimos obligados a)(?: que)? (?:cancelar|aplazar|posponer|suspender|reprogramar|postergar))\b"
+_IN_ENGLISH = r"cancell?ed|postponed"
+# "Se cancela", "se cancelan", "se canceló", "se cancelaron", unless it means paid (_PAID).
+_SE_CANCELA = r"se cancel(?:an?|o|aron)"
+# The other verbs with "se", said of the event: "se aplaza", "se reprogramó", "se pospone", "se pospuso", "se suspende"…
+_SE_CALLED_OFF = (
+    r"se (?:aplaz|reprogram|posterg)(?:an?|o|aron)|se pospon(?:e|en)|se pospus(?:o|ieron)|se suspend(?:e|en|io|ieron)"
 )
-# An amount of money: "$50.000", "50 mil", "15k", "50.000", "50%" (a dot between digits groups thousands).
-_AMOUNT = r"(?:\$[ \t]*\d|\b\d+(?:\.\d{3})*(?:[ \t]*(?:k|mil|cop|pesos)\b|[ \t]*%)|\b\d{1,3}(?:\.\d{3})+\b)"
-# In Colombia "cancelar" is also "to pay": a price's word or an amount before it ("la entrada se cancela en la puerta",
-# "Inversión: $50.000. Se cancela…"; a word alone not after a colon: "Entrada: se cancela el social"), or when or how
-# it's paid after it ("se cancela en efectivo", "por Nequi", "el día del taller", "antes del taller", "el mismo día");
-# never "se cancela por lluvia" nor "el día de hoy". The dot of "$50.000" ends no sentence: the amount and the words
-# after it went unread, and a reminder Flash found no event in took its event down (the bug-squash pass of 8 Oct 2026).
-# Read line by line: a price on one line says nothing about the next.
-_PAID = re.compile(
-    rf"(?:\b(?:{'|'.join(PRICE_WORDS)}|entrada|inscripcion|matricula|cuota|pago|mensualidad|reserva|saldo|abono)s?\b"
-    rf"|{_AMOUNT})(?:[^.!?:]|(?<=\d)\.(?=\d)){{0,30}}?\bse cancel(?:an?|o|aron)\b|\bya se cancel(?:o|aron)\b"
-    r"|\bse cancel(?:an?|o|aron) (?:en (?:efectivo|la puerta|puerta|taquilla|la entrada|caja|el lugar"
-    r"|(?:dos|tres|\d+) cuotas)\b"
+# The organizers calling it off: "cancelamos", "pospusimos"…
+_WE_CALL_IT_OFF = r"cancelamos|aplazamos|posponemos|pospusimos|suspendemos|suspendimos|reprogramamos|postergamos"
+_WONT_TAKE_PLACE = r"no se realizara|no se llevara a cabo"
+# "Tuvimos que cancelar", "hemos decidido aplazar", "nos vemos obligados a posponer"…
+_WE_HAD_TO = (
+    r"(?:tuvimos|tenemos|debemos|decidimos|hemos decidido|nos toca|nos toco|nos vemos obligados a"
+    r"|nos vimos obligados a)(?: que)? (?:cancelar|aplazar|posponer|suspender|reprogramar|postergar)"
+)
+_CANCELLED = re.compile(
+    rf"\b({CANCELLED_PARTICIPLES}|{_IN_ENGLISH}|{_SE_CANCELA}|{_SE_CALLED_OFF}|{_WE_CALL_IT_OFF}|{_WONT_TAKE_PLACE}"
+    rf"|{_WE_HAD_TO})\b"
+)
+
+# In Colombia "cancelar" is also "to pay": "se cancela" is paid after a price in its sentence ("la entrada se cancela
+# en la puerta", "Cover: 15k se cancela en la entrada"; a price's word not past a colon: "Entrada: se cancela el social"
+# says it's off), before when or how it's paid ("se cancela en efectivo", "Inversión: $50.000. Se cancela el día del
+# taller"), or already ("ya se canceló"); never "se cancela por lluvia" nor "el día de hoy". Read line by line: a price
+# on one line says nothing about the next.
+#
+# A price's word: text.PRICE_WORDS (shared with the rule checks' price line), and how a payment is named.
+_PRICE_WORD = (
+    rf"\b(?:{'|'.join(PRICE_WORDS)}|entrada|inscripcion|matricula|cuota|pago|mensualidad|reserva|saldo|abono)s?\b"
+)
+# An amount of money.
+_AMOUNT = (
+    r"(?:\$[ \t]*\d"  # "$50.000", "$ 50"
+    r"|\b\d+(?:\.\d{3})*(?:[ \t]*(?:k|mil|cop|pesos)\b|[ \t]*%)"  # "50 mil", "15k", "120.000 pesos", "50%"
+    r"|\b\d{1,3}(?:\.\d{3})+\b)"  # "50.000": a dot between digits groups thousands
+)
+# Up to 30 characters of the same sentence, past no colon. The dot of "$50.000" ends no sentence: before the bug-squash
+# pass of 8 Oct 2026 the amount and the words after it went unread, and a reminder Flash found no event in took its
+# event down.
+_IN_ITS_SENTENCE = r"(?:[^.!?:]|(?<=\d)\.(?=\d)){0,30}?"
+# When or how it's paid, right after it: "en efectivo", "en dos cuotas", "por Nequi", "al llegar", "antes del taller",
+# "el mismo día", "el día del taller" (not "el día de hoy")…
+_WHEN_OR_HOW_PAID = (
+    r"(?:en (?:efectivo|la puerta|puerta|taquilla|la entrada|caja|el lugar|(?:dos|tres|\d+) cuotas)\b"
     r"|con (?:tarjeta|efectivo|nequi|daviplata|transferencia)\b|al (?:ingresar|llegar|entrar|ingreso|momento)\b"
     r"|antes del?\b|el mismo dia\b|el dia del?\b(?! (?:hoy|manana)\b)|directamente\b|por adelantado\b"
     r"|con anticipacion\b|por (?:nequi|daviplata|transferencia|pse|tarjeta|bancolombia)\b)"
 )
+_PAID = re.compile(
+    rf"(?:{_PRICE_WORD}|{_AMOUNT}){_IN_ITS_SENTENCE}\b{_SE_CANCELA}\b"
+    r"|\bya se cancel(?:o|aron)\b"
+    rf"|\b{_SE_CANCELA} {_WHEN_OR_HOW_PAID}"
+)
+
 # Words that say it isn't off: "el social NO se cancela por la lluvia", "no está cancelado", "no lo aplazamos", "no se
 # aplaza ni se cancela", "ni se cancela ni se aplaza".
 _OFF_VERB = (
@@ -102,6 +132,7 @@ _DENIED = re.compile(rf"\b(?:no|ni) {_OFF_VERB}(?: ni {_OFF_VERB})*")
 # cancela por lluvia, si ya pagaste te devolvemos el dinero" says it's off.
 _CONDITION = re.compile(r"\bsi\b(?!,| bien\b)|\ben caso de\b")
 _SENTENCE_END = re.compile(r"(?<=[!?])|(?<=\.)(?!\d)")  # not the dot of "$50.000"
+_CLAUSE_END = re.compile(r"[,;]")
 
 
 def _states_it(sentence: str) -> bool:
@@ -111,17 +142,22 @@ def _states_it(sentence: str) -> bool:
         return False
     return any(
         not _CONDITION.search(sentence[: found.start()])
-        and not _CONDITION.search(re.split(r"[,;]", sentence[found.end() :], maxsplit=1)[0])
+        and not _CONDITION.search(_CLAUSE_END.split(sentence[found.end() :], maxsplit=1)[0])
         for found in _CANCELLED.finditer(sentence)
     )
+
+
+def _sentences(line: str) -> list[str]:
+    """A line's sentences, folded, with what doesn't say the event is off blanked out: "se cancela" meaning it's paid
+    (_PAID), then the denials (_DENIED)."""
+    return _SENTENCE_END.split(_DENIED.sub(" ", _PAID.sub(" ", fold(line))))
 
 
 def _says_cancelled(post: Post, analysis: PostAnalysis) -> bool:
     """Whether the post's caption, or Gemini's reason for finding no event in it, says it's cancelled or postponed: a
     sentence that states it (not "se cancela" meaning it's paid, nor a condition, a denial or a question)."""
     lines = [*(post.get("caption") or "").splitlines(), analysis.reason]
-    sentences = [part for line in lines for part in _SENTENCE_END.split(_DENIED.sub(" ", _PAID.sub(" ", fold(line))))]
-    return any(_states_it(sentence) for sentence in sentences)
+    return any(_states_it(sentence) for line in lines for sentence in _sentences(line))
 
 
 def _days(event: EventDetails) -> str:
@@ -134,17 +170,28 @@ def _details(event: ExtractedEvent) -> dict[str, Any]:
     return event.model_dump(include=set(EventDetails.model_fields))
 
 
-def _fit(event: StoredEvent, candidate: ExtractedEvent) -> tuple[bool, bool, bool, bool]:
-    """How well an event a post announced before fits a new reading of the post: the same date, then the same title,
-    start time and type, in that order of weight."""
-    same_time = bool(event.start_time) and event.start_time == candidate.start_time
-    same_title = fold(event.title) == fold(candidate.title)
-    return event.date == candidate.date, same_title, same_time, event.event_type == candidate.event_type
+class _Fit(NamedTuple):
+    """How well an event a post announced before fits a new reading of the post. Compared as a tuple: the same date
+    weighs most, then the same title, start time and type, in that order."""
+
+    same_date: bool
+    same_title: bool
+    same_time: bool
+    same_type: bool
 
 
-def _best_fit(candidate: ExtractedEvent, events: list[StoredEvent]) -> tuple[bool, bool, bool, bool]:
-    """How well the closest of these events fits the reading (_fit)."""
-    return max((_fit(event, candidate) for event in events), default=(False, False, False, False))
+def _fit(event: StoredEvent, candidate: ExtractedEvent) -> _Fit:
+    return _Fit(
+        same_date=event.date == candidate.date,
+        same_title=fold(event.title) == fold(candidate.title),
+        same_time=bool(event.start_time) and event.start_time == candidate.start_time,
+        same_type=event.event_type == candidate.event_type,
+    )
+
+
+def _best_fit(candidate: ExtractedEvent, events: list[StoredEvent]) -> _Fit:
+    """How well the closest of these events fits the reading."""
+    return max((_fit(event, candidate) for event in events), default=_Fit(False, False, False, False))
 
 
 class SweepBase:
@@ -355,24 +402,10 @@ class SweepBase:
 
         if not publishable:
             log.info("     skipped: %s", analysis.reason)
-        # The readings closest to an event this post announced before go first, so each takes that event's id
-        # (_event_id): a new event listed before it took its URL (the bug-squash pass of 8 Oct 2026).
         readings = list(zip(publishable, flyers, strict=True))
-        closest_first = sorted(range(len(readings)), key=lambda i: _best_fit(readings[i][0], reusable), reverse=True)
-        added_by_reading = {
-            i: self._add_event(
-                account,
-                post,
-                readings[i][0],
-                media_for(post, readings[i][1]),
-                reusable,
-                count=count_as_new,
-                light=light,
-                announced=announced,
-            )
-            for i in closest_first
-        }
-        added = [added_by_reading[i] for i in range(len(readings))]
+        added = self._add_readings(
+            account, post, readings, reusable, count=count_as_new, light=light, announced=announced
+        )
         results = [result for result in added if result]
         outcome: tuple[PostOutcome, list[str], str | None]
         if results:
@@ -439,6 +472,35 @@ class SweepBase:
         """Events of this account that a new post could be announcing again (not already over)."""
         since = (config.bogota_date(published) - timedelta(days=1)).isoformat()
         return [event for event in self.events if event.account == account and (event.last_day or "") >= since]
+
+    def _add_readings(
+        self,
+        account: str,
+        post: Post,
+        readings: list[tuple[ExtractedEvent, Flyer]],
+        reusable: list[StoredEvent],
+        count: bool,
+        light: bool,
+        announced: set[str],
+    ) -> list[tuple[str, bool] | None]:
+        """Each of the post's readings (an event and its flyer) merged or stored (_add_event), the results in the post's
+        order. The readings closest to an event this post announced before go first, so each takes that event's id
+        (_event_id): a new event listed before it took its URL (the bug-squash pass of 8 Oct 2026)."""
+        closest_first = sorted(range(len(readings)), key=lambda i: _best_fit(readings[i][0], reusable), reverse=True)
+        added: list[tuple[str, bool] | None] = [None] * len(readings)
+        for i in closest_first:
+            candidate, flyer = readings[i]
+            added[i] = self._add_event(
+                account,
+                post,
+                candidate,
+                media_for(post, flyer),
+                reusable,
+                count=count,
+                light=light,
+                announced=announced,
+            )
+        return added
 
     def _add_event(
         self,

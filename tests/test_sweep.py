@@ -7,13 +7,13 @@ from datetime import UTC, datetime, timedelta
 import httpx
 import pytest
 
-from pa_bailar import config, storage
+from pa_bailar import config, status, storage
 from pa_bailar.commands.sweep import summary_markdown
 from pa_bailar.external import ExternalReport
 from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError, UnreadableAnswerError
 from pa_bailar.ids import new_event_id
 from pa_bailar.instagram import InstagramError
-from pa_bailar.models import PostAnalysis, ProcessedPost, Triage
+from pa_bailar.models import PostAnalysis, ProcessedPost, Triage, had_events
 from pa_bailar.pipeline import Sweep, unproductive_accounts
 from tests.factories import EVENT_DATE, event_id, extracted, make_image, media, stored
 
@@ -726,14 +726,13 @@ def test_quiet_accounts_take_their_turn_every_other_day_but_never_drop_out():
     assert turn({"academia": swept(50, latest_post_days_ago=quiet), "otra": swept(3)}) == ["academia"]
 
 
-def test_accounts_whose_posts_never_become_events_take_their_turn_every_other_day():
-    """The owner, 8 Oct 2026 (129 accounts, near Instagram's hourly limit): UNPRODUCTIVE_AFTER_POSTS read, none an
-    event, and the account is read every other day; one event brings it back to daily."""
-    records = {
-        f"p{n}": ProcessedPost(
-            account="academia",
-            permalink=f"https://www.instagram.com/p/p{n}/",
-            processed_at="2026-10-01T10:00:00-05:00",
+def posts_without_events(account: str) -> dict[str, ProcessedPost]:
+    """The records of UNPRODUCTIVE_AFTER_POSTS posts of the account, read today, not one an event."""
+    return {
+        f"{account}-{n}": ProcessedPost(
+            account=account,
+            permalink=f"https://www.instagram.com/p/{account}{n}/",
+            processed_at=config.now_bogota().isoformat(timespec="seconds"),
             is_event_post=False,
             reason="no es un evento",
             model="m",
@@ -741,10 +740,16 @@ def test_accounts_whose_posts_never_become_events_take_their_turn_every_other_da
         )
         for n in range(config.UNPRODUCTIVE_AFTER_POSTS)
     }
+
+
+def test_accounts_whose_posts_never_become_events_take_their_turn_every_other_day():
+    """The owner, 8 Oct 2026 (129 accounts, near Instagram's hourly limit): UNPRODUCTIVE_AFTER_POSTS read, none an
+    event, and the account is read every other day; one event brings it back to daily."""
+    records = posts_without_events("academia")
     storage.save_processed_posts(records)
     assert turn({"academia": swept(30), "otra": swept(30)}) == ["otra"]  # 30 h: not its turn yet
     assert turn({"academia": swept(50), "otra": swept(3)}) == ["academia"]
-    records["p0"] = records["p0"].model_copy(update={"outcome": "event", "is_event_post": True})
+    records["academia-0"] = records["academia-0"].model_copy(update={"outcome": "event", "is_event_post": True})
     storage.save_processed_posts(records)
     assert turn({"academia": swept(30), "otra": swept(3)}) == ["academia"]  # an event: daily again
 
@@ -755,10 +760,56 @@ def test_unproductive_accounts_need_enough_posts_and_not_one_event():
     assert unproductive_accounts([("a", False)] * many + [("a", True)]) == set()
 
 
+@pytest.mark.parametrize(
+    ("outcome", "is_event_post", "had"),
+    [
+        ("event", True, True),
+        ("merged", True, True),
+        ("discarded", True, False),
+        ("hidden", True, False),
+        ("not_event", False, False),
+        (None, True, True),  # recorded before outcomes were: Gemini called it an event post
+        (None, False, False),
+    ],
+)
+def test_a_post_had_events_when_it_became_or_joined_one(outcome, is_event_post, had):
+    """What the unproductive tier and an edited caption (the filter skipped) count as a post with events."""
+    assert had_events(outcome, is_event_post) is had
+
+
 def test_dormant_accounts_take_their_turn_once_a_week():
     dormant = config.DORMANT_AFTER_DAYS + 5
     assert turn({"academia": swept(100, latest_post_days_ago=dormant), "otra": swept(3)}) == []  # 4 days: not yet
     assert turn({"academia": swept(170, latest_post_days_ago=dormant), "otra": swept(3)}) == ["academia"]
+
+
+def test_the_status_pages_waiting_accounts_are_the_ones_the_sweep_finds_late(monkeypatch, tmp_path):
+    """The status page lists the accounts past their turn by more than a sweep's gap, their turns counted as the sweep
+    counts them, every tier (pipeline.overdue_by_account). Here every account due is a sweep late or more, so the
+    accounts the sweep reads are the ones the status page says wait."""
+    monkeypatch.setattr(config, "PRIVATE_DIR", tmp_path / "private")  # no discovery results
+    quiet, dormant = config.QUIET_AFTER_DAYS + 5, config.DORMANT_AFTER_DAYS + 5
+    states = {
+        "diaria": swept(40),  # 20 h late
+        "al_dia": swept(3),
+        "quieta": swept(40, latest_post_days_ago=quiet),  # every other day: not yet
+        "quieta_tarde": swept(60, latest_post_days_ago=quiet),  # 16 h late
+        "dormida": swept(100, latest_post_days_ago=dormant),  # once a week: not yet
+        "dormida_tarde": swept(180, latest_post_days_ago=dormant),  # 16 h late
+        "sin_eventos": swept(40),  # every other day: not yet
+        "sin_eventos_tarde": swept(60),  # 16 h late
+    }
+    storage.save_processed_posts(posts_without_events("sin_eventos") | posts_without_events("sin_eventos_tarde"))
+    accounts = "\n".join(states)
+    config.ACCOUNTS_FILE.write_text(accounts, encoding="utf-8")
+    storage.write_json(config.ACCOUNT_STATE_FILE, states)
+
+    state = config.ACCOUNT_STATE_FILE.parent
+    result = status.collect(
+        now=config.now_bogota(), instagram=None, read=lambda name, default: storage.read_json(state / name, default)
+    )
+    assert result["accounts"]["waiting"] == ["diaria", "quieta_tarde", "dormida_tarde", "sin_eventos_tarde"]
+    assert sorted(turn(states, accounts)) == sorted(result["accounts"]["waiting"])
 
 
 def test_reading_an_account_starts_its_next_turn():

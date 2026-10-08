@@ -390,7 +390,7 @@ Other workflow settings:
 
 Instagram's quota for us is small (it grows with our own account's impressions), so each account is read
 about **once a day**, half of them in each sweep, instead of every account twice a day
-(`Sweep._due_accounts`, `pipeline.hours_overdue`):
+(`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_overdue`):
 
 - **Each account's turn:** 20 hours after a sweep last read it (`SWEEP_EVERY_HOURS`: the same sweep the next
   day finds it due). Every 44 hours: quiet accounts, with no post in 30 days (`QUIET_AFTER_DAYS`; 45 until 8 Oct
@@ -409,9 +409,11 @@ about **once a day**, half of them in each sweep, instead of every account twice
   account that couldn't be read for another reason (not visible) waits for its next turn.
 - **Watching it:** each run records its highest reading of Instagram's quota and which of Meta's measures it was
   (`instagram_usage`, `instagram_usage_detail`, also in the run's log), and the dashboard shows the last sweep's and
-  lists accounts waiting more than a sweep past their turn. Evening sweeps read more accounts than morning ones
-  (58–69 against 43 on 6–7 Oct, the share set by when each account was read before) and reached 90–93%, the
-  mornings 54–62%: the 90% stop moves the accounts it didn't reach to the morning sweep, which evens the two out.
+  lists accounts waiting more than a sweep past their turn (their turns counted by the sweep's own
+  `overdue_by_account`; a sweep's gap from `SWEEP_TIMES`: 12 hours). Evening sweeps read more accounts than
+  morning ones (58–69 against 43 on 6–7 Oct, the share set by when each account was read before) and reached
+  90–93%, the mornings 54–62%: the 90% stop moves the accounts it didn't reach to the morning sweep, which evens the
+  two out.
 - **Everyone now:** `sweep --all` (the workflow's `all_accounts` input).
 
 ### 5.3 What a run decides is a failure
@@ -549,11 +551,11 @@ pass of 8 Oct 2026, after "se suspende el social de hoy" left a cancelled event 
 the event: a reminder that Flash re-reads as no event would take the event it joined off the site for good, so "no
 habrá" ("no habrá venta de boletas en taquilla"), "cancelación" ("política de cancelación") and "nueva fecha" don't
 count, nor "se canceló" paid ("ya se canceló", a price's word before it) (the bug hunt of 7 Oct 2026). Nor does "se
-cancela" meaning "is paid", read line by
-line: a price's word before it ("la entrada se cancela en la puerta", "la inversión se cancela el día del taller": the
-price words of `text.PRICE_WORDS`, which the rule checks' price line shares) or an amount ("Inversión: $50.000. Se
-cancela…", "20 mil", "15k", "50%": the dot of "$50.000" ends no sentence), or when or how it's paid after it ("en
-efectivo", "por Nequi", "el día del taller", "antes del taller", "el mismo día", "en dos cuotas"); never "se cancela por
+cancela" meaning "is paid", read line by line: a price's word before it in its sentence ("la entrada se cancela en la
+puerta", "la inversión se cancela el día del taller": the price words of `text.PRICE_WORDS`, which the rule checks'
+price line shares) or an amount ("Cover: 15k se cancela en la entrada", "$50.000", "20 mil", "50%": the dot of
+"$50.000" ends no sentence), or when or how it's paid after it ("en efectivo", "por Nequi", "el día del taller", "antes
+del taller", "el mismo día", "en dos cuotas"); never "se cancela por
 lluvia" nor "el día de hoy" (the bug-squash pass of 8 Oct 2026: a reminder's "Inversión: $50.000. Se cancela el día del
 taller" still took its event down). Nor a sentence that only says it might be off, or that it isn't: a condition ("si no
 se completa el cupo, el taller se aplaza", "en caso de lluvia se aplaza", "si el evento es cancelado se devuelve el
@@ -1461,7 +1463,7 @@ flowchart LR
 | `pipeline/` | `Sweep`, one class built from a module per part (the package re-exports the public names): |
 | `pipeline/common.py` | Run statistics (`RunStats`), the clients' protocols, `AddPostError`, retryable errors, flyers and media records |
 | `pipeline/base.py` | `SweepBase`: the state (events, analyzed posts, hidden events, accounts), storing one analyzed post (only upcoming events in Bogotá; a cancelled post's events taken down), one identity per post |
-| `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; `hours_overdue` |
+| `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; `overdue_by_account` (each account's turn, for the sweep and the status page) |
 | `pipeline/manual_post.py`, `story_admin.py`, `hiding.py` | The admin tools, mixed into `Sweep`: add a post (`add_post`), add a story (`add_story`), hide a story or an event (`hide_story`, `hide_event`) |
 | `clips.py` | Videos' preview clips: download, cut 6 silent seconds with ffmpeg |
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, the archive of past events, `accounts.txt` |

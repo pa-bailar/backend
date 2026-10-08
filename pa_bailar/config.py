@@ -53,12 +53,12 @@ ADMIN_URL = "https://pa-bailar-admin.jzamorac-9.workers.dev"
 INSTAGRAM_USAGE_STOP = 90
 # Each account is read about once a day (pipeline.Sweep._due_accounts): a sweep reads the accounts whose turn
 # has come, those that waited longest first, and stops at its share (half the accounts plus a margin, for the
-# two daily sweeps) or Instagram's limit; whoever it didn't reach is first next time. Quiet accounts (no post
-# in QUIET_AFTER_DAYS) and unproductive ones (UNPRODUCTIVE_AFTER_POSTS read, none an event) take their turn every other
-# day, dormant ones (no post in DORMANT_AFTER_DAYS) once a week: each read is an Instagram call that rarely finds
-# anything new, and each costs ~1.3% of the app's hourly allowance whatever it asks for (measured 8 Oct 2026; 129
-# accounts then: the owner chose these two tiers over a third sweep). A bit under 24 h, so the same sweep the next
-# day finds the account due.
+# two daily sweeps) or Instagram's limit; whoever it didn't reach is first next time. Quiet accounts (no post in
+# QUIET_AFTER_DAYS) and unproductive ones (UNPRODUCTIVE_AFTER_POSTS of their posts on record, PROCESSED_RETENTION_DAYS,
+# and none an event) take their turn every other day, dormant ones (no post in DORMANT_AFTER_DAYS) once a week: each
+# read is an Instagram call that rarely finds anything new, and each costs ~1.3% of the app's hourly allowance whatever
+# it asks for (measured 8 Oct 2026; 129 accounts then: the owner chose these two tiers over a third sweep). A bit under
+# 24 h, so the same sweep the next day finds the account due.
 SWEEP_EVERY_HOURS = 20
 QUIET_SWEEP_EVERY_HOURS = 44
 QUIET_AFTER_DAYS = 30  # 45 until 8 Oct 2026

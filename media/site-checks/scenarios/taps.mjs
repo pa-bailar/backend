@@ -1,9 +1,7 @@
 // Taps that change what's under the finger (site #165, the bug hunt of 7 Oct 2026): a double-tap's second tap never
 // presses what the first one opened ("Ver N más"'s new cards, the view under a notice's button), and a tap on a
 // sheet's own edge doesn't close it, while one on its backdrop does. Phones.
-import { Skip } from "../lib.mjs";
-
-const VIEW = '[role="tabpanel"]:not([hidden])';
+import { Skip, VIEW } from "../lib.mjs";
 
 /** A finger's double-tap at the middle of `locator`: two taps `gap` ms apart, on the same spot. */
 async function doubleTap(page, locator, gap = 150) {
@@ -15,32 +13,30 @@ async function doubleTap(page, locator, gap = 150) {
   await page.touchscreen.tap(x, y);
 }
 
-/** The open dialogs' ids. */
-const openDialogs = (page) => page.evaluate(() => [...document.querySelectorAll("dialog[open]")].map((d) => d.id));
-
 export default {
   name: "taps",
   summary: "a double-tap's second tap never presses what the first opened (Ver N más, a notice's button); a sheet's edge doesn't close it",
   devices: ["phone", "iphone"],
   async run(ctx) {
     const { page, check } = ctx;
-    if (!ctx.touch) throw new Skip("a finger's taps");
+    if (!ctx.touch) throw new Skip("a finger's taps are a phone's");
+    await ctx.goto("/");
+    if (!(await ctx.cards().count())) throw new Skip("no events on the list");
 
     // "Ver N más" or a folded period's "Ver los N eventos", double-tapped: the period opens, no event's details
-    await ctx.goto("/");
     const more = page.locator(`${VIEW} [data-show-period]`).first();
     if (await more.count()) {
-      const key = await more.getAttribute("data-show-period");
+      const period = await more.getAttribute("data-show-period");
       await doubleTap(page, more);
       await ctx.settle();
       const opened = await ctx.step("a period's button double-tapped");
       check("a period's button double-tapped opens no event's details", !opened.drawer, opened);
-      check("…and opens its period", !opened.folded.includes(key), opened);
+      check("…and opens its period", !opened.folded.includes(period), opened);
     } else ctx.skip("a period's button double-tapped", "no folded period today");
 
     // A notice's "Ver guardados", double-tapped: Guardados, and no event's details under the finger
     await ctx.goto("/");
-    const bookmark = page.locator(`${VIEW} .event-card [data-save][aria-pressed="false"]`).first();
+    const bookmark = ctx.cards().locator('[data-save][aria-pressed="false"]').first();
     if (!(await bookmark.count())) return ctx.skip("the notice's button double-tapped", "nothing left to save");
     await ctx.tap(bookmark);
     const action = page.locator("#notice .notice__action");
@@ -56,16 +52,16 @@ export default {
     await ctx.tap(ctx.cards().first().locator(".event-card__details"));
     await page.evaluate(() => document.querySelector("#event-drawer [data-media-link]")?.click());
     await ctx.settle();
-    if (!(await openDialogs(page)).includes("post-viewer")) return ctx.skip("a sheet's edge", "the viewer didn't open");
+    if (!(await ctx.snap()).open.includes("post-viewer")) return ctx.skip("a sheet's edge", "the viewer didn't open");
     const box = await page.locator("#post-viewer").boundingBox();
     await page.touchscreen.tap(box.x + box.width - 6, box.y + 120);
     await ctx.settle();
-    const edge = await openDialogs(page);
-    check("a tap on the viewer's own edge keeps it open", edge.includes("post-viewer"), edge.join(","));
+    const edge = await ctx.step("a tap on the viewer's edge");
+    check("a tap on the viewer's own edge keeps it open", edge.open.includes("post-viewer"), edge);
     if (box.y < 80) return ctx.skip("a tap on the backdrop", "the viewer fills the screen");
     await page.touchscreen.tap(box.x + box.width / 2, box.y - 40);
     await ctx.settle();
-    const backdrop = await openDialogs(page);
-    check("a tap on the backdrop above it closes it", !backdrop.includes("post-viewer"), backdrop.join(","));
+    const backdrop = await ctx.step("a tap on the backdrop");
+    check("a tap on the backdrop above it closes it", !backdrop.open.includes("post-viewer"), backdrop);
   },
 };

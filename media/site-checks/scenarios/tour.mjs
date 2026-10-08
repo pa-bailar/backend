@@ -1,6 +1,6 @@
 // A visitor's tour on a phone (from the Safari-on-iPhone checks, 6 Oct): a first visit, scrolling, the details and back
-// (the scroll kept), a carousel swipe, saving → Guardados → reload, the calendar, the search, Filtros and a period's
-// "Ver más", each with back. Any engine and device; on a desktop the bar's parts become the header's.
+// (the card where it was), a carousel swipe, saving → Guardados → reload, the calendar, the search, Filtros and a
+// period's "Ver más", each with back. Any engine and device; on a desktop the bar's parts become the header's.
 import { Skip } from "../lib.mjs";
 
 /** The first visible match of `selector`, or null. */
