@@ -36,6 +36,11 @@ from common import BACKEND, Video, bogota_today, probe, shown, video
 SITE = BACKEND.parent / "pa-bailar-web"
 SITE_DATA = SITE / "data"
 RAW = "https://raw.githubusercontent.com/pa-bailar/pa-bailar.github.io/main/data/"
+# The flyers and clips live in their own repository since 5 Oct 2026 (docs/ARCHITECTURE.md §10.2); the site repository
+# ignores them. Locally: the site checkout's data/ once `npm run media` copied them, else that clone itself.
+IMAGES_RAW = "https://raw.githubusercontent.com/pa-bailar/media/main/"
+IMAGES = BACKEND.parent / "pa-bailar-images"
+IMAGE_DIRS = ("flyers/", "previews/")
 KEEP = [
     "id",
     "title",
@@ -55,9 +60,12 @@ KEEP = [
 
 
 def fetch(rel: str, live: bool) -> bytes:
+    image = rel.startswith(IMAGE_DIRS)
     if live:
-        with urllib.request.urlopen(RAW + rel, timeout=30) as r:
+        with urllib.request.urlopen((IMAGES_RAW if image else RAW) + rel, timeout=30) as r:
             return r.read()
+    if image and not (SITE_DATA / rel).exists():
+        return (IMAGES / rel).read_bytes()
     return (SITE_DATA / rel).read_bytes()
 
 
