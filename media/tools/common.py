@@ -205,6 +205,9 @@ def mix_key(v: "Video") -> str:
 # output are an open question upstream, so each bed keeps how it was made): the model and its revision, the prompt,
 # the seed, the reference audio (null for none) and the day it was generated.
 PROVENANCE_FIELDS = ("model", "revision", "prompt", "seed", "reference_audio", "generated")
+# A licensed track (a free library's, e.g. Pixabay's, the owner's pick for the puente teaser of 8 Oct 2026) records
+# where it came from and under which license instead: its page, its author, the license and the day it was downloaded.
+LICENSED_FIELDS = ("source", "url", "author", "license", "downloaded")
 
 
 def provenance_problems(music: dict) -> list[str]:
@@ -215,11 +218,14 @@ def provenance_problems(music: dict) -> list[str]:
     entry = music.get("provenance", {}).get(bed)
     if entry is None:
         return [
-            f'no "music"."provenance" for {bed} in video.json (model, revision, prompt, seed, reference audio, date)'
+            f'no "music"."provenance" for {bed} in video.json (generated: model, revision, prompt, seed, reference '
+            "audio, date; licensed: source, url, author, license, downloaded)"
         ]
-    out = [f"{bed}: provenance has no {field!r}" for field in PROVENANCE_FIELDS if field not in entry]
-    if "generated" in entry and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(entry["generated"])):
-        out.append(f'{bed}: provenance "generated" should be a date like 2026-10-04 (got {entry["generated"]!r})')
+    licensed = "license" in entry
+    fields, day = (LICENSED_FIELDS, "downloaded") if licensed else (PROVENANCE_FIELDS, "generated")
+    out = [f"{bed}: provenance has no {field!r}" for field in fields if field not in entry]
+    if day in entry and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(entry[day])):
+        out.append(f'{bed}: provenance "{day}" should be a date like 2026-10-04 (got {entry[day]!r})')
     return out
 
 
@@ -279,15 +285,32 @@ DIRECTION = (
 )
 
 
+def script_text(voice: dict) -> str:
+    """The whole script: its lines joined with spaces (what a one-take recording reads at once)."""
+    return " ".join(line["text"] for line in voice["lines"])
+
+
+def one_take_path(voice: dict) -> Path:
+    """Where a one-take recording of the whole script is cached ("voice"."one_take": true; "take" for another)."""
+    return tts_path(script_text(voice), voice["name"], voice.get("direction", DIRECTION), voice.get("take", 0))
+
+
 def voice_key(settings: dict) -> str | None:
     """A key of everything the voice track and its timing are made of: each line's words, take and gap, the voice,
-    the direction, the lead and the pauses, and the bytes of each cached line. tools/timing.py stores it in
-    timing.json; tools/render.py refuses to render when it no longer matches (timing older than the voice)."""
+    the direction, the lead and the pauses, and the bytes of each cached line (or of the one take). tools/timing.py
+    stores it in timing.json; tools/render.py refuses to render when it no longer matches (timing older than the
+    voice)."""
     voice = settings.get("voice")
     if not voice:
         return None
     direction = voice.get("direction", DIRECTION)
     parts: list[object] = [voice["name"], direction, voice.get("lead", 0.55), voice.get("max_pause", 0.32)]
+    if voice.get("one_take"):
+        path = one_take_path(voice)
+        audio = hashlib.sha256(path.read_bytes()).hexdigest()[:16] if path.exists() else "missing"
+        return key(
+            *parts, "one-take", script_text(voice), [line["id"] for line in voice["lines"]], voice.get("take", 0), audio
+        )
     for line in voice["lines"]:
         path = tts_path(line["text"], voice["name"], direction, line.get("take", 0))
         audio = hashlib.sha256(path.read_bytes()).hexdigest()[:16] if path.exists() else "missing"
