@@ -56,33 +56,72 @@ def _with_doubt(event: ExtractedEvent, doubt: str) -> ExtractedEvent:
 # A caption or Gemini's reason saying the event is off (folded text: lowercase, no accents). Only words that say it
 # of the event: a reminder Flash finds no event in takes the account's events it announced off the site, so a word
 # that also means something else loses an event for good. Not "no habrá" ("no habrá venta de boletas en taquilla"),
-# "cancelación" ("política de cancelación"), "nueva fecha" ("abrimos nueva fecha en noviembre") nor "se canceló" ("ya
-# se canceló", paid): the audit of 7 Oct 2026, after #151 added them. The participles ("cancelado", "aplazadas"…) are
-# also how a doubt says an event may be off (health.PLACE_DOUBT): one list for both.
+# "cancelación" ("política de cancelación") nor "nueva fecha" ("abrimos nueva fecha en noviembre"): the audit of 7 Oct
+# 2026, after #151 added them; "se canceló" paid ("ya se canceló") is _PAID's. The participles ("cancelado",
+# "aplazadas"…) are also how a doubt says an event may be off (health.PLACE_DOUBT): one list for both. Their verbs'
+# other forms say it as well ("se suspende", "se canceló", "se aplazan", "tuvimos que cancelar", "no se llevará a
+# cabo"): without them a cancelled event stayed on the site while another post announced it (the bug-squash pass of 8
+# Oct 2026).
 CANCELLED_PARTICIPLES = r"cancelad[oa]s?|aplazad[oa]s?|pospuest[oa]s?|suspendid[oa]s?|reprogramad[oa]s?|postergad[oa]s?"
 _CANCELLED = re.compile(
-    rf"\b({CANCELLED_PARTICIPLES}|cancelamos|se cancelan?|cancell?ed|aplazamos|se aplaza|se aplazo|posponemos"
-    r"|se pospone|se pospuso|postponed|suspendemos|reprogramamos|se reprograma|postergamos|se posterga"
-    r"|no se realizara)\b"
+    rf"\b({CANCELLED_PARTICIPLES}|cancell?ed|postponed"
+    r"|se cancel(?:an?|o|aron)|se (?:aplaz|reprogram|posterg)(?:an?|o|aron)|se pospon(?:e|en)|se pospus(?:o|ieron)"
+    r"|se suspend(?:e|en|io|ieron)|cancelamos|aplazamos|posponemos|pospusimos|suspendemos|suspendimos|reprogramamos"
+    r"|postergamos|no se realizara|no se llevara a cabo"
+    r"|(?:tuvimos|tenemos|debemos|decidimos|hemos decidido|nos toca|nos toco|nos vemos obligados a"
+    r"|nos vimos obligados a)(?: que)? (?:cancelar|aplazar|posponer|suspender|reprogramar|postergar))\b"
 )
-# In Colombia "cancelar" is also "to pay": a price's word before it ("la entrada se cancela en la puerta"; not after a
-# colon: "Entrada: se cancela el social"), or how it's paid after it ("se cancela en efectivo", "por Nequi"); never
-# "se cancela por lluvia". Read line by line: a price on one line says nothing about the next.
+# An amount of money: "$50.000", "50 mil", "15k", "50.000", "50%" (a dot between digits groups thousands).
+_AMOUNT = r"(?:\$[ \t]*\d|\b\d+(?:\.\d{3})*(?:[ \t]*(?:k|mil|cop|pesos)\b|[ \t]*%)|\b\d{1,3}(?:\.\d{3})+\b)"
+# In Colombia "cancelar" is also "to pay": a price's word or an amount before it ("la entrada se cancela en la puerta",
+# "Inversión: $50.000. Se cancela…"; a word alone not after a colon: "Entrada: se cancela el social"), or when or how
+# it's paid after it ("se cancela en efectivo", "por Nequi", "el día del taller", "antes del taller", "el mismo día");
+# never "se cancela por lluvia" nor "el día de hoy". The dot of "$50.000" ends no sentence: the amount and the words
+# after it went unread, and a reminder Flash found no event in took its event down (the bug-squash pass of 8 Oct 2026).
+# Read line by line: a price on one line says nothing about the next.
 _PAID = re.compile(
-    rf"\b(?:{'|'.join(PRICE_WORDS)}|entrada|inscripcion|matricula|cuota|pago|mensualidad|reserva)s?\b[^.!?:]{{0,30}}?"
-    r"\bse cancelan?\b"
-    r"|\bse cancelan? (?:en (?:efectivo|la puerta|puerta|taquilla|la entrada|caja|el lugar)"
-    r"|con (?:tarjeta|efectivo|nequi|daviplata|transferencia)|al (?:ingresar|llegar|entrar|ingreso)"
-    r"|antes del? (?:evento|ingreso|ingresar)|directamente"
-    r"|por (?:nequi|daviplata|transferencia|pse|tarjeta|bancolombia))\b"
+    rf"(?:\b(?:{'|'.join(PRICE_WORDS)}|entrada|inscripcion|matricula|cuota|pago|mensualidad|reserva|saldo|abono)s?\b"
+    rf"|{_AMOUNT})(?:[^.!?:]|(?<=\d)\.(?=\d)){{0,30}}?\bse cancel(?:an?|o|aron)\b|\bya se cancel(?:o|aron)\b"
+    r"|\bse cancel(?:an?|o|aron) (?:en (?:efectivo|la puerta|puerta|taquilla|la entrada|caja|el lugar"
+    r"|(?:dos|tres|\d+) cuotas)\b"
+    r"|con (?:tarjeta|efectivo|nequi|daviplata|transferencia)\b|al (?:ingresar|llegar|entrar|ingreso|momento)\b"
+    r"|antes del?\b|el mismo dia\b|el dia del?\b(?! (?:hoy|manana)\b)|directamente\b|por adelantado\b"
+    r"|con anticipacion\b|por (?:nequi|daviplata|transferencia|pse|tarjeta|bancolombia)\b)"
 )
+# Words that say it isn't off: "el social NO se cancela por la lluvia", "no está cancelado", "no lo aplazamos", "no se
+# aplaza ni se cancela", "ni se cancela ni se aplaza".
+_OFF_VERB = (
+    r"(?:se |esta |estan |fue |fueron |ha sido |han sido |sera |seran |lo |la |los |las )?"
+    r"(?:cancel|aplaz|suspend|pospon|pospu|reprogram|posterg)\w*"
+)
+_DENIED = re.compile(rf"\b(?:no|ni) {_OFF_VERB}(?: ni {_OFF_VERB})*")
+# Words that only say it might be off: a condition ("si no se completa el cupo, el taller se aplaza", "se aplaza si
+# llueve", "en caso de lluvia se aplaza", "si el evento es cancelado se devuelve el dinero"; not "Sí, …" nor "si bien")
+# or a question ("¿se cancela por la lluvia?"). Reminders repeat them, and Flash finding no event in one took its event
+# down for good (the bug-squash pass of 8 Oct 2026). A condition after the word governs it within its clause only: "se
+# cancela por lluvia, si ya pagaste te devolvemos el dinero" says it's off.
+_CONDITION = re.compile(r"\bsi\b(?!,| bien\b)|\ben caso de\b")
+_SENTENCE_END = re.compile(r"(?<=[!?])|(?<=\.)(?!\d)")  # not the dot of "$50.000"
+
+
+def _states_it(sentence: str) -> bool:
+    """Whether a sentence says the event is off: a cancellation word, not in a question nor under a condition (before
+    it in the sentence, or after it in its clause)."""
+    if "?" in sentence or "¿" in sentence:
+        return False
+    return any(
+        not _CONDITION.search(sentence[: found.start()])
+        and not _CONDITION.search(re.split(r"[,;]", sentence[found.end() :], maxsplit=1)[0])
+        for found in _CANCELLED.finditer(sentence)
+    )
 
 
 def _says_cancelled(post: Post, analysis: PostAnalysis) -> bool:
-    """Whether the post's caption, or Gemini's reason for finding no event in it, says it's cancelled or postponed (not
-    "se cancela" meaning it's paid)."""
+    """Whether the post's caption, or Gemini's reason for finding no event in it, says it's cancelled or postponed: a
+    sentence that states it (not "se cancela" meaning it's paid, nor a condition, a denial or a question)."""
     lines = [*(post.get("caption") or "").splitlines(), analysis.reason]
-    return any(_CANCELLED.search(_PAID.sub(" ", fold(line))) for line in lines)
+    sentences = [part for line in lines for part in _SENTENCE_END.split(_DENIED.sub(" ", _PAID.sub(" ", fold(line))))]
+    return any(_states_it(sentence) for sentence in sentences)
 
 
 def _days(event: EventDetails) -> str:
@@ -93,6 +132,19 @@ def _days(event: EventDetails) -> str:
 
 def _details(event: ExtractedEvent) -> dict[str, Any]:
     return event.model_dump(include=set(EventDetails.model_fields))
+
+
+def _fit(event: StoredEvent, candidate: ExtractedEvent) -> tuple[bool, bool, bool, bool]:
+    """How well an event a post announced before fits a new reading of the post: the same date, then the same title,
+    start time and type, in that order of weight."""
+    same_time = bool(event.start_time) and event.start_time == candidate.start_time
+    same_title = fold(event.title) == fold(candidate.title)
+    return event.date == candidate.date, same_title, same_time, event.event_type == candidate.event_type
+
+
+def _best_fit(candidate: ExtractedEvent, events: list[StoredEvent]) -> tuple[bool, bool, bool, bool]:
+    """How well the closest of these events fits the reading (_fit)."""
+    return max((_fit(event, candidate) for event in events), default=(False, False, False, False))
 
 
 class SweepBase:
@@ -303,19 +355,24 @@ class SweepBase:
 
         if not publishable:
             log.info("     skipped: %s", analysis.reason)
-        added = [
-            self._add_event(
+        # The readings closest to an event this post announced before go first, so each takes that event's id
+        # (_event_id): a new event listed before it took its URL (the bug-squash pass of 8 Oct 2026).
+        readings = list(zip(publishable, flyers, strict=True))
+        closest_first = sorted(range(len(readings)), key=lambda i: _best_fit(readings[i][0], reusable), reverse=True)
+        added_by_reading = {
+            i: self._add_event(
                 account,
                 post,
-                candidate,
-                media_for(post, flyer),
+                readings[i][0],
+                media_for(post, readings[i][1]),
                 reusable,
                 count=count_as_new,
                 light=light,
                 announced=announced,
             )
-            for candidate, flyer in zip(publishable, flyers, strict=True)
-        ]
+            for i in closest_first
+        }
+        added = [added_by_reading[i] for i in range(len(readings))]
         results = [result for result in added if result]
         outcome: tuple[PostOutcome, list[str], str | None]
         if results:
@@ -439,10 +496,11 @@ class SweepBase:
         return all(record is not None and record.provisional for record in records)
 
     def _event_id(self, candidate: ExtractedEvent, reusable: list[StoredEvent]) -> str:
-        """The id of the event this post announced before (same date first), else a new readable one."""
-        previous = next((event for event in reusable if event.date == candidate.date), None) or next(
-            iter(reusable), None
-        )
+        """The id of the event this post announced before that fits it best (_fit), else a new readable one. A re-read
+        may list a post's events in another order (Flash after Flash-Lite): the first one on the date took the id of
+        the post's first event that day, so a workshop and a social swapped URLs, and visitors' saved events (the
+        bug-squash pass of 8 Oct 2026)."""
+        previous = max(reusable, key=lambda event: _fit(event, candidate), default=None)  # the first of the best
         taken = {event.id for event in self.events} | set(self.hidden)  # a hidden event keeps its id to itself
         if previous:
             reusable.remove(previous)

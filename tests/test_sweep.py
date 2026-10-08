@@ -375,6 +375,43 @@ def test_flash_splitting_a_lighter_models_merged_workshops_keeps_them_apart():
     assert events[0]["id"] == first_id and all(len(event["media"]) == 2 for event in events)
 
 
+@pytest.mark.parametrize("flash_hours", [("15:00", "21:00"), ("16:00", "22:00")])
+def test_flash_listing_a_posts_events_in_another_order_keeps_each_events_url(flash_hours):
+    """The bug-squash pass of 8 Oct 2026: a workshop and a social the same day in one post, read by Flash-Lite, then by
+    Flash listing them the other way round. The first one on the date took the id the post's first event had: each
+    event got the other's URL (and visitors' saved events swapped), and the audit counted both as changed."""
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    workshop = {"title": "Taller de bachata", "event_type": "workshop", "start_time": "15:00"}
+    social = {"title": "Social de bachata", "event_type": "social", "start_time": "21:00"}
+    lite = PostAnalysis(is_event_post=True, reason="", events=[extracted(**workshop), extracted(**social)])
+    run(instagram, FakeExtractor({"p1": lite}, flash_available=False))
+
+    workshop["start_time"], social["start_time"] = flash_hours
+    flash = PostAnalysis(is_event_post=True, reason="", events=[extracted(**social), extracted(**workshop)])
+    stats = run(instagram, FakeExtractor({"p1": flash}))
+    ids = {event["title"]: event["id"] for event in read(config.EVENTS_FILE)}
+    assert ids == {title: event_id(title) for title in ("Taller de bachata", "Social de bachata")}
+    assert stats.upgrade_changes["compared"] == 2 and "title" not in stats.upgrade_changes
+
+
+@pytest.mark.parametrize("social_title", ["Social de bachata", "Social bachatero"])
+def test_a_new_event_flash_lists_first_doesnt_take_the_url_of_the_one_a_lighter_model_read(social_title):
+    """The same pass: Flash-Lite read only the social; Flash found the afternoon workshop too and listed it first, so
+    the workshop took the social's id (its URL) and the social got a new one ("…-2")."""
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    social = {"title": "Social de bachata", "event_type": "social", "start_time": "21:00"}
+    lite = PostAnalysis(is_event_post=True, reason="", events=[extracted(**social)])
+    run(instagram, FakeExtractor({"p1": lite}, flash_available=False))
+
+    workshop = extracted(title="Taller de bachata", event_type="workshop", start_time="15:00")
+    renamed = extracted(**social | {"title": social_title})
+    flash = PostAnalysis(is_event_post=True, reason="", events=[workshop, renamed])
+    run(instagram, FakeExtractor({"p1": flash}))
+    ids = {event["title"]: event["id"] for event in read(config.EVENTS_FILE)}
+    assert ids[social_title] == event_id("Social de bachata")
+    assert ids["Taller de bachata"] == event_id("Taller de bachata")
+
+
 def test_a_flash_read_keeps_its_title_when_flash_upgrades_a_reminder_of_the_same_event():
     """The first known title stays when it came from Flash: a reminder's caption doesn't rename the flyer's event."""
     flyer = post("flyer", days_ago=3)
@@ -969,6 +1006,15 @@ def test_an_event_in_another_city_isnt_published_and_an_unknown_city_is_flagged(
         "Últimos cupos 🔥 Política de cancelación: no hay devoluciones",
         "¡Este sábado! Si no alcanzas, abrimos nueva fecha en noviembre",
         "¡Este sábado! Recuerda: la inversión se cancela el día del taller",
+        # How a price is written, and when it's paid (the bug-squash pass of 8 Oct 2026: each took the event down).
+        "¡Este sábado! 💃\n💰 Inversión: $50.000\n💳 Se cancela el día del taller",
+        "Recuerda: Inversión: $50.000. Se cancela el día del taller",
+        "Entrada general 20 mil\nse cancela el mismo día",
+        "Inversión $120.000 / se cancela en dos cuotas",
+        # A condition, a denial or a question says nothing of whether it's off (the same pass).
+        "¡Este sábado! Taller de bachata\nSi no se completa el cupo mínimo, el taller se aplaza",
+        "¡Nos vemos el sábado en el parque!\nEn caso de lluvia el evento se aplaza",
+        "¡Sigue en pie! El social NO se cancela por la lluvia ☔",
     ],
 )
 def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_caption):
@@ -1001,6 +1047,27 @@ def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_c
         "Lo postergamos para noviembre",
         "El social se aplazó",
         "El taller no se realizará",
+        # Not an amount, nor a day it's paid on: a time, a date, "el día de hoy" (the bug-squash pass of 8 Oct 2026).
+        "Hoy 8 pm se cancela el social por lluvia",
+        "Sábado 12: se cancela el social",
+        "Se cancela el día de hoy por lluvia",
+        # A condition, a denial or a question elsewhere in the caption leaves the sentence that says it alone.
+        "EVENTO CANCELADO. Si compraste tu entrada, te devolvemos el dinero",
+        "No se cancela, se aplaza para el 20",
+        "Sí, se cancela el social",
+        "Lamentablemente el social se cancela por lluvia, si ya pagaste te devolvemos el dinero",
+        "SE CANCELA EL SOCIAL, si tienes dudas escríbenos",
+        "Lamentablemente, si bien lo intentamos, el evento se cancela",
+        # The verbs' other forms, as the participles already counted (the bug-squash pass of 8 Oct 2026: they slipped).
+        "SE SUSPENDE EL SOCIAL DE HOY POR LLUVIA",
+        "Se suspenden las clases y el social de esta semana",
+        "Lamentablemente el evento se canceló",
+        "Los talleres se aplazan para noviembre",
+        "El social se reprogramó",
+        "Tuvimos que cancelar el social de este sábado 😔",
+        "Hemos decidido aplazar el evento",
+        "Nos vemos obligados a posponer la fiesta",
+        "Por motivos de fuerza mayor el social no se llevará a cabo",
     ],
 )
 def test_a_caption_saying_the_event_is_off(caption):
@@ -1025,6 +1092,35 @@ def test_a_caption_saying_the_event_is_off(caption):
         "La inversión se cancela el día del taller",
         "El aporte se cancela al inicio de la clase",
         "La matrícula se cancela antes de empezar",
+        # An amount says it as well as a price's word: "$50.000" (its dot groups thousands, it ends no sentence), "50
+        # mil", "15k", "50%", even after a label's colon; and when or how it's paid (the bug-squash pass of 8 Oct 2026).
+        "Inversión: $50.000. Se cancela el día del taller",
+        "💰 Inversión: $50.000\n💳 Se cancela el día del taller",
+        "Valor: $30.000 (se cancela antes del taller)",
+        "Precio: $60.000 que se cancelan el día del evento",
+        "Entrada general 20 mil\nse cancela el mismo día",
+        "Cover: 15k se cancela en la entrada",
+        "El 50% se cancela para separar el cupo",
+        "Inversión $120.000 / se cancela en dos cuotas",
+        "Mensualidad $150.000 se cancela los primeros 5 días del mes",
+        "Valor del taller: $45.000\n*Se cancela al momento de la inscripción",
+        "Separa tu cupo con $20.000 y el saldo se cancela por adelantado",
+        # A condition, a refund rule, a denial or a question: none says it's off (the same pass).
+        "Si no se completa el cupo mínimo, el taller se aplaza",
+        "El taller se aplaza si no se completa el cupo",
+        "En caso de lluvia el evento se aplaza",
+        "El evento se cancela en caso de lluvia",
+        "Si el evento es cancelado se devuelve el dinero",
+        "¡Sigue en pie! El social NO se cancela por la lluvia",
+        "Aclaramos: el evento no está cancelado, ¡nos vemos!",
+        "¡El social no se aplaza ni se cancela! Bajo techo 💃",
+        "Ni se cancela ni se aplaza: ¡nos vemos!",
+        "¿Se cancela por la lluvia? ¡No! Te esperamos",
+        "Se suspende por lluvia? Nooo 💃",
+        # "Se canceló" paid: already, or a price's word before it (the audit of 7 Oct 2026 left it out for these).
+        "Si ya se canceló el 50%, trae el comprobante",
+        "La inscripción ya se canceló",
+        "Gracias a quienes ya se cancelaron la mensualidad",
     ],
 )
 def test_se_cancela_meaning_it_is_paid_or_other_words_dont_cancel(caption):
@@ -1041,7 +1137,17 @@ def cancel(post_dict: dict) -> dict:
 CANCELLED = PostAnalysis(is_event_post=False, reason="El evento fue cancelado", events=[])
 
 
-def test_a_cancelled_flyer_takes_its_event_off_even_when_a_reminder_also_announced_it():
+@pytest.mark.parametrize(
+    "caption",
+    [
+        "CANCELADO: lo sentimos",
+        # The bug-squash pass of 8 Oct 2026: these left the event on the site, the reminder still announcing it.
+        "SE SUSPENDE EL SOCIAL DE HOY POR LLUVIA ☔",
+        "Tuvimos que cancelar el social de este sábado 😔",
+        "Lamentablemente el social se canceló",
+    ],
+)
+def test_a_cancelled_flyer_takes_its_event_off_even_when_a_reminder_also_announced_it(caption):
     flyer, reminder = post("flyer", days_ago=3), post("reminder", days_ago=1)
     analyses = {
         "flyer": event_post("flyer", title="Social", start_time="21:00"),
@@ -1050,7 +1156,9 @@ def test_a_cancelled_flyer_takes_its_event_off_even_when_a_reminder_also_announc
     run(FakeInstagram({"academia": [flyer, reminder], "otra": []}), FakeExtractor(analyses))
     assert len(read(config.EVENTS_FILE)) == 1
 
-    run(FakeInstagram({"academia": [cancel(flyer), reminder], "otra": []}), FakeExtractor({"flyer": CANCELLED}))
+    gone = PostAnalysis(is_event_post=False, reason="Ya no anuncia un evento", events=[])  # the caption says it alone
+    edited = {**flyer, "caption": caption}
+    run(FakeInstagram({"academia": [edited, reminder], "otra": []}), FakeExtractor({"flyer": gone}))
     assert read(config.EVENTS_FILE) == []
     records = storage.load_processed_posts()
     assert (records["flyer"].outcome, records["flyer"].detail) == ("discarded", "cancelado")

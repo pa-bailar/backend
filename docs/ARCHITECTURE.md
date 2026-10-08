@@ -542,16 +542,25 @@ flowchart TD
 
 **Cancellations:** a re-analyzed post "had events" when its record's outcome is `event` or `merged` (or, with
 no `outcome`, when Gemini called it an event post). When it had events and now has none, and its caption or
-Gemini's reason says they're cancelled or postponed ("CANCELADO", "se cancela", aplazado, "se aplazó", pospuesto,
-reprogramado, postergado, "no se realizará"…: `pipeline/base.py`, `_says_cancelled`). Only words that say it of the
-event: a reminder that Flash re-reads as no event would take the event it joined off the site for good, so "no habrá"
-("no habrá venta de boletas en taquilla"), "cancelación" ("política de cancelación"), "nueva fecha" and "se canceló"
-("ya se canceló", paid) don't count (the bug hunt of 7 Oct 2026). Nor does "se cancela" meaning "is paid", read line by
+Gemini's reason says they're cancelled or postponed ("CANCELADO", "se cancela", "se canceló", aplazado, "se aplazó",
+pospuesto, reprogramado, postergado, suspendido, "se suspende", "tuvimos que cancelar", "no se realizará", "no se
+llevará a cabo"…: `pipeline/base.py`, `_says_cancelled`; the verbs' other forms joined the participles in the bug-squash
+pass of 8 Oct 2026, after "se suspende el social de hoy" left a cancelled event on the site). Only words that say it of
+the event: a reminder that Flash re-reads as no event would take the event it joined off the site for good, so "no
+habrá" ("no habrá venta de boletas en taquilla"), "cancelación" ("política de cancelación") and "nueva fecha" don't
+count, nor "se canceló" paid ("ya se canceló", a price's word before it) (the bug hunt of 7 Oct 2026). Nor does "se
+cancela" meaning "is paid", read line by
 line: a price's word before it ("la entrada se cancela en la puerta", "la inversión se cancela el día del taller": the
-price words of `text.PRICE_WORDS`, which the rule checks' price line shares), or how it's paid after it ("en efectivo",
-"por Nequi"), never "se cancela por lluvia".
-its own account's events leave the site even when other posts announce them too; another account's event
-stays, with low confidence and a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for
+price words of `text.PRICE_WORDS`, which the rule checks' price line shares) or an amount ("Inversión: $50.000. Se
+cancela…", "20 mil", "15k", "50%": the dot of "$50.000" ends no sentence), or when or how it's paid after it ("en
+efectivo", "por Nequi", "el día del taller", "antes del taller", "el mismo día", "en dos cuotas"); never "se cancela por
+lluvia" nor "el día de hoy" (the bug-squash pass of 8 Oct 2026: a reminder's "Inversión: $50.000. Se cancela el día del
+taller" still took its event down). Nor a sentence that only says it might be off, or that it isn't: a condition ("si no
+se completa el cupo, el taller se aplaza", "en caso de lluvia se aplaza", "si el evento es cancelado se devuelve el
+dinero"; one after the word only within its clause: "se cancela por lluvia, si ya pagaste te devolvemos el dinero" says
+it's off), a question ("¿se cancela por la lluvia?") or a denial ("el social NO se cancela"), which reminders repeat (the
+same pass). Then its own account's events leave the site even when other posts announce them too; another account's
+event stays, with low confidence and a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for
 review (section 11.1) (`Sweep._take_down_cancelled`).
 
 **When Flash-Lite is out of today's quota:**
@@ -636,7 +645,10 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
    (a monthly schedule) is saved once and shared.
 4. **Detach the post from earlier results:** if the post was analyzed before (edited caption, upgrade),
    what it contributed is removed first. Events only it announced give their ids back, so their URLs
-   don't change.
+   don't change: each new reading takes the id of the one that fits it best (the same date, then the same title,
+   start time and type; `SweepBase._event_id`), the closest readings first, whatever order the re-read lists them in
+   (the bug-squash pass of 8 Oct 2026: a workshop and a social the same day swapped URLs when Flash listed them the
+   other way round, and a workshop only Flash found, listed first, took the social's).
 5. **Merge or add** each event (section 9).
 
 ---
