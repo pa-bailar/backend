@@ -1037,6 +1037,16 @@ def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_c
         "EVENTO CANCELADO. Si compraste tu entrada, te devolvemos el dinero",
         "No se cancela, se aplaza para el 20",
         "Sí, se cancela el social",
+        # The verbs' other forms, as the participles already counted (the bug-squash pass of 8 Oct 2026: they slipped).
+        "SE SUSPENDE EL SOCIAL DE HOY POR LLUVIA",
+        "Se suspenden las clases y el social de esta semana",
+        "Lamentablemente el evento se canceló",
+        "Los talleres se aplazan para noviembre",
+        "El social se reprogramó",
+        "Tuvimos que cancelar el social de este sábado 😔",
+        "Hemos decidido aplazar el evento",
+        "Nos vemos obligados a posponer la fiesta",
+        "Por motivos de fuerza mayor el social no se llevará a cabo",
     ],
 )
 def test_a_caption_saying_the_event_is_off(caption):
@@ -1083,6 +1093,10 @@ def test_a_caption_saying_the_event_is_off(caption):
         "Aclaramos: el evento no está cancelado, ¡nos vemos!",
         "¿Se cancela por la lluvia? ¡No! Te esperamos",
         "Se suspende por lluvia? Nooo 💃",
+        # "Se canceló" paid: already, or a price's word before it (the audit of 7 Oct 2026 left it out for these).
+        "Si ya se canceló el 50%, trae el comprobante",
+        "La inscripción ya se canceló",
+        "Gracias a quienes ya se cancelaron la mensualidad",
     ],
 )
 def test_se_cancela_meaning_it_is_paid_or_other_words_dont_cancel(caption):
@@ -1099,7 +1113,17 @@ def cancel(post_dict: dict) -> dict:
 CANCELLED = PostAnalysis(is_event_post=False, reason="El evento fue cancelado", events=[])
 
 
-def test_a_cancelled_flyer_takes_its_event_off_even_when_a_reminder_also_announced_it():
+@pytest.mark.parametrize(
+    "caption",
+    [
+        "CANCELADO: lo sentimos",
+        # The bug-squash pass of 8 Oct 2026: these left the event on the site, the reminder still announcing it.
+        "SE SUSPENDE EL SOCIAL DE HOY POR LLUVIA ☔",
+        "Tuvimos que cancelar el social de este sábado 😔",
+        "Lamentablemente el social se canceló",
+    ],
+)
+def test_a_cancelled_flyer_takes_its_event_off_even_when_a_reminder_also_announced_it(caption):
     flyer, reminder = post("flyer", days_ago=3), post("reminder", days_ago=1)
     analyses = {
         "flyer": event_post("flyer", title="Social", start_time="21:00"),
@@ -1108,7 +1132,9 @@ def test_a_cancelled_flyer_takes_its_event_off_even_when_a_reminder_also_announc
     run(FakeInstagram({"academia": [flyer, reminder], "otra": []}), FakeExtractor(analyses))
     assert len(read(config.EVENTS_FILE)) == 1
 
-    run(FakeInstagram({"academia": [cancel(flyer), reminder], "otra": []}), FakeExtractor({"flyer": CANCELLED}))
+    gone = PostAnalysis(is_event_post=False, reason="Ya no anuncia un evento", events=[])  # the caption says it alone
+    edited = {**flyer, "caption": caption}
+    run(FakeInstagram({"academia": [edited, reminder], "otra": []}), FakeExtractor({"flyer": gone}))
     assert read(config.EVENTS_FILE) == []
     records = storage.load_processed_posts()
     assert (records["flyer"].outcome, records["flyer"].detail) == ("discarded", "cancelado")

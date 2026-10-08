@@ -56,14 +56,20 @@ def _with_doubt(event: ExtractedEvent, doubt: str) -> ExtractedEvent:
 # A caption or Gemini's reason saying the event is off (folded text: lowercase, no accents). Only words that say it
 # of the event: a reminder Flash finds no event in takes the account's events it announced off the site, so a word
 # that also means something else loses an event for good. Not "no habrá" ("no habrá venta de boletas en taquilla"),
-# "cancelación" ("política de cancelación"), "nueva fecha" ("abrimos nueva fecha en noviembre") nor "se canceló" ("ya
-# se canceló", paid): the audit of 7 Oct 2026, after #151 added them. The participles ("cancelado", "aplazadas"…) are
-# also how a doubt says an event may be off (health.PLACE_DOUBT): one list for both.
+# "cancelación" ("política de cancelación") nor "nueva fecha" ("abrimos nueva fecha en noviembre"): the audit of 7 Oct
+# 2026, after #151 added them; "se canceló" paid ("ya se canceló") is _PAID's. The participles ("cancelado",
+# "aplazadas"…) are also how a doubt says an event may be off (health.PLACE_DOUBT): one list for both. Their verbs'
+# other forms say it as well ("se suspende", "se canceló", "se aplazan", "tuvimos que cancelar", "no se llevará a
+# cabo"): without them a cancelled event stayed on the site while another post announced it (the bug-squash pass of 8
+# Oct 2026).
 CANCELLED_PARTICIPLES = r"cancelad[oa]s?|aplazad[oa]s?|pospuest[oa]s?|suspendid[oa]s?|reprogramad[oa]s?|postergad[oa]s?"
 _CANCELLED = re.compile(
-    rf"\b({CANCELLED_PARTICIPLES}|cancelamos|se cancelan?|cancell?ed|aplazamos|se aplaza|se aplazo|posponemos"
-    r"|se pospone|se pospuso|postponed|suspendemos|reprogramamos|se reprograma|postergamos|se posterga"
-    r"|no se realizara)\b"
+    rf"\b({CANCELLED_PARTICIPLES}|cancell?ed|postponed"
+    r"|se cancel(?:an?|o|aron)|se (?:aplaz|reprogram|posterg)(?:an?|o|aron)|se pospon(?:e|en)|se pospus(?:o|ieron)"
+    r"|se suspend(?:e|en|io|ieron)|cancelamos|aplazamos|posponemos|pospusimos|suspendemos|suspendimos|reprogramamos"
+    r"|postergamos|no se realizara|no se llevara a cabo"
+    r"|(?:tuvimos|tenemos|debemos|decidimos|hemos decidido|nos toca|nos toco|nos vemos obligados a"
+    r"|nos vimos obligados a)(?: que)? (?:cancelar|aplazar|posponer|suspender|reprogramar|postergar))\b"
 )
 # An amount of money: "$50.000", "50 mil", "15k", "50.000", "50%" (a dot between digits groups thousands).
 _AMOUNT = r"(?:\$[ \t]*\d|\b\d+(?:\.\d{3})*(?:[ \t]*(?:k|mil|cop|pesos)\b|[ \t]*%)|\b\d{1,3}(?:\.\d{3})+\b)"
@@ -75,8 +81,9 @@ _AMOUNT = r"(?:\$[ \t]*\d|\b\d+(?:\.\d{3})*(?:[ \t]*(?:k|mil|cop|pesos)\b|[ \t]*
 # Read line by line: a price on one line says nothing about the next.
 _PAID = re.compile(
     rf"(?:\b(?:{'|'.join(PRICE_WORDS)}|entrada|inscripcion|matricula|cuota|pago|mensualidad|reserva|saldo|abono)s?\b"
-    rf"|{_AMOUNT})(?:[^.!?:]|(?<=\d)\.(?=\d)){{0,30}}?\bse cancelan?\b"
-    r"|\bse cancelan? (?:en (?:efectivo|la puerta|puerta|taquilla|la entrada|caja|el lugar|(?:dos|tres|\d+) cuotas)\b"
+    rf"|{_AMOUNT})(?:[^.!?:]|(?<=\d)\.(?=\d)){{0,30}}?\bse cancel(?:an?|o|aron)\b|\bya se cancel(?:o|aron)\b"
+    r"|\bse cancel(?:an?|o|aron) (?:en (?:efectivo|la puerta|puerta|taquilla|la entrada|caja|el lugar"
+    r"|(?:dos|tres|\d+) cuotas)\b"
     r"|con (?:tarjeta|efectivo|nequi|daviplata|transferencia)\b|al (?:ingresar|llegar|entrar|ingreso|momento)\b"
     r"|antes del?\b|el mismo dia\b|el dia del?\b(?! (?:hoy|manana)\b)|directamente\b|por adelantado\b"
     r"|con anticipacion\b|por (?:nequi|daviplata|transferencia|pse|tarjeta|bancolombia)\b)"
