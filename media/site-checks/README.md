@@ -34,7 +34,7 @@ node media/site-checks/run.mjs --help        the scenarios and what each covers
 
 | Scenario | Devices | What it checks |
 |---|---|---|
-| `tour` | phone | A visitor's tour: first visit, scroll, the details and back (scroll kept), a carousel swipe, save → Guardados → reload, the calendar, the search, Filtros and a period's "Ver más", each with back; no horizontal overflow. Runs on any engine and device (on a desktop the bar's parts are the header's) |
+| `tour` | phone | A visitor's tour: first visit, scroll, the details and back (the card where it was), a carousel swipe, save → Guardados → reload, the calendar, the search, Filtros and a period's "Ver más", each with back; no horizontal overflow. Runs on any engine and device (on a desktop the bar's parts are the header's) |
 | `arrows` | desktop | ↑ ↓: from nothing selected, on the list, with the details and image open; mid-page (the card focused is on screen, clear of the pinned bar); the Cuándo menu keeps its own arrows; the calendar's cards |
 | `walk` | desktop | ↓ through the whole list: each period's button is reached, Enter opens it with the focus on its first new event, the walk ends on the last card, the focus never leaves the screen; back folds a period again |
 | `panel` | desktop | The side panel and the image beside it: the panel follows the card clicked or focused, its buttons stay usable, → moves both, Escape, × and back close both, the list stays where it was |
