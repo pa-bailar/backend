@@ -39,11 +39,7 @@ def test_each_measure_and_the_runs_peak_are_kept():
     client._read_usage(None, reading.format(20, 40, 30))
     client._read_usage(None, reading.format(31, 90, 77))
     client._read_usage(None, reading.format(1, 2, 3))  # the window drained
-    assert client.app_usage_percent == 3 and client.usage_detail == {
-        "call_count": 1,
-        "total_cputime": 2,
-        "total_time": 3,
-    }
+    assert client.app_usage_percent == 3
     assert client.peak_usage_percent == 90
     assert client.peak_usage_detail == {"call_count": 31, "total_cputime": 90, "total_time": 77}
 

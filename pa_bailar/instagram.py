@@ -86,10 +86,9 @@ class InstagramClient:
         self._access_token = access_token
         self._ig_user_id = ig_user_id
         # Share of the app's Graph API quota already used (0-100), from Meta's usage headers (_read_usage): the
-        # highest of its measures, and each measure ("call_count", "total_cputime", "total_time").
+        # highest of its measures ("call_count", "total_cputime", "total_time").
         self.app_usage_percent = 0
-        self.usage_detail: dict[str, int] = {}
-        # The highest reading so far (a run's peak), and its measures: which one Meta's limit binds on.
+        # The highest reading so far (a run's peak), and each of its measures: which one Meta's limit binds on.
         self.peak_usage_percent = 0
         self.peak_usage_detail: dict[str, int] = {}
 
@@ -129,7 +128,6 @@ class InstagramClient:
         detail = usage_measures(app_header, business_header)
         if not detail:
             return
-        self.usage_detail = detail
         self.app_usage_percent = max(detail.values())
         if self.app_usage_percent >= self.peak_usage_percent:
             self.peak_usage_percent, self.peak_usage_detail = self.app_usage_percent, detail
