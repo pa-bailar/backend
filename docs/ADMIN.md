@@ -45,7 +45,7 @@ address follows the tab you pick. On a keyboard, ← and → (or Home, End) move
   - **Revisar:** whether its event is on the site and, if not, why. An answer in about a minute.
   - **Agregar:** reads the post and publishes its event. A few minutes: it waits for a running sweep (and
     any earlier request) to finish, then publishes through the usual data PR. If the sweeps are still busy
-    after 50 minutes, it answers so and doesn't start: ask again later. If the account isn't swept yet, it's added too.
+    after 85 minutes, it answers so and doesn't start: ask again later. If the account isn't swept yet, it's added too.
     Posts the API can't give (a personal account's, a collaboration, Instagram's limit reached) are read from
     the post's public page instead (see below).
   - **Volver a leer:** like Agregar, but it reads the post again even if it was read before and hasn't
@@ -373,7 +373,7 @@ flowchart LR
   An added account is committed to `main` (`accounts.txt`). Adding a post starts the sweep workflow with
   `post_url`, `account` and `issue`, and `again` (true for Volver a leer); adding a story with `story` (the
   screenshots' ids), `account`, `notes` and `issue`; hiding a story or an event with `hide` (its id) and
-  `issue`. Requests take turns, first come first served, for up to 50 minutes, and the workflow has no
+  `issue`. Requests take turns, first come first served, for up to 85 minutes, and the workflow has no
   concurrency group (ARCHITECTURE.md section 5.2, "Admin requests take turns").
 - **`.github/workflows/daily-sweep.yml`**, with `post_url`: `sweep --post` (`--again` with `again`) instead of
   the sweep, then the same data PR and state save; it commits an added account and answers on the issue. With

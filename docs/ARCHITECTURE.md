@@ -381,7 +381,8 @@ Other workflow settings:
 - **Admin requests take turns:** GitHub keeps only one waiting run per concurrency group (a newer one cancels
   it), so the `admin` workflow never queues a sweep. Each request waits until no sweep is running or waiting
   and no earlier `admin` run is still going, starts the sweep, and waits until GitHub lists it. Still busy
-  after 50 minutes, it answers on the issue that it didn't start ("Pídelo otra vez en un rato"). For the same
+  after 85 minutes (about the longest a sweep can run: its job stops at 90), it answers on the issue that it
+  didn't start ("Pídelo otra vez en un rato"). For the same
   reason the `admin` workflow has no concurrency group of its own: a third comment on an issue would cancel
   the second one's waiting run, and its request would never be answered.
 
@@ -538,9 +539,13 @@ flowchart TD
 
 **Cancellations:** a re-analyzed post "had events" when its record's outcome is `event` or `merged` (or, with
 no `outcome`, when Gemini called it an event post). When it had events and now has none, and its caption or
-Gemini's reason says they're cancelled or postponed ("CANCELADO", "se canceló", aplazado, pospuesto, reprogramado,
-postergado, "no habrá", "nueva fecha"…; not "se cancela" meaning "is paid", as in "la entrada se cancela en la puerta":
-`pipeline/base.py`, `_says_cancelled`),
+Gemini's reason says they're cancelled or postponed ("CANCELADO", "se cancela", aplazado, "se aplazó", pospuesto,
+reprogramado, postergado, "no se realizará"…: `pipeline/base.py`, `_says_cancelled`). Only words that say it of the
+event: a reminder that Flash re-reads as no event would take the event it joined off the site for good, so "no habrá"
+("no habrá venta de boletas en taquilla"), "cancelación" ("política de cancelación"), "nueva fecha" and "se canceló"
+("ya se canceló", paid) don't count (the bug hunt of 7 Oct 2026). Nor does "se cancela" meaning "is paid", read line by
+line: a price's word before it ("la entrada se cancela en la puerta"), or how it's paid after it ("en efectivo", "por
+Nequi"), never "se cancela por lluvia".
 its own account's events leave the site even when other posts announce them too; another account's event
 stays, with low confidence and a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for
 review (section 11.1) (`Sweep._take_down_cancelled`).
@@ -877,8 +882,9 @@ flowchart TD
   or, when a time is missing, the same title or one title inside the other (`_same_title`: the shorter title's
   distinctive words all in the longer one, "Acere" and "Salsoteca DC - Acere"; not when the extra words name a
   kind of event, "Social con Juan" and "Masterclass con Juan", nor when the titles name different kinds,
-  "Social con Juan" and "Taller con Juan" (`_kinds`: night, class, practice, concert, competition, show; a party
-  and a social are one kind), nor with two different venues). Two month
+  "Social con Juan" and "Taller con Juan" (`_kinds`: night, class, practice, competition, show; a party, a social
+  and a concert are one kind, a night out: "Fiesta con Zafra" and "Zafra en concierto" at a bar the same day), nor
+  with two different venues). Two month
   schedules of @elgocepagano listed every night twice before this (5 Oct 2026). When either lasts several days, the title decides (the same
   title, or distinctive title words in common, as below), never the start time alone: a festival weekend
   has several nights, and the same academy's social on one of them is another event.
@@ -1241,7 +1247,8 @@ guide.
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
   otherwise); whether the Instagram token works (one call, `--no-instagram` skips it) and the last sweep's highest
   reading of Instagram's quota with its measures (the token check's own reading is another counter: 1% at the end
-  of a sweep stopped at 90%); accounts still in their first sweep; provisional posts; upcoming events (until their last day);
+  of a sweep stopped at 90%), and whether the sweep stopped there or Meta's own rate-limit error stopped it below
+  that ("Meta lo frenó antes"); accounts still in their first sweep; provisional posts; upcoming events (until their last day);
   new workshop series to look at, with `/ocultar <id>` (section 9.1); discovery progress; the last resort's use
   today per provider (`external`), shown only when it was used.
   `--json` gives the same as data. On your computer it reads the sweeps' state from the `sweep-state`
