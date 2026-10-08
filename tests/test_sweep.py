@@ -1095,6 +1095,8 @@ def test_a_caption_saying_the_event_is_off(caption):
         "Si el evento es cancelado se devuelve el dinero",
         "¡Sigue en pie! El social NO se cancela por la lluvia",
         "Aclaramos: el evento no está cancelado, ¡nos vemos!",
+        "¡El social no se aplaza ni se cancela! Bajo techo 💃",
+        "Ni se cancela ni se aplaza: ¡nos vemos!",
         "¿Se cancela por la lluvia? ¡No! Te esperamos",
         "Se suspende por lluvia? Nooo 💃",
         # "Se canceló" paid: already, or a price's word before it (the audit of 7 Oct 2026 left it out for these).

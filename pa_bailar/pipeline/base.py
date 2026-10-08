@@ -88,11 +88,13 @@ _PAID = re.compile(
     r"|antes del?\b|el mismo dia\b|el dia del?\b(?! (?:hoy|manana)\b)|directamente\b|por adelantado\b"
     r"|con anticipacion\b|por (?:nequi|daviplata|transferencia|pse|tarjeta|bancolombia)\b)"
 )
-# A word that says it isn't off: "el social NO se cancela por la lluvia", "no está cancelado", "no lo aplazamos".
-_DENIED = re.compile(
-    r"\bno (?:se |esta |estan |fue |fueron |ha sido |han sido |sera |seran |lo |la |los |las )?"
+# Words that say it isn't off: "el social NO se cancela por la lluvia", "no está cancelado", "no lo aplazamos", "no se
+# aplaza ni se cancela", "ni se cancela ni se aplaza".
+_OFF_VERB = (
+    r"(?:se |esta |estan |fue |fueron |ha sido |han sido |sera |seran |lo |la |los |las )?"
     r"(?:cancel|aplaz|suspend|pospon|pospu|reprogram|posterg)\w*"
 )
+_DENIED = re.compile(rf"\b(?:no|ni) {_OFF_VERB}(?: ni {_OFF_VERB})*")
 # Words that only say it might be off: a condition ("si no se completa el cupo, el taller se aplaza", "se aplaza si
 # llueve", "en caso de lluvia se aplaza", "si el evento es cancelado se devuelve el dinero"; not "Sí, …" nor "si bien")
 # or a question ("¿se cancela por la lluvia?"). Reminders repeat them, and Flash finding no event in one took its event
