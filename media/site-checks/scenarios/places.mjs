@@ -2,7 +2,9 @@
 // of 7 Oct): a click in the list's gaps or a card clicked (Safari doesn't focus it) leaves the arrows a start; the
 // skip link too; scrolled away from the card in focus, an arrow starts on screen; closing the side panel keeps what
 // the visitor sees; Escape in the toolbar's search ends it, and the next one closes the panel; Enter on "Ver N más"
-// moves the panel to the first new event. Desktop, 1366 × 768 or the device's size.
+// moves the panel to the first new event, and so does Space. From deep in the list, Guardados and a search start at
+// the top, under the toolbar (site #167: the sticky toolbar read 0 once pinned, and the page never went back up).
+// Desktop, 1366 × 768 or the device's size.
 import { Skip, focusedCardId } from "../lib.mjs";
 
 const VIEW = '[role="tabpanel"]:not([hidden])';
@@ -41,6 +43,14 @@ const markAnchor = (page) =>
   }, VIEW);
 const anchorTop = (page) =>
   page.evaluate(() => Math.round(document.querySelector("[data-check-anchor]")?.getBoundingClientRect().top ?? NaN));
+
+/** The bottom of the pinned toolbar, and the top of the view's content (<main>), on screen. */
+const tops = (page) =>
+  page.evaluate(() => ({
+    toolbar: Math.round(document.querySelector(".toolbar").getBoundingClientRect().bottom),
+    main: Math.round(document.querySelector("main").getBoundingClientRect().top),
+    y: Math.round(scrollY),
+  }));
 
 /** The stop in focus (a card or a block): its top on screen, or null. */
 const focusedStopTop = (page) =>
@@ -138,6 +148,26 @@ export default {
     await ctx.settle();
     check("…the next Escape closes the panel", !(await ctx.snap()).drawer, await ctx.snap());
 
+    // From deep in the list, Guardados (its tab) opens at its top, under the toolbar, not at the page's bottom
+    await ctx.goto("/");
+    await page.evaluate(() => window.scrollTo(0, 3000));
+    await ctx.settle();
+    await page.click('.toolbar [role="tab"][data-view="saved"]');
+    await ctx.settle();
+    const saved = await tops(page);
+    check("from deep in the list, Guardados opens at its top", saved.main >= saved.toolbar - 2 && saved.main < 400, saved);
+
+    // From deep in the list, a search's results start on screen, under the toolbar
+    await ctx.goto("/");
+    await page.evaluate(() => window.scrollTo(0, 3000));
+    await ctx.settle();
+    await page.click(".toolbar [data-search]");
+    await page.keyboard.type("salsa");
+    await page.waitForTimeout(500);
+    await ctx.settle();
+    const searched = await tops(page);
+    check("from deep in the list, a search's results start at the top", searched.main >= searched.toolbar - 2 && searched.main < 400, searched);
+
     // Enter on "Ver N más" with the panel open: the panel on the first new event, the focus there
     await ctx.goto("/");
     if (!(await page.locator(`${VIEW} .period-more`).count())) return ctx.skip("Enter on Ver N más", "no period with more events today");
@@ -148,5 +178,20 @@ export default {
     await ctx.settle();
     const more = await ctx.snap();
     check("Enter on Ver N más: the panel on the new card in focus", focusedCardId(more) && more.drawer === focusedCardId(more), more);
+
+    // Space does the same as Enter: the new card on screen, the panel on it (it was left 184 px above, the panel behind)
+    await ctx.goto("/");
+    await ctx.key("ArrowDown");
+    await ctx.settle();
+    await page.evaluate((VIEW) => document.querySelector(`${VIEW} .period-more`).focus(), VIEW);
+    await ctx.key("Space");
+    await ctx.settle();
+    const spaced = await ctx.snap();
+    const spacedTop = await focusedStopTop(page);
+    check(
+      "Space on Ver N más: the new card in focus, on screen, the panel on it",
+      focusedCardId(spaced) && spaced.drawer === focusedCardId(spaced) && spacedTop !== null && spacedTop >= 0,
+      `${JSON.stringify(spaced)} top ${spacedTop}`,
+    );
   },
 };
