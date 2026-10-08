@@ -188,6 +188,19 @@ def test_running_a_model_caches_answers_and_retries_only_failures(tmp_path):
     assert bakeoff.load_cache(bakeoff.cache_file("m", tmp_path))["a"]["answer"]["reason"] == "ok"
 
 
+def test_a_post_is_read_with_its_accounts_rules_as_in_the_sweep(tmp_path):
+    """Until #149 the bake-off asked without the account's rules (accounts.txt): a bar's post was read more loosely
+    than the sweep reads it, so the test set measured another reading than the site's."""
+    (tmp_path / "flyers").mkdir()
+    (tmp_path / "flyers" / "a-0.webp").write_bytes(make_image())
+    item = {"post_id": "a", "account": "salsabar", "caption": "Aniversario", "flyer": "flyers/a-0.webp", "events": []}
+    item |= {"published": "2026-10-01T12:00:00+0000", "processed_at": "2026-10-01T10:00:00-05:00"}
+    assert "BAR or club" not in bakeoff.contents_for(item, tmp_path)[-1]  # no accounts.txt: no rules
+    config.ACCOUNTS_FILE.write_text("academia\nsalsabar  bar\n", encoding="utf-8")
+    assert "BAR or club" in bakeoff.contents_for(item, tmp_path)[-1]
+    assert "BAR or club" not in bakeoff.contents_for({**item, "account": "academia"}, tmp_path)[-1]
+
+
 def test_an_answer_to_another_prompt_is_asked_again(tmp_path, monkeypatch):
     """Review of 7 Oct 2026: answers were cached by post alone, so after the prompt changed (#149) the test set kept
     scoring the old prompt's answers as if they were the new one's."""
