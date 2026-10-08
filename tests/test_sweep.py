@@ -14,7 +14,7 @@ from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedReque
 from pa_bailar.ids import new_event_id
 from pa_bailar.instagram import InstagramError
 from pa_bailar.models import PostAnalysis, ProcessedPost, Triage
-from pa_bailar.pipeline import Sweep
+from pa_bailar.pipeline import Sweep, unproductive_accounts
 from tests.factories import EVENT_DATE, event_id, extracted, make_image, media, stored
 
 FLYER_URL = "https://cdn.example/flyer.jpg"
@@ -687,6 +687,35 @@ def test_quiet_accounts_take_their_turn_every_other_day_but_never_drop_out():
     quiet = config.QUIET_AFTER_DAYS + 5
     assert turn({"academia": swept(30, latest_post_days_ago=quiet), "otra": swept(30)}) == ["otra"]
     assert turn({"academia": swept(50, latest_post_days_ago=quiet), "otra": swept(3)}) == ["academia"]
+
+
+def test_accounts_whose_posts_never_become_events_take_their_turn_every_other_day():
+    """The owner, 8 Oct 2026 (129 accounts, near Instagram's hourly limit): UNPRODUCTIVE_AFTER_POSTS read, none an
+    event, and the account is read every other day; one event brings it back to daily."""
+    records = {
+        f"p{n}": ProcessedPost(
+            account="academia",
+            permalink=f"https://www.instagram.com/p/p{n}/",
+            processed_at="2026-10-01T10:00:00-05:00",
+            is_event_post=False,
+            reason="no es un evento",
+            model="m",
+            outcome="not_event",
+        )
+        for n in range(config.UNPRODUCTIVE_AFTER_POSTS)
+    }
+    storage.save_processed_posts(records)
+    assert turn({"academia": swept(30), "otra": swept(30)}) == ["otra"]  # 30 h: not its turn yet
+    assert turn({"academia": swept(50), "otra": swept(3)}) == ["academia"]
+    records["p0"] = records["p0"].model_copy(update={"outcome": "event", "is_event_post": True})
+    storage.save_processed_posts(records)
+    assert turn({"academia": swept(30), "otra": swept(3)}) == ["academia"]  # an event: daily again
+
+
+def test_unproductive_accounts_need_enough_posts_and_not_one_event():
+    many = config.UNPRODUCTIVE_AFTER_POSTS
+    assert unproductive_accounts([("a", False)] * many + [("b", False)] * (many - 1)) == {"a"}
+    assert unproductive_accounts([("a", False)] * many + [("a", True)]) == set()
 
 
 def test_dormant_accounts_take_their_turn_once_a_week():

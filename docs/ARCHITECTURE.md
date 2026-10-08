@@ -393,9 +393,12 @@ about **once a day**, half of them in each sweep, instead of every account twice
 (`Sweep._due_accounts`, `pipeline.hours_overdue`):
 
 - **Each account's turn:** 20 hours after a sweep last read it (`SWEEP_EVERY_HOURS`: the same sweep the next
-  day finds it due). Quiet accounts, with no post in 45 days (`QUIET_AFTER_DAYS`), every 44 hours, and dormant
-  ones, with no post in 180 days (`DORMANT_AFTER_DAYS`), once a week (164 hours): lower priority, never dropped
-  (each read is an Instagram call that rarely finds anything new). An account silent for over a year is better
+  day finds it due). Every 44 hours: quiet accounts, with no post in 30 days (`QUIET_AFTER_DAYS`; 45 until 8 Oct
+  2026), and unproductive ones, whose posts read (`UNPRODUCTIVE_AFTER_POSTS`, 10, among the records kept: the last 45
+  days) never became an event (`pipeline.unproductive_accounts`, `models.had_events`; their first event brings them
+  back to daily). Dormant ones, with no post in 180 days (`DORMANT_AFTER_DAYS`), once a week (164 hours). Lower
+  priority, never dropped: each read is an Instagram call that rarely finds anything new, and costs ~1.3% of the
+  app's hourly allowance (section 14). The owner chose these tiers over a third sweep, at 129 accounts (8 Oct 2026). An account silent for over a year is better
   commented out in `accounts.txt`, with a note. `accounts.json` keeps `last_swept_at` and `latest_post` (its day in Bogotá).
 - **Order:** due accounts in their regular sweep before new ones (a new account's first, deeper sweep can
   take days of quota); within each, those that waited longest first.
@@ -440,7 +443,7 @@ Section 11 covers how those are reported.
 ```mermaid
 flowchart TD
     A["Check the Instagram token<br/>(cheap call: our username)"] -->|invalid| X["Stop: run fails"]
-    A --> B["Accounts whose turn it is<br/>(20 h since last read, 44 h if quiet,<br/>a week if dormant),<br/>regular ones first, new ones last;<br/>this run's share: half plus 5"]
+    A --> B["Accounts whose turn it is<br/>(20 h since last read, 44 h if quiet<br/>or unproductive, a week if dormant),<br/>regular ones first, new ones last;<br/>this run's share: half plus 5"]
     B --> C{"Instagram rate limit hit,<br/>or 90% of its quota used?"}
     C -->|yes| R["Stop calling Instagram:<br/>the rest wait for the next run"]
     C -->|no| D{"Account's first sweep<br/>done? (state/accounts.json)"}
@@ -1329,7 +1332,7 @@ day, quiet ones less often: section 5, "Whose turn it is"):
 
 | Resource | Limit | Use per run | Use per day | Headroom |
 |---|---|---|---|---|
-| Instagram calls (Business Use Case quota, rolling 24 h) | Grows with our account's impressions; low for a small account | At most 68 (half the accounts, plus up to 5 late ones) | About 125 at most (fewer with quiet and dormant accounts) | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run. `discover` keeps clear of sweep times |
+| Instagram calls (Business Discovery: Meta's platform limit, per app, rolling 1 hour; `x-app-usage`) | Grows with the app's users (one); what runs out is `total_time`, Meta's processing time: ~1–1.3% per account read, whatever the fields or posts asked (measured 8 Oct 2026), so about 70 reads an hour | At most 69 (half the accounts, plus up to 5 late ones); about 54 at 129 accounts with the tiers | About 107 at 129 accounts (91 daily, 30 every other day, 7 weekly) | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run; the hour starts over by the next sweep. Two sweeps hold about 140 daily reads. `discover` keeps clear of sweep times |
 | Gemini Flash-Lite (two models) | 500 / day each (996 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |

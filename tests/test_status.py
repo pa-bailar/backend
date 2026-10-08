@@ -150,6 +150,20 @@ def test_accounts_past_their_turn_by_more_than_a_sweep_are_waiting():
     assert "⚠️ 1 esperando más de un barrido después de su turno: @academia" in status.markdown(result)
 
 
+def test_an_account_whose_posts_never_become_events_isnt_waiting_on_its_every_other_day():
+    """Its turn is every other day, as the sweep counts it (pipeline.unproductive_accounts, the owner, 8 Oct 2026)."""
+    read_36_hours_ago = (NOW - timedelta(hours=36)).isoformat()  # daily: 16 h late; every other day: not yet
+    states = {"academia": {"first_seen": "2026-09-01", "backfill_done": True, "last_swept_at": read_36_hours_ago}}
+    record = {"account": "academia", "is_event_post": False, "outcome": "not_event"}
+    processed = {f"p{n}": record for n in range(config.UNPRODUCTIVE_AFTER_POSTS)}
+    files = {"accounts.json": states, "processed_posts.json": processed}
+    result = status.collect(now=NOW, instagram=None, read=lambda name, default: files.get(name, default))
+    assert result["accounts"]["waiting"] == []
+    files["processed_posts.json"] = {**processed, "p0": {**record, "outcome": "event"}}  # one event: daily again
+    result = status.collect(now=NOW, instagram=None, read=lambda name, default: files.get(name, default))
+    assert result["accounts"]["waiting"] == ["academia"]
+
+
 @pytest.mark.parametrize(
     ("hour", "minute", "label"),
     [(0, 5, "12:05 a. m."), (9, 0, "9:00 a. m."), (12, 30, "12:30 p. m."), (21, 0, "9:00 p. m.")],

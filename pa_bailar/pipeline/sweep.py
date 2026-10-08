@@ -3,7 +3,8 @@ statistics), with the admin tools' operations mixed in (manual_post.py, story_ad
 
 import logging
 import time
-from collections.abc import Iterator
+from collections import Counter
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import UTC, date, datetime, timedelta
@@ -20,7 +21,7 @@ from ..gemini import (
     quota_date,
 )
 from ..instagram import InstagramError, Post, is_rate_limited, published_at, slide_count
-from ..models import AccountState, ProcessedPost, StoredEvent
+from ..models import AccountState, ProcessedPost, StoredEvent, had_events
 from ..text import fold, parse_hhmm
 from . import common
 from .common import RETRYABLE_ERRORS, RunStats, caption_hash, clip_for, flyer_slide
@@ -52,18 +53,32 @@ def _reading(event: StoredEvent) -> dict[str, object]:
 _OUTSIDE_FOCUS = "(la cuenta es solo para esos estilos)"
 
 
-def hours_overdue(state: AccountState | None, now: datetime) -> float:
-    """How long past its turn an account is (negative: not its turn yet). Never read: always due."""
+def hours_overdue(state: AccountState | None, now: datetime, unproductive: bool = False) -> float:
+    """How long past its turn an account is (negative: not its turn yet). Never read: always due. `unproductive`: its
+    posts never become events (unproductive_accounts), so it takes its turn every other day, as a quiet one."""
     if state is None or state.last_swept_at is None:
         return float("inf")
     silent = (now.date() - date.fromisoformat(state.latest_post)).days if state.latest_post else 0
     if silent >= config.DORMANT_AFTER_DAYS:
         every = config.DORMANT_SWEEP_EVERY_HOURS
-    elif silent >= config.QUIET_AFTER_DAYS:
+    elif silent >= config.QUIET_AFTER_DAYS or unproductive:
         every = config.QUIET_SWEEP_EVERY_HOURS
     else:
         every = config.SWEEP_EVERY_HOURS
     return (now - datetime.fromisoformat(state.last_swept_at)).total_seconds() / 3600 - every
+
+
+def unproductive_accounts(posts: Iterable[tuple[str, bool]]) -> set[str]:
+    """Of the posts read (each its account and whether it had events: models.had_events), the accounts with
+    UNPRODUCTIVE_AFTER_POSTS of them and not one event: they take their turn every other day, like quiet ones (the
+    owner, 8 Oct 2026). Their first event brings them back to daily."""
+    read: Counter[str] = Counter()
+    productive: set[str] = set()
+    for account, events in posts:
+        read[account] += 1
+        if events:
+            productive.add(account)
+    return {account for account, count in read.items() if count >= config.UNPRODUCTIVE_AFTER_POSTS} - productive
 
 
 def later_sweeps_in_quota_day(now: datetime) -> int:
@@ -265,22 +280,27 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         runs_per_day = max(1, len(config.SWEEP_TIMES))
         return -(-len(storage.read_accounts()) // runs_per_day) + config.EXTRA_ACCOUNTS_PER_RUN
 
-    def _hours_overdue(self, account: str, now: datetime) -> float:
-        return hours_overdue(self.accounts.get(account), now)
-
     def _due_accounts(self) -> list[str]:
         """The accounts whose turn it is, in reading order: accounts in their regular sweep before new ones (a
         new account's first, deeper sweep can take days of quota), and within each, those that waited longest
         first. So an account a sweep didn't reach (its share, Instagram's limit) is first next time."""
         now = config.now_bogota()
         followed = storage.read_accounts()
-        due = followed if self.all_accounts else [a for a in followed if self._hours_overdue(a, now) >= 0]
+        posts = (
+            (record.account, had_events(record.outcome, record.is_event_post)) for record in self.processed.values()
+        )
+        unproductive = unproductive_accounts(posts)
+
+        def overdue(account: str) -> float:
+            return hours_overdue(self.accounts.get(account), now, account in unproductive)
+
+        due = followed if self.all_accounts else [account for account in followed if overdue(account) >= 0]
 
         def is_new(account: str) -> bool:
             state = self.accounts.get(account)
             return state is None or not state.backfill_done
 
-        return sorted(due, key=lambda account: (is_new(account), -self._hours_overdue(account, now)))
+        return sorted(due, key=lambda account: (is_new(account), -overdue(account)))
 
     def _apply_retention(self) -> None:
         """Archive long-past events (storage.archive_events) and forget old analyzed posts, so the site's data and
@@ -381,8 +401,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             # events off the site if it no longer announces them ("CANCELADO"). Others go through the
             # filter as usual (Flash-Lite), keeping Flash's small quota for events.
             # Records from before outcomes were kept (outcome None) had events if Gemini said so.
-            had_events = record.outcome in ("event", "merged") or (record.outcome is None and record.is_event_post)
-            if self._analyze_new_post(account, post, published, triage=not had_events):
+            announced = had_events(record.outcome, record.is_event_post)
+            if self._analyze_new_post(account, post, published, triage=not announced):
                 self.stats.reanalyzed += 1
             else:  # no quota or time left, or an error: the account stays due, so the edit ("CANCELADO") is read soon
                 self.stats.count(account, "pending")
