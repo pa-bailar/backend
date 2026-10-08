@@ -195,6 +195,18 @@ def test_every_word_that_names_a_focus_style_passes_its_filter():
         assert all(mentions_focus(word, (style,)) for word in words), style
 
 
+def test_the_filters_looser_words_dont_repeat_the_style_words():
+    """One word table (the owner, 7 Oct 2026): a word that names a style is the filter's through TEXT_STYLE_WORDS, so
+    the looser list holds only parts of words and words too loose to name a style. A copy there would outlive the
+    word's removal from the table (after #151, "milonga", "semba", "kiz" and "bachazouk" were in both)."""
+    from pa_bailar.account_options import _LOOSE_WORDS
+    from pa_bailar.normalize import TEXT_STYLE_WORDS, style_family
+
+    for style, words in _LOOSE_WORDS.items():
+        named = {word for word, named in TEXT_STYLE_WORDS.items() if style_family(named) == style}
+        assert not named & set(words), style
+
+
 def test_a_salsa_nights_other_words_pass_the_filter_and_a_reggaeton_night_doesnt():
     """The audit of 7 Oct 2026: these posts were dropped before Gemini at the 9 `solo:` accounts, their events lost."""
     salsa_bachata = ("salsa", "bachata")

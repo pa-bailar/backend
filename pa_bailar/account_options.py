@@ -23,13 +23,13 @@ FOCUS_STYLES = ("salsa", "bachata", "merengue", "kizomba", "tango")
 # Looser words the filter takes on top of the ones that name a style in a caption (normalize.TEXT_STYLE_WORDS, the
 # safeguards' words: one source): parts of words ("salser", "bachat": salsera, bachatero) and words too loose to fill
 # in a style (normalize._NOT_IN_TEXT: "timba", "casino", "mambo"). Letting a post through by mistake costs a triage;
-# dropping one loses its event.
+# dropping one loses its event. A whole word that names a style ("bachazouk", "kiz", "milonga") goes in
+# normalize._STYLE_SYNONYMS, never here too: the filter finds it there.
 # Also a salsa night's "salsotecas", "soneros" and live "orquesta" (the audit of 7 Oct 2026: their posts were dropped).
 _LOOSE_WORDS = {
     "salsa": ("salser", "salsotec", "sonero", "orquesta", "timba", "casino", "son cubano", "pachanga", "mambo"),
-    "bachata": ("bachat", "bachazouk"),
-    "kizomba": ("kiz", "semba", "tarraxinha"),
-    "tango": ("milonga", "tanguer"),
+    "bachata": ("bachat",),
+    "tango": ("tanguer",),
 }
 
 

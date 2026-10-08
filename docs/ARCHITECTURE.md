@@ -490,7 +490,7 @@ flowchart TD
   - `solo:<styles>` (salsa, bachata, merengue, kizomba, tango): a general bar, club or cultural space that also
     holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`:
     `normalize.TEXT_STYLE_WORDS` plus looser parts of words such as "salser", "salsotec", "sonero", "orquesta",
-    "bachat", "kiz", accents and case ignored) is recorded as no event for free, before any Gemini request ("no
+    "bachat", "tanguer", accents and case ignored) is recorded as no event for free, before any Gemini request ("no
     menciona salsa ni bachata"); the others get `prompts.FOCUS_RULES` too. A caption edited later is checked
     again, and so is a post the filter left out whenever it comes back in the window (`Sweep._filtered_before`,
     free): words added to the lists reach the posts dropped before them (the audit of 7 Oct 2026 found "SALSOTECA",
