@@ -974,6 +974,10 @@ def test_an_event_in_another_city_isnt_published_and_an_unknown_city_is_flagged(
         "Recuerda: Inversión: $50.000. Se cancela el día del taller",
         "Entrada general 20 mil\nse cancela el mismo día",
         "Inversión $120.000 / se cancela en dos cuotas",
+        # A condition, a denial or a question says nothing of whether it's off (the same pass).
+        "¡Este sábado! Taller de bachata\nSi no se completa el cupo mínimo, el taller se aplaza",
+        "¡Nos vemos el sábado en el parque!\nEn caso de lluvia el evento se aplaza",
+        "¡Sigue en pie! El social NO se cancela por la lluvia ☔",
     ],
 )
 def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_caption):
@@ -1010,6 +1014,10 @@ def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_c
         "Hoy 8 pm se cancela el social por lluvia",
         "Sábado 12: se cancela el social",
         "Se cancela el día de hoy por lluvia",
+        # A condition, a denial or a question elsewhere in the caption leaves the sentence that says it alone.
+        "EVENTO CANCELADO. Si compraste tu entrada, te devolvemos el dinero",
+        "No se cancela, se aplaza para el 20",
+        "Sí, se cancela el social",
     ],
 )
 def test_a_caption_saying_the_event_is_off(caption):
@@ -1047,6 +1055,15 @@ def test_a_caption_saying_the_event_is_off(caption):
         "Mensualidad $150.000 se cancela los primeros 5 días del mes",
         "Valor del taller: $45.000\n*Se cancela al momento de la inscripción",
         "Separa tu cupo con $20.000 y el saldo se cancela por adelantado",
+        # A condition, a refund rule, a denial or a question: none says it's off (the same pass).
+        "Si no se completa el cupo mínimo, el taller se aplaza",
+        "El taller se aplaza si no se completa el cupo",
+        "En caso de lluvia el evento se aplaza",
+        "Si el evento es cancelado se devuelve el dinero",
+        "¡Sigue en pie! El social NO se cancela por la lluvia",
+        "Aclaramos: el evento no está cancelado, ¡nos vemos!",
+        "¿Se cancela por la lluvia? ¡No! Te esperamos",
+        "Se suspende por lluvia? Nooo 💃",
     ],
 )
 def test_se_cancela_meaning_it_is_paid_or_other_words_dont_cancel(caption):

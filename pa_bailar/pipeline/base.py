@@ -81,13 +81,25 @@ _PAID = re.compile(
     r"|antes del?\b|el mismo dia\b|el dia del?\b(?! (?:hoy|manana)\b)|directamente\b|por adelantado\b"
     r"|con anticipacion\b|por (?:nequi|daviplata|transferencia|pse|tarjeta|bancolombia)\b)"
 )
+# A word that says it isn't off: "el social NO se cancela por la lluvia", "no está cancelado", "no lo aplazamos".
+_DENIED = re.compile(
+    r"\bno (?:se |esta |estan |fue |fueron |ha sido |han sido |sera |seran |lo |la |los |las )?"
+    r"(?:cancel|aplaz|suspend|pospon|pospu|reprogram|posterg)\w*"
+)
+# A sentence that only says it might be off: a condition ("si no se completa el cupo, el taller se aplaza", "en caso de
+# lluvia se aplaza", "si el evento es cancelado se devuelve el dinero"; not "Sí, …") or a question ("¿se cancela por la
+# lluvia?"). Reminders repeat them, and Flash finding no event in one took its event down for good (the bug-squash pass
+# of 8 Oct 2026).
+_MAYBE = re.compile(r"\bsi\b(?!,)|\ben caso de\b|[¿?]")
+_SENTENCE_END = re.compile(r"(?<=[!?])|(?<=\.)(?!\d)")  # not the dot of "$50.000"
 
 
 def _says_cancelled(post: Post, analysis: PostAnalysis) -> bool:
-    """Whether the post's caption, or Gemini's reason for finding no event in it, says it's cancelled or postponed (not
-    "se cancela" meaning it's paid)."""
+    """Whether the post's caption, or Gemini's reason for finding no event in it, says it's cancelled or postponed: a
+    sentence that states it (not "se cancela" meaning it's paid, nor a condition, a denial or a question)."""
     lines = [*(post.get("caption") or "").splitlines(), analysis.reason]
-    return any(_CANCELLED.search(_PAID.sub(" ", fold(line))) for line in lines)
+    sentences = [part for line in lines for part in _SENTENCE_END.split(_DENIED.sub(" ", _PAID.sub(" ", fold(line))))]
+    return any(_CANCELLED.search(sentence) and not _MAYBE.search(sentence) for sentence in sentences)
 
 
 def _days(event: EventDetails) -> str:
