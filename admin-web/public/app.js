@@ -105,12 +105,33 @@ function externalCard(external) {
     ${rows}<p class="small muted">Se reinicia ${when(external.resets_at)}</p></section>`;
 }
 
-function instagramCard(instagram) {
-  if (!instagram) return "";
-  const text = instagram.ok
-    ? `<span class="ok">✓</span> El token funciona. Cuota de Instagram usada: ${escapeHtml(instagram.app_usage_percent)}%.`
-    : `<span class="warn">⚠️</span> El token no funciona: ${escapeHtml(instagram.error)}`;
-  return `<section class="card"><h2>Instagram</h2><p>${text}</p></section>`;
+// Meta's measures, as the owner reads them (status.py _MEASURE_NAMES).
+const MEASURES = { call_count: "llamadas", total_cputime: "CPU", total_time: "tiempo" };
+
+/** The token (does it work) and the last sweep's highest reading of the quota: the token check's own reading is
+ * another counter (1% after a sweep stopped at 90%, 7 Oct 2026), so the quota is the sweep's (status.py). */
+function instagramCard(instagram, quota) {
+  if (!instagram && !quota) return "";
+  const token = !instagram
+    ? ""
+    : instagram.ok
+      ? `<p><span class="ok">✓</span> El token funciona.</p>`
+      : `<p><span class="warn">⚠️</span> El token no funciona: ${escapeHtml(instagram.error)}</p>`;
+  let usage = "";
+  if (quota) {
+    const measures = Object.entries(quota.detail ?? {})
+      .sort((a, b) => b[1] - a[1])
+      .map(([key, value]) => `${MEASURES[key] ?? key} ${value}%`)
+      .join(", ");
+    const mark = quota.usage >= quota.stop_at ? `<span class="warn">⚠️</span> ` : "";
+    const after = quota.stopped
+      ? " Se detuvo ahí: las cuentas que faltaron van primero en el siguiente."
+      : ` El barrido se detiene en ${quota.stop_at}%.`;
+    usage = `<p>${mark}Cuota de Instagram en el último barrido (${escapeHtml(when(quota.finished_at))}): ${escapeHtml(quota.usage)}%${
+      measures ? ` (${escapeHtml(measures)})` : ""
+    }.${after}</p>`;
+  }
+  return `<section class="card"><h2>Instagram</h2>${token}${usage}</section>`;
 }
 
 function accountsCard(status) {
@@ -679,7 +700,7 @@ function statusCards(result) {
       sweepsCard(status.sweeps),
       geminiCard(status.gemini),
       externalCard(status.external),
-      instagramCard(status.instagram),
+      instagramCard(status.instagram, status.instagram_quota),
       accountsCard(status),
       `<p class="small muted">Datos del barrido de ${when(status.generated_at)}</p>`,
     ].join("");

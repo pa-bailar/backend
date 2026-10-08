@@ -47,6 +47,8 @@ def fake_state():
                 "rate_limited": True,
                 "failed_accounts": ["academia"],
                 "run_url": "https://example/run",
+                "instagram_usage": 90,
+                "instagram_usage_detail": {"call_count": 31, "total_cputime": 90, "total_time": 77},
             },
         ],
         "gemini_usage.json": {"day": quota_day(), "requests": {"gemini-3.5-flash-lite": 120, "gemini-3.8-flash": 18}},
@@ -84,18 +86,21 @@ def test_usage_from_an_earlier_quota_day_counts_as_zero():
 
 
 def test_the_text_says_it_in_spanish():
-    result = status.collect(
-        now=NOW, instagram=lambda: {"ok": True, "app_usage_percent": 12, "error": None}, read=fake_state()
-    )
+    result = status.collect(now=NOW, instagram=lambda: {"ok": True, "error": None}, read=fake_state())
     text = status.markdown(result)
 
-    latest = "- ⚠️ hoy 9:12 p. m.: 1 nuevos, 0 unidos, 4 en espera, límite de Instagram, 1 cuenta sin leer"
+    latest = (
+        "- ⚠️ hoy 9:12 p. m.: 1 nuevos, 0 unidos, 4 en espera, Instagram 90%, límite de Instagram, 1 cuenta sin leer"
+    )
     assert f"{latest} · [ver](https://example/run)" in text
     assert "- ✅ hoy 9:12 a. m.: 2 nuevos, 1 unidos" in text
     assert "Próximos: hoy 9:00 p. m. y mañana 6:30 a. m." in text
     assert "| `gemini-3.8-flash` | extraction | 18 (agotado) | 18 |" in text
     assert "La cuota se reinicia mañana 2:00 a. m." in text
-    assert "Cuota de Instagram usada: 12%" in text
+    # The quota is the last sweep's highest reading, with Meta's measures, not the token check's (another counter).
+    assert "- Token: funciona." in text
+    quota = "Cuota de Instagram en el último barrido (hoy 9:12 p. m.): 90% (CPU 90%, tiempo 77%, llamadas 31%)."
+    assert f"- {quota} Se detuvo ahí: las cuentas que faltaron van primero en el siguiente." in text
     assert "1 en su primer barrido (más profundo): @nueva" in text
 
 

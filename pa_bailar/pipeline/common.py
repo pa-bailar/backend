@@ -95,7 +95,8 @@ class RunStats:
     models_unavailable: list[str] = field(default_factory=list)  # Gemini models this key couldn't use
     external: ExternalReport = field(default_factory=ExternalReport)  # the last resort (Groq, OpenRouter) this run
     due_accounts: list[str] = field(default_factory=list)  # whose turn it was (the ones not read wait for the next run)
-    instagram_usage: int = 0  # share of Instagram's quota used when the run ended (0-100)
+    instagram_usage: int = 0  # the highest share of Instagram's quota used during the run (0-100)
+    instagram_usage_detail: dict[str, int] = field(default_factory=dict)  # its measures (instagram.USAGE_MEASURES)
     by_account: dict[str, AccountStats] = field(default_factory=dict)
 
     def account(self, name: str) -> AccountStats:

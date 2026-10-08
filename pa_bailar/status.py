@@ -65,15 +65,49 @@ def _external_usage(provider: config.ExternalProvider, used: dict[str, Any]) -> 
 
 
 def check_instagram() -> dict[str, Any]:
-    """One Graph API call: does the token work, and how much of Instagram's quota is used."""
+    """One Graph API call: does the token work. Not the quota: this call's reading is another counter than the
+    accounts' (1% at the end of a sweep stopped at 90%, 7 Oct 2026); the sweeps record theirs (instagram_quota)."""
     from .instagram import InstagramClient, InstagramError  # only when asked: needs the Meta secrets
 
     try:
-        client = InstagramClient.from_env()
-        client.check_token()
+        InstagramClient.from_env().check_token()
     except (InstagramError, OSError, SystemExit) as error:
-        return {"ok": False, "app_usage_percent": None, "error": str(error)}
-    return {"ok": True, "app_usage_percent": client.app_usage_percent, "error": None}
+        return {"ok": False, "error": str(error)}
+    return {"ok": True, "error": None}
+
+
+def _instagram_quota(history: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """The last sweep's highest reading of Instagram's quota, its measures, and where the sweep stops."""
+    last = next((run for run in reversed(history) if run.get("instagram_usage") is not None), None)
+    if last is None:
+        return None
+    return {
+        "usage": last["instagram_usage"],
+        "detail": last.get("instagram_usage_detail") or {},
+        "stopped": bool(last.get("rate_limited")),
+        "finished_at": last["finished_at"],
+        "stop_at": config.INSTAGRAM_USAGE_STOP,
+    }
+
+
+# Meta's measures, as the owner reads them.
+_MEASURE_NAMES = {"call_count": "llamadas", "total_cputime": "CPU", "total_time": "tiempo"}
+
+
+def quota_line(quota: dict[str, Any], now: datetime) -> str:
+    """ "Cuota de Instagram en el último barrido (hoy 9:09 p. m.): 90% (CPU 90%, llamadas 31%, tiempo 77%). Se
+    detuvo ahí: las cuentas que faltaron van primero en el siguiente." """
+    measures = ", ".join(
+        f"{_MEASURE_NAMES.get(key, key)} {value}%"
+        for key, value in sorted(quota["detail"].items(), key=lambda item: -item[1])
+    )
+    text = f"Cuota de Instagram en el último barrido ({moment_label(quota['finished_at'], now)}): {quota['usage']}%"
+    text += f" ({measures})." if measures else "."
+    if quota["stopped"]:
+        text += " Se detuvo ahí: las cuentas que faltaron van primero en el siguiente."
+    else:
+        text += f" El barrido se detiene en {quota['stop_at']}%."
+    return text
 
 
 def _first_published(event: StoredEvent, processed: dict[str, dict[str, Any]]) -> datetime | None:
@@ -167,6 +201,7 @@ def collect(
             ],
         },
         "instagram": instagram() if instagram else None,
+        "instagram_quota": _instagram_quota(history),
         "accounts": {
             "followed": len(followed),
             "first_sweep_pending": [
@@ -294,13 +329,13 @@ def markdown(status: dict[str, Any]) -> str:
 
     lines += _models_lines(status, now)
 
-    instagram = status["instagram"]
-    if instagram is not None:
+    instagram, quota = status["instagram"], status.get("instagram_quota")
+    if instagram is not None or quota is not None:
         lines += ["### Instagram", ""]
-        if instagram["ok"]:
-            lines.append(f"- Token: funciona. Cuota de Instagram usada: {instagram['app_usage_percent']}%.")
-        else:
-            lines.append(f"- ⚠️ Token: no funciona ({instagram['error']}).")
+        if instagram is not None:
+            lines.append("- Token: funciona." if instagram["ok"] else f"- ⚠️ Token: no funciona ({instagram['error']}).")
+        if quota is not None:
+            lines.append(f"- {quota_line(quota, now)}")
         lines.append("")
 
     accounts = status["accounts"]

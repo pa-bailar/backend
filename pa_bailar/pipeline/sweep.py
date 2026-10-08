@@ -127,7 +127,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         self.stats.models_unavailable = self.extractor.models_unavailable()
         self.stats.external = self.extractor.external_report()
         self.stats.rate_limited = self.rate_limited
-        self.stats.instagram_usage = getattr(self.instagram, "app_usage_percent", 0)
+        self._record_instagram_usage()
         self.stats.out_of_time = self.time_up_logged
         storage.save_account_state(self.accounts)
         storage.save_meta(asdict(self.stats))
@@ -177,6 +177,21 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         except Exception:
             log.exception("   unexpected error with %s, continuing", what)
             self.stats.count(account, "errors")
+
+    def _record_instagram_usage(self) -> None:
+        """The run's highest reading of Instagram's quota, and which of Meta's measures it was (calls, CPU time, total
+        time): the sweep stops at config.INSTAGRAM_USAGE_STOP, and what drives a run there decides what to change."""
+        peak = getattr(self.instagram, "peak_usage_percent", 0) or getattr(self.instagram, "app_usage_percent", 0)
+        detail: dict[str, int] = getattr(self.instagram, "peak_usage_detail", {})
+        self.stats.instagram_usage, self.stats.instagram_usage_detail = peak, dict(detail)
+        if detail:
+            measures = ", ".join(f"{key} {value}%" for key, value in sorted(detail.items()))
+            log.info(
+                "Instagram quota at its highest this run: %s%% (%s; stops at %s%%)",
+                peak,
+                measures,
+                config.INSTAGRAM_USAGE_STOP,
+            )
 
     def _share_per_run(self) -> int:
         """How many accounts one sweep reads: its share of the day's sweeps, plus a margin for late ones."""

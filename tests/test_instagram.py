@@ -32,6 +32,22 @@ def test_the_business_use_case_header_instagram_sends_now_is_read_too():
     assert client.app_usage_percent == 40  # no header: the last value stays
 
 
+def test_each_measure_and_the_runs_peak_are_kept():
+    """Which of Meta's measures a run peaked on (calls, CPU time, total time) decides what to change (7 Oct 2026)."""
+    client = InstagramClient("token", "123")
+    reading = '{{"1": [{{"type": "instagram", "call_count": {}, "total_cputime": {}, "total_time": {}}}]}}'
+    client._read_usage(None, reading.format(20, 40, 30))
+    client._read_usage(None, reading.format(31, 90, 77))
+    client._read_usage(None, reading.format(1, 2, 3))  # the window drained
+    assert client.app_usage_percent == 3 and client.usage_detail == {
+        "call_count": 1,
+        "total_cputime": 2,
+        "total_time": 3,
+    }
+    assert client.peak_usage_percent == 90
+    assert client.peak_usage_detail == {"call_count": 31, "total_cputime": 90, "total_time": 77}
+
+
 def test_access_tokens_never_reach_error_text():
     from pa_bailar.instagram import redact
 
