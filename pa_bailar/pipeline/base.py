@@ -44,7 +44,7 @@ from ..normalize import (
 from ..prompts import account_rules
 from ..text import PRICE_WORDS, fold
 from . import common
-from .common import Extractor, PostSource, RunStats, caption_hash, has_ended, media_for, unpublishable
+from .common import Extractor, Flyer, PostSource, RunStats, caption_hash, has_ended, media_for, unpublishable
 
 log = logging.getLogger(__name__)
 
@@ -402,24 +402,10 @@ class SweepBase:
 
         if not publishable:
             log.info("     skipped: %s", analysis.reason)
-        # The readings closest to an event this post announced before go first, so each takes that event's id
-        # (_event_id): a new event listed before it took its URL (the bug-squash pass of 8 Oct 2026).
         readings = list(zip(publishable, flyers, strict=True))
-        closest_first = sorted(range(len(readings)), key=lambda i: _best_fit(readings[i][0], reusable), reverse=True)
-        added_by_reading = {
-            i: self._add_event(
-                account,
-                post,
-                readings[i][0],
-                media_for(post, readings[i][1]),
-                reusable,
-                count=count_as_new,
-                light=light,
-                announced=announced,
-            )
-            for i in closest_first
-        }
-        added = [added_by_reading[i] for i in range(len(readings))]
+        added = self._add_readings(
+            account, post, readings, reusable, count=count_as_new, light=light, announced=announced
+        )
         results = [result for result in added if result]
         outcome: tuple[PostOutcome, list[str], str | None]
         if results:
@@ -486,6 +472,35 @@ class SweepBase:
         """Events of this account that a new post could be announcing again (not already over)."""
         since = (config.bogota_date(published) - timedelta(days=1)).isoformat()
         return [event for event in self.events if event.account == account and (event.last_day or "") >= since]
+
+    def _add_readings(
+        self,
+        account: str,
+        post: Post,
+        readings: list[tuple[ExtractedEvent, Flyer]],
+        reusable: list[StoredEvent],
+        count: bool,
+        light: bool,
+        announced: set[str],
+    ) -> list[tuple[str, bool] | None]:
+        """Each of the post's readings (an event and its flyer) merged or stored (_add_event), the results in the post's
+        order. The readings closest to an event this post announced before go first, so each takes that event's id
+        (_event_id): a new event listed before it took its URL (the bug-squash pass of 8 Oct 2026)."""
+        closest_first = sorted(range(len(readings)), key=lambda i: _best_fit(readings[i][0], reusable), reverse=True)
+        added: list[tuple[str, bool] | None] = [None] * len(readings)
+        for i in closest_first:
+            candidate, flyer = readings[i]
+            added[i] = self._add_event(
+                account,
+                post,
+                candidate,
+                media_for(post, flyer),
+                reusable,
+                count=count,
+                light=light,
+                announced=announced,
+            )
+        return added
 
     def _add_event(
         self,
