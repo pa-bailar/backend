@@ -22,8 +22,8 @@ from typing import Any
 from . import config, discovery, links, storage, sweep_state
 from .external import usage_day, usage_reset
 from .gemini import daily_budget, quota_day, quota_reset
-from .models import AccountState, GeminiUsage, StoredEvent
-from .pipeline import hours_overdue
+from .models import AccountState, GeminiUsage, StoredEvent, had_events
+from .pipeline import hours_overdue, unproductive_accounts
 from .text import WEEKDAYS, clock, parse_hhmm, sessions_label
 
 RECENT_RUNS = 5
@@ -208,6 +208,10 @@ def collect(
     }
     processed = read(config.PROCESSED_POSTS_FILE.name, {})
     followed = storage.read_accounts()
+    unproductive = unproductive_accounts(
+        (record.get("account", ""), had_events(record.get("outcome"), bool(record.get("is_event_post"))))
+        for record in processed.values()
+    )
 
     events = storage.load_events() if config.EVENTS_FILE.exists() else None
     # Upcoming until its last day: an event over several days is on the site while it goes on.
@@ -246,10 +250,12 @@ def collect(
                 account for account in followed if account not in states or not states[account].backfill_done
             ],
             # Past their turn by more than a sweep's gap: a sweep didn't reach them (its share, Instagram's limit).
+            # An unproductive account's turn is every other day, as the sweep counts it.
             "waiting": [
                 account
                 for account in followed
-                if account in states and 12 < hours_overdue(states[account], now) < float("inf")
+                if account in states
+                and 12 < hours_overdue(states[account], now, account in unproductive) < float("inf")
             ],
         },
         "posts": {

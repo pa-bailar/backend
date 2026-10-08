@@ -266,6 +266,12 @@ class HiddenEvent(BaseModel):
 PostOutcome = Literal["event", "merged", "discarded", "not_event", "rejected", "hidden"]
 
 
+def had_events(outcome: str | None, is_event_post: bool) -> bool:
+    """Whether a post became or joined events (a record's `outcome`). Records from before outcomes were kept (None):
+    if Gemini called it an event post."""
+    return outcome in ("event", "merged") or (outcome is None and is_event_post)
+
+
 class ProcessedPost(BaseModel):
     """One record of state/processed_posts.json, keyed by post id."""
 
