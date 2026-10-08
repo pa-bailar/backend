@@ -104,6 +104,15 @@ def test_the_text_says_it_in_spanish():
     assert "1 en su primer barrido (más profundo): @nueva" in text
 
 
+def test_a_sweep_meta_stopped_below_our_limit_doesnt_say_it_stopped_there():
+    """The bug hunt of 7 Oct 2026: Meta's rate-limit error stops a sweep too, at any reading."""
+    quota = {"usage": 45, "detail": {"call_count": 45}, "stopped": True, "finished_at": NOW.isoformat(), "stop_at": 90}
+    text = status.quota_line(quota, NOW)
+    assert "45% (llamadas 45%). Meta lo frenó antes, con su propio límite" in text
+    assert "Se detuvo ahí" not in text
+    assert "Se detuvo ahí" in status.quota_line({**quota, "usage": 91}, NOW)
+
+
 def test_accounts_past_their_turn_by_more_than_a_sweep_are_waiting():
     late = (NOW.replace(hour=8) - timedelta(days=2)).isoformat()
     fresh = NOW.replace(hour=9).isoformat()
