@@ -11,7 +11,7 @@ folder; `ci.yml`, which `main` requires, checks the backend only). No dependenci
 
 ```
 node media/site-checks/run.mjs [scenario…|all] [--live | --url <u>] [--engine chrome,webkit]
-  [--device desktop,phone,iphone] [--size 1100x800] [--theme light,dark] [--now <iso>] [--shots] [--verbose]
+  [--device desktop,phone,iphone] [--size 1100x800] [--theme light,dark] [--now <iso>] [--fresh] [--shots] [--verbose]
 node media/site-checks/run.mjs --help        the scenarios and what each covers
 ```
 
@@ -26,8 +26,8 @@ node media/site-checks/run.mjs --help        the scenarios and what each covers
   "iPhone SE (3rd gen)" (375 × 667, Safari's user agent, touch). `--engine webkit --device iphone` is the closest to
   an iPhone here. `--size 1100x800` gives the device another window size (a half screen, a short laptop: the side
   panel needs 900 × 600).
-- **The page:** es-CO, Bogotá's zone, the first-visit hint and the install offer already dismissed, every third
-  party blocked but Google Fonts (so no analytics), the theme forced. `--now` freezes the clock (an ISO date, e.g.
+- **The page:** es-CO, Bogotá's zone, the first-visit hint and the install offer already dismissed (`--fresh`
+  leaves them for a first visit), every third party blocked but Google Fonts (so no analytics), the theme forced. `--now` freezes the clock (an ISO date, e.g.
   `2026-10-10T19:00:00-05:00`). Each step waits up to 8 s, each run 4 min: nothing hangs.
 - **Errors:** page errors, console errors and failed same-site requests fail the run (`no page errors`).
 - **Screenshots:** `--shots` saves the scenarios' screenshots in `media/out/site-checks/shots/` (git-ignored).
