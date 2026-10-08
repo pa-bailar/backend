@@ -390,7 +390,7 @@ Other workflow settings:
 
 Instagram's quota for us is small (it grows with our own account's impressions), so each account is read
 about **once a day**, half of them in each sweep, instead of every account twice a day
-(`Sweep._due_accounts`, `pipeline.hours_overdue`):
+(`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_overdue`):
 
 - **Each account's turn:** 20 hours after a sweep last read it (`SWEEP_EVERY_HOURS`: the same sweep the next
   day finds it due). Every 44 hours: quiet accounts, with no post in 30 days (`QUIET_AFTER_DAYS`; 45 until 8 Oct
@@ -409,9 +409,11 @@ about **once a day**, half of them in each sweep, instead of every account twice
   account that couldn't be read for another reason (not visible) waits for its next turn.
 - **Watching it:** each run records its highest reading of Instagram's quota and which of Meta's measures it was
   (`instagram_usage`, `instagram_usage_detail`, also in the run's log), and the dashboard shows the last sweep's and
-  lists accounts waiting more than a sweep past their turn. Evening sweeps read more accounts than morning ones
-  (58–69 against 43 on 6–7 Oct, the share set by when each account was read before) and reached 90–93%, the
-  mornings 54–62%: the 90% stop moves the accounts it didn't reach to the morning sweep, which evens the two out.
+  lists accounts waiting more than a sweep past their turn (their turns counted by the sweep's own
+  `overdue_by_account`; a sweep's gap from `SWEEP_TIMES`: 12 hours). Evening sweeps read more accounts than
+  morning ones (58–69 against 43 on 6–7 Oct, the share set by when each account was read before) and reached
+  90–93%, the mornings 54–62%: the 90% stop moves the accounts it didn't reach to the morning sweep, which evens the
+  two out.
 - **Everyone now:** `sweep --all` (the workflow's `all_accounts` input).
 
 ### 5.3 What a run decides is a failure
@@ -1461,7 +1463,7 @@ flowchart LR
 | `pipeline/` | `Sweep`, one class built from a module per part (the package re-exports the public names): |
 | `pipeline/common.py` | Run statistics (`RunStats`), the clients' protocols, `AddPostError`, retryable errors, flyers and media records |
 | `pipeline/base.py` | `SweepBase`: the state (events, analyzed posts, hidden events, accounts), storing one analyzed post (only upcoming events in Bogotá; a cancelled post's events taken down), one identity per post |
-| `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; `hours_overdue` |
+| `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; `overdue_by_account` (each account's turn, for the sweep and the status page) |
 | `pipeline/manual_post.py`, `story_admin.py`, `hiding.py` | The admin tools, mixed into `Sweep`: add a post (`add_post`), add a story (`add_story`), hide a story or an event (`hide_story`, `hide_event`) |
 | `clips.py` | Videos' preview clips: download, cut 6 silent seconds with ffmpeg |
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, the archive of past events, `accounts.txt` |
