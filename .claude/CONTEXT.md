@@ -31,7 +31,7 @@ docs: it says how the pieces fit, where each truth lives, and what bites. Durabl
 
 ## 3. The project in one paragraph
 
-A free ($0) site of dance events in Bogotá. Two sweeps a day (6:30 and 21:00 Bogotá; 9:00 until 7 Oct 2026) read ~125 organizers' Instagram
+A free ($0) site of dance events in Bogotá. Two sweeps a day (6:30 and 21:00 Bogotá; 9:00 until 7 Oct 2026) read ~130 organizers' Instagram
 posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two repositories in `C:\Users\Jhoan\Code`:
 
 | Piece | Where |
@@ -44,12 +44,13 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
 
 ## 4. How the pieces connect
 
-- **An event's life:** cron-job.org starts `daily-sweep.yml` → `sweep` picks whose turn it is (`accounts.txt`, the
-  quiet and dormant tiers) → Instagram Graph API (Business Discovery) → Flash-Lite triage → Flash extraction (the
-  `ModelPool`; Lite, then Groq/OpenRouter as the last resort, all provisional) → `normalize.py` safeguards →
-  merging into events (`merging.py`, `ids.py`; stored duplicates repaired on every load) → state on the
-  `sweep-state` branch; images pushed to `pa-bailar/media` (`media_store.py`), then the data written to the site
-  repo through a data PR that merges itself → the site's `deploy.yml` copies the images in, builds and publishes.
+- **An event's life:** cron-job.org starts `daily-sweep.yml` → `sweep` picks whose turn it is (`accounts.txt`;
+  quiet, unproductive and dormant accounts less often) → Instagram Graph API (Business Discovery) → Flash-Lite triage
+  → Flash extraction (the `ModelPool`; an older Flash and Lite, then Groq/OpenRouter as the last resort, all
+  provisional) → `normalize.py` safeguards → merging into events (`merging.py`, `ids.py`; stored duplicates repaired
+  on every load) → images pushed to `pa-bailar/media` (`media_store.py`), then the data written to the site repo
+  through a data PR that merges itself, then the state saved on the `sweep-state` branch → the site's `deploy.yml`
+  copies the images in, builds and publishes.
   Events 60 days past are archived (`data/archive/<year>.json`), not deleted.
 - **The owner's hand:** PB Admin (a share target on the phone) or a GitHub issue → `admin.yml` → `pa_bailar admin`
   (no AI except reading a post or a story) → the bot's answer on the issue. Events can be added from a post or a
@@ -92,7 +93,7 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
   isn't on the free tier): the owner disables it in AI Studio / Google Cloud billing (7 Oct 2026).
 - **Judge a change to the reading on the test set,** not on impressions: `gold/` (40 posts checked by hand) and
   `admin bakeoff --gold [--ocr]`. Two identical Flash-Lite runs differ by ~3 of 60 events, so a smaller gain is noise.
-  `checks.py` (rules, no AI) and `ocr.py` flag readings for a second look.
+  `checks.py` (rules, no AI) and `ocr.py` flag readings for a second look (not called by the sweep yet).
 - **`accounts.txt` options:** `bar` (only special nights, `bar: true`), `solo:<styles>` (a focus filter); silent
   accounts commented out with why.
 - **The admin bot is not AI:** fixed patterns (shared with `admin-web` through `tests/fixtures/patterns.json`).
