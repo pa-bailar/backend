@@ -13,7 +13,7 @@ from pa_bailar.external import ExternalReport
 from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError, UnreadableAnswerError
 from pa_bailar.ids import new_event_id
 from pa_bailar.instagram import InstagramError
-from pa_bailar.models import PostAnalysis, ProcessedPost, Triage
+from pa_bailar.models import PostAnalysis, ProcessedPost, Triage, had_events
 from pa_bailar.pipeline import Sweep, unproductive_accounts
 from tests.factories import EVENT_DATE, event_id, extracted, make_image, media, stored
 
@@ -758,6 +758,23 @@ def test_unproductive_accounts_need_enough_posts_and_not_one_event():
     many = config.UNPRODUCTIVE_AFTER_POSTS
     assert unproductive_accounts([("a", False)] * many + [("b", False)] * (many - 1)) == {"a"}
     assert unproductive_accounts([("a", False)] * many + [("a", True)]) == set()
+
+
+@pytest.mark.parametrize(
+    ("outcome", "is_event_post", "had"),
+    [
+        ("event", True, True),
+        ("merged", True, True),
+        ("discarded", True, False),
+        ("hidden", True, False),
+        ("not_event", False, False),
+        (None, True, True),  # recorded before outcomes were: Gemini called it an event post
+        (None, False, False),
+    ],
+)
+def test_a_post_had_events_when_it_became_or_joined_one(outcome, is_event_post, had):
+    """What the unproductive tier and an edited caption (the filter skipped) count as a post with events."""
+    assert had_events(outcome, is_event_post) is had
 
 
 def test_dormant_accounts_take_their_turn_once_a_week():
