@@ -47,7 +47,8 @@ RECENT_PAST_DAYS = 7
 SCREENSHOT_MAX_AGE_DAYS = 30
 _WEEKDAY_KEYS = {fold(name)[:3]: number for number, name in enumerate(WEEKDAYS)}
 _FILE_TIME = re.compile(r"(20\d\d)[-_.]?(\d\d)[-_.]?(\d\d)[-_. T]?(\d\d)[-_.:h]?(\d\d)[-_.:m]?(\d\d)")
-_AGE = re.compile(r"(\d+)\s*(min|m|h|d)\b", re.IGNORECASE)
+# "5 h", "32 min", "1 d", and spelled out: "5 horas", "32 minutos", "5hrs", "1 día" (the audit of 7 Oct 2026).
+_AGE = re.compile(r"(\d+)\s*(minutos?|mins?|m|horas?|hrs?|h|d[ií]as?|d)\b", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -126,10 +127,8 @@ def story_age(text: str | None) -> timedelta | None:
     match = _AGE.search(text or "")
     if not match:
         return None
-    amount, unit = int(match.group(1)), match.group(2).lower()
-    age = {"min": timedelta(minutes=amount), "m": timedelta(minutes=amount), "h": timedelta(hours=amount)}.get(
-        unit, timedelta(days=amount)
-    )
+    amount, unit = int(match.group(1)), match.group(2).lower()[:1]
+    age = {"m": timedelta(minutes=amount), "h": timedelta(hours=amount)}.get(unit, timedelta(days=amount))
     return age if age <= timedelta(days=1) else None
 
 

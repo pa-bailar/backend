@@ -36,9 +36,13 @@ STUCK_RUNS = 4  # pending posts not going down over this many runs: the backlog 
 QUIET_RUNS = 14  # a week of runs...
 QUIET_MIN_POSTS = 10  # ...analyzing at least this many posts without finding a single event
 INACTIVE_DAYS = 45  # an account without posts for this long may be abandoned
-DATE_DOUBT = re.compile(r"\b(fechas?|dias?)\b")  # doubts about the date (folded text): the costliest mistake
+# Doubts about the date (folded text): the costliest mistake. Its words, a month or a year guessed ("mes deducido"),
+# and a weekday that doesn't fit ("dice sábado, pero el 12 es domingo": stories.py).
+DATE_DOUBT = re.compile(r"\b(fechas?|dias?|mes|ano|lunes|martes|miercoles|jueves|viernes|sabado|domingo)\b")
 # Doubts about whether it takes place at all, or in Bogotá (folded text): as costly (normalize.CITY_DOUBT).
-PLACE_DOUBT = re.compile(r"\b(bogota|cancelad[oa]s?|aplazad[oa]s?)\b")
+PLACE_DOUBT = re.compile(
+    r"\b(bogota|cancelad[oa]s?|aplazad[oa]s?|pospuest[oa]s?|suspendid[oa]s?|reprogramad[oa]s?|postergad[oa]s?)\b"
+)
 # Several events in one post read by a lighter model (normalize.MULTI_DOUBT): times and prices may be mixed up.
 MULTI_DOUBT_RULE = re.compile(re.escape(fold(MULTI_DOUBT)))
 # "@name" in an issue mentions (and notifies) the GitHub user of that name. Instagram handles, and titles or

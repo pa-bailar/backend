@@ -10,6 +10,13 @@ from pa_bailar import config, discovery
 from pa_bailar.gemini import ExtractionError, GeminiKeyError
 from pa_bailar.models import AccountClassification
 
+
+def test_the_words_of_dance_accounts_count_in_their_bio():
+    """The audit of 7 Oct 2026: these scored nothing, so such an account was never classified."""
+    for bio in ("Salseros de corazón", "Perreo y dembow", "Cumbia y folclor colombiano", "Milongas en Bogotá"):
+        assert discovery.dance_score(bio) >= 1, bio
+
+
 HTML_EXPORT = """<main>
 <div><h2>zafradance</h2><div><a target="_blank" href="https://www.instagram.com/_u/zafradance">x</a></div></div>
 <div><h2>tia.maria</h2><div><a target="_blank" href="https://www.instagram.com/_u/tia.maria">x</a></div></div>

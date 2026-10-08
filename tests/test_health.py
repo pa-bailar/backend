@@ -181,6 +181,19 @@ def test_every_date_doubt_normalize_writes_lists_the_event_for_review():
         assert health.review_reasons(stored(doubts=[doubt])) == [doubt]
 
 
+def test_doubts_about_the_day_or_whether_it_happens_list_the_event_for_review():
+    """Their other words (the audit of 7 Oct 2026): a month or year guessed, a weekday that doesn't fit, a new date."""
+    for doubt in (
+        "mes deducido",
+        "año deducido",
+        "dice sábado, pero el 12 es domingo",
+        "evento reprogramado",
+        "pospuesto por lluvia",
+        "suspendido",
+    ):
+        assert health.review_reasons(stored(doubts=[doubt])) == [doubt], doubt
+
+
 def test_two_events_of_an_account_that_day_sharing_a_title_word_are_listed_for_review():
     """What the merging rules couldn't tell (a new pattern) shows in the health report before visitors notice."""
     day = (date.today() + timedelta(days=3)).isoformat()

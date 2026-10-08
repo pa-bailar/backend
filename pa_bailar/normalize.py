@@ -191,7 +191,7 @@ def normalize_styles(styles: Sequence[str]) -> list[str]:
     return result
 
 
-_WHATSAPP = re.compile(r"\b(whats\s*app|wpp|wsp|wa)\b", re.IGNORECASE)
+_WHATSAPP = re.compile(r"\b(whats\s*app?|wpp|wsp|wa|wasap|wassap|guasap)\b", re.IGNORECASE)
 _HANDLE = re.compile(rf"^@{HANDLE}$")  # longer than Instagram allows: not an account (dropped, unless it's digits)
 _WEBSITE = re.compile(r"^(https?://)?[\w-]+(\.[\w-]+)+(/\S*)?$", re.IGNORECASE)
 
@@ -320,7 +320,7 @@ _OTHER_CURRENCY = re.compile(
     r"|\b(?:usd|mxn|eur|euros?|gbp|dolar(?:es)?|dollars?|clp|ars|brl|reales|libras)\b"
     r"|\bpesos? (?:mexicanos?|argentinos?|chilenos?|dominicanos?|cubanos?|uruguayos?)\b"
 )
-_FREE = re.compile(r"\b(?:gratis|gratuit[oa]s?|libre|free|sin costo)\b")
+_FREE = re.compile(r"\b(?:gratis|gratuit[oa]s?|libre|free|sin costo|sin cover|no cover|cortesia)\b")
 
 
 def _in_other_currency(price: Price) -> bool:
