@@ -390,7 +390,7 @@ jobs:
           git commit -qm "chore(media): images of run ${GITHUB_RUN_ID} ($(date -u +%F))"
           git push -q origin HEAD:main
 
-      - name: Open a data pull request in the site repository if events or flyers changed
+      - name: Open a data pull request in the site repository if events changed
         id: pr
         # Keep progress from a sweep that failed partway (it still shows as failed), unless the images weren't saved.
         if: ${{ !cancelled() && steps.wait.outcome == 'success' && steps.media.outcome != 'failure' }}
@@ -404,9 +404,9 @@ jobs:
             startsWith(inputs.hide, 'story-') && 'story hidden by hand' || inputs.hide && 'event hidden by hand' ||
             'daily sweep' }}
         run: |
-          # Only events, the archive and flyers count as a change: meta.json is rewritten every run (with the check
-          # time). Flyers only while the site repository still keeps them (until it ignores data/flyers/).
-          if [ -z "$(git status --porcelain -- data/events.json data/archive data/flyers)" ]; then
+          # Only events and the archive count as a change: meta.json is rewritten every run (with the check time), and
+          # the images went to their own repository (the site repository ignores them).
+          if [ -z "$(git status --porcelain -- data/events.json data/archive)" ]; then
             echo "No new or changed events: no pull request."
             exit 0
           fi

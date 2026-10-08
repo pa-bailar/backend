@@ -123,7 +123,7 @@ def _explain_record(
         light = (
             " (último recurso fuera de Gemini, que no tenía cuota; provisional: se relee con Gemini)"
             if is_external(model)
-            else " (Flash-Lite, provisional: se relee con Flash)"
+            else " (provisional: se relee con Flash)"
         )
     result.check("ok", f"Analizada el {_date(record.processed_at)} con {model}{light}.")
 
@@ -222,8 +222,8 @@ def _explain_unseen(
         result.verdict = "La cuenta se agregó hace poco y todavía no se ha barrido: entra en el próximo barrido."
     elif read_at and published > datetime.fromisoformat(read_at):
         result.verdict = (
-            "Se publicó después de la última lectura de la cuenta: entra en su próximo turno (cada cuenta se lee "
-            "una vez al día). Agregarla la publica ya."
+            "Se publicó después de la última lectura de la cuenta: entra en su próximo turno (casi todas las cuentas "
+            "se leen una vez al día). Agregarla la publica ya."
         )
     elif (
         first_seen
