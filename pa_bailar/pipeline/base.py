@@ -6,7 +6,7 @@ import logging
 import re
 import time
 from datetime import datetime, timedelta
-from typing import Any, cast
+from typing import Any, NamedTuple, cast
 
 from .. import config, links, public_post, storage
 from ..account_options import AccountOptions
@@ -170,17 +170,28 @@ def _details(event: ExtractedEvent) -> dict[str, Any]:
     return event.model_dump(include=set(EventDetails.model_fields))
 
 
-def _fit(event: StoredEvent, candidate: ExtractedEvent) -> tuple[bool, bool, bool, bool]:
-    """How well an event a post announced before fits a new reading of the post: the same date, then the same title,
-    start time and type, in that order of weight."""
-    same_time = bool(event.start_time) and event.start_time == candidate.start_time
-    same_title = fold(event.title) == fold(candidate.title)
-    return event.date == candidate.date, same_title, same_time, event.event_type == candidate.event_type
+class _Fit(NamedTuple):
+    """How well an event a post announced before fits a new reading of the post. Compared as a tuple: the same date
+    weighs most, then the same title, start time and type, in that order."""
+
+    same_date: bool
+    same_title: bool
+    same_time: bool
+    same_type: bool
 
 
-def _best_fit(candidate: ExtractedEvent, events: list[StoredEvent]) -> tuple[bool, bool, bool, bool]:
-    """How well the closest of these events fits the reading (_fit)."""
-    return max((_fit(event, candidate) for event in events), default=(False, False, False, False))
+def _fit(event: StoredEvent, candidate: ExtractedEvent) -> _Fit:
+    return _Fit(
+        same_date=event.date == candidate.date,
+        same_title=fold(event.title) == fold(candidate.title),
+        same_time=bool(event.start_time) and event.start_time == candidate.start_time,
+        same_type=event.event_type == candidate.event_type,
+    )
+
+
+def _best_fit(candidate: ExtractedEvent, events: list[StoredEvent]) -> _Fit:
+    """How well the closest of these events fits the reading."""
+    return max((_fit(event, candidate) for event in events), default=_Fit(False, False, False, False))
 
 
 class SweepBase:
