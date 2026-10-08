@@ -1,6 +1,7 @@
 """End-to-end sweep with fake Instagram and Gemini: no network, no quota."""
 
 import json
+import time
 from datetime import UTC, datetime, timedelta
 
 import httpx
@@ -79,6 +80,7 @@ class FakeExtractor:
         self.known_seen: dict[str, list[str]] = {}
         self.extracted_posts: list[str] = []
         self.rules_seen: dict[str, str] = {}  # post id → the account's extra prompt rules (prompts.account_rules)
+        self.flash_back_at: float | None = None  # flash_ready_at(): when busy Flash answers again; None: no quota
 
     def can_extract_with_flash(self) -> bool:
         return self.flash_available
@@ -88,6 +90,9 @@ class FakeExtractor:
 
     def can_upgrade(self) -> bool:
         return self.flash_available
+
+    def flash_ready_at(self) -> float | None:
+        return self.flash_back_at
 
     def can_analyze(self) -> bool:
         return not self.out_of_quota
@@ -257,6 +262,39 @@ def test_provisional_extraction_is_upgraded_when_flash_is_back():
     events = read(config.EVENTS_FILE)
     assert len(events) == 1 and events[0]["title"] == "Leído por Flash"
     assert events[0]["id"] == event_id("Leído por Lite")  # the URL shared meanwhile keeps working
+
+
+def busy_flash_at_the_upgrades(monkeypatch, back_in: float | None) -> tuple[FakeExtractor, list[float]]:
+    """A run whose upgrades find Flash paused as busy, back `back_in` seconds later (None: out of quota). The wait
+    is recorded, not slept, and Flash answers after it."""
+    extractor = FakeExtractor({"p1": event_post("p1", title="Leído por Flash")}, flash_available=False)
+    extractor.flash_back_at = None if back_in is None else time.monotonic() + back_in
+    waits: list[float] = []
+
+    def wait(seconds: float) -> None:
+        waits.append(seconds)
+        extractor.flash_available = True
+
+    monkeypatch.setattr("pa_bailar.pipeline.sweep.time.sleep", wait)
+    return extractor, waits
+
+
+def test_upgrades_wait_once_for_flash_busy_a_moment_ago(monkeypatch):
+    """7 Oct 2026, 21:09: every Flash model paused as busy, 34 upgrades given up, 21 of the run's 30 minutes left."""
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    run(instagram, FakeExtractor({"p1": event_post("p1", title="Leído por Lite")}, flash_available=False))
+    extractor, waits = busy_flash_at_the_upgrades(monkeypatch, back_in=60)
+    second = run(instagram, extractor)
+    assert len(waits) == 1 and 0 < waits[0] <= 60
+    assert second.upgraded == 1 and read(config.EVENTS_FILE)[0]["title"] == "Leído por Flash"
+
+
+def test_upgrades_dont_wait_for_flash_out_of_quota_or_past_the_runs_time(monkeypatch):
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    run(instagram, FakeExtractor({"p1": event_post("p1", title="Leído por Lite")}, flash_available=False))
+    for back_in in (None, config.MAX_RUN_MINUTES * 60.0):  # no budget left today; back after the run's end
+        extractor, waits = busy_flash_at_the_upgrades(monkeypatch, back_in)
+        assert run(instagram, extractor).upgraded == 0 and waits == []
 
 
 def test_flash_corrects_an_event_only_lighter_models_read_even_when_two_posts_announce_it():

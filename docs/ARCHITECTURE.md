@@ -751,6 +751,11 @@ flowchart TD
   budget kept, and no provisional post is upgraded while Flash is paused (`EventExtractor.can_upgrade`). On 6 Oct
   2026 Flash answered 503 all morning, and 3 attempts per model per post spent its whole day (36 requests, all
   counted, since Google may count them) without a single answer; now an outage costs 3 per model per pause.
+- **The upgrades wait once for a paused Flash** (`Sweep._wait_for_flash`): when every Flash model with budget left
+  is only paused, the run waits for the first pause to end, if `FLASH_WAIT_MARGIN_SECONDS` (4 minutes) of its time
+  budget still follow, then upgrades while Flash answers. On 7 Oct 2026 at 21:09 the 34 queued upgrades were given
+  up at once, with 21 of the run's 30 minutes left; 40 of the 85 upcoming events had only a lighter reading. Out of
+  quota, it doesn't wait; busy again after the wait, the rest waits for a later run.
 
 ### 7.3 The last resort: Groq and OpenRouter
 

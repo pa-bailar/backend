@@ -92,6 +92,11 @@ class EventExtractor:
         post now."""
         return self.pool.any_ready(config.EXTRACTION_MODELS)
 
+    def flash_ready_at(self) -> float | None:
+        """When Flash, busy a moment ago but with budget left, is free of its pause (time.monotonic()); None when it
+        has no budget left today."""
+        return self.pool.ready_at(config.EXTRACTION_MODELS)
+
     def can_analyze(self) -> bool:
         """Some model still has quota today for a new post (triage, extraction or provisional extraction), counting
         the last resort."""

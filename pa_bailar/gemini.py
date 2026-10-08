@@ -193,6 +193,14 @@ class ModelPool:
         """Some model with budget left and not paused."""
         return any(self.has_budget(model) and not self.paused(model) for model in models)
 
+    def ready_at(self, models: tuple[str, ...]) -> float | None:
+        """When a model with budget left is next free of its busy pause (time.monotonic(); now or earlier if one is
+        ready), or None when none has budget: then there's nothing to wait for."""
+        with_budget = [model for model in models if self.has_budget(model)]
+        if not with_budget:
+            return None
+        return min(self._paused_until.get(model, 0.0) for model in with_budget)
+
     def _spend(self, model: str) -> None:
         self._used[model] += 1
         self.requests_this_run[model] += 1
