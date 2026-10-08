@@ -405,7 +405,6 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             # A post that had events skips the filter: the extraction decides again, and takes its old
             # events off the site if it no longer announces them ("CANCELADO"). Others go through the
             # filter as usual (Flash-Lite), keeping Flash's small quota for events.
-            # Records from before outcomes were kept (outcome None) had events if Gemini said so.
             announced = had_events(record.outcome, record.is_event_post)
             if self._analyze_new_post(account, post, published, triage=not announced):
                 self.stats.reanalyzed += 1
