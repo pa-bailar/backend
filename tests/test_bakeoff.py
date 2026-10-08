@@ -225,6 +225,26 @@ def test_an_answer_to_another_prompt_is_asked_again(tmp_path, monkeypatch):
     assert bakeoff.stale_answers([item], bakeoff.load_cache(bakeoff.cache_file("m", tmp_path)), tmp_path) == 1
 
 
+def test_a_flyer_gone_since_keeps_its_answer_and_counts_as_current(tmp_path):
+    """The code-quality pass of 8 Oct 2026: once a picked post's flyer was gone (its event archived), `--score`
+    crashed counting stale answers, and the next run replaced the cached answer with the error."""
+    (tmp_path / "flyers").mkdir()
+    flyer = tmp_path / "flyers" / "a-0.webp"
+    flyer.write_bytes(make_image())
+    item = {"post_id": "a", "account": "academia", "caption": "Social", "flyer": "flyers/a-0.webp", "events": []}
+    item |= {"published": "2026-10-01T12:00:00+0000", "processed_at": "2026-10-01T10:00:00-05:00"}
+
+    def answering(model, contents):
+        return PostAnalysis(is_event_post=True, reason="ok", events=[])
+
+    bakeoff.run_model("m", [item], answering, tmp_path, cache_dir=tmp_path, say=lambda text: None)
+    flyer.unlink()
+    cache = bakeoff.load_cache(bakeoff.cache_file("m", tmp_path))
+    assert bakeoff.stale_answers([item], cache, tmp_path) == 0
+    bakeoff.run_model("m", [item], answering, tmp_path, cache_dir=tmp_path, say=lambda text: None)
+    assert bakeoff.load_cache(bakeoff.cache_file("m", tmp_path))["a"]["answer"]["reason"] == "ok"
+
+
 def test_groq_answers_every_post_waiting_for_its_tokens_and_a_skip_isnt_cached(tmp_path, monkeypatch):
     """Review finding: the second post was refused "tokens for this minute are used" and cached as an error."""
     now = [1000.0]

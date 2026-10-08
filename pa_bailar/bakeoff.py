@@ -182,13 +182,21 @@ def request_fingerprint(contents: list[types.PartUnionDict]) -> str:
 
 
 def stale_answers(picks: list[Item], cache: dict[str, Any], data_dir: Path, with_ocr: bool = False) -> int:
-    """How many cached answers were read with another request than the one asked today."""
-    return sum(
-        1
-        for item in picks
-        if "answer" in cache.get(item["post_id"], {})
-        and cache[item["post_id"]].get("request") != request_fingerprint(contents_for(item, data_dir, with_ocr))
-    )
+    """How many cached answers were read with another request than the one asked today. A post whose flyer can't be
+    read anymore (removed with its event) can't be asked again, so its answer isn't stale: it crashed `--score` (the
+    code-quality pass of 8 Oct 2026)."""
+
+    def stale(item: Item) -> bool:
+        cached = cache.get(item["post_id"], {})
+        if "answer" not in cached:
+            return False
+        try:
+            contents = contents_for(item, data_dir, with_ocr)
+        except OSError:
+            return False
+        return bool(cached.get("request") != request_fingerprint(contents))
+
+    return sum(1 for item in picks if stale(item))
 
 
 def run_model(
@@ -208,8 +216,9 @@ def run_model(
     for item in picks:
         try:
             contents = contents_for(item, data_dir, with_ocr)
-        except OSError as error:  # the flyer can't be read: nothing to ask
-            cache[item["post_id"]] = {"error": str(error)[:300]}
+        except OSError as error:  # the flyer can't be read: nothing to ask; an answer cached before stays
+            if "answer" not in cache.get(item["post_id"], {}):
+                cache[item["post_id"]] = {"error": str(error)[:300]}
             say(f"  {item['post_id']}: error: {str(error)[:120]}")
             continue
         request = request_fingerprint(contents)
