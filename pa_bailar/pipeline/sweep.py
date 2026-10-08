@@ -4,7 +4,7 @@ statistics), with the admin tools' operations mixed in (manual_post.py, story_ad
 import logging
 import time
 from collections import Counter
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import UTC, date, datetime, timedelta
@@ -79,6 +79,16 @@ def unproductive_accounts(posts: Iterable[tuple[str, bool]]) -> set[str]:
         if events:
             productive.add(account)
     return {account for account, count in read.items() if count >= config.UNPRODUCTIVE_AFTER_POSTS} - productive
+
+
+def overdue_by_account(
+    accounts: Iterable[str], states: Mapping[str, AccountState], posts: Iterable[tuple[str, bool]], now: datetime
+) -> dict[str, float]:
+    """How long past its turn each account is (hours_overdue), its tier read from its state and from the posts read
+    (each its account and whether it had events: unproductive_accounts). The sweep's order and the status page's
+    waiting accounts both count turns with it, so a tier counts the same in both."""
+    unproductive = unproductive_accounts(posts)
+    return {account: hours_overdue(states.get(account), now, account in unproductive) for account in accounts}
 
 
 def later_sweeps_in_quota_day(now: datetime) -> int:
@@ -284,23 +294,18 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         """The accounts whose turn it is, in reading order: accounts in their regular sweep before new ones (a
         new account's first, deeper sweep can take days of quota), and within each, those that waited longest
         first. So an account a sweep didn't reach (its share, Instagram's limit) is first next time."""
-        now = config.now_bogota()
         followed = storage.read_accounts()
         posts = (
             (record.account, had_events(record.outcome, record.is_event_post)) for record in self.processed.values()
         )
-        unproductive = unproductive_accounts(posts)
-
-        def overdue(account: str) -> float:
-            return hours_overdue(self.accounts.get(account), now, account in unproductive)
-
-        due = followed if self.all_accounts else [account for account in followed if overdue(account) >= 0]
+        overdue = overdue_by_account(followed, self.accounts, posts, config.now_bogota())
+        due = followed if self.all_accounts else [account for account in followed if overdue[account] >= 0]
 
         def is_new(account: str) -> bool:
             state = self.accounts.get(account)
             return state is None or not state.backfill_done
 
-        return sorted(due, key=lambda account: (is_new(account), -overdue(account)))
+        return sorted(due, key=lambda account: (is_new(account), -overdue[account]))
 
     def _apply_retention(self) -> None:
         """Archive long-past events (storage.archive_events) and forget old analyzed posts, so the site's data and
