@@ -360,6 +360,22 @@ def test_the_test_sets_options_need_the_test_set(capsys):
         assert "go with --gold" in capsys.readouterr().err
 
 
+def test_each_mode_runs_its_default_models_or_the_ones_named(monkeypatch):
+    """Flash-Lite alone on the test set, Flash-Lite and the last resort's models against Flash; `--models` names the
+    ones run, even the other mode's defaults (they were taken for "no --models" and swapped)."""
+    from pa_bailar.commands import admin
+
+    monkeypatch.setattr(admin.sweep_state, "refresh", lambda: True)
+    ran: list[tuple[str, list[str]]] = []
+    monkeypatch.setattr(bakeoff, "run_gold", lambda models, **options: ran.append(("gold", models)))
+    monkeypatch.setattr(bakeoff, "run", lambda posts, models, **options: ran.append(("flash", models)))
+    defaults = list(bakeoff.DEFAULT_MODELS)
+    admin.main(["bakeoff", "--gold", "--score"])
+    admin.main(["bakeoff", "--score"])
+    admin.main(["bakeoff", "--gold", "--score", "--models", *defaults])
+    assert ran == [("gold", list(bakeoff.GOLD_MODELS)), ("flash", defaults), ("gold", defaults)]
+
+
 def test_the_ocr_variant_says_what_it_needs_without_the_engine(monkeypatch):
     monkeypatch.setattr(bakeoff.ocr, "available", lambda: False)
     said: list[str] = []
