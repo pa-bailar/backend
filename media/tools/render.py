@@ -201,6 +201,11 @@ def main() -> None:
             props.write_text(json.dumps({"blur": False}))
             remotion("render", renders[name], str(dest), "--scale=0.5", f"--props={props}")
         else:
+            # Re-rendering a version replaces its file: drop the <deliverable>.mp4 link to it first, or the link keeps
+            # the old cut and latest_link() then saves it as "-unversioned-" (six stale cuts on 8 Oct 2026).
+            link = v.out / f"{name}.mp4"
+            if dest.exists() and link.exists() and os.path.samefile(link, dest):
+                link.unlink()
             remotion("render", renders[name], str(dest))
             latest_link(v, name, dest)
         print(shown(dest))

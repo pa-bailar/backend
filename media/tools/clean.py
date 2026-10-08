@@ -3,12 +3,17 @@
   .venv/Scripts/python media/tools/clean.py            lists what it would remove, and how much space it frees
   .venv/Scripts/python media/tools/clean.py --yes      moves those files to the Recycle Bin (restorable, never deleted)
 
-Looks in three places:
+Looks in four places:
 - the media home's out/ (D:\\AI\\pa-bailar-media\\out, all generated): each video's older versions
   (`<video>-v2.3-reel.mp4` once `<video>-v2.4-reel.mp4` exists), stills (`frames/`), drafts (`*-draft.mp4`), keyframe
   sheets (`*-sheet.png`), side-by-sides (`*-vs-*.mp4`), the scratch folders tools and checks leave (`review/`,
-  `rt/`, `auditions/`, `music/`, the stills bundles `.bundle-<checkout>/`), and logs. Each deliverable's latest
-  version and its `<deliverable>.mp4` link stay. The home's archive/ (posted versions) is never touched.
+  `rt/`, `auditions/`, `music/`, the stills bundles `.bundle-<checkout>/`, and any `stills…/` or `music-…/` a session
+  wrote with `--out`), and logs. Each deliverable's latest version and its `<deliverable>.mp4` link stay. The home's
+  archive/ (posted versions) is never touched.
+- the media home's cache/tts and cache/music: what no video uses any more, read from every projects/*/video.json (a
+  voice line or one take that isn't any video's now, like the takes before the one the owner approved; a bed or a
+  downloaded track no video's "music"."bed" names, with its .json). What a video uses stays (the owner, 8 Oct 2026:
+  "you create several versions of voice or video, and then just leave them there").
 - the checkout's media/cache, media/public/<video> and media/out/<video> from before the media home: a file is
   listed only when the home holds an identical copy (a render of a posted version: in the archive). The site checks
   that live in media/out/ (`*.mjs`, `site-bugs/`, `site-quality/`, `admin-tabs/`, and `site-checks/`: the
@@ -26,13 +31,14 @@ Standard library + PowerShell (the Recycle Bin): any Python on Windows runs it.
 
 import argparse
 import filecmp
+import json
 import os
 import re
 import shutil
 import subprocess
 from pathlib import Path
 
-from common import HOME, MEDIA, parse_render_name
+from common import DIRECTION, HOME, MEDIA, one_take_path, parse_render_name, tts_path
 
 ARCHIVE = MEDIA.parent.parent / "pa-bailar-teaser"
 SCRATCH_DIRS = {"frames", "review", "rt", "auditions", "music", "draft", "inspect", "probe", "keyframes", ".bundle"}
@@ -82,10 +88,12 @@ def working_file(path: Path) -> bool:
     """In a video's out/ folder: a scratch folder, a draft, a sheet, a comparison, a check's leftover."""
     name = path.name
     if path.is_dir():
-        return name in SCRATCH_DIRS or name.startswith("audio-orig")
+        return name in SCRATCH_DIRS or name.startswith(("audio-orig", "stills", "music-"))
     return (
         name.endswith(("-draft.mp4", "-sheet.png", "-review.ok", ".log"))
         or "-vs-" in name
+        # render.py keeps the <deliverable>.mp4 a re-render of the same version orphaned: an earlier cut, stale
+        or "-unversioned-" in name
         or name.startswith(("old-", "new-", "psnr", "timing-orig"))
     )
 
@@ -159,8 +167,45 @@ def in_home_archive(path: Path) -> bool:
     )
 
 
+def in_use() -> set[Path]:
+    """The cache files some video uses: its voice lines (or its one take) and its music bed (with the bed's .json)."""
+    used: set[Path] = set()
+    for path in (MEDIA / "projects").glob("*/video.json"):
+        settings = json.loads(path.read_text(encoding="utf-8"))
+        voice = settings.get("voice")
+        if voice:
+            direction = voice.get("direction", DIRECTION)
+            if voice.get("one_take"):
+                used.add(one_take_path(voice).resolve())
+            for line in voice["lines"]:
+                used.add(tts_path(line["text"], voice["name"], direction, line.get("take", 0)).resolve())
+        bed = settings.get("music", {}).get("bed")
+        if bed:
+            used |= {
+                (HOME / bed).resolve(),
+                (HOME / f"{bed}.json").resolve(),
+                (HOME / bed).with_suffix(".json").resolve(),
+            }
+    return used
+
+
+def unused_cache() -> list[Path]:
+    """Voice takes and music in the home's cache that no video uses (a folder whole when nothing in it is used)."""
+    used = in_use()
+    picks: list[Path] = []
+    for top in ("tts", "music"):
+        root = HOME / "cache" / top
+        if not root.exists():
+            continue
+        for item in root.iterdir():
+            files = [f for f in item.rglob("*") if f.is_file()] if item.is_dir() else [item]
+            unused = [f for f in files if f.resolve() not in used]
+            picks += [item] if item.is_dir() and files and len(unused) == len(files) else unused
+    return picks
+
+
 def candidates() -> list[Path]:
-    picks = home_out(HOME / "out") + legacy()
+    picks = home_out(HOME / "out") + legacy() + unused_cache()
     archive_out = ARCHIVE / "out"
     if archive_out.exists():
         keep = tracked(ARCHIVE)
