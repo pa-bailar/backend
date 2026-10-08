@@ -17,10 +17,22 @@ export const HEIGHT = brand.canvas.height;
 export const SAFE = { top: brand.safe.top, bottom: brand.safe.bottom, side: brand.safe.side };
 
 /**
- * Stories: the band the owner keeps for Instagram's link sticker, at the top, all through the video. No element enters
- * it on any frame (tools/review.py band measures it, allowing nothing above `bottom + margin`).
+ * Stories: the band the owner keeps for Instagram's link sticker, right under Instagram's own top row (y 0–250: the
+ * progress bars and the account's name), all through the video. No element enters y 0 to `bottom` on any frame
+ * (tools/review.py band measures it, allowing nothing above `bottom + margin`).
  */
 export const STICKER_BAND = { top: brand.stickerBand.top, bottom: brand.stickerBand.bottom, margin: brand.stickerBand.margin };
+
+/**
+ * Stories: layouts are drawn on the canvas as for any format (words inside `SAFE`), and `VideoShell`'s `story` fit
+ * moves and scales that safe area into `STORY_AREA`, under the sticker band (the owner, 8 Oct 2026: the sticker had no
+ * room over the account's row, and the bottom of the frame was empty). The paper and the grain stay full frame.
+ */
+export const STORY_AREA = { top: brand.storyArea.top, bottom: brand.storyArea.bottom };
+export const STORY_FIT = {
+  scale: (STORY_AREA.bottom - STORY_AREA.top) / (SAFE.bottom - SAFE.top),
+  shift: STORY_AREA.top - SAFE.top,
+};
 
 /**
  * Reels: the margins (px from each edge) that Instagram's Reel UI covers: the header, the caption and audio line, the
@@ -35,7 +47,7 @@ export const REEL_SAFE = {
 
 /**
  * Where words may go, per format (canvas px): inside `SAFE` for both, and for a Reel also clear of `REEL_SAFE`'s
- * right-hand column (x ≤ 960). A Story's sticker band (y < 250) is above `SAFE.top` already.
+ * right-hand column (x ≤ 960). A Story's sticker band is above it once fitted (`STORY_FIT`).
  */
 export const TEXT_ZONE = {
   story: { left: SAFE.side, right: WIDTH - SAFE.side, top: SAFE.top, bottom: SAFE.bottom },

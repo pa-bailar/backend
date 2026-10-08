@@ -452,7 +452,7 @@ export const Puente: React.FC<{ cta: Cta; blur?: boolean }> = ({ cta, blur = tru
   const hookOut = sec(line("hook").end) - 2; // when she's said it, before the bridge goes up
   const lunPulse = kick(t, downbeats(END / FPS + 0.1, DURATION_S));
   return (
-    <VideoShell fadeIn={6} audio={file("audio/with-music.wav")}>
+    <VideoShell fadeIn={6} audio={file("audio/with-music.wav")} story={cta === "story"}>
       <Shutter samples={blur && inRanges(frame, FAST) ? 8 : 1}>
         {/* The hook, at 0 s: the question, no logo (Instagram practices, media/README.md). */}
         {frame < bt(STAGE_IN[0]) + 4 ? (

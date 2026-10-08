@@ -97,7 +97,7 @@ export const Teaser: React.FC<TeaserProps> = ({ soundtrack, cta, blur = true }) 
   const frame = useCurrentFrame();
   // A Story: it fades in from the paper and never out (the owner, 5 Oct 2026).
   return (
-    <VideoShell fadeIn={8} audio={file(`audio/${soundtrack}.wav`)}>
+    <VideoShell fadeIn={8} audio={file(`audio/${soundtrack}.wav`)} story={cta === "story"}>
       <Shutter samples={blur ? samplesFor(frame, BLUR, WHIPS) : 1}>
         <Scenes cta={cta} />
       </Shutter>

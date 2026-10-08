@@ -157,6 +157,15 @@ def test_band_runs_and_spans():
     assert common.BRAND["stickerBand"]["bottom"] + common.BRAND["stickerBand"]["margin"] == review.LIMIT
 
 
+def test_the_sticker_band_sits_under_instagrams_row_and_the_story_area_under_it():
+    band, area, safe = common.BRAND["stickerBand"], common.BRAND["storyArea"], common.BRAND["safe"]
+    # Instagram's progress bars and account row cover y 0-250: a sticker there crossed the name (owner, 8 Oct 2026).
+    assert band["top"] >= safe["top"]
+    assert band["bottom"] - band["top"] >= 200  # room for the link sticker
+    assert area["top"] > band["bottom"] + band["margin"]
+    assert area["bottom"] <= common.BRAND["canvas"]["height"] - 240  # the reply bar
+
+
 def test_diff_reads_psnr_ssim_and_vmaf_logs():
     psnr = "n:1 mse_avg:0.00 psnr_avg:inf psnr_y:inf\nn:2 mse_avg:1.2 psnr_avg:41.37 psnr_y:40.1\n"
     assert review.per_frame(psnr, "psnr_avg") == [(float("inf"), 0), (41.37, 1)]

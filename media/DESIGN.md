@@ -11,10 +11,16 @@ Scene numbers below are teaser v2's (`projects/teaser-v2`), as examples.
 - 1080×1920, 30 fps. The site's screenshots are 360×640 CSS px at scale 3, so 1 CSS px = 3 video px.
 - **Safe zones:** no text above y = 250 or below y = 1580 (1920 − 340), nor closer than 80 px to the sides.
   Images (the phone, flyers) may run into the zones; words never do.
-- **Sticker band (Stories):** the owner puts Instagram's link sticker at the top, over y 0–250, for the whole clip,
-  so nothing enters it on any frame, image or word (`STICKER_BAND`; `review.py band` allows nothing above y 252,
-  except the spans a video.json lists for full-frame transitions). Mind the camera: a 3% push-in at depth 0.6 lifts
-  something at y 276 to about y 256, so page heads start at y 276 or lower.
+- **Sticker band (Stories):** Instagram's own top row (the progress bars and the account's name) covers about
+  y 0–250, so the owner puts the link sticker right under it, in y 250–460, for the whole clip (`STICKER_BAND`).
+  Nothing enters y 0–460 on any frame, image or word (`review.py band` allows nothing above y 462, except the spans a
+  video.json lists for full-frame transitions). Until 8 Oct 2026 the band was y 0–250, where the sticker crossed the
+  account's row and the frame's bottom stayed empty (the owner: "it's not usable for me").
+- **The Story fit:** layouts are drawn on the canvas as for any format (words inside the safe zones), and
+  `VideoShell`'s `story` prop moves and scales that safe area (y 250–1580) into the Story's area, y 470–1680
+  (`STORY_AREA`, about 0.91), under the sticker band and clear of the reply bar. The paper and grain stay full frame.
+  Mind the camera: a 3% push-in at depth 0.6 lifts something at y 276 to about y 256, so page heads start at y 276
+  or lower (the fit puts that under the band).
 - **Reel safe zones:** a Reel's UI covers other margins than a Story's: 108 px at the top (the header), 320 at the
   bottom (the caption, the audio line), 60 on the left and 120 on the right (the like, comment and share column)
   (`REEL_SAFE`). Words stay inside both: x 80–960, y 250–1580 on a Reel (`TEXT_ZONE.reel`). `review.py reel` warns
@@ -74,7 +80,7 @@ white sheen that doesn't turn) so the turning reads.
   grain and the soundtrack; its `fadeOut` is off by default and stays off for Stories. The audio ramps 0.3 s in and
   out (`mix.py`'s "fade"), only so it never clicks.
 - **The end card** is the kit's `EndCard` (`src/brand/end.tsx`): "Link aquí arriba" with the drawn `Arrow` right under
-  the sticker band (`CTA_TOP` = 276, bobbing `CTA_BOB` = 14 px) for a Story, "Link en mi perfil" for a Reel; the
+  the sticker band (`CTA_TOP` = 276 on the canvas, under the band once fitted; bobbing `CTA_BOB` = 14 px) for a Story, "Link en mi perfil" for a Reel; the
   stripes at y 500; the app icon and the record around a spot (the video brings its own: a match cut, a pop); the
   wordmark 300 px below it and an optional sign-off 490 px below. On a Reel (`cta="reel"`) the stripes run x 150–930
   and the wordmark is at most 140 px (centered in the same slot), clear of the like, comment and share column.
@@ -88,7 +94,8 @@ Reels that autoplay muted. The words are the voice's, timed by Whisper (`data/ti
   wine-900 card, 18 px radius, like the site's selected chips. A paper card vanished over the site's own cream screens.
 - **Place:** inside the format's words zone (`TEXT_ZONE`), the card's bottom 40 px above the safe zone's bottom
   (y 1540), centered: a Story's x 80–1000, a Reel's x 80–960 (clear of the like/share column). `"place": "high"` puts
-  it right under y 250 (below the sticker band), for a scene whose lower half carries the content.
+  it right under y 250 (the safe area's top: under the sticker band once a Story is fitted), for a scene whose lower
+  half carries the content.
 - **Styles:** "minimal": a phrase at a time (breaks at punctuation, lines and pauses, ≤24 characters), the words in
   `emphasis` in marigold-400 at 700. "kinetic": the same phrases, the word being said in marigold-400 (it lights over
   2 frames, ~2 frames before it's said, as the kinetic type does). Nothing bounces, slides or scales.

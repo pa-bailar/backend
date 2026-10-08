@@ -79,7 +79,7 @@ Each stage leaves a file the next stage reads. Never put the whole video in one 
 1. **Brief**: `tools/new.py <video>` makes the folder, a README for the brief (goal, audience, where it's posted,
    length, deliverables), `video.json` and a composition that already renders (on `VideoShell` and `EndCard`),
    registered in `src/Root.tsx`. Specs: 1080×1920, 30 fps, H.264 + AAC; text inside the safe zones (`SAFE`), nothing
-   in a Story's sticker band (`STICKER_BAND`).
+   in a Story's sticker band (`STICKER_BAND`): a Story's `VideoShell` takes `story`, which fits the content under it.
 2. **Script → voice** (when it has one): the lines go in `video.json` → `tools/tts.py` (cached per line) → listen.
    To choose a voice: `tts.py --audition "<line>" --voices A,B,C`.
 3. **Timing**: `tools/timing.py` joins the lines and times every word. The animation follows the voice.
@@ -158,7 +158,7 @@ in the media home unless they start with `projects/`.
 | `review.py sheet <mp4> [--at 1.5,f255,c4:link --timing <video> \| --every 2]` | .venv | a keyframe strip with the safe zones | `<mp4>-sheet.png` |
 | `review.py compare <a> <b>` | .venv | side by side, labeled, for the owner (a draft against a full render works too) | `<a>-vs-<b>.mp4` |
 | `review.py diff <reference> <new> [--no-vmaf]` | .venv | PSNR (∞ = identical), SSIM (1 = identical) and VMAF per frame, worst first: a refactor must not change a render (PSNR ∞); VMAF says whether an encode visibly damaged it (0–100, ~6 points is one just-noticeable difference; identical still frames score ~97, not 100). Stills too; a smaller one is scaled up. VMAF needs ffmpeg's libvmaf (winget's Gyan.FFmpeg full_build has it; without it, PSNR and SSIM and a note) | (prints) |
-| `review.py band <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | nothing but the background above y 252 (the sticker band + 2 px) on any frame; `--video` allows its `sticker_band.allow` spans; exit 1 when something enters | (prints) |
+| `review.py band <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | nothing but the background above y 462 (Instagram's top row, the sticker band + 2 px) on any frame; `--video` allows its `sticker_band.allow` spans; exit 1 when something enters | (prints) |
 | `review.py reel <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | the Reel's safe zones (108 top, 320 bottom, 60 left, 120 right): content in those margins is a warning per side, with the frames and how close to the edge it gets (images may run into them, words never); `--video` allows its `reel_safe.allow` spans | (prints) |
 | `publish.py <video> <deliverable> [--story \| --reel] [--caption-file --no-feed --thumb-offset --video-url --dry-run --confirm]` | .venv | **disabled** (below): posts a full render through Meta's Graph API: preflight `--api`, the quota, a container, the resumable upload, polling, `media_publish`, the permalink; once per render (its sha256), resumable after a crash, never twice. Without `--confirm` (or with `--dry-run`) it only prints the requests (token redacted); `--confirm` without `PA_BAILAR_PUBLISH_ENABLED=1` refuses. The render must pass the pre-flight either way | `publish_state.json` |
 | `clean.py [--yes]` | .venv | (skips what can't go to a Recycle Bin: a drive without one, an item too big for it) lists older versions, drafts, stills, sheets, comparisons, orphaned `-unversioned-` cuts and scratch folders in the home's `out/`, the voice takes and music in the home's `cache/` no `video.json` uses, the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, what a video uses, the archive and anything git tracks stay. The `media-clean` skill runs it at the end of every video session | (the Recycle Bin) |
@@ -208,7 +208,8 @@ takes a `blur` prop (motion blur on or off; `render.py --draft` turns it off).
 ## The library (`src/kit.ts`)
 
 **`lib/tokens`**: from `brand.json`: `FPS` 30, `WIDTH`×`HEIGHT` 1080×1920, `SAFE` {top 250, bottom 1580, side 80},
-`STICKER_BAND` {top 0, bottom 250, margin 2}, `REEL_SAFE` {top 108, bottom 320, left 60, right 120} (px from each
+`STICKER_BAND` {top 250, bottom 460, margin 2}, `STORY_AREA` {top 470, bottom 1680} and `STORY_FIT` (the scale and
+shift `VideoShell story` applies), `REEL_SAFE` {top 108, bottom 320, left 60, right 120} (px from each
 edge), `TEXT_ZONE.story` / `.reel` (where words may go: x 80–1000 / 80–960, y 250–1580), `TITLE_BAND` {280, 520},
 `DEFAULT_BPM` 98. Also `sec(s)`, colors `C`
 (light theme "Fania de día"), `STRIPES`, `FONT` (Shrikhand, Bodoni Moda, Instrument Sans, emoji), and type presets
@@ -335,7 +336,8 @@ without one (none of ours today).
 - Real material only: text, logos, dates and UI are code or real screenshots; flyers are the academies' own.
   Nothing AI-generated but the voice and the music.
 - Owner decisions so far: the light theme; no URL on screen (Story: Instagram keeps a link sticker on for the whole
-  clip, so the owner places it at the top, in the band above y 250 that nothing enters on any frame, and the end card
+  clip, so the owner places it right under Instagram's own top row (the account's name), in y 250–460, which nothing
+  enters on any frame (the Story fit moves the content below it), and the end card
   says "Link aquí arriba" with a drawn up arrow, `Arrow` in the kit, never an emoji hand; Reel: "Link en mi perfil");
   Stories: fade in, no fade-out (the owner, 5 Oct 2026; the audio still ramps 0.3 s at both ends, against clicks);
   the Bodoni at `opsz` 18 / 600, never for digits.

@@ -43,7 +43,9 @@ with the city's accent; the owner picks the voice and the track by ear).
 - **Shelf life**: `render.py` warns when `app.json`'s `shelfLife`, `events.json`'s `to` or a screen's clock is past
   (`--strict` refuses). Say the date when you hand it over; re-capture or re-run `events.py` if it's close.
 - **Sticker band**: `review.py band` (part of `make.py`'s sheet stage and `render.py --review`) passes on every Story
-  deliverable: nothing above y 252 except the full-frame transitions `video.json` lists, each with its reason.
+  deliverable: nothing above y 462 (Instagram's top row and the sticker's band under it) except the full-frame
+  transitions `video.json` lists, each with its reason. A Story's `VideoShell` takes `story` (the fit that puts the
+  content under the band).
 - **Instagram pre-flight**: `preflight.py` (part of `render.py --review`) passes on every deliverable you hand over
   (codec, 9:16, fps, bitrate, length, size). A half-size draft only warns; hand over full renders. For the API (a
   Reel ≤300 MB, a Story ≤100 MB and 3–60 s: Meta's IG User Media reference), run it with `--api`.
@@ -84,7 +86,8 @@ with the city's accent; the owner picks the voice and the track by ear).
 - Real material only: screens of the live site, the academies' own flyers, the site's data. Only the voice
   (Gemini TTS, free tier) and the music (ACE-Step, local) are generated. $0: no paid APIs.
 - The owner's decisions: the light theme; no URL on screen (Story: Instagram keeps a link sticker on for the whole
-  clip, so the owner places it at the top, in the band above y 250 that nothing enters on any frame, and the end card
+  clip, so the owner places it right under Instagram's own top row (the account's name), in y 250–460, which nothing
+  enters on any frame (the Story fit moves the content below it), and the end card
   says "Link aquí arriba" with a drawn up arrow, `Arrow` in the kit, never an emoji hand; Reel: "Link en mi perfil");
   Stories: fade in, no fade-out (the owner, 5 Oct 2026; the audio still ramps 0.3 s at both ends, against clicks);
   no digits in the Bodoni italic; Spanish (Bogotá, informal "tú") on screen and in the voice.
