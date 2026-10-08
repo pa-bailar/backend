@@ -180,3 +180,79 @@ def test_a_deadlines_time_and_a_festivals_hours_arent_a_start_not_read():
     festival = [event(date="2026-11-13", end_date="2026-11-16", start_time=None)]
     assert checks.flags(text, festival, date(2026, 9, 22)) == []
     assert checks.TIME_NOT_READ in checks.flags("Social 13 de noviembre 8 pm", [event(start_time=None)], WEDNESDAY)
+
+
+# ---------- the Spanish the rules missed (the audit of 7 Oct 2026) ----------
+
+POSTED = date(2026, 10, 7)  # a Wednesday
+
+
+def test_a_flyers_short_weekday_is_a_weekday_but_mar_isnt_march():
+    assert checks.DAY_WITHOUT_EVENT in checks.flags("SÁB 10 OCT · VIE. 9", [event(date="2026-10-09")], POSTED)
+    assert checks.flags("SÁB 10 OCT", [event(date="2026-10-10")], POSTED) == []
+    # "MAR 13" on a flyer is martes 13, not 13 March: no date with no event.
+    assert checks.DATES_WITHOUT_EVENT not in checks.flags("MAR 13 · Clase de salsa", [], POSTED)
+    assert checks.DATES_WITHOUT_EVENT in checks.flags("13 MAR · Clase de salsa", [], POSTED)
+
+
+def test_today_and_tomorrow_with_a_weekday_are_relative_days():
+    assert checks.RELATIVE_WITHOUT_EVENT in checks.flags("Mañana jueves: social", [event(date="2026-10-15")], POSTED)
+    assert checks.flags("Hoy miércoles: social", [event(date="2026-10-07")], POSTED) == []
+    assert checks.flags("Reserva hoy · 9 de la mañana", [event(date="2026-10-15", start_time="09:00")], POSTED) == []
+    gone = "Gracias por venir este sábado que pasó · nos vemos el 17 de octubre"
+    assert checks.RELATIVE_WITHOUT_EVENT not in checks.flags(gone, [event(date="2026-10-17")], POSTED)
+
+
+def test_hours_said_in_words():
+    assert checks.times("Desde las 8 de la noche") == {"20:00"}
+    assert checks.times("10 de la mañana · 3 de la tarde") == {"10:00", "15:00"}
+    assert checks.times("Al mediodía y hasta la medianoche") == {"12:00", "00:00"}
+    assert checks.clock_times("12 de la noche")[1] == {"00:00"}
+    # "sábado 8 de la noche" is an hour, not the 8th.
+    assert checks.DAY_WITHOUT_EVENT not in checks.flags("Sábado 8 de la noche", [event()], POSTED)
+
+
+def test_times_that_bound_the_night_arent_starts():
+    starts, _ = checks.clock_times("Entrada gratis antes de las 10 pm · cerramos a las 3 am · social desde las 8 pm")
+    assert starts == {"20:00"}
+    assert checks.clock_times("de 9 pm — 2 am")[0] == {"21:00"}
+
+
+def test_ranges_in_more_spellings():
+    for text in (
+        "13 a 16 de noviembre",
+        "noviembre 13 al 16",
+        "Nov 13-16",
+        "13 & 14 de noviembre",
+        "desde el 13 hasta el 16 de noviembre",
+    ):
+        assert checks.RANGE_AS_ONE_DAY in checks.flags(text, [event(date="2026-11-13")], POSTED), text
+    assert checks.flags("Nov 13-16", [event(date="2026-11-13", end_date="2026-11-16")], POSTED) == []
+
+
+def test_lists_in_more_spellings():
+    for text in ("3, 10, 17, 24 de octubre", "3 · 10 · 17 · 24 OCT", "17 y el 24 de octubre"):
+        assert checks.LIST_NOT_READ in checks.flags(text, [event(date="2026-10-17")], POSTED), text
+
+
+def test_dates_in_more_spellings():
+    for text in (
+        "1ro de noviembre",
+        "1° de noviembre",
+        "primero de noviembre",
+        "11/10/2026",
+        "11-10-2026",
+        "11.10.2026",
+    ):
+        assert checks.DATES_WITHOUT_EVENT in checks.flags(text, [], POSTED), text
+    assert checks.flags("Clase a las 10.30 · cupos 10.10", [], POSTED) == []  # times, not dates
+
+
+def test_a_closing_night_is_an_event_and_other_deadlines_arent():
+    assert checks.DAY_WITHOUT_EVENT in checks.flags("Fiesta de cierre sábado 10", [event(date="2026-10-17")], POSTED)
+    for deadline in ("Cierre de inscripciones sábado 10", "Inscríbete antes del sábado 10", "Promo hasta el viernes 9"):
+        assert checks.flags(deadline, [event(date="2026-10-17")], POSTED) == [], deadline
+
+
+def test_a_price_without_its_sign_makes_a_price_line():
+    assert checks.flags("Del 16 al 30 de octubre: 70.000 · Inversión", [event(date="2026-10-31")], POSTED) == []

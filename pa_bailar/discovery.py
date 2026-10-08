@@ -27,6 +27,7 @@ DANCE_KEYWORDS = [
     "tango", "swing", "champeta", "rumba", "son cubano", "academ", "escuela", "studio", "estudio",
     "ritmo", "latin", "sabor", "social", "salsoteca", "congres", "festival", "fest", "taller", "clase",
     "coreograf", "heels", "urban", "afro", "pista", "rueda", "profe", "instructor", "orquest", "dj",
+    "salser", "perreo", "cumbia", "folclor", "folklor", "milonga",
 ]  # fmt: skip
 # Sources of events by nature: recommended unless they're outside Bogotá.
 RECOMMENDED_KINDS = {"academy", "venue", "organizer", "dance_company"}

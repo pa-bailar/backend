@@ -23,30 +23,43 @@ _MONTHS = {
     **{"set": 9, "oct": 10, "nov": 11, "dic": 12},
 }
 _WEEKDAYS = {"lunes": 0, "martes": 1, "miercoles": 2, "jueves": 3, "viernes": 4, "sabado": 5, "domingo": 6}
+# The short forms flyers print ("SÁB 10 OCT", "VIE 9"), read only with a day after them; not "mar" (marzo).
+_WEEKDAYS_SHORT = {"lun": 0, "mie": 2, "mier": 2, "jue": 3, "vie": 4, "sab": 5, "dom": 6}
 _MONTH = "(?:" + "|".join(sorted(_MONTHS, key=len, reverse=True)) + ")"
+# A month before its day: not "mar", which on a flyer is more often martes ("MAR 13") than marzo (the audit of 7 Oct).
+_MONTH_FIRST = "(?:" + "|".join(sorted(set(_MONTHS) - {"mar"}, key=len, reverse=True)) + ")"
 _WEEKDAY = "(?:" + "|".join(_WEEKDAYS) + ")"
+_ANY_WEEKDAY = "(?:" + "|".join(sorted({*_WEEKDAYS, *_WEEKDAYS_SHORT}, key=len, reverse=True)) + ")"
 # 1 to 31, not a piece of an address ("#3-84"), of a number, or a time's minutes ("8:30").
 _DAY = r"(?<![\d#/:])(?:3[01]|[12]\d|0?[1-9])(?!\d)"
 
 # "11 de octubre", "9DEOCT" (OCR drops spaces), "octubre 11", "11/10" (not "24/7"). Matched line by line (_lines).
 _DATE = re.compile(
-    rf"(?P<day>{_DAY})[ \t]*(?:de[ \t]*)?(?P<month>{_MONTH})\b"
-    rf"|\b(?P<month_first>{_MONTH})\.?[ \t]*(?P<day_after>{_DAY})"
-    rf"|(?!24/7\b)(?P<day_slash>{_DAY})/(?P<month_number>1[0-2]|0?[1-9])(?![\d/])"
+    rf"(?P<day>{_DAY})(?:ro|o|°)?[ \t]*(?:de[ \t]*)?(?P<month>{_MONTH})\b"
+    rf"|\bprimero[ \t]*de[ \t]*(?P<month_of_first>{_MONTH})\b"
+    rf"|\b(?P<month_first>{_MONTH_FIRST})\.?[ \t]*(?P<day_after>{_DAY})"
+    rf"|(?!24/7\b)(?P<day_slash>{_DAY})/(?P<month_number>1[0-2]|0?[1-9])(?:/(?:20)?\d\d)?(?![\d/])"
+    rf"|(?P<day_dash>{_DAY})(?P<sep>[.-])(?P<month_dash>1[0-2]|0?[1-9])(?P=sep)(?:20)?\d\d(?!\d)"
 )
 # A range: "del 13 al 16 de noviembre", "11 OCT — 01 NOV", "19 al 21 de marzo", "20 y 21 noviembre" ("y" only
 # between consecutive days: "17 y 24 de octubre" ends a list of dates, _LIST).
 _RANGE = re.compile(
-    rf"(?P<first>{_DAY})[ \t]*(?:de[ \t]*)?(?:(?P<first_month>{_MONTH})\.?)?[ \t]*(?P<joint>-|–|—|al|hasta|y)[ \t]*"
-    rf"(?P<last>{_DAY})[ \t]*(?:de[ \t]*)?(?P<last_month>{_MONTH})\b"
+    rf"(?P<first>{_DAY})[ \t]*(?:de[ \t]*)?(?:(?P<first_month>{_MONTH})\.?)?[ \t]*(?P<joint>-|–|—|al|a|hasta|y|&)[ \t]*"
+    rf"(?:el[ \t]+)?(?P<last>{_DAY})[ \t]*(?:de[ \t]*)?(?P<last_month>{_MONTH})\b"
+    rf"|\b(?P<month_before>{_MONTH_FIRST})\.?[ \t]*(?P<first_after>{_DAY})[ \t]*(?P<joint_after>-|–|—|al|a|&)[ \t]*"
+    rf"(?P<last_after>{_DAY})(?![\d:])"
 )
-# A list: "3, 10, 17 y 24 de octubre" (a series' dates, or several nights).
-_LIST = re.compile(rf"{_DAY}(?:[ \t]*,[ \t]*{_DAY})+[ \t]*y[ \t]*{_DAY}[ \t]*(?:de[ \t]*)?(?P<month>{_MONTH})\b")
+# A list: "3, 10, 17 y 24 de octubre" (a series' dates, or several nights), "3, 10, 17, 24 de octubre", "3 · 10 · 17 ·
+# 24 OCT", "17 y el 24 de octubre".
+_LIST = re.compile(
+    rf"(?:{_DAY}(?:[ \t]*[,·][ \t]*{_DAY})+(?:[ \t]*,?[ \t]*y[ \t]*(?:el[ \t]+)?{_DAY})?"
+    rf"|{_DAY}[ \t]*y[ \t]+el[ \t]+{_DAY})[ \t]*(?:de[ \t]*)?(?P<month>{_MONTH})\b"
+)
 # A number that's an hour, not a day: "sábado 6PM", "viernes 8:30".
-_AN_HOUR = r"(?=[ \t]*(?::|a\.?[ \t]*m\b|p\.?[ \t]*m\b|h\b|hrs?\b))"
+_AN_HOUR = r"(?=[ \t]*(?::|a\.?[ \t]*m\b|p\.?[ \t]*m\b|h\b|hrs?\b|de[ \t]+la[ \t]+(?:noche|tarde|manana)\b))"
 # A weekday with its day: "sábado 10 de octubre", "jueves 08", "domingo 11".
 _WEEKDAY_DAY = re.compile(
-    rf"\b(?P<weekday>{_WEEKDAY})s?[ \t,]*(?!{_DAY}{_AN_HOUR})(?P<day>{_DAY})"
+    rf"\b(?P<weekday>{_ANY_WEEKDAY})s?\.?[ \t,]*(?!{_DAY}{_AN_HOUR})(?P<day>{_DAY})"
     rf"(?:[ \t]*(?:de[ \t]*)?(?P<month>{_MONTH})\b)?"
 )
 # A day relative to the post: "este sábado", "el próximo viernes", "este fin de semana"; not with a day after it
@@ -54,34 +67,45 @@ _WEEKDAY_DAY = re.compile(
 # gone ("el sábado pasado"). Not "esta noche": captions use it for the event's night whenever it is ("esta noche no
 # vienes solo a bailar").
 _RELATIVE = re.compile(
-    rf"\b(?P<which>este|el proximo|proximo|el)[ \t]+(?P<weekday>{_WEEKDAY})\b"
-    rf"(?![ \t,]*{_DAY}(?!{_AN_HOUR}))(?![ \t]+(?:pasado|anterior)\b)"
+    rf"\b(?P<which>este|el proximo|proximo|el|hoy|manana)[ \t]+(?P<weekday>{_WEEKDAY})\b"
+    rf"(?![ \t,]*{_DAY}(?!{_AN_HOUR}))(?![ \t]+(?:pasado|anterior|que[ \t]+paso)\b)"
     r"|\b(?P<weekend>este (?:fin de semana|finde))\b"
 )
 # Words around a weekday and its day that make it a deadline, not an event: "Miércoles 30 | Fin segundo corte",
 # "Preventa hasta el viernes 9". Not "hasta" after it: "Sábado 10, de 8 pm hasta las 2 am" is the event's night.
 _DEADLINE_WORDS = {"corte", "cierre", "preventa", "preventas", "inscripcion", "inscripciones", "plazo", "vence"}
-_DEADLINE_WORDS |= {"limite", "ultimo"}
+_DEADLINE_WORDS |= {"limite", "ultimo", "ultima", "ultimos", "ultimas", "vencen", "tardar", "matricula"}
+_DEADLINE_WORDS |= {"matriculas", "early", "promo"}
+# A closing night is an event: "Fiesta de cierre sábado 10" isn't a deadline (the audit of 7 Oct 2026).
+_CLOSING_NIGHT = re.compile(r"\b(?:fiesta|noche|gala|social|rumba|evento|concierto|show)[ \t]+de[ \t]+cierre\b")
 
-_SUFFIX = r"(?:a\.?[ \t]*m\b\.?|p\.?[ \t]*m\b\.?|m\b)"
+_SUFFIX = r"(?:a\.?[ \t]*m\b\.?|p\.?[ \t]*m\b\.?|m\b|de[ \t]+la[ \t]+(?:noche|tarde|manana)\b)"
 # A clock time: "8:30 p.m.", "8:30P.M", "6pm", "9 AM", "12:00 M", "20:30", "20h30", "21h" (an "h" after an hour
 # under 12 is a duration: "2 h", "clase de 1h").
 _TIME = re.compile(
     rf"(?<![\d:/])(?P<hour>\d{{1,2}})(?::(?P<minutes>[0-5]\d))?[ \t]*(?P<suffix>{_SUFFIX})"
     r"|(?<![\d:/])(?P<hour24>\d{1,2})(?::|h)(?P<minutes24>[0-5]\d)(?!\d)"
     r"|(?<![\d:/])(?P<hourh>1\d|2[0-3])h\b"
+    r"|\b(?P<named>mediodia|medianoche)\b"
 )
 # A span of time: "de 9 a 10 pm", "10pm. a 2:30 am", "9:00 AM A 12:00 M", "desde las 2 hasta las 10 pm": its start
 # is a start time, its end isn't. A start without am/pm takes the end's ("de 9 a 10 pm" starts at 21:00), or the
 # night's when the span ends after midnight ("de 11 a 2 am" starts at 23:00).
 _SPAN = re.compile(
-    rf"(?P<start>\d{{1,2}}(?::[0-5]\d)?)[ \t]*(?P<start_suffix>{_SUFFIX})?[ \t]*(?:a|-|–|hasta)[ \t]*(?:las[ \t]*)?"
+    rf"(?P<start>\d{{1,2}}(?::[0-5]\d)?)[ \t]*(?P<start_suffix>{_SUFFIX})?[ \t]*(?:a|-|–|—|hasta)[ \t]*(?:las[ \t]*)?"
     rf"(?P<end>\d{{1,2}}(?::[0-5]\d)?)[ \t]*(?P<end_suffix>{_SUFFIX})"
 )
-_UNTIL = re.compile(r"\bhasta[ \t]*(?:las?[ \t]*)?$")  # "hasta las 5 am": an end, not a start
+_UNTIL = re.compile(
+    r"\b(?:hasta|antes[ \t]+de|despues[ \t]+de|cerramos[ \t]+a|cierra[ \t]+a|termina[ \t]+a|terminamos[ \t]+a"
+    r"|finaliza[ \t]+a)[ \t]*(?:las?[ \t]*)?$"
+)  # "hasta las 5 am", "antes de las 10 pm", "cerramos a las 3 am": an end or a bound, not a start
 _WORDS = re.compile(r"[a-z]+")
 # A price or a sale: "$70.000", "30k", "20 mil", "cover", "etapa", "boletería".
-_PRICE = re.compile(r"\$|\b\d+[ \t]*(?:k|mil)\b|\b(?:cover|etapa|boleta|boletas|boleteria|taquilla|preventa)\b")
+_PRICE = re.compile(
+    r"\$|\b\d+[ \t]*(?:k|mil)\b|\b\d{1,3}\.\d{3}\b"
+    r"|\b(?:cover|etapa|boleta|boletas|boleteria|taquilla|preventa|inversion|valor|precio|costo|tiquete|tiquetes"
+    r"|aporte|bono|consumible|donacion|cop)\b"
+)
 
 DATES_WITHOUT_EVENT = "fechas sin evento"  # a coming date in the text, no event read (or only "recurring" ones)
 TIME_NOT_READ = "hora sin leer"  # a time in the text, an event without one
@@ -112,13 +136,19 @@ def _day(day: int, month: int, published: date | None) -> date | None:
 def _date_of(match: re.Match[str], published: date | None) -> date | None:
     if match.group("day"):
         return _day(int(match.group("day")), _MONTHS[match.group("month")], published)
+    if match.group("month_of_first"):
+        return _day(1, _MONTHS[match.group("month_of_first")], published)
     if match.group("day_after"):
         return _day(int(match.group("day_after")), _MONTHS[match.group("month_first")], published)
+    if match.group("day_dash"):
+        return _day(int(match.group("day_dash")), int(match.group("month_dash")), published)
     return _day(int(match.group("day_slash")), int(match.group("month_number")), published)
 
 
 def _clock(hour: int, minutes: str | None, suffix: str | None) -> str | None:
     suffix = (suffix or "").replace(".", "").replace(" ", "").replace("\t", "")
+    if suffix.startswith("dela"):  # "de la noche", "de la tarde": pm; "de la mañana": am; "12 de la noche": 0:00
+        suffix = "am" if suffix.endswith("manana") or (hour == 12 and suffix.endswith("noche")) else "pm"
     if suffix.startswith("p") and hour < 12:
         hour += 12
     elif suffix.startswith("a") and hour == 12:
@@ -127,6 +157,8 @@ def _clock(hour: int, minutes: str | None, suffix: str | None) -> str | None:
 
 
 def _time_of(match: re.Match[str]) -> str | None:
+    if match.group("named"):
+        return "12:00" if match.group("named") == "mediodia" else "00:00"
     if match.group("hour"):
         return _clock(int(match.group("hour")), match.group("minutes"), match.group("suffix"))
     if match.group("hour24"):
@@ -161,7 +193,7 @@ def clock_times(text: str) -> tuple[set[str], set[str]]:
         if value is None or value.endswith(":59"):  # "11:59 p. m.": a deadline, never an event's start
             continue
         every.add(value)
-        if _UNTIL.search(folded[max(0, match.start() - 12) : match.start()]):
+        if _UNTIL.search(folded[max(0, match.start() - 24) : match.start()]):
             ends.add(value)
         elif value not in ends:
             starts.add(value)
@@ -206,9 +238,11 @@ def _is_deadline(folded: str, match: re.Match[str]) -> bool:
     """Whether the words right around a weekday and its day make it a deadline (_DEADLINE_WORDS)."""
     line_start = folded.rfind("\n", 0, match.start()) + 1
     line_end = folded.find("\n", match.end())
+    line = folded[line_start : line_end if line_end >= 0 else None]
     before = _WORDS.findall(folded[line_start : match.start()])[-3:]
     after = _WORDS.findall(folded[match.end() : line_end if line_end >= 0 else None])[:4]
-    return "hasta" in before[-2:] or bool(_DEADLINE_WORDS & {*before, *after})
+    words = _DEADLINE_WORDS - ({"cierre"} if _CLOSING_NIGHT.search(line) else set())
+    return "hasta" in before[-2:] or "antes" in before[-3:] or bool(words & {*before, *after})
 
 
 def _weekday_dates(folded: str, published: date) -> list[date]:
@@ -219,7 +253,7 @@ def _weekday_dates(folded: str, published: date) -> list[date]:
     for match in _WEEKDAY_DAY.finditer(folded):
         if _is_deadline(folded, match):
             continue
-        weekday, day = _WEEKDAYS[match.group("weekday")], int(match.group("day"))
+        weekday, day = {**_WEEKDAYS, **_WEEKDAYS_SHORT}[match.group("weekday")], int(match.group("day"))
         if match.group("month"):
             candidates = [found_day] if (found_day := _day(day, _MONTHS[match.group("month")], published)) else []
         else:
@@ -258,20 +292,35 @@ def _on_a_price_line(folded: str, match: re.Match[str]) -> bool:
     return bool(_PRICE.search(folded[start : min(ends) if ends else None])) or _is_deadline(folded, match)
 
 
+def _range_first(match: re.Match[str]) -> int:
+    return int(match.group("first") or match.group("first_after"))
+
+
+def _range_last(match: re.Match[str]) -> tuple[int, str]:
+    # A range's last day and its month's name: "13 al 16 de noviembre" or "noviembre 13 al 16".
+    if match.group("last_after"):
+        return int(match.group("last_after")), match.group("month_before")
+    return int(match.group("last")), match.group("last_month")
+
+
+def _range_joint(match: re.Match[str]) -> str:
+    return match.group("joint") or match.group("joint_after")
+
+
 def _range_flag(folded: str, kept: list[dict[str, Any]], published: date | None) -> bool:
     """A range of dates whose last day is on no event ("11 OCT — 01 NOV" read as 11 Oct only); two nights in a row
     read as two events cover it. Without the post's day: any range, and no event over several days."""
     ranges = [
         match
         for match in _RANGE.finditer(folded)
-        if (match.group("joint") != "y" or int(match.group("last")) == int(match.group("first")) + 1)
+        if (_range_joint(match) not in ("y", "&") or _range_last(match)[0] == _range_first(match) + 1)
         and not _on_a_price_line(folded, match)
     ]
     if not ranges or not kept:
         return False
     if published is None:
         return not any(event.get("end_date") or event.get("sessions") for event in kept)
-    last_days = [_day(int(match.group("last")), _MONTHS[match.group("last_month")], published) for match in ranges]
+    last_days = [_day(day, _MONTHS[month], published) for day, month in map(_range_last, ranges)]
     return _uncovered([day for day in last_days if day], kept, published)
 
 

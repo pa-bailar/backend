@@ -106,6 +106,8 @@ def test_a_zero_price_in_another_currency_is_dropped_and_noted_instead_of_shown_
         ("Entrada libre", "antes de las 10 p. m."),
         ("General", None),
         ("Free", "hasta 10 USD en consumo"),  # it reads as free
+        ("Sin cover", "luego 10 USD"),  # Bogotá's ways of saying free (the audit of 7 Oct 2026)
+        ("Cortesía", "o 5 USD en barra"),
         ("Mujeres", "hasta las 9 p. m."),
     ],
 )
@@ -134,6 +136,8 @@ def test_negative_prices_are_removed():
         ("350-537-2687", "350-537-2687"),
         ("WhatsApp 320 2332984", "WhatsApp 320 2332984"),
         ("Wpp: 3018847358", "WhatsApp 3018847358"),
+        ("Wasap 3018847358", "WhatsApp 3018847358"),  # its spellings in captions (the audit of 7 Oct 2026)
+        ("Whatsap: 3018847358", "WhatsApp 3018847358"),
         ("SOCIAL", None),
         ("@" + "a" * 30, "@" + "a" * 30),
         ("@" + "a" * 31, None),  # longer than Instagram allows: no profile to link

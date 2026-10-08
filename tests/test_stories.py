@@ -115,6 +115,11 @@ def test_story_age():
     assert stories.story_age("hace 32 min") == timedelta(minutes=32)
     assert stories.story_age("3 d") is None  # stories last a day
     assert stories.story_age(None) is None
+    # Spelled out (the audit of 7 Oct 2026: these fell back to the screenshot's time, up to a day off).
+    assert stories.story_age("hace 5 horas") == timedelta(hours=5)
+    assert stories.story_age("32 minutos") == timedelta(minutes=32)
+    assert stories.story_age("5hrs") == timedelta(hours=5)
+    assert stories.story_age("1 día") == timedelta(days=1)
 
 
 # ---------- dates, worked out in code ----------
