@@ -113,6 +113,21 @@ def test_a_sweep_meta_stopped_below_our_limit_doesnt_say_it_stopped_there():
     assert "Se detuvo ahí" in status.quota_line({**quota, "usage": 91}, NOW)
 
 
+def test_what_flash_changed_in_lighter_reads_is_summed_and_said():
+    runs = [
+        {"finished_at": "2026-10-02T09:12:00-05:00", "upgrade_changes": {"compared": 5, "dropped": 0, "start_time": 1}},
+        {"finished_at": "2026-10-02T21:12:00-05:00", "upgrade_changes": {"compared": 7, "dropped": 1, "styles": 3}},
+        {"finished_at": "2026-10-03T09:12:00-05:00"},  # before runs recorded it
+    ]
+    result = status.collect(
+        now=NOW, instagram=None, read=lambda name, default: runs if name == "run_history.json" else default
+    )
+    assert result["lighter_reads"] == {"compared": 12, "dropped": 1, "start_time": 1, "styles": 3}
+    line = "Flash releyó 12 eventos que solo había leído un modelo más liviano: "
+    assert line + "la hora en 1, los ritmos en 3, no mantuvo 1." in status.markdown(result)
+    assert status.collect(now=NOW, instagram=None, read=lambda name, default: default)["lighter_reads"] is None
+
+
 def test_accounts_past_their_turn_by_more_than_a_sweep_are_waiting():
     late = (NOW.replace(hour=8) - timedelta(days=2)).isoformat()
     fresh = NOW.replace(hour=9).isoformat()
