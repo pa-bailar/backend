@@ -71,12 +71,17 @@ export default {
     });
     check("details: the tapped card stays in view", inView, `scroll ${before.y} → ${opened.y}`);
     await ctx.shot("3-details");
+    // Where the card is on screen: what back must keep. Not the scroll itself: on a wide screen the side panel takes
+    // a column from the list (4 → 3) and gives it back on closing, so the page scrolls to keep the card in its place.
+    const cardTop = () => card.evaluate((c) => Math.round(c.getBoundingClientRect().top));
+    const topOpen = await cardTop();
     await ctx.back();
     const closed = await look("back");
+    const topClosed = await cardTop();
     check(
-      "back closes the details, scroll kept",
-      !closed.drawer && closed.url === "/" && Math.abs(closed.y - opened.y) < 5,
-      `${fmtY(opened, closed)}`,
+      "back closes the details, the card where it was",
+      !closed.drawer && closed.url === "/" && Math.abs(topClosed - topOpen) < 5,
+      `${fmtY(opened, closed)}, the card's top ${topOpen} → ${topClosed}`,
     );
 
     // A carousel: one swipe → its second photo
