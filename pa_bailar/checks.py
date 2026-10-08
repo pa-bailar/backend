@@ -14,7 +14,7 @@ from contextlib import suppress
 from datetime import date, timedelta
 from typing import Any
 
-from .text import MONTHS, WEEKDAYS, fold
+from .text import MONTHS, PRICE_WORDS, WEEKDAYS, fold
 
 _MONTHS = {
     **{"enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6, "julio": 7, "agosto": 8},
@@ -103,8 +103,7 @@ _WORDS = re.compile(r"[a-z]+")
 # A price or a sale: "$70.000", "30k", "20 mil", "cover", "etapa", "boletería".
 _PRICE = re.compile(
     r"\$|\b\d+[ \t]*(?:k|mil)\b|\b\d{1,3}\.\d{3}\b"
-    r"|\b(?:cover|etapa|boleta|boletas|boleteria|taquilla|preventa|inversion|valor|precio|costo|tiquete|tiquetes"
-    r"|aporte|bono|consumible|donacion|cop)\b"
+    rf"|\b(?:{'|'.join(PRICE_WORDS)}|etapa|boleteria|taquilla|preventa|consumible|cop)\b"
 )
 
 DATES_WITHOUT_EVENT = "fechas sin evento"  # a coming date in the text, no event read (or only "recurring" ones)

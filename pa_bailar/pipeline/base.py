@@ -42,7 +42,7 @@ from ..normalize import (
     styles_in_text,
 )
 from ..prompts import account_rules
-from ..text import fold
+from ..text import PRICE_WORDS, fold
 from . import common
 from .common import Extractor, PostSource, RunStats, caption_hash, has_ended, media_for, unpublishable
 
@@ -69,7 +69,7 @@ _CANCELLED = re.compile(
 # colon: "Entrada: se cancela el social"), or how it's paid after it ("se cancela en efectivo", "por Nequi"); never
 # "se cancela por lluvia". Read line by line: a price on one line says nothing about the next.
 _PAID = re.compile(
-    r"\b(?:entrada|cover|valor|precio|costo|inscripcion|boleta|cuota|pago|mensualidad|reserva)s?\b[^.!?:]{0,30}?"
+    rf"\b(?:{'|'.join(PRICE_WORDS)}|entrada|inscripcion|matricula|cuota|pago|mensualidad|reserva)s?\b[^.!?:]{{0,30}}?"
     r"\bse cancelan?\b"
     r"|\bse cancelan? (?:en (?:efectivo|la puerta|puerta|taquilla|la entrada|caja|el lugar)"
     r"|con (?:tarjeta|efectivo|nequi|daviplata|transferencia)|al (?:ingresar|llegar|entrar|ingreso)"
