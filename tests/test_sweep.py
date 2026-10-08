@@ -42,6 +42,10 @@ class FakeInstagram:
     def __init__(self, posts_by_account: dict[str, list[dict] | Exception]):
         self.posts_by_account = posts_by_account
         self.limits: dict[str, list[int]] = {}
+        # Instagram's quota as the real client reads it (PostSource): now, and the run's peak with its measures.
+        self.app_usage_percent = 0
+        self.peak_usage_percent = 0
+        self.peak_usage_detail: dict[str, int] = {}
 
     def check_token(self) -> str:
         return "me"
