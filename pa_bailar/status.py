@@ -4,7 +4,9 @@ Plain reading of what the sweeps record (no AI, no Gemini requests):
   - the latest sweeps and the next ones (run_history.json, config.SWEEP_TIMES);
   - today's Gemini usage per model against its daily budget, and when the quota resets (gemini_usage.json);
   - today's use of the last resort, the providers outside Gemini (Groq, OpenRouter: external_usage.json);
-  - Instagram: whether the token works and how much of Instagram's quota is used (one call, optional);
+  - Instagram: whether the token works (one call, optional), and the last sweep's highest reading of its quota
+    (run_history.json: the token check's own reading is another counter);
+  - what Flash changed when it re-read events only lighter models had read, over the recorded runs (run_history.json);
   - accounts followed, those still in their first, deeper sweep (accounts.txt, accounts.json);
   - analyzed posts, provisional ones waiting for Flash, upcoming events (processed_posts.json, events.json);
   - new workshop series to look at, each with a one-tap "Ocultar" (new_series);
