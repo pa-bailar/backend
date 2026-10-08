@@ -1,9 +1,12 @@
-"""The voice: one Gemini TTS file per script line (free tier, MEDIA_GEMINI_API_KEY in the backend's .env), cached.
+"""The voice: Gemini TTS (free tier, MEDIA_GEMINI_API_KEY in the backend's .env), cached. Directing it: AUDIO.md.
 
   .venv/Scripts/python media/tools/tts.py <video> [line-id ...]
       Every line of projects/<video>/video.json ("voice"."lines") that isn't cached yet → cache/tts/ (media home). A
       line is cached by its words, voice, direction and "take": the same line never calls Gemini twice. For another
       reading of a line, add or bump its "take" in video.json and run again (the old take stays cached).
+      With "voice"."one_take": true, the whole script is read in ONE request instead (it sounds far less robotic:
+      the owner, 8 Oct 2026), cached by the script, voice, direction and "voice"."take"; tools/timing.py then cuts it
+      and finds each line in it.
   .venv/Scripts/python media/tools/tts.py --audition "<text>" --voices Achird,Sulafat,Puck [--direction "<text>"]
       One sample per voice → out/auditions/<voice>-<key>.wav (media home), to choose a voice or a direction.
 
@@ -15,7 +18,7 @@ import os
 import re
 import time
 
-from common import CACHE, DIRECTION, HOME, key, load_env, shown, tts_path, video, write_wav
+from common import CACHE, DIRECTION, HOME, key, load_env, one_take_path, script_text, shown, tts_path, video, write_wav
 
 # 2.5 answers reliably on the free tier; both time out at times (90 s timeout, retries with backoff).
 MODELS = ("gemini-2.5-flash-preview-tts", "gemini-3.8-flash-tts")
@@ -88,6 +91,15 @@ def lines(name: str, wanted: list[str]) -> None:
     settings = video(name).settings["voice"]
     voice = settings["name"]
     direction = settings.get("direction", DIRECTION)
+    if settings.get("one_take"):
+        path = one_take_path(settings)
+        if path.exists():
+            print(f"one take: cached ({path.name})")
+            return
+        pcm, model = say(script_text(settings), voice, direction)
+        write_wav(path, pcm)
+        print(f"one take: {len(pcm) / 48000:.2f} s ({model}); check it: timing.py --transcribe {shown(path)}")
+        return
     for line in settings["lines"]:
         if wanted and line["id"] not in wanted:
             continue

@@ -1,0 +1,71 @@
+{
+  "title": "Puente festivo: the long weekend of 9–12 Oct 2026 as a bridge over the days, six events the owner chose, then the rest, to Pa' Bailar",
+  "version": "3",
+  "fps": 30,
+  "duration": 23.2,
+  "voice": {
+    "name": "Despina",
+    "one_take": true,
+    "take": 0,
+    "direction": "# PERFIL DE AUDIO: Valentina, 25 años, rola, nacida y criada en Bogotá.\n## LA ESCENA: Le manda una nota de voz por WhatsApp a una amiga para contarle los planes de baile del puente festivo en Bogotá. Está tranquila, en su casa.\n### NOTAS DE DIRECCIÓN: Acento colombiano de Bogotá, español colombiano natural; nada de acento gringo, mexicano ni de España. Habla como en una nota de voz de verdad, no como si estuviera leyendo: con una sonrisa en la voz, relajada y sin afán, un poquito más despacio que una conversación normal, con pausas naturales entre frases para respirar. Nada de locutora ni de comercial. Lee exactamente la transcripción, sin agregar palabras.\n#### TRANSCRIPCIÓN:",
+    "lead": 0.15,
+    "max_pause": 0.3,
+    "lines": [
+      {
+        "id": "hook",
+        "text": "Puente festivo… ¿y tú en la casa?"
+      },
+      {
+        "id": "vie",
+        "text": "El viernes, Párchese la Salsa."
+      },
+      {
+        "id": "sab",
+        "text": "El sábado, Tardeo Latino, el aniversario de LuDance y Social pa'l Parche."
+      },
+      {
+        "id": "dom",
+        "text": "El domingo, ¡Viva Salsa! y el Golazo de Bulevar."
+      },
+      {
+        "id": "mas",
+        "text": "Y hay muchos planes más…"
+      },
+      {
+        "id": "fin",
+        "text": "Todo en Pa' Bailar. Te dejo el link."
+      }
+    ]
+  },
+  "music": {
+    "bpm": 90.51,
+    "bed": "cache/music/pixabay/tunetank-latin-salsa-music-349497.mp3",
+    "bed_source": "the owner's pick (8 Oct 2026), from 0:09.85, where the full band comes in",
+    "first_hit": 9.85,
+    "provenance": {
+      "cache/music/pixabay/tunetank-latin-salsa-music-349497.mp3": {
+        "source": "Pixabay",
+        "url": "https://pixabay.com/music/comedy-latin-salsa-music-349497/",
+        "author": "Tunetank",
+        "license": "Pixabay Content License (no attribution required, commercial use allowed)",
+        "downloaded": "2026-10-08"
+      }
+    }
+  },
+  "mix": {
+    "fade": 0.3,
+    "voice_only_lufs": -15,
+    "with_music_lufs": -14,
+    "bed_db": -14
+  },
+  "sticker_band": {
+    "deliverables": [
+      "story"
+    ],
+    "allow": []
+  },
+  "renders": {
+    "story": "puente-story",
+    "reel": "puente-reel"
+  }
+}

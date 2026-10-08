@@ -1,0 +1,990 @@
+{
+ "from": "2026-10-09",
+ "to": "2026-10-11",
+ "styles": [],
+ "source": "live",
+ "events": [
+  {
+   "id": "taller-habitar-nos-un-recorrido-de-conexion-de-7-oct",
+   "title": "Taller Habitar (nos), un recorrido de conexión de adentro hacia afuera",
+   "event_type": "workshop",
+   "styles": [
+    "otro"
+   ],
+   "organizer": "La Casona de la Danza",
+   "venue": "La Casona de la Danza",
+   "area": null,
+   "date": "2026-10-07",
+   "end_date": "2026-10-09",
+   "sessions": [
+    {
+     "date": "2026-10-07",
+     "start_time": "10:00",
+     "end_time": "12:00"
+    },
+    {
+     "date": "2026-10-09",
+     "start_time": "10:00",
+     "end_time": "12:00"
+    }
+   ],
+   "start_time": "10:00",
+   "end_time": "12:00",
+   "prices": [],
+   "account": "danzaenlaciudad",
+   "day": "2026-10-09",
+   "day_start": "10:00",
+   "day_end": "12:00",
+   "flyer": "flyers/18380887969228934-2.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "musica-en-vivo-con-grupo-pa-los-santos-9-oct",
+   "title": "Música en vivo con Grupo Pa los Santos",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Galería Café Libro",
+   "venue": "Galería Café Libro - Parque 93",
+   "area": "Parque 93",
+   "date": "2026-10-09",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "17:00",
+   "end_time": "20:00",
+   "prices": [
+    {
+     "label": "Entrada libre",
+     "amount_cop": 0,
+     "condition": null
+    }
+   ],
+   "account": "galeriacafelibro",
+   "day": "2026-10-09",
+   "day_start": "17:00",
+   "day_end": "20:00",
+   "flyer": "flyers/18110935439161762-0.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "calor-que-enamora-con-kndela-orquesta-9-oct",
+   "title": "Calor que Enamora con Kndela Orquesta",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Tributo Salsa y Jazz",
+   "venue": "Tributo Salsa y Jazz",
+   "area": "Zona 6",
+   "date": "2026-10-09",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "18:00",
+   "end_time": null,
+   "prices": [],
+   "account": "tributo.salsayjazz",
+   "day": "2026-10-09",
+   "day_start": "18:00",
+   "day_end": null,
+   "flyer": "flyers/18340245544274860-0.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "parchese-la-salsa-salsa-pa-entucar-9-oct",
+   "title": "Párchese La Salsa - Salsa Pa' Entucar",
+   "event_type": "social",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Parche Bogotá",
+   "venue": "Viajero Bogotá",
+   "area": null,
+   "date": "2026-10-09",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "19:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Preventa individual",
+     "amount_cop": 25000,
+     "condition": "incluye coctel"
+    },
+    {
+     "label": "Preventa pareja",
+     "amount_cop": 40000,
+     "condition": "incluye coctel"
+    },
+    {
+     "label": "Taquilla individual",
+     "amount_cop": 30000,
+     "condition": null
+    },
+    {
+     "label": "Taquilla pareja",
+     "amount_cop": 50000,
+     "condition": null
+    }
+   ],
+   "account": "parchexbogota",
+   "day": "2026-10-09",
+   "day_start": "19:00",
+   "day_end": null,
+   "flyer": "flyers/18106363337210678-0.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "cumbia-vs-salsa-9-oct",
+   "title": "Cumbia vs. Salsa",
+   "event_type": "concert",
+   "styles": [
+    "salsa",
+    "otro"
+   ],
+   "organizer": "Casa Van Der",
+   "venue": "Casa Van Der",
+   "area": "Teusaquillo",
+   "date": "2026-10-09",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:30",
+   "end_time": null,
+   "prices": [],
+   "account": "casavander_",
+   "day": "2026-10-09",
+   "day_start": "20:30",
+   "day_end": null,
+   "flyer": "flyers/18091170308199633-0.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "noche-de-boleros-con-jhon-alvaro-cardona-9-oct",
+   "title": "Noche de Boleros con Jhon Álvaro Cardona",
+   "event_type": "concert",
+   "styles": [
+    "otro"
+   ],
+   "organizer": "Casa de Citas Restaurante y Centro Cultural",
+   "venue": "Casa de Citas",
+   "area": "La Candelaria",
+   "date": "2026-10-09",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:30",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "No Cover",
+     "amount_cop": 0,
+     "condition": null
+    }
+   ],
+   "account": "restaurantecasadecitas",
+   "day": "2026-10-09",
+   "day_start": "20:30",
+   "day_end": null,
+   "flyer": "flyers/18056050244572672-0.webp",
+   "ratio": 1.0
+  },
+  {
+   "id": "salsoteca-dc-canamelao-9-oct",
+   "title": "Cañamelao",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "El Goce Pagano",
+   "venue": "El Goce Pagano",
+   "area": null,
+   "date": "2026-10-09",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "elgocepagano",
+   "day": "2026-10-09",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/17873536227593859-1.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "issac-delgado-y-su-orquesta-en-pachanga-pochola-9-oct",
+   "title": "Issac Delgado y su Orquesta en Pachanga & Pochola",
+   "event_type": "concert",
+   "styles": [
+    "salsa cubana"
+   ],
+   "organizer": "Chulo Conciertos",
+   "venue": "Pachanga & Pochola",
+   "area": "Chapinero",
+   "date": "2026-10-09",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "pachanga_y_pochola",
+   "day": "2026-10-09",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18415582924085513-0.webp",
+   "ratio": 0.5625
+  },
+  {
+   "id": "zafra-orquesta-en-casa-quiebra-canto-9-oct",
+   "title": "Zafra Orquesta en Casa Quiebra-Canto",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Casa Quiebra-Canto",
+   "venue": "Casa Quiebra-Canto",
+   "area": null,
+   "date": "2026-10-09",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "casaquiebracanto",
+   "day": "2026-10-09",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18129257524809157-0.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "tardeo-latino-edicion-angeles-10-oct",
+   "title": "Tardeo Latino - Edición: Ángeles",
+   "event_type": "social",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Bogotá Dance Club",
+   "venue": "Bogotá Dance Club",
+   "area": null,
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "15:00",
+   "end_time": "22:00",
+   "prices": [
+    {
+     "label": "1ra etapa",
+     "amount_cop": 25000,
+     "condition": null
+    },
+    {
+     "label": "2da etapa",
+     "amount_cop": 30000,
+     "condition": null
+    }
+   ],
+   "account": "bogotadanceclub",
+   "day": "2026-10-10",
+   "day_start": "15:00",
+   "day_end": "22:00",
+   "flyer": "flyers/18049951595603676-0.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "sabado-de-orquesta-y-sabor-con-zafra-10-oct",
+   "title": "Sábado de Orquesta y Sabor con Zafra",
+   "event_type": "concert",
+   "styles": [
+    "salsa",
+    "son"
+   ],
+   "organizer": "Salsa Cámara",
+   "venue": "Salsa Cámara",
+   "area": null,
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "16:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Aporte cultural",
+     "amount_cop": 20000,
+     "condition": null
+    }
+   ],
+   "account": "salsacamaraoficial",
+   "day": "2026-10-10",
+   "day_start": "16:00",
+   "day_end": null,
+   "flyer": "flyers/17905517667577063-2.webp",
+   "ratio": 0.7993
+  },
+  {
+   "id": "iniciacion-a-la-salsa-en-linea-3-oct",
+   "title": "Iniciación a la Salsa en Línea",
+   "event_type": "workshop",
+   "styles": [
+    "salsa en línea"
+   ],
+   "organizer": "frank.de.latorre",
+   "venue": "Academia EFA Danza",
+   "area": null,
+   "date": "2026-10-03",
+   "end_date": "2026-10-24",
+   "sessions": [
+    {
+     "date": "2026-10-03",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    },
+    {
+     "date": "2026-10-10",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    },
+    {
+     "date": "2026-10-17",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    },
+    {
+     "date": "2026-10-24",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    }
+   ],
+   "start_time": "17:00",
+   "end_time": "18:00",
+   "prices": [
+    {
+     "label": "Valor del paquete por persona",
+     "amount_cop": 150000,
+     "condition": null
+    }
+   ],
+   "account": "frank.de.latorre",
+   "day": "2026-10-10",
+   "day_start": "17:00",
+   "day_end": "18:00",
+   "flyer": "flyers/18137899501621419-0.webp",
+   "ratio": 0.5622
+  },
+  {
+   "id": "el-tardeo-con-banda-en-vivo-10-oct",
+   "title": "El Tardeo con Banda en Vivo",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "El Ratón Salsa Club",
+   "venue": "El Ratón Salsa Club",
+   "area": null,
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "17:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "De 5:00 a 8:00 p. m.",
+     "amount_cop": 0,
+     "condition": null
+    }
+   ],
+   "account": "elratonsalsaclub",
+   "day": "2026-10-10",
+   "day_start": "17:00",
+   "day_end": null,
+   "flyer": "flyers/17969785191171311-0.webp",
+   "ratio": 0.5634
+  },
+  {
+   "id": "salsoteca-dc-acere-10-oct",
+   "title": "Salsoteca DC - Acere",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "El Goce Pagano",
+   "venue": "El Goce Pagano",
+   "area": null,
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "17:30",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Cover",
+     "amount_cop": 20000,
+     "condition": null
+    }
+   ],
+   "account": "elgocepagano",
+   "day": "2026-10-10",
+   "day_start": "17:30",
+   "day_end": null,
+   "flyer": "flyers/17999747108813618-0.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "noche-con-sabor-10-oct",
+   "title": "Noche con Sabor",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Tributo Salsa y Jazz",
+   "venue": "Tributo Salsa y Jazz",
+   "area": "Zona 6",
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "18:00",
+   "end_time": null,
+   "prices": [],
+   "account": "tributo.salsayjazz",
+   "day": "2026-10-10",
+   "day_start": "18:00",
+   "day_end": null,
+   "flyer": "flyers/18116534044809233-0.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "flamenco-gran-taller-10-oct",
+   "title": "Flamenco Gran Taller",
+   "event_type": "workshop",
+   "styles": [
+    "otro"
+   ],
+   "organizer": "Madyum",
+   "venue": "Madyum",
+   "area": "Madelena",
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "18:00",
+   "end_time": "19:30",
+   "prices": [],
+   "account": "madyumdance",
+   "day": "2026-10-10",
+   "day_start": "18:00",
+   "day_end": "19:30",
+   "flyer": "flyers/18033111722852845-0.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "primer-aniversario-ludance-fiesta-crossover-10-oct",
+   "title": "Primer Aniversario LuDance - Fiesta Crossover",
+   "event_type": "social",
+   "styles": [
+    "salsa",
+    "bachata",
+    "otro"
+   ],
+   "organizer": "LuDance Estudio",
+   "venue": "LuDance Estudio",
+   "area": "Santa Isabel",
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Preventa",
+     "amount_cop": 25000,
+     "condition": "hasta el 3 de octubre"
+    },
+    {
+     "label": "Cover",
+     "amount_cop": 30000,
+     "condition": null
+    }
+   ],
+   "account": "ludancestudios",
+   "day": "2026-10-10",
+   "day_start": "20:00",
+   "day_end": null,
+   "flyer": "flyers/18154168786450664-0.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "social-pal-parche-10-oct",
+   "title": "Social Pal Parche",
+   "event_type": "social",
+   "styles": [
+    "salsa",
+    "bachata",
+    "urbano",
+    "dancehall"
+   ],
+   "organizer": "Jaleo",
+   "venue": "Algarete",
+   "area": "Zona Rosa",
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:40",
+   "end_time": "05:00",
+   "prices": [
+    {
+     "label": "Fieles",
+     "amount_cop": 20000,
+     "condition": "solo cupos"
+    },
+    {
+     "label": "Preventa",
+     "amount_cop": 30000,
+     "condition": null
+    },
+    {
+     "label": "Puerta",
+     "amount_cop": 40000,
+     "condition": null
+    }
+   ],
+   "account": "jaleocompetencia_",
+   "day": "2026-10-10",
+   "day_start": "20:40",
+   "day_end": "05:00",
+   "flyer": "flyers/18106987091241198-0.webp",
+   "ratio": 1.0
+  },
+  {
+   "id": "callejon-marediaguamusic-e-invitadas-especiales-10-oct",
+   "title": "Callejón Marediaguamusic e Invitadas Especiales",
+   "event_type": "concert",
+   "styles": [
+    "salsa",
+    "son",
+    "otro"
+   ],
+   "organizer": "El Callejón, mecato & salsa",
+   "venue": "El Callejón, mecato & salsa",
+   "area": "La Candelaria",
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "21:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Preventa",
+     "amount_cop": 15000,
+     "condition": null
+    },
+    {
+     "label": "Taquilla",
+     "amount_cop": 20000,
+     "condition": null
+    }
+   ],
+   "account": "callejonsalsa",
+   "day": "2026-10-10",
+   "day_start": "21:00",
+   "day_end": null,
+   "flyer": "flyers/18135744943634406-0.webp",
+   "ratio": 0.8078
+  },
+  {
+   "id": "charanga-new-york-en-vivo-10-oct",
+   "title": "Charanga New York en vivo",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Galería Café Libro",
+   "venue": "Galería Café Libro - Parque 93",
+   "area": "Parque 93",
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Cover",
+     "amount_cop": 25000,
+     "condition": null
+    }
+   ],
+   "account": "galeriacafelibro",
+   "day": "2026-10-10",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18110935439161762-7.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "noche-brava-con-son-capital-10-oct",
+   "title": "Noche brava con Son Capital",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Galería Café Libro",
+   "venue": "Galería Café Libro - Palermo",
+   "area": "Palermo",
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "galeriacafelibro",
+   "day": "2026-10-10",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18110935439161762-1.webp",
+   "ratio": 0.8006
+  },
+  {
+   "id": "azul-trabuco-en-casa-quiebra-canto-10-oct",
+   "title": "Azul Trabuco en Casa Quiebra-Canto",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Casa Quiebra-Canto",
+   "venue": "Casa Quiebra-Canto",
+   "area": null,
+   "date": "2026-10-10",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "casaquiebracanto",
+   "day": "2026-10-10",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18129257524809157-0.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "workshops-pro-fondos-11-oct",
+   "title": "Workshops Pro Fondos",
+   "event_type": "workshop",
+   "styles": [
+    "urbano",
+    "otro"
+   ],
+   "organizer": "@proyectourbandance",
+   "venue": "Proyecto Urban Dance",
+   "area": "Galerías",
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "15:00",
+   "end_time": "16:00",
+   "prices": [
+    {
+     "label": "1 clase",
+     "amount_cop": 30000,
+     "condition": null
+    },
+    {
+     "label": "2 clases",
+     "amount_cop": 50000,
+     "condition": null
+    },
+    {
+     "label": "3 clases",
+     "amount_cop": 70000,
+     "condition": null
+    },
+    {
+     "label": "Preventa full pass",
+     "amount_cop": 65000,
+     "condition": null
+    }
+   ],
+   "account": "proyectourbandance",
+   "day": "2026-10-11",
+   "day_start": "15:00",
+   "day_end": "16:00",
+   "flyer": "flyers/18134142721660577-1.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "workshop-pro-fondos-sabroseo-11-oct",
+   "title": "Workshop Pro Fondos: Sabroseo",
+   "event_type": "workshop",
+   "styles": [
+    "urbano"
+   ],
+   "organizer": "PUD",
+   "venue": "Proyecto Urban Dance",
+   "area": "Galerías",
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "16:00",
+   "end_time": "17:00",
+   "prices": [
+    {
+     "label": "1 clase",
+     "amount_cop": 30000,
+     "condition": null
+    },
+    {
+     "label": "2 clases",
+     "amount_cop": 50000,
+     "condition": null
+    },
+    {
+     "label": "3 clases",
+     "amount_cop": 70000,
+     "condition": null
+    },
+    {
+     "label": "Preventa full pass",
+     "amount_cop": 65000,
+     "condition": null
+    }
+   ],
+   "account": "proyectourbandance",
+   "day": "2026-10-11",
+   "day_start": "16:00",
+   "day_end": "17:00",
+   "flyer": "flyers/18134142721660577-2.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "zafra-son-11-oct",
+   "title": "Zafra Son",
+   "event_type": "concert",
+   "styles": [
+    "son",
+    "salsa"
+   ],
+   "organizer": "Salsa Camará",
+   "venue": "Salsa Camará",
+   "area": null,
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "16:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Aporte cultural",
+     "amount_cop": 15000,
+     "condition": null
+    }
+   ],
+   "account": "salsacamaraoficial",
+   "day": "2026-10-11",
+   "day_start": "16:00",
+   "day_end": null,
+   "flyer": "flyers/18104064211998438-0.webp",
+   "ratio": 0.8012
+  },
+  {
+   "id": "workshop-pro-fondos-coreografia-11-oct",
+   "title": "Workshop Pro Fondos: Coreografía",
+   "event_type": "workshop",
+   "styles": [
+    "urbano"
+   ],
+   "organizer": "PUD",
+   "venue": "Proyecto Urban Dance",
+   "area": "Galerías",
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "17:00",
+   "end_time": "18:00",
+   "prices": [
+    {
+     "label": "1 clase",
+     "amount_cop": 30000,
+     "condition": null
+    },
+    {
+     "label": "2 clases",
+     "amount_cop": 50000,
+     "condition": null
+    },
+    {
+     "label": "3 clases",
+     "amount_cop": 70000,
+     "condition": null
+    },
+    {
+     "label": "Preventa full pass",
+     "amount_cop": 65000,
+     "condition": null
+    }
+   ],
+   "account": "proyectourbandance",
+   "day": "2026-10-11",
+   "day_start": "17:00",
+   "day_end": "18:00",
+   "flyer": "flyers/18134142721660577-3.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "tardeo-viva-salsa-social-11-oct",
+   "title": "Tardeo ¡Viva Salsa! Social",
+   "event_type": "social",
+   "styles": [
+    "salsa cubana"
+   ],
+   "organizer": "Pachanga y Pochola",
+   "venue": "Pachanga y Pochola",
+   "area": null,
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "17:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Pre-venta",
+     "amount_cop": 20000,
+     "condition": null
+    },
+    {
+     "label": "Taquilla",
+     "amount_cop": 30000,
+     "condition": null
+    }
+   ],
+   "account": "fernandoespanadj",
+   "day": "2026-10-11",
+   "day_start": "17:00",
+   "day_end": null,
+   "flyer": "flyers/17905429290568646-0.webp",
+   "ratio": 0.5625
+  },
+  {
+   "id": "tour-de-la-salsa-capitulo-001-11-oct",
+   "title": "Tour de la Salsa — Capítulo 001",
+   "event_type": "social",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Salsa Culto",
+   "venue": "El Goce Pagano",
+   "area": "Bogotá",
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "19:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Preventa Individual",
+     "amount_cop": 45000,
+     "condition": null
+    },
+    {
+     "label": "Preventa Pareja",
+     "amount_cop": 80000,
+     "condition": null
+    }
+   ],
+   "account": "salsaculto",
+   "day": "2026-10-11",
+   "day_start": "19:00",
+   "day_end": null,
+   "flyer": "flyers/17873536227593859-1.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "jazz-through-time-capitulo-1-back-to-the-roots-11-oct",
+   "title": "Jazz Through Time - Capítulo 1: Back to the Roots",
+   "event_type": "workshop",
+   "styles": [
+    "swing",
+    "afro",
+    "otro"
+   ],
+   "organizer": null,
+   "venue": null,
+   "area": "Bogotá",
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [
+    {
+     "label": "One Chapter",
+     "amount_cop": 260000,
+     "condition": "Main set 16-27 sept"
+    },
+    {
+     "label": "Two Chapters",
+     "amount_cop": 450000,
+     "condition": "Main set 16-27 sept"
+    },
+    {
+     "label": "One Chapter",
+     "amount_cop": 330000,
+     "condition": "Last call 28 sept - 11 oct"
+    },
+    {
+     "label": "Two Chapters",
+     "amount_cop": 601000,
+     "condition": "Last call 28 sept - 11 oct"
+    }
+   ],
+   "account": "zaimora24",
+   "day": "2026-10-11",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/17954021634253041-2.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "el-golazo-de-bulevar-11-oct",
+   "title": "El Golazo de Bulevar",
+   "event_type": "party",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Bulevar Rooftop",
+   "venue": "Bulevar Rooftop",
+   "area": null,
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "bulevarsalsarooftop",
+   "day": "2026-10-11",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18130057825689666-0.webp",
+   "ratio": 0.5625
+  },
+  {
+   "id": "salsa-y-caribe-con-nick-salas-ns-orquesta-11-oct",
+   "title": "Salsa y Caribe con Nick Salas (NS Orquesta)",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Galería Café Libro",
+   "venue": "Galería Café Libro - Parque 93",
+   "area": "Parque 93",
+   "date": "2026-10-11",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "galeriacafelibro",
+   "day": "2026-10-11",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18110935439161762-0.webp",
+   "ratio": 0.8
+  }
+ ]
+}

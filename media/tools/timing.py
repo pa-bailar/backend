@@ -8,8 +8,10 @@ Run with the faster-whisper venv (D:\\AI\\whisper):
       → what Whisper hears (QA for a take: a swallowed word shows up here)
 
 video.json's "voice": "lead" (silence before the first word), "max_pause" (pauses inside a line, e.g. at "…",
-are kept but not longer than this), and per line "gap" (silence after it). Composition code reads the times with
-makeTiming() (src/lib/timing.ts): line("c4").start, word("c2", "dónde").
+are kept but not longer than this), and per line "gap" (silence after it). With "one_take": true (media/AUDIO.md), the
+one recording of the whole script is cut to its words instead (her own pauses kept) and each line is found in it by
+its first two words; "gap" and "max_pause" don't apply. Composition code reads the times with makeTiming()
+(src/lib/timing.ts): line("c4").start, word("c2", "dónde").
 """
 
 import argparse
@@ -18,7 +20,7 @@ import wave
 from pathlib import Path
 
 import numpy as np
-from common import DIRECTION, TTS_RATE, shown, tts_path, video, voice_key
+from common import DIRECTION, TTS_RATE, _norm, one_take_path, script_text, shown, tts_path, video, voice_key
 
 RATE = TTS_RATE
 
@@ -70,11 +72,92 @@ def whisper():
     return WhisperModel("medium", device="cpu", compute_type="int8")
 
 
+def words_of(path: Path, prompt: str) -> list[dict]:
+    """Whisper's words (start, end, probability) of a file, with the script as a hint so names come out as written."""
+    segments, _ = whisper().transcribe(
+        str(path), language="es", word_timestamps=True, initial_prompt=prompt, vad_filter=False, beam_size=5
+    )
+    return [
+        {"word": w.word.strip(), "start": round(w.start, 3), "end": round(w.end, 3), "p": round(w.probability, 2)}
+        for s in segments
+        for w in s.words
+    ]
+
+
+def build_one_take(v, voice: dict, lead: float) -> None:
+    """A one-take recording ("voice"."one_take"): cut from just before its first word to just after its last (the
+    model leaves noise past the end: a clipped burst after "link" in the puente take of 8 Oct 2026), its own pauses
+    kept, after `lead` seconds of silence; each line found in it by its first two words, in order."""
+    script = script_text(voice)
+    raw_path = one_take_path(voice)
+    raw = read(raw_path)
+    heard = words_of(raw_path, script)
+    if not heard:
+        raise SystemExit(f"Whisper heard nothing in {raw_path.name}")
+    start, end = max(0.0, heard[0]["start"] - 0.06), heard[-1]["end"] + 0.12
+    take = raw[int(start * RATE) : int(end * RATE)].copy()
+    fade = int(0.08 * RATE)
+    take[-fade:] *= np.linspace(1, 0, fade, dtype=np.float32)
+    track = np.concatenate([np.zeros(int(lead * RATE), np.float32), take, np.zeros(int(0.3 * RATE), np.float32)])
+    out = v.out / "voice-track.wav"
+    write(out, track)
+    print(f"{out.name}: {len(track) / RATE:.2f} s, one take (the video is {v.duration} s)")
+
+    shift = lead - start
+    words = [{**w, "start": round(w["start"] + shift, 3), "end": round(w["end"] + shift, 3)} for w in heard]
+    # Each line starts at its first two words, searched in order (two words: "El viernes" vs "El sábado").
+    starts, at = [], 0
+    for line in voice["lines"]:
+        want = [_norm(w) for w in line["text"].split()[:2]]
+        found = next(
+            (i for i in range(at, len(words)) if [_norm(w["word"]) for w in words[i : i + len(want)]] == want), None
+        )
+        if found is None:
+            heard_text = " ".join(w["word"] for w in words[at:])
+            raise SystemExit(f'line {line["id"]}: "{" ".join(want)}" not heard after word {at} (heard: {heard_text})')
+        starts.append(found)
+        at = found + 1
+    lines = []
+    for k, line in enumerate(voice["lines"]):
+        mine = words[starts[k] : starts[k + 1] if k + 1 < len(starts) else len(words)]
+        lines.append(
+            {"id": line["id"], "text": line["text"], "start": mine[0]["start"], "end": mine[-1]["end"], "words": mine}
+        )
+    write_timing(
+        v, voice, track, out, lead, lines, segments=[], note="One take: line and word times are Whisper medium (es)."
+    )
+
+
+def write_timing(
+    v, voice: dict, track: np.ndarray, out: Path, lead: float, lines: list, segments: list, note: str
+) -> None:
+    timing = {
+        "fps_hint": v.fps,
+        "duration": round(len(track) / RATE, 3),
+        "voice": f"(media home) {shown(out)}",
+        "lead": lead,
+        # what the track was made from: tools/render.py refuses to render when the voice changed since
+        "voice_key": voice_key(v.settings),
+        "lines": lines,
+        "segments": segments,
+        "note": note,
+    }
+    v.data.mkdir(parents=True, exist_ok=True)
+    # "\n" endings on Windows too: a committed file that doesn't flip line endings with each run.
+    (v.data / "timing.json").write_text(
+        json.dumps(timing, ensure_ascii=False, indent=1), encoding="utf-8", newline="\n"
+    )
+    for line in lines:
+        print(f"{line['start']:6.2f}–{line['end']:6.2f} {line['id']}: " + " ".join(w["word"] for w in line["words"]))
+
+
 def build(name: str) -> None:
     v = video(name)
     voice = v.settings["voice"]
     direction = voice.get("direction", DIRECTION)
     lead = float(voice.get("lead", 0.55))
+    if voice.get("one_take"):
+        return build_one_take(v, voice, lead)
     max_pause = float(voice.get("max_pause", 0.32))
     parts, lines, t = [np.zeros(int(lead * RATE), np.float32)], [], lead
     for line in voice["lines"]:
@@ -118,25 +201,17 @@ def build(name: str) -> None:
         for w in line["words"]:  # Whisper stretches a first word over the silence before it
             w["start"] = max(w["start"], line["start"])
             w["end"] = min(max(w["end"], w["start"] + 0.05), line["end"] + 0.1)
-    timing = {
-        "fps_hint": v.fps,
-        "duration": round(len(track) / RATE, 3),
-        "voice": f"(media home) {shown(out)}",
-        "lead": lead,
-        # what the track was made from: tools/render.py refuses to render when the voice changed since
-        "voice_key": voice_key(v.settings),
-        "lines": lines,
-        "segments": segs,
-        "note": "Times are video seconds. Line start/end are exact (from the joined files); "
+    write_timing(
+        v,
+        voice,
+        track,
+        out,
+        lead,
+        lines,
+        segs,
+        note="Times are video seconds. Line start/end are exact (from the joined files); "
         "word times are Whisper medium (es).",
-    }
-    v.data.mkdir(parents=True, exist_ok=True)
-    # "\n" endings on Windows too: a committed file that doesn't flip line endings with each run.
-    (v.data / "timing.json").write_text(
-        json.dumps(timing, ensure_ascii=False, indent=1), encoding="utf-8", newline="\n"
     )
-    for line in lines:
-        print(f"{line['start']:6.2f}–{line['end']:6.2f} {line['id']}: " + " ".join(w["word"] for w in line["words"]))
 
 
 def transcribe(paths: list[str]) -> None:
