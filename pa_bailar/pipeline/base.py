@@ -93,12 +93,25 @@ _DENIED = re.compile(
     r"\bno (?:se |esta |estan |fue |fueron |ha sido |han sido |sera |seran |lo |la |los |las )?"
     r"(?:cancel|aplaz|suspend|pospon|pospu|reprogram|posterg)\w*"
 )
-# A sentence that only says it might be off: a condition ("si no se completa el cupo, el taller se aplaza", "en caso de
-# lluvia se aplaza", "si el evento es cancelado se devuelve el dinero"; not "Sí, …") or a question ("¿se cancela por la
-# lluvia?"). Reminders repeat them, and Flash finding no event in one took its event down for good (the bug-squash pass
-# of 8 Oct 2026).
-_MAYBE = re.compile(r"\bsi\b(?!,)|\ben caso de\b|[¿?]")
+# Words that only say it might be off: a condition ("si no se completa el cupo, el taller se aplaza", "se aplaza si
+# llueve", "en caso de lluvia se aplaza", "si el evento es cancelado se devuelve el dinero"; not "Sí, …" nor "si bien")
+# or a question ("¿se cancela por la lluvia?"). Reminders repeat them, and Flash finding no event in one took its event
+# down for good (the bug-squash pass of 8 Oct 2026). A condition after the word governs it within its clause only: "se
+# cancela por lluvia, si ya pagaste te devolvemos el dinero" says it's off.
+_CONDITION = re.compile(r"\bsi\b(?!,| bien\b)|\ben caso de\b")
 _SENTENCE_END = re.compile(r"(?<=[!?])|(?<=\.)(?!\d)")  # not the dot of "$50.000"
+
+
+def _states_it(sentence: str) -> bool:
+    """Whether a sentence says the event is off: a cancellation word, not in a question nor under a condition (before
+    it in the sentence, or after it in its clause)."""
+    if "?" in sentence or "¿" in sentence:
+        return False
+    return any(
+        not _CONDITION.search(sentence[: found.start()])
+        and not _CONDITION.search(re.split(r"[,;]", sentence[found.end() :], maxsplit=1)[0])
+        for found in _CANCELLED.finditer(sentence)
+    )
 
 
 def _says_cancelled(post: Post, analysis: PostAnalysis) -> bool:
@@ -106,7 +119,7 @@ def _says_cancelled(post: Post, analysis: PostAnalysis) -> bool:
     sentence that states it (not "se cancela" meaning it's paid, nor a condition, a denial or a question)."""
     lines = [*(post.get("caption") or "").splitlines(), analysis.reason]
     sentences = [part for line in lines for part in _SENTENCE_END.split(_DENIED.sub(" ", _PAID.sub(" ", fold(line))))]
-    return any(_CANCELLED.search(sentence) and not _MAYBE.search(sentence) for sentence in sentences)
+    return any(_states_it(sentence) for sentence in sentences)
 
 
 def _days(event: EventDetails) -> str:

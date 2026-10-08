@@ -557,7 +557,8 @@ efectivo", "por Nequi", "el día del taller", "antes del taller", "el mismo día
 lluvia" nor "el día de hoy" (the bug-squash pass of 8 Oct 2026: a reminder's "Inversión: $50.000. Se cancela el día del
 taller" still took its event down). Nor a sentence that only says it might be off, or that it isn't: a condition ("si no
 se completa el cupo, el taller se aplaza", "en caso de lluvia se aplaza", "si el evento es cancelado se devuelve el
-dinero"), a question ("¿se cancela por la lluvia?") or a denial ("el social NO se cancela"), which reminders repeat (the
+dinero"; one after the word only within its clause: "se cancela por lluvia, si ya pagaste te devolvemos el dinero" says
+it's off), a question ("¿se cancela por la lluvia?") or a denial ("el social NO se cancela"), which reminders repeat (the
 same pass). Then its own account's events leave the site even when other posts announce them too; another account's
 event stays, with low confidence and a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for
 review (section 11.1) (`Sweep._take_down_cancelled`).

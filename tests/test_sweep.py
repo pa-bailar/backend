@@ -1037,6 +1037,9 @@ def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_c
         "EVENTO CANCELADO. Si compraste tu entrada, te devolvemos el dinero",
         "No se cancela, se aplaza para el 20",
         "Sí, se cancela el social",
+        "Lamentablemente el social se cancela por lluvia, si ya pagaste te devolvemos el dinero",
+        "SE CANCELA EL SOCIAL, si tienes dudas escríbenos",
+        "Lamentablemente, si bien lo intentamos, el evento se cancela",
         # The verbs' other forms, as the participles already counted (the bug-squash pass of 8 Oct 2026: they slipped).
         "SE SUSPENDE EL SOCIAL DE HOY POR LLUVIA",
         "Se suspenden las clases y el social de esta semana",
@@ -1088,6 +1091,7 @@ def test_a_caption_saying_the_event_is_off(caption):
         "Si no se completa el cupo mínimo, el taller se aplaza",
         "El taller se aplaza si no se completa el cupo",
         "En caso de lluvia el evento se aplaza",
+        "El evento se cancela en caso de lluvia",
         "Si el evento es cancelado se devuelve el dinero",
         "¡Sigue en pie! El social NO se cancela por la lluvia",
         "Aclaramos: el evento no está cancelado, ¡nos vemos!",
