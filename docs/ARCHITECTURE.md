@@ -548,9 +548,12 @@ event: a reminder that Flash re-reads as no event would take the event it joined
 ("no habrá venta de boletas en taquilla"), "cancelación" ("política de cancelación"), "nueva fecha" and "se canceló"
 ("ya se canceló", paid) don't count (the bug hunt of 7 Oct 2026). Nor does "se cancela" meaning "is paid", read line by
 line: a price's word before it ("la entrada se cancela en la puerta", "la inversión se cancela el día del taller": the
-price words of `text.PRICE_WORDS`, which the rule checks' price line shares), or how it's paid after it ("en efectivo",
-"por Nequi"), never "se cancela por lluvia".
-its own account's events leave the site even when other posts announce them too; another account's event
+price words of `text.PRICE_WORDS`, which the rule checks' price line shares) or an amount ("Inversión: $50.000. Se
+cancela…", "20 mil", "15k", "50%": the dot of "$50.000" ends no sentence), or when or how it's paid after it ("en
+efectivo", "por Nequi", "el día del taller", "antes del taller", "el mismo día", "en dos cuotas"); never "se cancela por
+lluvia" nor "el día de hoy" (the bug-squash pass of 8 Oct 2026: a reminder's "Inversión: $50.000. Se cancela el día del
+taller" still took its event down). Then its own account's events leave the site even when other posts announce them
+too; another account's event
 stays, with low confidence and a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for
 review (section 11.1) (`Sweep._take_down_cancelled`).
 

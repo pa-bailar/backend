@@ -65,16 +65,21 @@ _CANCELLED = re.compile(
     r"|se pospone|se pospuso|postponed|suspendemos|reprogramamos|se reprograma|postergamos|se posterga"
     r"|no se realizara)\b"
 )
-# In Colombia "cancelar" is also "to pay": a price's word before it ("la entrada se cancela en la puerta"; not after a
-# colon: "Entrada: se cancela el social"), or how it's paid after it ("se cancela en efectivo", "por Nequi"); never
-# "se cancela por lluvia". Read line by line: a price on one line says nothing about the next.
+# An amount of money: "$50.000", "50 mil", "15k", "50.000", "50%" (a dot between digits groups thousands).
+_AMOUNT = r"(?:\$[ \t]*\d|\b\d+(?:\.\d{3})*(?:[ \t]*(?:k|mil|cop|pesos)\b|[ \t]*%)|\b\d{1,3}(?:\.\d{3})+\b)"
+# In Colombia "cancelar" is also "to pay": a price's word or an amount before it ("la entrada se cancela en la puerta",
+# "Inversión: $50.000. Se cancela…"; a word alone not after a colon: "Entrada: se cancela el social"), or when or how
+# it's paid after it ("se cancela en efectivo", "por Nequi", "el día del taller", "antes del taller", "el mismo día");
+# never "se cancela por lluvia" nor "el día de hoy". The dot of "$50.000" ends no sentence: the amount and the words
+# after it went unread, and a reminder Flash found no event in took its event down (the bug-squash pass of 8 Oct 2026).
+# Read line by line: a price on one line says nothing about the next.
 _PAID = re.compile(
-    rf"\b(?:{'|'.join(PRICE_WORDS)}|entrada|inscripcion|matricula|cuota|pago|mensualidad|reserva)s?\b[^.!?:]{{0,30}}?"
-    r"\bse cancelan?\b"
-    r"|\bse cancelan? (?:en (?:efectivo|la puerta|puerta|taquilla|la entrada|caja|el lugar)"
-    r"|con (?:tarjeta|efectivo|nequi|daviplata|transferencia)|al (?:ingresar|llegar|entrar|ingreso)"
-    r"|antes del? (?:evento|ingreso|ingresar)|directamente"
-    r"|por (?:nequi|daviplata|transferencia|pse|tarjeta|bancolombia))\b"
+    rf"(?:\b(?:{'|'.join(PRICE_WORDS)}|entrada|inscripcion|matricula|cuota|pago|mensualidad|reserva|saldo|abono)s?\b"
+    rf"|{_AMOUNT})(?:[^.!?:]|(?<=\d)\.(?=\d)){{0,30}}?\bse cancelan?\b"
+    r"|\bse cancelan? (?:en (?:efectivo|la puerta|puerta|taquilla|la entrada|caja|el lugar|(?:dos|tres|\d+) cuotas)\b"
+    r"|con (?:tarjeta|efectivo|nequi|daviplata|transferencia)\b|al (?:ingresar|llegar|entrar|ingreso|momento)\b"
+    r"|antes del?\b|el mismo dia\b|el dia del?\b(?! (?:hoy|manana)\b)|directamente\b|por adelantado\b"
+    r"|con anticipacion\b|por (?:nequi|daviplata|transferencia|pse|tarjeta|bancolombia)\b)"
 )
 
 

@@ -969,6 +969,11 @@ def test_an_event_in_another_city_isnt_published_and_an_unknown_city_is_flagged(
         "Últimos cupos 🔥 Política de cancelación: no hay devoluciones",
         "¡Este sábado! Si no alcanzas, abrimos nueva fecha en noviembre",
         "¡Este sábado! Recuerda: la inversión se cancela el día del taller",
+        # How a price is written, and when it's paid (the bug-squash pass of 8 Oct 2026: each took the event down).
+        "¡Este sábado! 💃\n💰 Inversión: $50.000\n💳 Se cancela el día del taller",
+        "Recuerda: Inversión: $50.000. Se cancela el día del taller",
+        "Entrada general 20 mil\nse cancela el mismo día",
+        "Inversión $120.000 / se cancela en dos cuotas",
     ],
 )
 def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_caption):
@@ -1001,6 +1006,10 @@ def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_c
         "Lo postergamos para noviembre",
         "El social se aplazó",
         "El taller no se realizará",
+        # Not an amount, nor a day it's paid on: a time, a date, "el día de hoy" (the bug-squash pass of 8 Oct 2026).
+        "Hoy 8 pm se cancela el social por lluvia",
+        "Sábado 12: se cancela el social",
+        "Se cancela el día de hoy por lluvia",
     ],
 )
 def test_a_caption_saying_the_event_is_off(caption):
@@ -1025,6 +1034,19 @@ def test_a_caption_saying_the_event_is_off(caption):
         "La inversión se cancela el día del taller",
         "El aporte se cancela al inicio de la clase",
         "La matrícula se cancela antes de empezar",
+        # An amount says it as well as a price's word: "$50.000" (its dot groups thousands, it ends no sentence), "50
+        # mil", "15k", "50%", even after a label's colon; and when or how it's paid (the bug-squash pass of 8 Oct 2026).
+        "Inversión: $50.000. Se cancela el día del taller",
+        "💰 Inversión: $50.000\n💳 Se cancela el día del taller",
+        "Valor: $30.000 (se cancela antes del taller)",
+        "Precio: $60.000 que se cancelan el día del evento",
+        "Entrada general 20 mil\nse cancela el mismo día",
+        "Cover: 15k se cancela en la entrada",
+        "El 50% se cancela para separar el cupo",
+        "Inversión $120.000 / se cancela en dos cuotas",
+        "Mensualidad $150.000 se cancela los primeros 5 días del mes",
+        "Valor del taller: $45.000\n*Se cancela al momento de la inscripción",
+        "Separa tu cupo con $20.000 y el saldo se cancela por adelantado",
     ],
 )
 def test_se_cancela_meaning_it_is_paid_or_other_words_dont_cancel(caption):
