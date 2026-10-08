@@ -185,9 +185,9 @@ export async function forward(page) {
   await waitSettled(page);
 }
 
-/** The visible view's cards (Locator). */
 /** The view on screen (Próximos, Calendario, Guardados): the other views keep their old cards, hidden. */
-const VIEW = '[role="tabpanel"]:not([hidden])';
+export const VIEW = '[role="tabpanel"]:not([hidden])';
+/** The visible view's cards (Locator). */
 export const cards = (page) => page.locator(`${VIEW} [data-event-card]`);
 /** The id of the card a snapshot's focus is on (`card:<id>`), or null. */
 export const focusedCardId = (s) => (s.focus.startsWith("card:") ? s.focus.slice(5) : null);
@@ -199,7 +199,7 @@ export const focusedCardId = (s) => (s.focus.startsWith("card:") ? s.focus.slice
  *   still summarized in the visible view), ox (horizontal overflow, px)
  */
 export const snapshot = (page) =>
-  page.evaluate(() => {
+  page.evaluate((VIEW) => {
     const a = document.activeElement;
     const card = a?.closest?.("[data-event-card]")?.dataset.eventCard;
     const focus = a?.dataset?.showPeriod
@@ -222,12 +222,10 @@ export const snapshot = (page) =>
         .map((d) => d.id || d.className.toString().split(" ")[0] || "dialog")
         .filter((id) => id !== "event-drawer" && id !== "lightbox"),
       screen: document.body.dataset.screen ?? "",
-      folded: [...document.querySelectorAll('[role="tabpanel"]:not([hidden]) [data-show-period]')].map(
-        (b) => b.dataset.showPeriod,
-      ),
+      folded: [...document.querySelectorAll(`${VIEW} [data-show-period]`)].map((b) => b.dataset.showPeriod),
       ox: Math.max(0, document.documentElement.scrollWidth - innerWidth),
     };
-  });
+  }, VIEW);
 
 const cut = (s, n) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 /** A snapshot as one short line. */

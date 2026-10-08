@@ -5,9 +5,7 @@
 // moves the panel to the first new event, and so does Space. From deep in the list, Guardados and a search start at
 // the top, under the toolbar (site #167: the sticky toolbar read 0 once pinned, and the page never went back up).
 // Desktop, 1366 × 768 or the device's size.
-import { Skip, focusedCardId } from "../lib.mjs";
-
-const VIEW = '[role="tabpanel"]:not([hidden])';
+import { Skip, VIEW, fmt, focusedCardId } from "../lib.mjs";
 
 /** The first two cards side by side under the toolbar, and the gap between them, after scrolling to `y`. */
 const gapAt = (page, y) =>
@@ -51,6 +49,8 @@ const tops = (page) =>
     main: Math.round(document.querySelector("main").getBoundingClientRect().top),
     y: Math.round(scrollY),
   }));
+/** The view's content starts at its top: right under the toolbar (2 px for rounding), high on the first screen. */
+const atTheTop = ({ toolbar, main }) => main >= toolbar - 2 && main < 400;
 
 /** The stop in focus (a card or a block): its top on screen, or null. */
 const focusedStopTop = (page) =>
@@ -155,7 +155,7 @@ export default {
     await page.click('.toolbar [role="tab"][data-view="saved"]');
     await ctx.settle();
     const saved = await tops(page);
-    check("from deep in the list, Guardados opens at its top", saved.main >= saved.toolbar - 2 && saved.main < 400, saved);
+    check("from deep in the list, Guardados opens at its top", atTheTop(saved), saved);
 
     // From deep in the list, a search's results start on screen, under the toolbar
     await ctx.goto("/");
@@ -166,7 +166,7 @@ export default {
     await page.waitForTimeout(500);
     await ctx.settle();
     const searched = await tops(page);
-    check("from deep in the list, a search's results start at the top", searched.main >= searched.toolbar - 2 && searched.main < 400, searched);
+    check("from deep in the list, a search's results start at the top", atTheTop(searched), searched);
 
     // Enter on "Ver N más" with the panel open: the panel on the first new event, the focus there
     await ctx.goto("/");
@@ -191,7 +191,7 @@ export default {
     check(
       "Space on Ver N más: the new card in focus, on screen, the panel on it",
       focusedCardId(spaced) && spaced.drawer === focusedCardId(spaced) && spacedTop !== null && spacedTop >= 0,
-      `${JSON.stringify(spaced)} top ${spacedTop}`,
+      `${fmt(spaced)}, the stop's top ${spacedTop}`,
     );
   },
 };
