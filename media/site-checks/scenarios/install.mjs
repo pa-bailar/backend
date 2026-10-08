@@ -28,6 +28,12 @@ export default {
             const s = document.getElementById("install-sheet");
             return s.scrollHeight <= s.clientHeight + 1;
           })(),
+          // each tap inside the sheet's content box ("Agregar a Inicio" ran into the padding at 320 px, 8 Oct 2026)
+          tapsInside: (() => {
+            const s = document.getElementById("install-sheet");
+            const right = s.getBoundingClientRect().right - parseFloat(getComputedStyle(s).paddingRight);
+            return [...document.querySelectorAll("#install-taps .install-key")].every((k) => k.getBoundingClientRect().right <= right + 0.5);
+          })(),
         };
       });
 
@@ -43,6 +49,7 @@ export default {
     check("no written steps", !s.writtenSteps, s);
     check("the arrow at the bottom right (⋯)", s.pointer === "bottom-right", s);
     check("everything fits without scrolling the sheet", s.fits, s);
+    check("the taps stay inside the sheet, each on one line", s.tapsInside, s);
     await ctx.shot("sheet");
 
     await ctx.tap('#install-sheet [data-close-sheet]');
