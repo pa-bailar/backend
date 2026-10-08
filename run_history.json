@@ -28,6 +28,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": null,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -89,6 +91,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": null,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -114,6 +118,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": null,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -162,6 +168,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": null,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -208,6 +216,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": 61,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -268,6 +278,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": 48,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -332,6 +344,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": 56,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -410,6 +424,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": 86,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -506,6 +522,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": 76,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -550,6 +568,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": 37,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -621,6 +641,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": 62,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -721,6 +743,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": 93,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -795,6 +819,8 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": 54,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
     "warnings": []
   },
   {
@@ -896,6 +922,106 @@
     "external_quarantined": [],
     "external_problems": {},
     "instagram_usage": 90,
+    "instagram_usage_detail": {},
+    "upgrade_changes": {},
+    "warnings": []
+  },
+  {
+    "finished_at": "2026-10-08T06:51:48-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/37770443659",
+    "accounts": 56,
+    "failed_accounts": [
+      "bailabo_studio"
+    ],
+    "read_accounts": [
+      "academia_cowork",
+      "academiaalmadetangoe",
+      "academiadebailepasolatino",
+      "academyfeel",
+      "acaparchamos",
+      "alejochacon.co",
+      "alpasojam",
+      "angie__cuesta",
+      "aseismanos",
+      "bailabo_studio",
+      "bembeacademiadebaile",
+      "bogotadanceclub.academy",
+      "bureodancestudio",
+      "clandisfrute",
+      "danceholicproject",
+      "danceinmotionclub",
+      "davidylauradancers",
+      "discojaguar.bta",
+      "distritosocialbog",
+      "efadanza",
+      "esferalatinaoficial",
+      "espacio.64",
+      "foururbandanc",
+      "fredyysaraoficial",
+      "ikubambayadanza",
+      "imperiolatino",
+      "jen.ssy",
+      "ladiezluxury_outlet",
+      "lamecanica_original",
+      "lanenamagdalena",
+      "ludancestudios",
+      "madyumdance",
+      "mambo_y_control",
+      "mambolei_",
+      "meetinghousebogota",
+      "mover__se",
+      "mundanobaroficial",
+      "originalstepdance",
+      "proyectourbandance",
+      "puntalpie",
+      "quemaquequema",
+      "restaurantecasadecitas",
+      "ritmomoderno",
+      "ritmosacademiadebaile",
+      "rpdancestudio",
+      "salsalatina.villaluz",
+      "showstarscol",
+      "sonorasocialclub_",
+      "sonrumbero",
+      "soondanz_company",
+      "studio110dance",
+      "studiolatindance",
+      "tibaduiza__",
+      "tubailecom",
+      "valkandela",
+      "zafradance"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 18,
+    "events_new": 0,
+    "events_merged": 1,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 8,
+      "gemini-3.8-flash": 9,
+      "gemini-3.7-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3.5-flash": 9
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 77,
+    "instagram_usage_detail": {
+      "call_count": 21,
+      "total_cputime": 0,
+      "total_time": 77
+    },
+    "upgrade_changes": {
+      "compared": 4,
+      "dropped": 0,
+      "venue": 1
+    },
     "warnings": []
   }
 ]
