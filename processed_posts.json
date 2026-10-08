@@ -8380,16 +8380,17 @@
   "17873536227593859": {
     "account": "elgocepagano",
     "permalink": "https://www.instagram.com/p/Dd7mV70jn6J/",
-    "processed_at": "2026-10-05T21:07:16-05:00",
+    "processed_at": "2026-10-08T08:48:24-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia una serie de conciertos y eventos de salsa programados para octubre en el establecimiento.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "reason": "El post presenta el concierto de la orquesta Salsoteca DC el sábado 3 de octubre en El Goce Pagano, además de la programación de conciertos y eventos de salsa para todo el mes.",
+    "model": "gemini-3.5-flash",
+    "provisional": false,
     "caption_hash": "f85cb85108c69063",
-    "outcome": "event",
+    "outcome": "merged",
     "event_ids": [
       "salsoteca-dc-canamelao-9-oct",
       "salsoteca-dc-acere-10-oct",
+      "tour-de-la-salsa-capitulo-001-11-oct",
       "salsoteca-dc-the-bambas-16-oct",
       "salsoteca-dc-fidel-pena-y-su-tono-mayor-17-oct",
       "una-cita-con-la-salsa-18-oct",
@@ -8400,7 +8401,7 @@
     ],
     "detail": null,
     "image_hashes": [],
-    "by_hand": false
+    "by_hand": true
   },
   "18079187786372305": {
     "account": "elgocepagano",
