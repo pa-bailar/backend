@@ -18,12 +18,16 @@ pa_bailar/            the collector (one Python package; every module in docs/AR
   public_post.py      one post from its public page, when the API can't give it (admin tools)
   stories.py          a story's event from screenshots shared to the admin page: dates, crop, account
   extraction.py       triage then extraction; prompts.py has the prompts, gemini.py the models and quotas
-  external.py         the last resort when Gemini runs out (Groq, OpenRouter); bakeoff.py re-checks its models
+  external.py         the last resort when Gemini runs out (Groq, OpenRouter)
+  bakeoff.py          measures models: the last resort's against Flash, any model against the test set (gold/)
+  checks.py, ocr.py   rules (no AI) that flag a reading for a second look, and a flyer's OCR text (not in the sweep yet)
   account_options.py  what an accounts.txt line says besides the name (`bar`, `solo:<styles>`)
-  merging.py, ids.py, normalize.py, clips.py, storage.py, models.py, config.py
+  merging.py, ids.py, normalize.py, clips.py, storage.py, media_store.py, models.py, config.py
   health.py, status.py, why.py, inbox.py, links.py, patterns.py, sweep_state.py, discovery.py, text.py, logs.py
 tests/                unit and end-to-end tests (no network); fixtures/patterns.json is shared with admin-web/test
-.github/              the workflows (ci, admin, daily-sweep), the answer-issue action, the admin issue form
+gold/                 the test set: posts checked by hand against their flyers (admin bakeoff --gold; its README)
+.github/              the workflows (ci, media, admin, daily-sweep), the answer-issue action, the admin issue form,
+                      Dependabot's settings
 docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, monitoring (start here)
 docs/ADMIN.md         the admin tools: the admin page, the inbox, the commands
 docs/PLAN.md          the original go-live plan, kept for its decisions
@@ -121,7 +125,7 @@ Everything runs on GitHub Actions:
 | `ci` | Every pull request (required by a ruleset on `main`: no path filter, or a PR it skips could never merge), and Mondays on `main` (to keep the pip cache warm) | Lint, format check, types (mypy), tests and the admin page's Worker tests. Not again on `main` after a merge: the PR already ran it (Actions minutes). |
 | `media` | Pull requests that change `media/` (not `media/site-checks/` nor its Markdown) | Type-checks the video toolkit and runs its Node tests (`media-ci.yml`; its own workflow, so it doesn't start, and bill a minute, when `media/` is untouched). |
 | `admin` | A new issue or comment from `jzamora5` (the admin page opens such issues) | The admin inbox (only issues labelled `admin`, or texts with a request): answers with a comment (check a post, add an account, the status); adding a post (or reading one again) or a story, and hiding a story or an event, start `daily-sweep` for that one request. See [docs/ADMIN.md](docs/ADMIN.md) |
-| `daily-sweep` | Every day at 6:30 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (each about once a day, half per sweep), writing into a checkout of the site repository. If events or flyers changed, opens a `data` PR there as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is then saved to the `sweep-state` branch (if the data PR couldn't be opened, the run's posts stay unread for the next run, and `site/data` is kept as the run's artifact). With `post_url` (from `admin`), it adds that one post instead (with `again`, even if it was read before and hasn't changed) and answers on the admin issue; with `story` or `hide`, it adds a story or takes a story or an event off the site. |
+| `daily-sweep` | Every day at 6:30 AM and 9:00 PM Bogotá (started by cron-job.org, below), or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (most once a day, quiet ones less often; about half per sweep), writing into a checkout of the site repository. New and changed images go straight to the images repository (`pa-bailar/media`); if events changed (or the archive of past ones), it opens a `data` PR in the site repository as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is then saved to the `sweep-state` branch (if the data PR couldn't be opened, the run's posts stay unread for the next run, and `site/data` is kept as the run's artifact). With `post_url` (from `admin`), it adds that one post instead (with `again`, even if it was read before and hasn't changed) and answers on the admin issue; with `story` or `hide`, it adds a story or takes a story or an event off the site. |
 
 `main` is **protected** (`protect-main`, since the repository went public on 6 Oct 2026): changes only through
 squash-merged pull requests that pass `ci`, force pushes and deletion blocked, no bypass. The site repository's
@@ -137,8 +141,8 @@ Settings → Secrets and variables → Actions:
 ### What starts the sweep
 
 **cron-job.org** (free) starts the two daily runs, not GitHub's own `schedule` trigger. That trigger
-never fired in this repository: it's a known, undocumented problem of new private repositories, with no
-fix from GitHub.
+never fired in this repository while it was private (until 6 Oct 2026): a known, undocumented problem of new
+private repositories, with no fix from GitHub.
 
 - **The jobs:** `pa-bailar sweep 6:30` and `pa-bailar sweep 21:00`, in the America/Bogota time zone. They must
   match `config.SWEEP_TIMES` (each sweep leaves the day's later ones their share of Flash). The morning one was
@@ -166,7 +170,7 @@ Every run is checked by rules, without AI and without spending any quota (`pa_ba
 compared with the previous runs, kept in `run_history.json` on the `sweep-state` branch (two months).
 
 - **Warnings** need a fix or a decision:
-  - an account that couldn't be read in 3 tries in a row (each account is tried about once a day);
+  - an account that couldn't be read in 3 tries in a row (tries, not runs: each account is tried on its turn);
   - a Gemini model the key can't use, in 3 runs in a row;
   - Groq or OpenRouter refusing their key or asking for credit, in 3 runs in a row;
   - Instagram's rate limit, the time budget or post errors in 3 runs in a row;
@@ -179,8 +183,8 @@ compared with the previous runs, kept in `run_history.json` on the `sweep-state`
   - accounts with no posts in 45 days.
 - **Events to review** are upcoming events Gemini wasn't confident about, or whose date it doubted, events it
   couldn't place in Bogotá or another account's post called cancelled, several events of one post read only by a
-  lighter model (their times and prices may be mixed up), and congresses or festivals dated on a single day (their
-  other days may be missing).
+  lighter model (their times and prices may be mixed up), congresses or festivals dated on a single day (their
+  other days may be missing), and two of an account's events on one day that may be the same one.
 
 Where to see it:
 - **The run's page** on GitHub Actions has the health report at the top of its summary, warnings as
