@@ -544,8 +544,9 @@ reprogramado, postergado, "no se realizará"…: `pipeline/base.py`, `_says_canc
 event: a reminder that Flash re-reads as no event would take the event it joined off the site for good, so "no habrá"
 ("no habrá venta de boletas en taquilla"), "cancelación" ("política de cancelación"), "nueva fecha" and "se canceló"
 ("ya se canceló", paid) don't count (the bug hunt of 7 Oct 2026). Nor does "se cancela" meaning "is paid", read line by
-line: a price's word before it ("la entrada se cancela en la puerta"), or how it's paid after it ("en efectivo", "por
-Nequi"), never "se cancela por lluvia".
+line: a price's word before it ("la entrada se cancela en la puerta", "la inversión se cancela el día del taller": the
+price words of `text.PRICE_WORDS`, which the rule checks' price line shares), or how it's paid after it ("en efectivo",
+"por Nequi"), never "se cancela por lluvia".
 its own account's events leave the site even when other posts announce them too; another account's event
 stays, with low confidence and a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for
 review (section 11.1) (`Sweep._take_down_cancelled`).
@@ -1458,6 +1459,6 @@ flowchart LR
 | `links.py` | Instagram post links (code, account), profile links, and links to the site's events |
 | `patterns.py` | The shapes the admin tools accept (an @account, a post link, a story's, an event's and an upload's id), mirrored by `admin-web/public/patterns.js` and checked against the same examples (`tests/fixtures/patterns.json`) |
 | `discovery.py` | Parsing the Instagram export, dance hints, the classification prompt, the report, quiet windows around sweeps |
-| `text.py`, `logs.py` | Accent-insensitive comparison, dates and times for the admin answers ("13–15 nov 2026", "sábado 10 oct 2026", "4 sesiones: 8, 22, 29 nov y 6 dic", "9:00 p. m."), reading "HH:MM", Spanish weekdays, logging setup |
+| `text.py`, `logs.py` | Accent-insensitive comparison and a text's folded words, the shared word tables (weekdays, months, price words), dates and times for the admin answers ("13–15 nov 2026", "sábado 10 oct 2026", "4 sesiones: 8, 22, 29 nov y 6 dic", "9:00 p. m."), reading "HH:MM", Spanish weekdays, logging setup |
 | `commands/*.py` | The commands (sweep, discover, refresh-token, admin): arguments, wiring, exit codes, GitHub outputs |
 | `commands/answers.py` | The admin tools' answers to `sweep --post`, `--story`, `--hide-story` and `--hide-event`, in Spanish |
