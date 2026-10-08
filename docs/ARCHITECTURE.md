@@ -646,8 +646,9 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 4. **Detach the post from earlier results:** if the post was analyzed before (edited caption, upgrade),
    what it contributed is removed first. Events only it announced give their ids back, so their URLs
    don't change: each new reading takes the id of the one that fits it best (the same date, then the same title,
-   then the same start time; `SweepBase._event_id`), whatever order the re-read lists them in (the bug-squash pass of
-   8 Oct 2026: a workshop and a social the same day swapped URLs when Flash listed them the other way round).
+   start time and type; `SweepBase._event_id`), the closest readings first, whatever order the re-read lists them in
+   (the bug-squash pass of 8 Oct 2026: a workshop and a social the same day swapped URLs when Flash listed them the
+   other way round, and a workshop only Flash found, listed first, took the social's).
 5. **Merge or add** each event (section 9).
 
 ---

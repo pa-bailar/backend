@@ -394,6 +394,24 @@ def test_flash_listing_a_posts_events_in_another_order_keeps_each_events_url(fla
     assert stats.upgrade_changes["compared"] == 2 and "title" not in stats.upgrade_changes
 
 
+@pytest.mark.parametrize("social_title", ["Social de bachata", "Social bachatero"])
+def test_a_new_event_flash_lists_first_doesnt_take_the_url_of_the_one_a_lighter_model_read(social_title):
+    """The same pass: Flash-Lite read only the social; Flash found the afternoon workshop too and listed it first, so
+    the workshop took the social's id (its URL) and the social got a new one ("…-2")."""
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    social = {"title": "Social de bachata", "event_type": "social", "start_time": "21:00"}
+    lite = PostAnalysis(is_event_post=True, reason="", events=[extracted(**social)])
+    run(instagram, FakeExtractor({"p1": lite}, flash_available=False))
+
+    workshop = extracted(title="Taller de bachata", event_type="workshop", start_time="15:00")
+    renamed = extracted(**social | {"title": social_title})
+    flash = PostAnalysis(is_event_post=True, reason="", events=[workshop, renamed])
+    run(instagram, FakeExtractor({"p1": flash}))
+    ids = {event["title"]: event["id"] for event in read(config.EVENTS_FILE)}
+    assert ids[social_title] == event_id("Social de bachata")
+    assert ids["Taller de bachata"] == event_id("Taller de bachata")
+
+
 def test_a_flash_read_keeps_its_title_when_flash_upgrades_a_reminder_of_the_same_event():
     """The first known title stays when it came from Flash: a reminder's caption doesn't rename the flyer's event."""
     flyer = post("flyer", days_ago=3)

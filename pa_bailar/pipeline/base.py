@@ -134,6 +134,19 @@ def _details(event: ExtractedEvent) -> dict[str, Any]:
     return event.model_dump(include=set(EventDetails.model_fields))
 
 
+def _fit(event: StoredEvent, candidate: ExtractedEvent) -> tuple[bool, bool, bool, bool]:
+    """How well an event a post announced before fits a new reading of the post: the same date, then the same title,
+    start time and type, in that order of weight."""
+    same_time = bool(event.start_time) and event.start_time == candidate.start_time
+    same_title = fold(event.title) == fold(candidate.title)
+    return event.date == candidate.date, same_title, same_time, event.event_type == candidate.event_type
+
+
+def _best_fit(candidate: ExtractedEvent, events: list[StoredEvent]) -> tuple[bool, bool, bool, bool]:
+    """How well the closest of these events fits the reading (_fit)."""
+    return max((_fit(event, candidate) for event in events), default=(False, False, False, False))
+
+
 class SweepBase:
     def __init__(
         self,
@@ -342,19 +355,24 @@ class SweepBase:
 
         if not publishable:
             log.info("     skipped: %s", analysis.reason)
-        added = [
-            self._add_event(
+        # The readings closest to an event this post announced before go first, so each takes that event's id
+        # (_event_id): a new event listed before it took its URL (the bug-squash pass of 8 Oct 2026).
+        readings = list(zip(publishable, flyers, strict=True))
+        closest_first = sorted(range(len(readings)), key=lambda i: _best_fit(readings[i][0], reusable), reverse=True)
+        added_by_reading = {
+            i: self._add_event(
                 account,
                 post,
-                candidate,
-                media_for(post, flyer),
+                readings[i][0],
+                media_for(post, readings[i][1]),
                 reusable,
                 count=count_as_new,
                 light=light,
                 announced=announced,
             )
-            for candidate, flyer in zip(publishable, flyers, strict=True)
-        ]
+            for i in closest_first
+        }
+        added = [added_by_reading[i] for i in range(len(readings))]
         results = [result for result in added if result]
         outcome: tuple[PostOutcome, list[str], str | None]
         if results:
@@ -478,16 +496,11 @@ class SweepBase:
         return all(record is not None and record.provisional for record in records)
 
     def _event_id(self, candidate: ExtractedEvent, reusable: list[StoredEvent]) -> str:
-        """The id of the event this post announced before that fits it best (the same date, then the same title, then
-        the same start time), else a new readable one. A re-read may list a post's events in another order (Flash
-        after Flash-Lite): the first one on the date took the id of the post's first event that day, so a workshop
-        and a social swapped URLs, and visitors' saved events (the bug-squash pass of 8 Oct 2026)."""
-
-        def fit(event: StoredEvent) -> tuple[bool, bool, bool]:
-            same_time = bool(event.start_time) and event.start_time == candidate.start_time
-            return event.date == candidate.date, fold(event.title) == fold(candidate.title), same_time
-
-        previous = max(reusable, key=fit, default=None)  # the first of the best
+        """The id of the event this post announced before that fits it best (_fit), else a new readable one. A re-read
+        may list a post's events in another order (Flash after Flash-Lite): the first one on the date took the id of
+        the post's first event that day, so a workshop and a social swapped URLs, and visitors' saved events (the
+        bug-squash pass of 8 Oct 2026)."""
+        previous = max(reusable, key=lambda event: _fit(event, candidate), default=None)  # the first of the best
         taken = {event.id for event in self.events} | set(self.hidden)  # a hidden event keeps its id to itself
         if previous:
             reusable.remove(previous)
