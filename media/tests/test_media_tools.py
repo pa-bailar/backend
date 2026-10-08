@@ -99,6 +99,69 @@ def test_clean_skips_the_site_checks_and_spots_working_files(tmp_path):
     assert clean.working_file(touch(tmp_path / "teaser-v2-v2.4-reel-draft.mp4"))
     assert clean.working_file(touch(tmp_path / "teaser-v2-v2.4-reel-vs-v2.3.mp4"))
     assert not clean.working_file(touch(tmp_path / "teaser-v2-v2.4-reel.mp4"))
+    # mix.py's intermediates and rejected soundtracks, check.mjs's folder (puente left all three, 8 Oct 2026)
+    assert clean.working_file(touch(tmp_path / "with-music-raw.wav"))
+    assert clean.working_file(touch(tmp_path / "rejected-with-music.wav"))
+    assert clean.working_file(touch(tmp_path / "check" / "puente-story.png").parent)
+    assert not clean.working_file(touch(tmp_path / "voice-track.wav"))  # timing.py's output: make.py reads it
+    assert not clean.working_file(touch(tmp_path / "music-ducked.wav"))  # mix.py --check reads it
+
+
+def test_clean_lists_the_flyer_folders_a_stopped_snapshot_left(tmp_path, monkeypatch):
+    monkeypatch.setattr(clean, "HOME", tmp_path)
+    stray = tmp_path / "public" / "puente" / ".flyers-27888"
+    stray.mkdir(parents=True)
+    (tmp_path / "public" / "puente" / "flyers").mkdir()
+    assert clean.stray_public() == [stray]
+
+
+def test_retire_takes_a_videos_folders_and_only_the_music_no_other_video_uses(tmp_path, monkeypatch):
+    home, media = tmp_path / "home", tmp_path / "media"
+    monkeypatch.setattr(clean, "HOME", home)
+    monkeypatch.setattr(clean, "MEDIA", media)
+    for name, bed in (
+        ("old", "cache/music/old.wav"),
+        ("shared", "cache/music/both.wav"),
+        ("new", "cache/music/both.wav"),
+    ):
+        project = media / "projects" / name / "video.json"
+        project.parent.mkdir(parents=True)
+        project.write_text(json.dumps({"music": {"bed": bed}}), encoding="utf-8")
+    for rel in (
+        "cache/music/old.wav",
+        "cache/music/old.json",
+        "cache/music/both.wav",
+        "out/old/x.mp4",
+        "archive/old/v1/x.mp4",
+    ):
+        touch(home / rel)
+    assert clean.retired("old") == sorted(
+        [
+            home / "archive" / "old",
+            home / "out" / "old",
+            (home / "cache/music/old.wav").resolve(),
+            (home / "cache/music/old.json").resolve(),
+        ]
+    )
+    assert not clean.retired("shared")  # its bed is the other video's too; it has no folders
+    with pytest.raises(SystemExit, match="no video called"):
+        clean.retired("missing")
+
+
+def test_a_failed_flyer_download_leaves_no_stray_folder(tmp_path, monkeypatch):
+    class V:
+        public = tmp_path / "public"
+        data = tmp_path / "data"
+
+    def gone(url, live):
+        raise RuntimeError("404")
+
+    monkeypatch.setattr(events, "fetch", gone)
+    monkeypatch.setattr(events, "occurrence", lambda e, start, end: (start, None, None))
+    picked = [{"media": [{"flyer": "flyers/1-0.webp"}]}]
+    with pytest.raises(RuntimeError):
+        events.write_snapshot(V(), picked, {"from": "2026-10-09", "to": "2026-10-12"}, live=True)
+    assert not list(V.public.glob(".flyers-*"))
 
 
 # ---------- times ----------

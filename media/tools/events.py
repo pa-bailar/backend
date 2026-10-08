@@ -145,18 +145,22 @@ def write_snapshot(v: Video, picked: list[dict], meta: dict, live: bool) -> list
     shutil.rmtree(fresh, ignore_errors=True)
     fresh.mkdir(parents=True)
     out = []
-    for e in picked:
-        item = {k: e.get(k) for k in KEEP}
-        item["day"], item["day_start"], item["day_end"] = occurrence(e, meta["from"], meta["to"])
-        cover = next((m["flyer"] for m in e["media"] if m.get("flyer")), None)
-        item["flyer"] = item["ratio"] = None
-        if cover:
-            dest = fresh / Path(cover).name
-            dest.write_bytes(fetch(cover, live))
-            stream = probe(dest)["streams"][0]
-            item["flyer"] = f"flyers/{dest.name}"
-            item["ratio"] = round(stream["width"] / stream["height"], 4)
-        out.append(item)
+    try:
+        for e in picked:
+            item = {k: e.get(k) for k in KEEP}
+            item["day"], item["day_start"], item["day_end"] = occurrence(e, meta["from"], meta["to"])
+            cover = next((m["flyer"] for m in e["media"] if m.get("flyer")), None)
+            item["flyer"] = item["ratio"] = None
+            if cover:
+                dest = fresh / Path(cover).name
+                dest.write_bytes(fetch(cover, live))
+                stream = probe(dest)["streams"][0]
+                item["flyer"] = f"flyers/{dest.name}"
+                item["ratio"] = round(stream["width"] / stream["height"], 4)
+            out.append(item)
+    except BaseException:
+        shutil.rmtree(fresh, ignore_errors=True)  # a failed download (a 404, Ctrl+C) leaves no stray folder
+        raise
     old = flyers.with_name(f".flyers-old-{os.getpid()}")
     if flyers.exists():
         flyers.rename(old)

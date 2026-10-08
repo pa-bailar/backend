@@ -326,6 +326,8 @@ def main(name: str, strict: bool = False) -> None:
             print(f"{shown(ducked)}: the bed alone after ducking (not normalized)")
             phone_check(v)
     failed = settle(made)
+    for scratch in ("music-only-raw.wav", "voice-48k.wav", "with-music-raw.wav"):  # normalized already
+        (v.out / scratch).unlink(missing_ok=True)
     if failed:
         raise SystemExit("mix failed (the previous soundtracks stay):\n  " + "\n  ".join(failed))
     (public / "mix.key").write_text(mix_key(v))  # what these were made from (tools/make.py)
