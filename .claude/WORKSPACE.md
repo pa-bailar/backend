@@ -49,7 +49,7 @@ session knows one is due.
 
 `sync-docs` (docs before every PR; the whole repository for drift), `bug-squash` (find, prove and fix bugs, with
 guards), `code-quality` (code up to standard: tokens, shared utilities and components, types, tests), `handoff` (the
-state for the next session: the handoff, CONTEXT.md, memory), `teaser` (videos with `media/`).
+state for the next session: the handoff, CONTEXT.md, memory), `teaser` (videos with `media/`), `media-clean` (videos' old versions and unused takes and tracks to the Recycle Bin, at the end of every video session).
 
 ## Never
 
