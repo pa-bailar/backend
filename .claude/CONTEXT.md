@@ -140,4 +140,5 @@ The rules are in `WORKSPACE.md`; these are the lessons behind them.
 - **The owner directs, Claude orchestrates:** ask only for direction, money, accounts or keys; decide the rest with
   sensible defaults and report what shipped (memory: `minimize-review-requests`).
 - **Skills:** `sync-docs` (every PR; docs are architecture and decisions, not pixels), `bug-squash`,
-  `code-quality`, `handoff`, `teaser`. When each runs: `WORKSPACE.md`, "Review process".
+  `code-quality`, `handoff`, `teaser`, `media-clean` (the closing step of every video session). When each runs:
+  `WORKSPACE.md`, "Review process".

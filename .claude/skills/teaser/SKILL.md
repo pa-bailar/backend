@@ -94,7 +94,9 @@ with the city's accent; the owner picks the voice and the track by ear).
 - Generated files live in the media home (`D:\AI\pa-bailar-media`, or `PA_BAILAR_MEDIA_HOME`): the TTS and music
   cache, `public/<video>/`, renders and the archive. Working in a git worktree is fine: every checkout shares the
   home, and removing a worktree can't delete it.
-- Old renders pile up: after the owner settles on a version, run `media/tools/clean.py` (a list), then `--yes`
-  (the Recycle Bin, restorable). Site checks go in a scratch folder, not in `media/out/`.
+- **Clean up before ending any video session** (the `media-clean` skill): when the owner approves a cut, a voice or a
+  track, and at the end. `media/tools/clean.py` lists old versions, sheets, stills, auditions and the takes and
+  tracks no video uses; `--yes` sends them to the Recycle Bin. Leaving versions behind is what the owner asked to
+  stop (8 Oct 2026). Site checks go in a scratch folder, not in `media/out/`.
 - Renders, the cache and `public/<video>/` aren't committed. Commit the folder's code, `video.json`, `data/*.json`
   and the notes. Changes go through a branch and a PR like any backend change (the docs sync runs before the PR).
