@@ -53,25 +53,34 @@ def _with_doubt(event: ExtractedEvent, doubt: str) -> ExtractedEvent:
     return event if doubt in event.doubts else event.model_copy(update={"doubts": [*event.doubts, doubt]})
 
 
-# A caption or Gemini's reason saying the event is off (folded text: lowercase, no accents). With the past and the
-# other verbs a caption uses ("se canceló", "reprogramado", "no habrá": the audit of 7 Oct 2026).
+# A caption or Gemini's reason saying the event is off (folded text: lowercase, no accents). Only words that say it
+# of the event: a reminder Flash finds no event in takes the account's events it announced off the site, so a word
+# that also means something else loses an event for good. Not "no habrá" ("no habrá venta de boletas en taquilla"),
+# "cancelación" ("política de cancelación"), "nueva fecha" ("abrimos nueva fecha en noviembre") nor "se canceló" ("ya
+# se canceló", paid): the audit of 7 Oct 2026, after #151 added them.
 _CANCELLED = re.compile(
-    r"\b(cancelad[oa]s?|cancelamos|se cancela|se cancelo|cancelacion|cancell?ed|aplazad[oa]s?|aplazamos|se aplaza"
-    r"|pospuest[oa]s?|posponemos|se pospone|postponed|suspendid[oa]s?|suspendemos|reprogramad[oa]s?|reprogramamos"
-    r"|se reprograma|postergad[oa]s?|postergamos|se posterga|no habra|nueva fecha)\b"
+    r"\b(cancelad[oa]s?|cancelamos|se cancelan?|cancell?ed|aplazad[oa]s?|aplazamos|se aplaza|se aplazo"
+    r"|pospuest[oa]s?|posponemos|se pospone|se pospuso|postponed|suspendid[oa]s?|suspendemos|reprogramad[oa]s?"
+    r"|reprogramamos|se reprograma|postergad[oa]s?|postergamos|se posterga|no se realizara)\b"
 )
-# In Colombia "cancelar" is also "to pay": "la entrada se cancela en la puerta", "el valor se cancela en efectivo".
+# In Colombia "cancelar" is also "to pay": a price's word before it ("la entrada se cancela en la puerta"; not after a
+# colon: "Entrada: se cancela el social"), or how it's paid after it ("se cancela en efectivo", "por Nequi"); never
+# "se cancela por lluvia". Read line by line: a price on one line says nothing about the next.
 _PAID = re.compile(
-    r"\b(?:entrada|cover|valor|precio|costo|inscripcion|boleta|cuota|pago|mensualidad|reserva)\b[^.!?\n]{0,40}?"
-    r"\bse cancela\b|\bse cancela (?:en|con|al|por|antes|directamente|a la entrada)\b"
+    r"\b(?:entrada|cover|valor|precio|costo|inscripcion|boleta|cuota|pago|mensualidad|reserva)s?\b[^.!?:]{0,30}?"
+    r"\bse cancelan?\b"
+    r"|\bse cancelan? (?:en (?:efectivo|la puerta|puerta|taquilla|la entrada|caja|el lugar)"
+    r"|con (?:tarjeta|efectivo|nequi|daviplata|transferencia)|al (?:ingresar|llegar|entrar|ingreso)"
+    r"|antes del? (?:evento|ingreso|ingresar)|directamente"
+    r"|por (?:nequi|daviplata|transferencia|pse|tarjeta|bancolombia))\b"
 )
 
 
 def _says_cancelled(post: Post, analysis: PostAnalysis) -> bool:
     """Whether the post's caption, or Gemini's reason for finding no event in it, says it's cancelled or postponed (not
     "se cancela" meaning it's paid)."""
-    text = _PAID.sub(" ", fold(f"{post.get('caption') or ''} {analysis.reason}"))
-    return bool(_CANCELLED.search(text))
+    lines = [*(post.get("caption") or "").splitlines(), analysis.reason]
+    return any(_CANCELLED.search(_PAID.sub(" ", fold(line))) for line in lines)
 
 
 def _days(event: EventDetails) -> str:
