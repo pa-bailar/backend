@@ -1,8 +1,10 @@
 """Look at a render without watching it: keyframe sheets with the safe zones, side-by-sides, and a regression check.
 
   python media/tools/review.py sheet <video.mp4> [--at 1.5,4,f255,c4:link --timing <video> | --every 2] [--out …]
-      One row of keyframes (360 px wide each) with the safe zones drawn in cyan (no text above 250 px or below
-      1580 px at 1080×1920: brand.json's "safe"). Default: every 2 s. → next to the video, <name>-sheet.png
+      One row of keyframes (360 px wide each) with the zones drawn: for a Story, where the content goes in cyan
+      (brand.json's "storyArea", y 470–1680 at 1080×1920) and Instagram's top row in yellow (y 250, where the sticker
+      band starts); for a Reel, the safe zones in cyan (brand.json's "safe") and the Reel's in magenta. Default: every
+      2 s. → next to the video, <name>-sheet.png
   python media/tools/review.py compare <a.mp4> <b.mp4> [--labels v1,v2] [--from 0 --to 4.6] [--out ab.mp4]
       Side by side at half size, labeled, with b's sound: for the owner to see what changed.
   python media/tools/review.py diff <reference.mp4> <new.mp4> [--no-vmaf]
@@ -14,10 +16,10 @@
       Works on stills (PNG) too; the smaller picture is scaled up to the larger's size; different frame rates are
       refused.
   python media/tools/review.py band <story.mp4 | still.png …> [--video <name>] [--allow 4.2-4.3,5.75-6.45]
-      The Stories' sticker band (brand.json "stickerBand": y 0–250 at 1920 tall, plus a 2 px margin) must stay
-      empty on every frame: anything that isn't the frame's background above y 252 fails, with the frames and how
-      high it reached. Prints how close content comes. --video takes the allowed spans from video.json's
-      "sticker_band"."allow" (full-frame transitions, where the background itself sweeps through the band).
+      The Stories' sticker band and Instagram's row above it (brand.json "stickerBand": y 0–460 at 1920 tall, plus a
+      2 px margin) must stay empty on every frame: anything that isn't the frame's background above y 462 fails,
+      with the frames and how high it reached. Prints how close content comes. --video takes the allowed spans from
+      video.json's "sticker_band"."allow" (full-frame transitions, where the background itself sweeps through the band).
       Any size works (a half-size draft too). Exit code 1 when something enters.
   python media/tools/review.py reel <reel.mp4 | cover.png …> [--video <name>] [--allow 4.2-4.3]
       The Reel's safe zones (brand.json "reelSafe": 108 px at the top, 320 at the bottom, 60 left, 120 right at
@@ -45,6 +47,7 @@ FONT = "C\\:/Windows/Fonts/arial.ttf"
 HEIGHT = BRAND["canvas"]["height"]
 WIDTH = BRAND["canvas"]["width"]
 SAFE = (BRAND["safe"]["top"], BRAND["safe"]["bottom"])  # px at the canvas's height
+STORY = (BRAND["storyArea"]["top"], BRAND["storyArea"]["bottom"])  # where a Story's content lands (VideoShell's fit)
 REEL = {side: BRAND["reelSafe"][side] for side in ("top", "bottom", "left", "right")}  # px from each edge
 BAND = BRAND["stickerBand"]
 LIMIT = BAND["bottom"] + BAND["margin"]  # nothing above this y (canvas px)
@@ -57,7 +60,7 @@ def duration_of(path: Path) -> float:
 
 
 def sheet(path: Path, at: list[float], out: Path, reel: bool = False) -> None:
-    """`reel`: also draw the Reel's safe zones (brand.json "reelSafe") in magenta."""
+    """A Story's area and Instagram's top row; with `reel`, the safe zones and the Reel's (brand.json "reelSafe")."""
     if not at:
         raise SystemExit("no times to take frames at: the video is shorter than --every, give --at")
     tmp = Path(tempfile.mkdtemp(prefix="sheet-"))
@@ -75,10 +78,13 @@ def _sheet(path: Path, at: list[float], out: Path, tmp: Path, reel: bool) -> Non
         ffmpeg("-ss", f"{t:.3f}", "-i", str(path), "-frames:v", "1", str(f))
         files.append(f)
     inputs = sum((["-i", str(f)] for f in files), [])
+    top, bottom = SAFE if reel else STORY
     lines = (
-        f"drawbox=y=ih*{SAFE[0] / HEIGHT:.4f}:w=iw:h=1:color=cyan@0.8:t=fill,"
-        f"drawbox=y=ih*{SAFE[1] / HEIGHT:.4f}:w=iw:h=1:color=cyan@0.8:t=fill"
+        f"drawbox=y=ih*{top / HEIGHT:.4f}:w=iw:h=1:color=cyan@0.8:t=fill,"
+        f"drawbox=y=ih*{bottom / HEIGHT:.4f}:w=iw:h=1:color=cyan@0.8:t=fill"
     )
+    if not reel:
+        lines += f",drawbox=y=ih*{BAND['top'] / HEIGHT:.4f}:w=iw:h=1:color=yellow@0.8:t=fill"
     if reel:
         lines += (
             f",drawbox=y=ih*{REEL['top'] / HEIGHT:.4f}:w=iw:h=1:color=magenta@0.8:t=fill"

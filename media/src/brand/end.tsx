@@ -4,7 +4,7 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import { rise } from "../lib/motion";
-import { C, STICKER_BAND, TYPE } from "../lib/tokens";
+import { C, SAFE, TYPE } from "../lib/tokens";
 import { Arrow } from "./objects";
 import { Stripes } from "./paper";
 import { Letters } from "./type";
@@ -13,11 +13,12 @@ import { Letters } from "./type";
 export type Cta = "story" | "reel";
 
 /**
- * Where the call to action sits: right under the band, low enough that the arrow's tip (bobbing `CTA_BOB` px up, the
- * spring's overshoot and a 3% push-in at depth 0.6) stays below y 252 on every frame. Measured in teaser v2.4
- * (closest: y 258) and este-finde v1 (y 256) with tools/review.py band.
+ * Where the call to action sits: at the top of the safe area, low enough that the arrow's tip (bobbing `CTA_BOB` px up,
+ * the spring's overshoot and a 3% push-in at depth 0.6) stays inside it on every frame. On a Story, `VideoShell`'s fit
+ * puts that right under the sticker band, the arrow pointing at the sticker. Measured in teaser v2.4 (closest: 8 px
+ * under the top) and este-finde v1 (6 px) with tools/review.py band.
  */
-export const CTA_TOP = STICKER_BAND.bottom + 26;
+export const CTA_TOP = SAFE.top + 26;
 export const CTA_BOB = 14;
 
 /**

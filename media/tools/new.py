@@ -58,10 +58,10 @@ export const {name}: React.FC<{{ cta: Cta; blur?: boolean }}> = ({{ cta }}) => {
   const cam = camera(t, 0, DURATION_S, {{ zoom: 0.03, driftX: 8, driftY: -10 }});
   const pulse = kick(t, downbeats(0.5, DURATION_S));
   return (
-    <VideoShell>
+    <VideoShell story={{cta === "story"}}>
       {{frame < END ? (
         <AbsoluteFill style={{cam(0.6)}}>
-          {{/* Low enough that the push-in never lifts it into the sticker band (y < 250). */}}
+          {{/* Low enough that the push-in keeps it in the safe area (a Story's fit: under the band). */}}
           <Stripes frame={{frame}} start={{2}} top={{276}} />
           <PeriodTitle
             frame={{frame}}

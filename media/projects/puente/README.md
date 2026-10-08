@@ -23,6 +23,9 @@ with `tools/new.py`.
   flyer.
 - **v2:** Despina line by line, with the day names while she says them. Too robotic.
 - **v3:** Despina's one take with a Spanish Bogotá direction; the sections follow her pauses.
+- **v4–v5:** a Story only; the music up 6 dB (too loud), then 3 dB (`bed_db` −11).
+- **v6:** the link sticker's band under Instagram's account row (y 250–460), the content fitted below it (the kit's
+  Story fit).
 
 ## Make
 

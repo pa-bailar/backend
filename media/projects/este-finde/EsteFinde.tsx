@@ -126,7 +126,7 @@ export const EsteFinde: React.FC<{ blur?: boolean }> = () => {
   const range = spanLabel(data.from, data.to);
   // A Story: it fades in from the paper and never out (the owner, 5 Oct 2026).
   return (
-    <VideoShell>
+    <VideoShell story>
       <AbsoluteFill style={cam(0.6)}>
         {frame < endAt ? (
           <div style={{ opacity: 1 - leave(frame, OUT, 6) }}>

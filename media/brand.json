@@ -8,10 +8,15 @@
     "side": 80
   },
   "stickerBand": {
-    "$comment": "Stories: the owner puts Instagram's link sticker at the top, over y 0-250, for the whole clip. Nothing enters it on any frame; review.py band measures it and allows no content above bottom + margin.",
-    "top": 0,
-    "bottom": 250,
+    "$comment": "Stories: Instagram's own top row (the progress bars, the account's name: about y 0-250) covers the top of the frame, so the owner puts the link sticker right under it, in y 250-460, for the whole clip (8 Oct 2026: a sticker over y 0-250 crossed the account's row). Nothing enters y 0-460 on any frame; review.py band measures it and allows no content above bottom + margin.",
+    "top": 250,
+    "bottom": 460,
     "margin": 2
+  },
+  "storyArea": {
+    "$comment": "Stories: where a layout's safe area (safe.top-safe.bottom) lands once VideoShell's story fit moves it under the sticker band, scaled about 0.91. The bottom 240 px stay clear of the reply bar.",
+    "top": 470,
+    "bottom": 1680
   },
   "reelSafe": {
     "$comment": "Reels: the margins Instagram's Reel UI covers at 1080x1920 (top: the header; bottom: the caption, the audio line and the buttons' base; right: the like, comment and share column; left: a little). review.py reel warns when content enters them. Text keeps to both these and safe: x 80-960, y 250-1580.",
