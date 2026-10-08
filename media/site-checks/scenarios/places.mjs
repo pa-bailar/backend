@@ -163,7 +163,7 @@ export default {
     await ctx.settle();
     await page.click(".toolbar [data-search]");
     await page.keyboard.type("salsa");
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(500); // the results come after a pause in the typing (150 ms, main.ts), then the scroll
     await ctx.settle();
     const searched = await tops(page);
     check("from deep in the list, a search's results start at the top", atTheTop(searched), searched);
