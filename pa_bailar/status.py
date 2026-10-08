@@ -12,6 +12,7 @@ Plain reading of what the sweeps record (no AI, no Gemini requests):
 `collect` gathers it as plain data (JSON for the admin page); `markdown` writes it for people, in Spanish.
 """
 
+from collections import Counter
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Any
@@ -88,6 +89,38 @@ def _instagram_quota(history: list[dict[str, Any]]) -> dict[str, Any] | None:
         "finished_at": last["finished_at"],
         "stop_at": config.INSTAGRAM_USAGE_STOP,
     }
+
+
+def _lighter_reads(history: list[dict[str, Any]]) -> dict[str, int] | None:
+    """What Flash changed in lighter models' readings over the recorded runs (upgrade_changes, summed); None until
+    one was compared."""
+    total: Counter[str] = Counter()
+    for run in history:
+        total.update(run.get("upgrade_changes") or {})
+    return dict(total) if total.get("compared") else None
+
+
+# The audited fields, as the owner reads them (sweep.AUDITED_FIELDS).
+_FIELD_NAMES = {
+    "date": "la fecha",
+    "end_date": "el último día",
+    "start_time": "la hora",
+    "title": "el título",
+    "venue": "el lugar",
+    "event_type": "el tipo",
+    "styles": "los ritmos",
+}
+
+
+def lighter_reads_line(changes: dict[str, int]) -> str:
+    """ "Flash releyó 12 eventos que solo había leído un modelo más liviano: cambió la hora en 2, los ritmos en 3." """
+    compared = changes["compared"]
+    parts = [f"{name} en {changes[key]}" for key, name in _FIELD_NAMES.items() if changes.get(key)]
+    if changes.get("dropped"):
+        parts.append(f"no mantuvo {changes['dropped']}")
+    found = ": " + ", ".join(parts) if parts else ": no cambió nada"
+    plural = "evento" if compared == 1 else "eventos"
+    return f"Flash releyó {compared} {plural} que solo había leído un modelo más liviano{found}."
 
 
 # Meta's measures, as the owner reads them.
@@ -202,6 +235,7 @@ def collect(
         },
         "instagram": instagram() if instagram else None,
         "instagram_quota": _instagram_quota(history),
+        "lighter_reads": _lighter_reads(history),
         "accounts": {
             "followed": len(followed),
             "first_sweep_pending": [
@@ -355,6 +389,8 @@ def markdown(status: dict[str, Any]) -> str:
             f"- {posts['provisional']} publicaciones provisionales (leídas sin Flash: un Flash anterior, Flash-Lite o "
             "el último recurso), a releer con Flash."
         )
+    if lighter := status.get("lighter_reads"):
+        lines.append(f"- {lighter_reads_line(lighter)}")
     if status["events"] is not None:
         events = status["events"]
         low = f", {events['low_confidence']} con datos dudosos" if events["low_confidence"] else ""

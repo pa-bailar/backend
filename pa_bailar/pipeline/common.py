@@ -84,6 +84,9 @@ class RunStats:
     events_discarded: int = 0  # recurring or without a date
     provisional: int = 0  # posts extracted by the light model this run
     upgraded: int = 0  # provisional posts re-extracted with Flash this run
+    # Flash's reading against a lighter model's, on events only lighter models had read (Sweep._audit_upgrade):
+    # "compared" events, "dropped" ones, and per field how many Flash changed (date, start_time, title…).
+    upgrade_changes: dict[str, int] = field(default_factory=dict)  # a dict: asdict() would mangle a Counter
     reanalyzed: int = 0  # posts analyzed again because their caption was edited
     pending: int = 0
     errors: int = 0

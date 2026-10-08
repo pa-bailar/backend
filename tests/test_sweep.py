@@ -264,6 +264,28 @@ def test_provisional_extraction_is_upgraded_when_flash_is_back():
     assert events[0]["id"] == event_id("Leído por Lite")  # the URL shared meanwhile keeps working
 
 
+def test_an_upgrade_counts_what_flash_changed_in_a_lighter_reading():
+    """How the backup reads hold up on new posts (the owner, 7 Oct 2026): each upgrade of an event only a lighter
+    model read is compared field by field, and the run records it."""
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    lite = event_post("p1", title="Social de salsa", start_time="20:00", styles=["salsa"])
+    run(instagram, FakeExtractor({"p1": lite}, flash_available=False))
+    flash = event_post("p1", title="Social de salsa", start_time="21:00", styles=["salsa", "bachata"])
+    stats = run(instagram, FakeExtractor({"p1": flash}))
+    assert stats.upgraded == 1
+    assert stats.upgrade_changes == {"compared": 1, "dropped": 0, "start_time": 1, "styles": 1}
+    from pa_bailar import health
+
+    assert health.record_of(stats, []).upgrade_changes["start_time"] == 1  # what run_history.json keeps
+
+
+def test_an_upgrade_that_agrees_counts_as_compared_only():
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    same = event_post("p1", title="Social de salsa", start_time="20:00")
+    run(instagram, FakeExtractor({"p1": same}, flash_available=False))
+    assert run(instagram, FakeExtractor({"p1": same})).upgrade_changes == {"compared": 1, "dropped": 0}
+
+
 def busy_flash_at_the_upgrades(monkeypatch, back_in: float | None) -> tuple[FakeExtractor, list[float]]:
     """A run whose upgrades find Flash paused as busy, back `back_in` seconds later (None: out of quota). The wait
     is recorded, not slept, and Flash answers after it."""
