@@ -456,10 +456,16 @@ class SweepBase:
         return all(record is not None and record.provisional for record in records)
 
     def _event_id(self, candidate: ExtractedEvent, reusable: list[StoredEvent]) -> str:
-        """The id of the event this post announced before (same date first), else a new readable one."""
-        previous = next((event for event in reusable if event.date == candidate.date), None) or next(
-            iter(reusable), None
-        )
+        """The id of the event this post announced before that fits it best (the same date, then the same title, then
+        the same start time), else a new readable one. A re-read may list a post's events in another order (Flash
+        after Flash-Lite): the first one on the date took the id of the post's first event that day, so a workshop
+        and a social swapped URLs, and visitors' saved events (the bug-squash pass of 8 Oct 2026)."""
+
+        def fit(event: StoredEvent) -> tuple[bool, bool, bool]:
+            same_time = bool(event.start_time) and event.start_time == candidate.start_time
+            return event.date == candidate.date, fold(event.title) == fold(candidate.title), same_time
+
+        previous = max(reusable, key=fit, default=None)  # the first of the best
         taken = {event.id for event in self.events} | set(self.hidden)  # a hidden event keeps its id to itself
         if previous:
             reusable.remove(previous)

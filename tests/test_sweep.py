@@ -375,6 +375,25 @@ def test_flash_splitting_a_lighter_models_merged_workshops_keeps_them_apart():
     assert events[0]["id"] == first_id and all(len(event["media"]) == 2 for event in events)
 
 
+@pytest.mark.parametrize("flash_hours", [("15:00", "21:00"), ("16:00", "22:00")])
+def test_flash_listing_a_posts_events_in_another_order_keeps_each_events_url(flash_hours):
+    """The bug-squash pass of 8 Oct 2026: a workshop and a social the same day in one post, read by Flash-Lite, then by
+    Flash listing them the other way round. The first one on the date took the id the post's first event had: each
+    event got the other's URL (and visitors' saved events swapped), and the audit counted both as changed."""
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    workshop = {"title": "Taller de bachata", "event_type": "workshop", "start_time": "15:00"}
+    social = {"title": "Social de bachata", "event_type": "social", "start_time": "21:00"}
+    lite = PostAnalysis(is_event_post=True, reason="", events=[extracted(**workshop), extracted(**social)])
+    run(instagram, FakeExtractor({"p1": lite}, flash_available=False))
+
+    workshop["start_time"], social["start_time"] = flash_hours
+    flash = PostAnalysis(is_event_post=True, reason="", events=[extracted(**social), extracted(**workshop)])
+    stats = run(instagram, FakeExtractor({"p1": flash}))
+    ids = {event["title"]: event["id"] for event in read(config.EVENTS_FILE)}
+    assert ids == {title: event_id(title) for title in ("Taller de bachata", "Social de bachata")}
+    assert stats.upgrade_changes["compared"] == 2 and "title" not in stats.upgrade_changes
+
+
 def test_a_flash_read_keeps_its_title_when_flash_upgrades_a_reminder_of_the_same_event():
     """The first known title stays when it came from Flash: a reminder's caption doesn't rename the flyer's event."""
     flyer = post("flyer", days_ago=3)
