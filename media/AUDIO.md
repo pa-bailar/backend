@@ -52,7 +52,8 @@ the first one-take had "an American accent" and "sped up"; the fourth was "great
     midnight Pacific (2:00 a.m. in Bogotá).
 11. **The mix on a phone speaker:** `mix.py` warns when the music masks the voice (over 10% of the speech under +3
     dB). Lower `mix.bed_db` until it passes: the line-by-line take needed −14 dB (28% masked at −8); the one take,
-    clearer, passes at −14 with 1%.
+    clearer, passes at −14 with 1%. Passing isn't the target: the owner found −14 too low and −8 too loud, and
+    settled on −11 (puente v5, 8 Oct 2026). Start a voice-and-music video there.
 12. **When Gemini isn't enough:** a real person from the city reading the script on a phone (free; the only sure way
     to not sound AI; clean it, then time it like a take), ElevenLabs' Latin American voices (natural; commercial use
     needs a paid plan: the owner's call), or an open model on the GPU (Chatterbox and others: free, more setup).
