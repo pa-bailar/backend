@@ -16,6 +16,11 @@ def fold(text: str | None) -> str:
     return " ".join("".join(char for char in decomposed if not unicodedata.combining(char)).split())
 
 
+def folded_words(text: str | None) -> list[str]:
+    """A text's words, folded, letters and digits only: 'Salsa-Caleña, 2026!' → ['salsa', 'calena', '2026']."""
+    return "".join(char if char.isalnum() else " " for char in fold(text)).split()
+
+
 def dates_label(start: str | None, end: str | None = None) -> str:
     """An event's day for the admin tools' answers: its date as stored ('2026-11-13'), or the range of an event
     over several days: '13–15 nov 2026', '31 oct – 2 nov 2026', '30 dic 2026 – 1 ene 2027'."""

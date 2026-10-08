@@ -39,7 +39,7 @@ from .external import ExternalTier, SkippedError, recorded_name
 from .gemini import ExtractionError, ModelPool, QuotaExhaustedError
 from .models import PostAnalysis
 from .prompts import EXTRACTION_PROMPT, OCR_NOTE, account_rules
-from .text import fold
+from .text import fold, folded_words
 
 CACHE_DIR = config.STATE_DIR / "bakeoff"
 DEFAULT_POSTS = 15
@@ -236,7 +236,7 @@ def run_model(
 
 def _words(text: str | None) -> set[str]:
     """Letters and digits only ("Tributo." is "tributo"), words of three or more."""
-    return {word for word in "".join(c if c.isalnum() else " " for c in fold(text)).split() if len(word) > 2}
+    return {word for word in folded_words(text) if len(word) > 2}
 
 
 def compare(reference: dict[str, Any], answer: dict[str, Any]) -> dict[str, bool]:
