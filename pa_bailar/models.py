@@ -281,7 +281,7 @@ class ProcessedPost(BaseModel):
     is_event_post: bool
     reason: str
     model: str
-    # Extracted by the lighter model because Flash was out of quota: re-extracted with Flash on a later run.
+    # Extracted by a lighter model because Flash was out of quota or busy: re-extracted with Flash on a later run.
     provisional: bool = False
     # Fingerprint of the caption analyzed: if the academy edits it (e.g. adds the venue), it's analyzed again.
     caption_hash: str | None = None

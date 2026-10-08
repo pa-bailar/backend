@@ -7,7 +7,7 @@ on the site, add a post or an account by hand.
 |---|---|---|
 | **The admin page**, two tabs: **Estadísticas** (sweeps, quotas, accounts, events) and **Herramientas** (new workshop series to look at, and Ocultar; check, add or read again a post; add an account; add an event from a story's screenshots) | https://pa-bailar-admin.jzamorac-9.workers.dev | Done |
 | **The admin inbox**: the same requests as issues in this repository, from the GitHub app | Issues → New issue | Done |
-| **Commands** on your computer: `admin status`, `admin why`, `admin add-account`, `sweep --post`, `sweep --story`, `sweep --hide-story`, `sweep --hide-event`, and `admin bakeoff` (re-checking the last resort's models) | Terminal | Done |
+| **Commands** on your computer: `admin status`, `admin why`, `admin add-account`, `sweep --post`, `sweep --story`, `sweep --hide-story`, `sweep --hide-event`, and `admin bakeoff` (re-checking the last resort's models, or scoring a model against the test set) | Terminal | Done |
 | Corrections: `corrections.json` and `admin fix`, fed by the site's report form | | Planned |
 
 **None of these tools is AI.** They're fixed checks over what the sweeps record (`state/` on the
@@ -63,7 +63,9 @@ address follows the tab you pick. On a keyboard, ← and → (or Home, End) move
   Each button sends one request per tap. It stays in Herramientas: it's where the requests' answers show.
 
 **Estadísticas:** the sweeps (✅ or ⚠️, with links to the runs), Gemini usage per model and when it resets,
-the last resort's use (Groq, OpenRouter: a card only on a day Gemini ran out), Instagram, accounts and events. It's the latest `status.json`, as of the last sweep. When it can't be read
+the last resort's use (Groq, OpenRouter: a card only on a day Gemini ran out), Instagram (whether the token works,
+and the last sweep's highest reading of its quota), accounts (those still in their first sweep or waiting past their
+turn) and events, with what Flash changed when it re-read lighter models' readings. It's the latest `status.json`, as of the last sweep. When it can't be read
 (none saved yet, GitHub failing, offline), a note takes its place and Herramientas still works.
 
 Each request is an issue in this repository (label `admin`), answered by the `admin` workflow: the page
@@ -252,8 +254,8 @@ The checks, in the order a post goes through the sweep:
    account. When the public page names another author, the post is a collaboration: it's its author's,
    shown on both profiles, and the checks follow the author. Is that account swept? If it is, one Instagram
    call finds the post among the account's latest 50, and its date says why:
-   - **posted after the account was last read:** its next turn takes it (each account is read about once
-     a day; Agregar publishes it now);
+   - **posted after the account was last read:** its next turn takes it (most accounts are read once a day,
+     quiet ones less often; Agregar publishes it now);
    - **the account was added recently** and hasn't been swept yet;
    - **older than 7 days:** the sweeps only check recent posts;
    - **the last sweep that tried the account couldn't read it**, or **the last sweep is waiting** for
@@ -271,15 +273,15 @@ The sweep workflow runs in single-post mode (`sweep --post`), one at a time with
    page any website uses to show a post, read without logging in. It has the author, caption, image, video
    and slides; the answer says "La leí desde su página pública". An account the API can't read (personal or
    private) isn't added to the sweeps, and the answer says so.
-2. Extracts it with Gemini **without the first filter** (whoever asks knows it's an event): Flash, else
-   Flash-Lite as provisional, else the last resort (Groq, then OpenRouter, also provisional). **Only when that
+2. Extracts it with Gemini **without the first filter** (whoever asks knows it's an event): Flash, else an
+   older Flash or Flash-Lite as provisional, else the last resort (Groq, then OpenRouter, also provisional). **Only when that
    can change something:** a post analyzed before with the same caption isn't read again: the answer says "Ya
    la había leído y no ha cambiado", links its events and offers **Volver a leer**. It's read again when its
    caption changed, when the first filter had called it "not an event" or Gemini had rejected it, or with
    **Volver a leer** (`--again`): one Gemini request, as the same post (its events keep their ids). Sharing a
    post twice never duplicates its event, through the API or its public page. A provisional read is upgraded
    to Flash by a later sweep only if the sweeps read that account; a post from its public page keeps its
-   Flash-Lite read, and the answer says "Flash no tenía cuota" instead of "se relee con Flash".
+   provisional read, and the answer says "Flash no tenía cuota" instead of "se relee con Flash".
 3. Publishes through the usual data PR (it merges itself and the site deploys), and answers: the events it
    became (with links and dates, a range for an event over several days, the sessions of a workshop series),
    or why not (not an event, recurring, no date, no Gemini quota left today).
@@ -298,8 +300,8 @@ The sweep workflow runs in story mode, one at a time with the sweeps:
    again: the answer links the event ("Ya está en el sitio"). Neither is another screenshot of a story published
    in the last 36 hours (a perceptual hash of each screenshot, 10 bits or fewer apart), unless it comes with
    notes: then it's read, in case it's another story made from the same template.
-3. **Reads them with Gemini, one request for all of them** (Flash, or Flash-Lite when Flash is out of quota,
-   kept as it is: no later sweep sees a story). The prompt (`STORY_PROMPT`) says it's a story screenshot and to
+3. **Reads them with Gemini, one request for all of them** (Flash, or an older Flash or Flash-Lite when Flash is
+   out of quota, kept as it is: no later sweep sees a story). The prompt (`STORY_PROMPT`) says it's a story screenshot and to
    ignore Instagram's interface; the notes go in as trusted hints and are never published. Gemini returns the
    events with their dates **as printed** (day, month, year only if printed, weekday, "hoy"/"mañana"), the
    name at the top, a reshared post's author, mentions, the location sticker, the story's age ("5 h") and,

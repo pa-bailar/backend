@@ -57,7 +57,7 @@ INSTAGRAM_USAGE_STOP = 90
 # QUIET_AFTER_DAYS) and unproductive ones (UNPRODUCTIVE_AFTER_POSTS of their posts on record, PROCESSED_RETENTION_DAYS,
 # and none an event) take their turn every other day, dormant ones (no post in DORMANT_AFTER_DAYS) once a week: each
 # read is an Instagram call that rarely finds anything new, and each costs ~1.3% of the app's hourly allowance whatever
-# it asks for (measured 8 Oct 2026; 129 accounts then: the owner chose these two tiers over a third sweep). A bit under
+# it asks for (measured 8 Oct 2026; 128 accounts then: the owner chose these two tiers over a third sweep). A bit under
 # 24 h, so the same sweep the next day finds the account due.
 SWEEP_EVERY_HOURS = 20
 QUIET_SWEEP_EVERY_HOURS = 44
@@ -248,7 +248,7 @@ BACKFILL_POSTS = 30
 BACKFILL_DAYS = 30
 
 # A run stops starting new Gemini work after this long and leaves the rest for the next run, inside the
-# sweep step's 35-minute timeout (the job's is 60): the steps after it still save the state and the data. No request
+# sweep step's 35-minute timeout (the job's is 90): the steps after it still save the state and the data. No request
 # starts after it (EventExtractor's deadline), so a run ends at most one Gemini request and one pause later (120 s +
 # 60 s), and the last resort never starts a request (or a wait) that wouldn't end before it.
 MAX_RUN_MINUTES = 30

@@ -141,8 +141,8 @@ class EventExtractor:
         """Every detail of the post's events: (analysis, model, provisional).
 
         `known_events` are this account's stored events, so Gemini can tell when a post (e.g. a video)
-        announces one of them again. Provisional means a Flash-Lite answer, to be redone with Flash. `rules`: the
-        account's own (prompts.account_rules).
+        announces one of them again. Provisional means a lighter model's answer (the older Flash, Flash-Lite or the
+        last resort), to be redone with Flash. `rules`: the account's own (prompts.account_rules).
         """
         known = _known_list(known_events)
         context = _format_context(account, post, published, rules)
@@ -178,8 +178,9 @@ class EventExtractor:
     def _extract[T: BaseModel](
         self, contents: list[types.PartUnionDict], schema: type[T], allow_provisional: bool, last_resort: bool = True
     ) -> tuple[T, str, bool]:
-        """Flash, else (when allowed) Flash-Lite as a provisional read, else (`last_resort`, and only when Flash and
-        Flash-Lite are both out of quota) the external providers, provisional too: (answer, model, provisional)."""
+        """Flash, else (when allowed) the provisional models (PROVISIONAL_MODELS: the older Flash, then Flash-Lite) as a
+        provisional read, else (`last_resort`, and only when Flash and those are all out of quota) the external
+        providers, provisional too: (answer, model, provisional)."""
         try:
             analysis, model = self.pool.generate(config.EXTRACTION_MODELS, contents, schema)
             return analysis, model, False
