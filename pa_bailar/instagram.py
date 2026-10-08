@@ -62,9 +62,9 @@ USAGE_MEASURES = ("call_count", "total_cputime", "total_time")
 
 def usage_measures(app_header: str | None, business_header: str | None) -> dict[str, int]:
     """Each measure's highest share used, in percent, of what Meta reports; empty for no header or an odd one:
-    - X-App-Usage: {"call_count": 28, "total_time": 25, "total_cputime": 25} (older apps);
-    - X-Business-Use-Case-Usage, what Instagram sends now: {"<id>": [{"type": "instagram", "call_count": 1,
-      "total_cputime": 1, "total_time": 1, "estimated_time_to_regain_access": 0}]}."""
+    - X-App-Usage: {"call_count": 28, "total_time": 25, "total_cputime": 25} (Business Discovery's on 8 Oct 2026);
+    - X-Business-Use-Case-Usage: {"<id>": [{"type": "instagram", "call_count": 1, "total_cputime": 1, "total_time": 1,
+      "estimated_time_to_regain_access": 0}]} (what Meta used on 3 Oct 2026: it has used each)."""
     readings: list[dict[str, Any]] = []
     try:
         if app_header:

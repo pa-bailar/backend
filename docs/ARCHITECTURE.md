@@ -145,7 +145,7 @@ Every service the system depends on. All of them are on free plans.
 | **What it needs** | A **Meta app** (Meta for Developers, with the Instagram Graph API product). A **Facebook Page** linked to **our own Instagram professional account**, whose id is `IG_USER_ID`. An access token for that Page (`META_ACCESS_TOKEN`) |
 | **Token** | A **Page access token that doesn't expire**. It's made from a short-lived Graph API Explorer token by `python -m pa_bailar refresh-token` (section 12.2). It stops working only if it's revoked (for example, a Facebook password change) |
 | **What it can see** | Only **business and creator** accounts. Personal or private accounts answer with error 100/110 ("not visible") |
-| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used in the `X-Business-Use-Case-Usage` header (`X-App-Usage` on older apps); `InstagramClient.app_usage_percent` reads both and keeps the highest, and the run's peak with each of Meta's measures (calls, CPU time, total time: `peak_usage_percent`, `peak_usage_detail`). The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
+| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used in one of two headers, and Meta has used each: `X-Business-Use-Case-Usage` on 3 Oct 2026, `X-App-Usage` on 8 Oct (Business Discovery's answers, the other empty). `InstagramClient.app_usage_percent` reads both and keeps the highest, and the run's peak with each of Meta's measures (calls, CPU time, total time: `peak_usage_percent`, `peak_usage_detail`). The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
 | **Cost per sweep** | **1 call per account read**, no matter how many posts are asked for (10 regular, 30 for a new account). Most accounts are read once a day (quiet ones less often), so a sweep reads at most about half of them (section 5). Images are then downloaded from Instagram's CDN, which isn't an API call |
 | **Cost** | Free |
 | **If it fails** | Token invalid: the run stops at the start and fails, and healthchecks.io emails you. Rate limit: the run stops calling Instagram, and the remaining accounts wait for the next run (a notice, and a warning after 3 runs in a row). One account fails: logged, and the others continue |
@@ -869,8 +869,9 @@ flowchart TD
   - `is_not_visible`: 100 and 110, a personal, private or missing account;
   - `is_rate_limited`: 4, 17, 32, 613 and 80001–80009;
   - network failures and non-JSON answers become an `InstagramError` for that account only.
-- **Quota awareness:** every answer updates `app_usage_percent` from both of Meta's usage headers (reading only
-  `X-App-Usage`, which Instagram no longer sends, once meant the stop never triggered). `discover` pauses at
+- **Quota awareness:** every answer updates `app_usage_percent` from both of Meta's usage headers, since Meta has
+  used each (reading only `X-App-Usage` on 3 Oct 2026, when the share came in the other, meant the stop never
+  triggered; on 8 Oct it came in `X-App-Usage`). `discover` pauses at
   60%. The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`), or on the first rate-limit error,
   and the remaining accounts go first next run.
 - **The token never shows in errors:** it travels in the URL, and connection errors quote the URL, so
