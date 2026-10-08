@@ -7,7 +7,9 @@ description: Make or change a Pa' Bailar video (an Instagram Story or Reel about
 
 The toolkit lives in `pa-bailar/media/` (the backend repo). **Read `media/README.md` first**: it's the catalog of
 the tools, the library's building blocks and the workflow, written so you don't need to read the code. Then read
-`media/MOTION.md` (the motion rules the owner approved) and `media/DESIGN.md` (tokens, type, safe zones).
+`media/MOTION.md` (the motion rules the owner approved), `media/DESIGN.md` (tokens, type, safe zones) and
+`media/AUDIO.md` (the voice and the music: record the script in one take, direct it in Spanish, structured,
+with the city's accent; the owner picks the voice and the track by ear).
 
 ## How to work
 
