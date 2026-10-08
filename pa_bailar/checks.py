@@ -14,15 +14,15 @@ from contextlib import suppress
 from datetime import date, timedelta
 from typing import Any
 
-from .text import fold
+from .text import MONTHS, WEEKDAYS, fold
 
 _MONTHS = {
     **{"enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6, "julio": 7, "agosto": 8},
     **{"septiembre": 9, "setiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12},
-    **{"ene": 1, "feb": 2, "mar": 3, "abr": 4, "may": 5, "jun": 6, "jul": 7, "ago": 8, "sept": 9, "sep": 9},
-    **{"set": 9, "oct": 10, "nov": 11, "dic": 12},
+    **{short: number for number, short in enumerate(MONTHS, start=1)},  # "ene" … "dic" (text.MONTHS)
+    **{"sept": 9, "set": 9},
 }
-_WEEKDAYS = {"lunes": 0, "martes": 1, "miercoles": 2, "jueves": 3, "viernes": 4, "sabado": 5, "domingo": 6}
+_WEEKDAYS = {fold(name): number for number, name in enumerate(WEEKDAYS)}  # "lunes": 0 … "domingo": 6 (text.WEEKDAYS)
 # The short forms flyers print ("SÁB 10 OCT", "VIE 9"), read only with a day after them; not "mar" (marzo).
 _WEEKDAYS_SHORT = {"lun": 0, "mie": 2, "mier": 2, "jue": 3, "vie": 4, "sab": 5, "dom": 6}
 _MONTH = "(?:" + "|".join(sorted(_MONTHS, key=len, reverse=True)) + ")"
