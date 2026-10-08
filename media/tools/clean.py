@@ -2,14 +2,17 @@
 
   .venv/Scripts/python media/tools/clean.py            lists what it would remove, and how much space it frees
   .venv/Scripts/python media/tools/clean.py --yes      moves those files to the Recycle Bin (restorable, never deleted)
+  .venv/Scripts/python media/tools/clean.py --retire <video> [--yes]
+                                                       a finished video whole: everything of it in the media home
 
 Looks in four places:
 - the media home's out/ (D:\\AI\\pa-bailar-media\\out, all generated): each video's older versions
   (`<video>-v2.3-reel.mp4` once `<video>-v2.4-reel.mp4` exists), stills (`frames/`), drafts (`*-draft.mp4`), keyframe
   sheets (`*-sheet.png`), side-by-sides (`*-vs-*.mp4`), the scratch folders tools and checks leave (`review/`,
   `rt/`, `auditions/`, `music/`, the stills bundles `.bundle-<checkout>/`, and any `stills…/` or `music-…/` a session
-  wrote with `--out`), and logs. Each deliverable's latest version and its `<deliverable>.mp4` link stay. The home's
-  archive/ (posted versions) is never touched.
+  wrote with `--out`, `check/` from tools/check.mjs), the mix's intermediate WAVs and rejected soundtracks, and logs.
+  Each deliverable's latest version and its `<deliverable>.mp4` link stay. The home's archive/ (posted versions) is
+  never touched. In public/<video>/, the temporary flyer folders (`.flyers-<pid>`) a stopped tools/events.py left.
 - the media home's cache/tts and cache/music: what no video uses any more, read from every projects/*/video.json (a
   voice line or one take that isn't any video's now, like the takes before the one the owner approved; a bed or a
   downloaded track no video's "music"."bed" names, with its .json). What a video uses stays (the owner, 8 Oct 2026:
@@ -22,6 +25,10 @@ Looks in four places:
   each deliverable (`teaser-v2.2-reel.mp4` once `teaser-v2.3-reel.mp4` exists) that the home's archive/ holds an
   identical copy of, comparisons, drafts, frames, logs. Files that project's git tracks (its voice lines, music
   options, overview sheets) are never touched.
+
+--retire <video> is for a video that's done (posted and past its shelf life, or dropped): its out/, public/ and
+archive/ folders in the media home, and the voice takes and music only it uses. Its project folder stays in git (the
+code, video.json, data/), so it can be made again. The owner decides when a video is done.
 
 With --yes, an item on a drive without a Recycle Bin, or larger than the bin holds (Windows would delete it for good),
 is skipped with a message.
@@ -41,7 +48,21 @@ from pathlib import Path
 from common import DIRECTION, HOME, MEDIA, one_take_path, parse_render_name, tts_path
 
 ARCHIVE = MEDIA.parent.parent / "pa-bailar-teaser"
-SCRATCH_DIRS = {"frames", "review", "rt", "auditions", "music", "draft", "inspect", "probe", "keyframes", ".bundle"}
+SCRATCH_DIRS = {
+    "frames",
+    "review",
+    "rt",
+    "auditions",
+    "music",
+    "draft",
+    "inspect",
+    "probe",
+    "keyframes",
+    ".bundle",
+    "check",
+}
+# tools/mix.py's intermediates (it removes them after a mix; older runs left them).
+MIX_SCRATCH = {"voice-48k.wav", "with-music-raw.wav", "music-only-raw.wav"}
 # Site checks kept in the checkout's media/out/ (not video output): never listed. New ones are media/site-checks/.
 SITE_CHECKS = {"site-bugs", "site-quality", "admin-tabs", "site-checks"}
 VERSIONED = re.compile(r"^(?P<name>.+?)-v(?P<version>\d+(?:\.\d+)*)-(?P<deliverable>[\w-]+)\.mp4$")
@@ -94,7 +115,8 @@ def working_file(path: Path) -> bool:
         or "-vs-" in name
         # render.py keeps the <deliverable>.mp4 a re-render of the same version orphaned: an earlier cut, stale
         or "-unversioned-" in name
-        or name.startswith(("old-", "new-", "psnr", "timing-orig"))
+        or name in MIX_SCRATCH
+        or name.startswith(("old-", "new-", "psnr", "timing-orig", "rejected-"))
     )
 
 
@@ -167,26 +189,47 @@ def in_home_archive(path: Path) -> bool:
     )
 
 
-def in_use() -> set[Path]:
-    """The cache files some video uses: its voice lines (or its one take) and its music bed (with the bed's .json)."""
+def stray_public() -> list[Path]:
+    """Temporary flyer folders in public/<video>/ that a stopped tools/events.py left (`.flyers-<pid>`)."""
+    public = HOME / "public"
+    return sorted(public.glob("*/.flyers-*")) if public.exists() else []
+
+
+def uses(settings: dict) -> set[Path]:
+    """The cache files a video uses: its voice lines (or its one take) and its music bed (with the bed's .json)."""
+    used: set[Path] = set()
+    voice = settings.get("voice")
+    if voice:
+        direction = voice.get("direction", DIRECTION)
+        if voice.get("one_take"):
+            used.add(one_take_path(voice).resolve())
+        for line in voice["lines"]:
+            used.add(tts_path(line["text"], voice["name"], direction, line.get("take", 0)).resolve())
+    bed = settings.get("music", {}).get("bed")
+    if bed:
+        used |= {(HOME / bed).resolve(), (HOME / f"{bed}.json").resolve(), (HOME / bed).with_suffix(".json").resolve()}
+    return used
+
+
+def in_use(skip: str | None = None) -> set[Path]:
+    """The cache files some video uses (every projects/*/video.json but `skip`'s)."""
     used: set[Path] = set()
     for path in (MEDIA / "projects").glob("*/video.json"):
-        settings = json.loads(path.read_text(encoding="utf-8"))
-        voice = settings.get("voice")
-        if voice:
-            direction = voice.get("direction", DIRECTION)
-            if voice.get("one_take"):
-                used.add(one_take_path(voice).resolve())
-            for line in voice["lines"]:
-                used.add(tts_path(line["text"], voice["name"], direction, line.get("take", 0)).resolve())
-        bed = settings.get("music", {}).get("bed")
-        if bed:
-            used |= {
-                (HOME / bed).resolve(),
-                (HOME / f"{bed}.json").resolve(),
-                (HOME / bed).with_suffix(".json").resolve(),
-            }
+        if path.parent.name != skip:
+            used |= uses(json.loads(path.read_text(encoding="utf-8")))
     return used
+
+
+def retired(name: str) -> list[Path]:
+    """A finished video's files in the media home: its out/, public/ and archive/ folders, and the cache files only it
+    uses. The project folder (in git) stays."""
+    project = MEDIA / "projects" / name / "video.json"
+    if not project.exists():
+        raise SystemExit(f"no video called {name!r} (no {project})")
+    folders = [HOME / top / name for top in ("out", "public", "archive")]
+    others = in_use(skip=name)
+    own = uses(json.loads(project.read_text(encoding="utf-8")))
+    return sorted([f for f in folders if f.exists()] + [f for f in own if f.exists() and f not in others])
 
 
 def unused_cache() -> list[Path]:
@@ -205,7 +248,7 @@ def unused_cache() -> list[Path]:
 
 
 def candidates() -> list[Path]:
-    picks = home_out(HOME / "out") + legacy() + unused_cache()
+    picks = home_out(HOME / "out") + stray_public() + legacy() + unused_cache()
     archive_out = ARCHIVE / "out"
     if archive_out.exists():
         keep = tracked(ARCHIVE)
@@ -251,8 +294,11 @@ def recycle(path: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--yes", action="store_true", help="move them to the Recycle Bin (default: only list)")
+    parser.add_argument(
+        "--retire", metavar="VIDEO", help="a finished video whole (its media home files), not the tidy-up"
+    )
     args = parser.parse_args()
-    picks = candidates()
+    picks = retired(args.retire) if args.retire else candidates()
     total = 0
     for p in picks:
         n = size(p)

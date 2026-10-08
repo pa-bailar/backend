@@ -33,5 +33,8 @@ session (the `teaser` skill's last step), not an occasional chore.
 4. **Recycle:** `clean.py --yes` moves them to the Recycle Bin (restorable; never deleted for good: items a bin
    can't hold are skipped with a message).
 5. **What the cleaner can't know:** a deliverable the owner dropped (the puente teaser's Reel, once "this won't be a
-   reel") keeps its last render. Recycle those by hand (the same Recycle Bin, never a delete).
+   reel") keeps its last render: recycle it by hand (the same Recycle Bin, never a delete). A video that's done
+   (posted and past its shelf life, or dropped) goes whole with `clean.py --retire <video>` then `--yes`: its `out/`,
+   `public/` and `archive/` in the media home, and the takes and music only it uses; the project stays in git. The
+   owner retired teaser-v2 and este-finde on 8 Oct 2026: once a video is past its shelf life, offer to retire it.
 6. **Report** in one line: how many items and MB went to the Recycle Bin, and what stays (the latest renders, by name).
