@@ -5,7 +5,7 @@ How the whole system works, from an academy posting a flyer on Instagram to that
 `pa-bailar/backend`) in depth, and every service around it. The site's side is in the site
 repository's `docs/ARCHITECTURE.md` (`pa-bailar/pa-bailar.github.io`).
 
-Last reviewed: 5 October 2026.
+Last reviewed: 8 October 2026.
 
 Contents:
 
@@ -59,6 +59,7 @@ flowchart LR
         DEP["deploy workflow"]
     end
 
+    MED[("pa-bailar/media (public)<br/>flyers and clips")]
     PAGES["GitHub Pages<br/>pa-bailar.github.io"]
     YOU(("You<br/>email, GitHub"))
     VIS(("Visitors"))
@@ -69,9 +70,11 @@ flowchart LR
     WF <-- "read / write state" --> SS
     WF -- "warnings" --> ISS
     WF -- "ping + report" --> HC
+    WF -- "images, pushed directly<br/>(pa-bailar-bot App)" --> MED
     WF -- "pa-bailar-bot App" --> PR
     PR --> CI -- "pass: auto-merge" --> MAIN
     MAIN -- "push" --> DEP --> PAGES --> VIS
+    MED -- "copied in" --> DEP
     WF -. "no new events:<br/>republish" .-> DEP
     HC -. "down / late" .-> YOU
     CJ -. "call failed" .-> YOU
@@ -83,11 +86,12 @@ In words:
 1. **cron-job.org** calls GitHub's API twice a day to start the `daily-sweep` workflow. This is the same
    as pressing *Run workflow*.
 2. **The sweep** reads the recent posts of every followed academy from **Instagram**. It asks **Gemini**
-   which posts announce one-time events, and to extract their details. It saves the events, plus a copy of
-   each flyer, into a checkout of the site repository.
+   which posts announce one-time events, and to extract their details. It saves the events into a checkout
+   of the site repository, and pushes a copy of each flyer (and of each video's clip) to the images
+   repository, `pa-bailar/media` (section 10.2).
 3. **When events changed**, the sweep opens a **data pull request** in the site repository as the
    **pa-bailar-bot** GitHub App. The site's `ci` checks the data and the build. The PR then merges itself,
-   and the merge triggers the **deploy** to GitHub Pages.
+   and the merge triggers the **deploy** to GitHub Pages, which copies the images in.
 4. **Every run** reports to **healthchecks.io**, and is checked by rules against the previous runs
    (section 11).
 5. **State** stays in this repository's `sweep-state` branch: which posts were already analyzed, how far
@@ -100,23 +104,29 @@ In words:
 
 | Repository | Visibility | Owns | Does not own |
 |---|---|---|---|
-| `pa-bailar/backend` (this one) | Public (since 6 Oct 2026) | The collector: the `pa_bailar` Python package, `accounts.txt`, the prompts, the sweep workflow, the sweep state (`sweep-state` branch), the health checks, local tools (`discover`, `refresh-token`), the admin page (`admin-web/`, docs/ADMIN.md), the video toolkit (`media/`, its README) | The data files and the site: it only writes them into a checkout of the site repository and proposes them through a PR |
-| `pa-bailar/pa-bailar.github.io` | Public | The site (`frontend/`, Astro), the published data (`data/events.json`, `data/meta.json`, `data/flyers/`, `data/previews/`), the data contract (`docs/DATA.md`), its CI and the GitHub Pages deploy | Collecting data. It never calls Instagram or Gemini |
+| `pa-bailar/backend` (this one) | Public (since 6 Oct 2026) | The collector: the `pa_bailar` Python package, `accounts.txt`, the prompts, the sweep workflow, the sweep state (`sweep-state` branch), the health checks, local tools (`discover`, `refresh-token`), the admin page (`admin-web/`, docs/ADMIN.md), the video toolkit (`media/`, its README) | The data files, the images and the site: it writes the data into a checkout of the site repository and proposes it through a PR, and pushes the images to `pa-bailar/media` |
+| `pa-bailar/pa-bailar.github.io` | Public | The site (`frontend/`, Astro), the published data (`data/events.json`, `data/meta.json`, the archive's records in `data/archive/`), the data contract (`docs/DATA.md`), its CI and the GitHub Pages deploy | Collecting data (it never calls Instagram or Gemini), and the images (it ignores `data/flyers/` and `data/previews/`) |
+| `pa-bailar/media` | Public | The images: the events' flyers and clips (`flyers/`, `previews/`) and the archive's small flyers (`archive/flyers/`), written only by the sweep (section 10.2) | Anything else: no code, no workflows |
 
-**Why two repositories:**
+**Why three repositories:**
 - **The collector apart from the site:** its secrets, state and workflows, with their own checks and history. It
   was private until 6 Oct 2026 (the owner made it public; its history was checked for secrets first: none). The
   keys live only in GitHub secrets, `.env` and `private/`, never in a commit: every push is public.
-- **The site repository has to be public:** GitHub Pages is free for public repositories. Both have unlimited
-  Actions minutes, being public.
+- **The site repository has to be public:** GitHub Pages is free for public repositories. It and the backend have
+  unlimited Actions minutes, being public.
+- **The images apart from the site** (since 5 Oct 2026): in the site repository they grew its history by hundreds of
+  MB a year, kept alive by its data PRs' references (section 10.2).
 
 The site repository's name (`<org>.github.io`) makes the site live at the organization's root,
 `https://pa-bailar.github.io`.
 
-The only link between the two repositories:
+The links between the repositories:
 - **Backend to site:** the backend checks the site out (anonymously, it's public), writes `data/`, and
   pushes a branch plus opens a PR with the pa-bailar-bot App's token. On days without changes, the same
   token starts the site's deploy.
+- **Backend to images:** before that PR, the same token pushes new and changed images straight to
+  `pa-bailar/media`'s `main` (no PR).
+- **Site to images:** its build copies `flyers/` and `previews/` into its `data/`, so their addresses don't change.
 - **Site to backend:** none. The site knows nothing about the backend except the data contract
   (`docs/DATA.md` in the site repository).
 
@@ -136,7 +146,7 @@ Every service the system depends on. All of them are on free plans.
 | **Token** | A **Page access token that doesn't expire**. It's made from a short-lived Graph API Explorer token by `python -m pa_bailar refresh-token` (section 12.2). It stops working only if it's revoked (for example, a Facebook password change) |
 | **What it can see** | Only **business and creator** accounts. Personal or private accounts answer with error 100/110 ("not visible") |
 | **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used in the `X-Business-Use-Case-Usage` header (`X-App-Usage` on older apps); `InstagramClient.app_usage_percent` reads both and keeps the highest, and the run's peak with each of Meta's measures (calls, CPU time, total time: `peak_usage_percent`, `peak_usage_detail`). The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
-| **Cost per sweep** | **1 call per account read**, no matter how many posts are asked for (10 regular, 30 for a new account). Each account is read about once a day, so a sweep reads about half of them (section 5). Images are then downloaded from Instagram's CDN, which isn't an API call |
+| **Cost per sweep** | **1 call per account read**, no matter how many posts are asked for (10 regular, 30 for a new account). Most accounts are read once a day (quiet ones less often), so a sweep reads at most about half of them (section 5). Images are then downloaded from Instagram's CDN, which isn't an API call |
 | **Cost** | Free |
 | **If it fails** | Token invalid: the run stops at the start and fails, and healthchecks.io emails you. Rate limit: the run stops calling Instagram, and the remaining accounts wait for the next run (a notice, and a warning after 3 runs in a row). One account fails: logged, and the others continue |
 
@@ -148,7 +158,7 @@ Every service the system depends on. All of them are on free plans.
 | **SDK** | `google-genai` (`pa_bailar/gemini.py`), using structured output: `response_mime_type="application/json"` plus a Pydantic `response_schema` |
 | **Key** | `GEMINI_API_KEY`, an API key from Google AI Studio (aistudio.google.com) |
 | **Models and roles** | Each model has its own free daily quota, so each role takes several, in order (the owner, 6 Oct 2026). Flash-Lite (`gemini-3.5-flash-lite`, then `gemini-3.1-flash-lite`, `config.LITE_MODELS`: 1,000 a day) does triage and discovery. Flash of this generation (`gemini-3.8-flash`, `3.7`, `3.6`, then `3.5`: 80 a day) does extraction. Provisional extraction, when those are out: `gemini-3-flash-preview` (an older Flash, not yet compared with this generation's), then Flash-Lite (`config.TRIAGE_MODELS`, `EXTRACTION_MODELS`, `PROVISIONAL_MODELS`) |
-| **Free quotas** | Flash-Lite: 15 requests/minute and 500/day. Each Flash model: 5/minute and 20/day (`config.MODEL_LIMITS`, read from AI Studio on 2026-10-02). Each model has its own quota. Days reset at **midnight Pacific time** |
+| **Free quotas** | Flash-Lite: 15 requests/minute and 500/day. Each Flash model: 5/minute and 20/day (`config.MODEL_LIMITS`, read from AI Studio's rate-limit page on 6 Oct 2026). Each model has its own quota. Days reset at **midnight Pacific time** |
 | **Cost** | Free (the free tier may use prompts to improve Google's products; posts are public anyway) |
 | **If it fails** | Out of quota: the next model, then the last resort (section 3.10), else the post waits. Busy or unreachable: retried, then the next model, else the post waits. Rejected: recorded as rejected, never retried. Details in section 7.2 |
 
@@ -157,10 +167,10 @@ Every service the system depends on. All of them are on free plans.
 | Piece | What for |
 |---|---|
 | **Repositories** | Section 2 |
-| **GitHub Actions** | Runs the sweep (`daily-sweep.yml`), the admin inbox (`admin.yml`, section 12.3) and the backend's checks (`ci.yml`) on `ubuntu-latest` runners. Both repositories are public: their minutes are free and unlimited (the backend had 2,000 a month while it was private, until 6 Oct 2026) |
+| **GitHub Actions** | Runs the sweep (`daily-sweep.yml`), the admin inbox (`admin.yml`, section 12.3), the backend's checks (`ci.yml`) and the video toolkit's (`media-ci.yml`) on `ubuntu-latest` runners. Both repositories are public: their minutes are free and unlimited (the backend had 2,000 a month while it was private, until 6 Oct 2026) |
 | **Actions secrets and variables** | Hold the keys (section 4) |
 | **`sweep-state` branch** | The sweep's memory between runs (section 10.1). An orphan branch that only holds JSON files |
-| **pa-bailar-bot (GitHub App)** | App id `5164772`, installed on the `pa-bailar` organization for the site repository. The sweep uses it to push the data branch, open the data PR, enable auto-merge and start the site's deploy. A short-lived token is minted per run with `actions/create-github-app-token`. Using an App, rather than the workflow's own token, means its PR runs the site's `ci` like anyone's |
+| **pa-bailar-bot (GitHub App)** | App id `5164772`, installed on the `pa-bailar` organization for the site and images repositories. The sweep uses it to push the images, push the data branch, open the data PR, enable auto-merge and start the site's deploy. A short-lived token is minted per run with `actions/create-github-app-token`. Using an App, rather than the workflow's own token, means its PR runs the site's `ci` like anyone's |
 | **Issues** | The `Sweep health` issue (label `sweep-health`), opened and updated by the sweep (section 11). The admin inbox: requests to the admin tools (label `admin`), answered by `admin.yml` and, for adding a post, by the sweep ([`docs/ADMIN.md`](ADMIN.md)) |
 | **Dependabot** | Weekly update PRs for the Python dependencies and the GitHub Actions used (`.github/dependabot.yml`) |
 | **GitHub Pages** | Hosts the site, deployed by the site repository's `deploy` workflow |
@@ -171,7 +181,7 @@ Every service the system depends on. All of them are on free plans.
 | | |
 |---|---|
 | **What for** | Starting the sweep at fixed times: **6:30 AM and 9:00 PM, Bogotá time** (`config.SWEEP_TIMES`, which they must match). Until 7 Oct 2026 the morning run was at 9:00, where Google's Flash refused 97% of weekday requests as busy (the owner moved it, from the logs of 29 runs) |
-| **Why not GitHub's own `schedule`** | It never fired in this repository. That's a known, undocumented problem of new private repositories, with no fix from GitHub, and community reports describe runs delayed by hours or dropped. The workflow has **no `schedule:` trigger** on purpose: if GitHub's scheduler started working, every run would happen twice |
+| **Why not GitHub's own `schedule`** | It never fired in this repository while it was private (until 6 Oct 2026). That's a known, undocumented problem of new private repositories, with no fix from GitHub, and community reports describe runs delayed by hours or dropped. The workflow has **no `schedule:` trigger** on purpose: if GitHub's scheduler started working, every run would happen twice |
 | **The two jobs** | `pa-bailar sweep 6:30` and `pa-bailar sweep 21:00`, time zone America/Bogota |
 | **The request** | `POST https://api.github.com/repos/pa-bailar/backend/actions/workflows/daily-sweep.yml/dispatches`, with body `{"ref":"main"}` and headers `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json` and `Authorization: Bearer <token>`. GitHub answers `204 No Content` |
 | **Token** | A **fine-grained personal access token**, owned by the `pa-bailar` organization, limited to this repository and to **Actions: read and write**. It can start and cancel runs; it can't read the code or the secrets. Stored only in cron-job.org |
@@ -184,14 +194,14 @@ Every service the system depends on. All of them are on free plans.
 |---|---|
 | **What for** | A dead man's switch: it emails when a sweep **fails**, or when **no sweep arrives** in time, which is the case GitHub itself never reports |
 | **How** | The workflow's last step always runs. It pings `HEALTHCHECK_URL` on success, or `HEALTHCHECK_URL/fail` on failure, with the run's health report as the body, so the report shows in the check's event log |
-| **Schedule** | **Period 15 hours, grace 2 hours:** the runs are 14.5 and 9.5 hours apart (6:30 and 21:00), so a single missed run is noticed within about 17 hours (12 hours until the morning run moved, 7 Oct 2026) |
+| **Schedule** | **Period 15 hours (12 until the morning run moved, 7 Oct 2026), grace 2 hours:** the runs are 14.5 and 9.5 hours apart (6:30 and 21:00), so a single missed run is noticed within about 17 hours |
 | **Cost** | Free |
 
 ### 3.6 Cloudflare Workers
 
 | | |
 |---|---|
-| **What for** | Hosting the admin page (Worker `pa-bailar-admin`, at `https://pa-bailar-admin.jzamorac-9.workers.dev`) and its server side: the sign-in with GitHub (the `pa-bailar-admin` GitHub App), reading the status, and keeping story screenshots (Workers KV, bound as `UPLOADS`, 7-day expiry) until the sweep workflow downloads them with GitHub's identity token (OIDC, no secret). GitHub Pages can't: it's not free for a private repository and has no server side |
+| **What for** | Hosting the admin page (Worker `pa-bailar-admin`, at `https://pa-bailar-admin.jzamorac-9.workers.dev`) and its server side: the sign-in with GitHub (the `pa-bailar-admin` GitHub App), reading the status, and keeping story screenshots (Workers KV, bound as `UPLOADS`, 7-day expiry) until the sweep workflow downloads them with GitHub's identity token (OIDC, no secret). GitHub Pages can't: it has no server side |
 | **How** | Cloudflare's build (Workers Builds) deploys `admin-web/` (`wrangler.jsonc`) from this repository on every push to `main`, no preview builds; its GitHub connection is limited to this repository. Security headers and the rest: [`docs/ADMIN.md`](ADMIN.md), "The admin page" |
 | **Cost** | Free (KV's free plan: 1,000 writes a day, one per screenshot) |
 
@@ -235,7 +245,7 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 
 | | |
 |---|---|
-| **What for** | Extracting posts when Gemini can't: Flash and Flash-Lite are both out of today's quota or not available to the key (only quota: a busy or refusing Gemini never reaches it). Never the triage, never before Gemini, and never for stories or upgrades (section 7.3) |
+| **What for** | Extracting posts when Gemini can't: every Flash and Flash-Lite model is out of today's quota or not available to the key (only quota: a busy or refusing Gemini never reaches it). Never the triage, never before Gemini, and never for stories or upgrades (section 7.3) |
 | **API** | Both are OpenAI-compatible: `POST …/chat/completions` with the prompt's text and the images as base64 data URLs (`pa_bailar/external.py`, `config.EXTERNAL_PROVIDERS`). Plain `httpx`, no SDK |
 | **Keys** | `GROQ_API_KEY` (console.groq.com) and `OPENROUTER_API_KEY` (openrouter.ai). Both optional: a provider without its key is skipped, and without either there's no last resort |
 | **Models** | Groq: `qwen/qwen3.8-27b`, its only vision model, in JSON mode with the schema in the prompt. OpenRouter: `google/gemma-4-31b-it:free` and `google/gemma-4-26b-a4b-it:free` (JSON mode, the schema in the prompt; one request with its `models` list), then `openrouter/free`, a router to a random free model that takes the schema (structured output: the schema as `response_format`, strict, with `provider.require_parameters`). Every answer is checked against the same Pydantic schemas as Gemini's |
@@ -282,14 +292,16 @@ sequenceDiagram
     participant R as Actions runner (backend)
     participant IG as Instagram Graph API
     participant G as Gemini API
+    participant M as Images repository
     participant S as Site repository
     participant HC as healthchecks.io
 
     CJ->>GH: POST .../daily-sweep.yml/dispatches {"ref":"main"}
     GH-->>CJ: 204 No Content
     GH->>R: start the daily-sweep job (queued if another sweep runs)
-    R->>R: check out backend, sweep-state and site (no stored credentials)
-    R->>R: pip install (hash-pinned requirements.txt)
+    R->>S: wait for an earlier data PR still open (up to 20 min)
+    R->>R: check out backend, sweep-state, site and images (no stored credentials)
+    R->>R: pip install (hash-pinned requirements.txt), copy the images into the site's data
     loop each account whose turn it is (half of accounts.txt plus 5, regular ones first, until 90% of Instagram's quota)
         R->>IG: business_discovery.username(account){media}
         IG-->>R: recent posts (+ usage header)
@@ -305,15 +317,16 @@ sequenceDiagram
         end
     end
     R->>R: retention, write meta.json, health checks, run history
-    opt events or flyers changed
+    R->>M: push new and changed images to main (pa-bailar-bot)
+    opt events changed
         R->>S: push data/sweep-... branch, open PR (label data), enable auto-merge (pa-bailar-bot)
     end
     R->>GH: push state to sweep-state (GITHUB_TOKEN, this step only)
     Note over R,GH: if the data PR couldn't be opened, the posts stay unread (read again next run)
     R->>GH: update the Sweep health issue (if warnings)
     alt a data PR was opened
-        S->>S: ci passes, squash merge, deploy to Pages
-        R->>S: wait for the merge (up to 20 min)
+        S->>S: ci passes, squash merge, deploy to Pages (images copied in)
+        R->>S: an owner's request waits for the merge (up to 20 min)
     else nothing changed
         R->>S: start deploy.yml with checked_at (pa-bailar-bot)
     end
@@ -361,7 +374,7 @@ sequenceDiagram
 | 8 | Write the status for the admin page | Unless cancelled; its failure doesn't fail the run | `python -m pa_bailar admin status --json` → `state/status.json`, saved with the state (one Graph API call, no Gemini). The admin page reads it | `META_ACCESS_TOKEN`, `IG_USER_ID` (this step only) |
 | 9 | Get a token for the site repository | Unless cancelled | Mints a pa-bailar-bot installation token for the site and images repositories only | `APP_ID`, `APP_PRIVATE_KEY` |
 | 9b | Save the images to their repository | Unless cancelled | `media_store push`: new and changed images (and the archive's small flyers) copied into `media/`, the current ones no longer used removed (only if neither this run's events nor the published ones point to them, and they're gone from `site/data`: an archived event's image stays until its data PR has merged, so builds and checks in between still find it; the next run removes it); committed as the bot and pushed straight to `main`, no PR (pull request references would keep old images alive). If it fails, no data PR is opened, so the run's posts stay unread | App token |
-| 10 | Open a data PR | Unless cancelled, and the images were saved | Only if `data/events.json`, `data/archive` or (while the site repository still keeps them) `data/flyers` changed (clips change `events.json` too) (`meta.json` alone doesn't count). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled. It runs before the state is saved, so the state never marks posts as analyzed whose events didn't leave the runner | App token |
+| 10 | Open a data PR | Unless cancelled, and the images were saved | Only if `data/events.json` or `data/archive` changed (clips change `events.json` too; `meta.json` alone doesn't count; the images went to their own repository at step 9b, and the site repository ignores them). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled. It runs before the state is saved, so the state never marks posts as analyzed whose events didn't leave the runner | App token |
 | 10b | Keep the site data of a data PR that wasn't opened | The data PR step failed | Uploads `site/data` (events, flyers, clips) as the run's artifact `site-data-<run id>`, kept 14 days, to recover by hand (section 15) | |
 | 11 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real. **If the data PR step didn't succeed**, `processed_posts.json` and `accounts.json` keep their previous versions (a warning says so): this run's posts stay unread and its accounts due, so the next run reads them again and its PR carries their events. Gemini's usage, the run history and `status.json` are saved either way | `GITHUB_TOKEN` (this step only) |
 | 11b | Save an account added by hand | `post_url` or `story`, and `accounts.txt` changed | Commits `accounts.txt` to `main` | `GITHUB_TOKEN` (this step only) |
@@ -370,6 +383,10 @@ sequenceDiagram
 | 14 | Republish the site | Success, no PR, not an admin request (`issue`) | `gh workflow run deploy.yml -f checked_at=<now in Bogotá>`, so "Actualizado el" stays current on days without new events | App token |
 | 15 | Report to the health check | Always, except admin requests (`issue`) | Pings `HEALTHCHECK_URL` (success) or `HEALTHCHECK_URL/fail`, with the report as the body | `HEALTHCHECK_URL` |
 | 16 | Answer on the admin issue | `issue` given (admin tools) | Writes the result of adding the post or story, or hiding the story or event (`ADMIN_REPORT_FILE`), and the data PR; `.github/actions/answer-issue` comments it and closes the issue, only if it's an open `admin` issue by `jzamora5` | `GITHUB_TOKEN` |
+
+When step 1b fails, nothing was checked out, so steps 8 to 14 don't run either (`tests/test_workflows.py` checks
+that the steps that keep progress need it to have passed); the health check (step 15) and the answer on an admin
+issue (step 16) still report it.
 
 Other workflow settings:
 - **`concurrency: data`** (`cancel-in-progress: false`): two sweeps never run at the same time. A new one
@@ -386,11 +403,11 @@ Other workflow settings:
   reason the `admin` workflow has no concurrency group of its own: a third comment on an issue would cancel
   the second one's waiting run, and its request would never be answered.
 
-### Whose turn it is: each account about once a day
+### Whose turn it is: most accounts once a day
 
-Instagram's quota for us is small (it grows with our own account's impressions), so each account is read
-about **once a day**, half of them in each sweep, instead of every account twice a day
-(`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_overdue`):
+Instagram's quota for us is small (Meta's hourly limit per app, which grows with the app's users: one, section
+14), so each account is read at most **once a day** (quiet ones less often), about half of them in each sweep,
+instead of every account twice a day (`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_overdue`):
 
 - **Each account's turn:** 20 hours after a sweep last read it (`SWEEP_EVERY_HOURS`: the same sweep the next
   day finds it due). Every 44 hours: quiet accounts, with no post in 30 days (`QUIET_AFTER_DAYS`; 45 until 8 Oct
@@ -398,7 +415,7 @@ about **once a day**, half of them in each sweep, instead of every account twice
   days) never became an event (`pipeline.unproductive_accounts`, `models.had_events`; their first event brings them
   back to daily). Dormant ones, with no post in 180 days (`DORMANT_AFTER_DAYS`), once a week (164 hours). Lower
   priority, never dropped: each read is an Instagram call that rarely finds anything new, and costs ~1.3% of the
-  app's hourly allowance (section 14). The owner chose these tiers over a third sweep, at 129 accounts (8 Oct 2026). An account silent for over a year is better
+  app's hourly allowance (section 14). The owner chose these tiers over a third sweep, at 128 accounts (8 Oct 2026). An account silent for over a year is better
   commented out in `accounts.txt`, with a note. `accounts.json` keeps `last_swept_at` and `latest_post` (its day in Bogotá).
 - **Order:** due accounts in their regular sweep before new ones (a new account's first, deeper sweep can
   take days of quota); within each, those that waited longest first.
@@ -529,14 +546,14 @@ flowchart TD
     TLR -->|"no: keep Flash for<br/>screened posts"| PEND
     TLR -->|"yes: no triage, the<br/>extraction decides"| EX
     TR -->|"event, or triage failed<br/>(busy, timeout)"| EX["Extraction: Flash<br/>every image + caption + this account's known events"]
-    EX -->|"Flash out of quota"| PROV["Extraction: Flash-Lite<br/>marked provisional"]
+    EX -->|"Flash out of quota or busy"| PROV["Extraction: an older Flash,<br/>then Flash-Lite, marked provisional"]
     EX -->|"rejected by Gemini (4xx), its answer<br/>blocked or cut off (MAX_TOKENS)"| REJ["Record as rejected<br/>never retried"]
     EX -->|"no valid JSON from any model,<br/>on 3 runs"| REJ
     EX -->|"the API key doesn't work"| STOP["Stop the run (it fails):<br/>nothing recorded, read next run"]
     EX -->|"no model could answer"| PEND
     EX --> ST["Store (6.3)"]
     PROV --> ST
-    PROV -->|"Flash-Lite out of quota too<br/>(and Flash was out, not busy)"| LAST["Extraction: Groq, then OpenRouter<br/>marked provisional (if their keys are set)"]
+    PROV -->|"those out of quota too<br/>(and Flash was out, not busy)"| LAST["Extraction: Groq, then OpenRouter<br/>marked provisional (if their keys are set)"]
     LAST --> ST
     LAST -->|"none could answer"| PEND
     UP --> ST
@@ -568,8 +585,8 @@ event stays, with low confidence and a doubt ("@cuenta lo anunció cancelado o a
 review (section 11.1) (`Sweep._take_down_cancelled`).
 
 **When Flash-Lite is out of today's quota:**
-- and Flash isn't, new posts wait for the next run: skipping the triage would spend Flash's 20 requests on
-  posts that mostly aren't events;
+- and Flash isn't, new posts wait for the next run: skipping the triage would spend Flash's few requests (20 a
+  day per model) on posts that mostly aren't events;
 - and Flash is out too, the extraction would be the last resort's anyway (section 7.3), so the post goes
   straight to it, without a triage: the extraction decides alone whether it's an event.
 
@@ -666,7 +683,7 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 | Triage | Flash-Lite (`LITE_MODELS`) | Caption, account, publication date, today's date, first image as a 512 px JPEG | `Triage`: `is_event_post`, `reason` | Low |
 | Extraction | Flash: `gemini-3.8-flash`, `3.7`, `3.6`, then `3.5` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day and a series' sessions, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `sessions`, `image_index`, `same_as` and `in_bogota`, the last three never stored) | Model default |
 | Provisional extraction | `gemini-3-flash-preview`, then Flash-Lite | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
-| Story (admin tools) | Extraction's models, Flash-Lite when Flash is out (kept as it is) | Up to 4 screenshots of one story (numbered), when the screenshot was taken, the admin's notes and account, the account's known events | `StoryAnalysis`: the header's account, a reshared post's author, mentions, location sticker, the story's age, a `content_box` per screenshot, `events[]` (`StoryEvent`: dates as printed, a series' sessions too (`StorySession`), worked out in code by `stories.resolve_date`) | Model default |
+| Story (admin tools) | Extraction's models, then the provisional ones when Flash is out (kept as it is) | Up to 4 screenshots of one story (numbered), when the screenshot was taken, the admin's notes and account, the account's known events | `StoryAnalysis`: the header's account, a reshared post's author, mentions, location sticker, the story's age, a `content_box` per screenshot, `events[]` (`StoryEvent`: dates as printed, a series' sessions too (`StorySession`), worked out in code by `stories.resolve_date`) | Model default |
 | Discovery | Flash-Lite (`LITE_MODELS`, the triage's) | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, whether it announces one-time events, reason | Model default |
 
 Notes on the prompts and parameters:
@@ -794,18 +811,19 @@ flowchart TD
 | Step | In order | Provisional? |
 |---|---|---|
 | Triage | Flash-Lite only: when it's out, the post waits, or goes straight to the extraction when Flash is out too (section 6.2) | (a yes/no) |
-| Extraction | Flash (two models) → Flash-Lite → Groq → OpenRouter | Flash-Lite's and the last resort's, always |
+| Extraction | Flash (four models) → an older Flash (`gemini-3-flash-preview`) → Flash-Lite → Groq → OpenRouter | The older Flash's, Flash-Lite's and the last resort's, always |
 | Lite-only mode | Flash-Lite → Groq → OpenRouter | The last resort's (re-read with Flash-Lite) |
 | Upgrade of a provisional post | Flash only (a last-resort "no event": Flash-Lite's triage first) | No |
-| Story (admin tools) | Flash → Flash-Lite | Never the last resort: a story isn't read again, so its reading would stay |
+| Story (admin tools) | Flash → an older Flash → Flash-Lite | Never the last resort: a story isn't read again, so its reading would stay |
 
-- **Only when Gemini is out:** the last resort is asked only when both Flash and Flash-Lite raised
-  `QuotaExhaustedError` (all out of today's quota or not available to the key; `EventExtractor._extract`). A busy
+- **Only when Gemini is out:** the last resort is asked only when both Flash and the provisional models (the older
+  Flash, Flash-Lite) raised `QuotaExhaustedError` (all out of today's quota or not available to the key;
+  `EventExtractor._extract`). A busy
   Flash (5xx, timeouts) or one that refused the post (a safety block) with Flash-Lite out leaves the post waiting
   for Gemini.
 - **Off without keys:** each provider needs its key (`GROQ_API_KEY`, `OPENROUTER_API_KEY`). Lite-only mode keeps
   them as the last resort after Flash-Lite.
-- **Always provisional:** an extraction from the last resort is stored like Flash-Lite's provisional ones, and
+- **Always provisional:** an extraction from the last resort is stored like Gemini's provisional ones, and
   upgraded with Flash on a later run when there's quota (section 6.2). Its record names the model with its
   provider, `groq:qwen/qwen3.8-27b` or `openrouter:google/gemma-4-31b-it:free`, and `admin why` shows it.
 - **Fail fast:** one request per model and post, a 60-second timeout (`EXTERNAL_TIMEOUT_SECONDS`), no retries and no
@@ -1047,13 +1065,13 @@ memory between runs; the site never sees it.
 
 | File | Content | Why it matters |
 |---|---|---|
-| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha`, `fuera de Bogotá`, `ya pasó` or `cancelado`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined. Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
+| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha`, `fuera de Bogotá`, `ya pasó` or `cancelado`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined, and `by_hand` for a post added by hand (section 6.1). Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
 | `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post`, and `unreadable` (post id → runs on which no model gave valid JSON for it, section 7.2) | Whether the account still gets the deeper first sweep, and when its next turn is |
 | `gemini_usage.json` | Today's quota day (Pacific), requests per model, and the models not available to the key today (`models.GeminiUsage`) | The day's runs share the daily budgets |
 | `external_usage.json` | The last resort's day (UTC) and, per provider, requests, tokens and the answers per model | The day's runs share Groq's and OpenRouter's budgets (section 7.3) |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
 | `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load. Adding one of its posts by hand publishes it again (ADMIN.md, "Ocultar evento") |
-| `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests (and the last resort's, per provider) and models the key couldn't use; what each of the last resort's models did, those set aside and the providers turned off; warning keys | The health rules compare a run with the previous ones (section 11) |
+| `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests (and the last resort's, per provider) and models the key couldn't use; what each of the last resort's models did, those set aside and the providers turned off; Instagram's highest reading and its measures (section 5.2); what Flash changed in lighter readings (`upgrade_changes`, section 7.2); warning keys | The health rules compare a run with the previous ones (section 11) |
 
 ```mermaid
 flowchart LR
@@ -1122,7 +1140,7 @@ They run after every sweep. No AI, no quota.
 
 | Finding | Level | Rule |
 |---|---|---|
-| `@account` couldn't be read | Notice, then **warning** after 3 failed tries in a row | Renamed, private or no longer a business account? Each account is read about once a day, so runs that didn't try it (`RunRecord.read_accounts`) don't break the streak |
+| `@account` couldn't be read | Notice, then **warning** after 3 failed tries in a row | Renamed, private or no longer a business account? Each account is read on its turn (about once a day, quiet ones less often), so runs that didn't try it (`RunRecord.read_accounts`) don't break the streak |
 | Instagram's rate limit stopped the run early | Notice, then **warning** after 3 runs in a row | Too many accounts for the app's quota? Discovery or tests using it? |
 | The run used its whole time budget | Notice, then **warning** after 3 runs in a row | Is the backlog too big? |
 | Posts failed | Notice, then **warning** after 3 runs in a row | Gemini rejections, image downloads, unexpected errors. Posts waiting for quota aren't failures |
@@ -1273,7 +1291,9 @@ guide.
   otherwise); whether the Instagram token works (one call, `--no-instagram` skips it) and the last sweep's highest
   reading of Instagram's quota with its measures (the token check's own reading is another counter: 1% at the end
   of a sweep stopped at 90%), and whether the sweep stopped there or Meta's own rate-limit error stopped it below
-  that ("Meta lo frenó antes"); accounts still in their first sweep; provisional posts; upcoming events (until their last day);
+  that ("Meta lo frenó antes"); accounts still in their first sweep, and those waiting more than a sweep past their
+  turn (section 5.2); provisional posts, and what Flash changed when it re-read lighter readings (section 7.2);
+  upcoming events (until their last day);
   new workshop series to look at, with `/ocultar <id>` (section 9.1); discovery progress; the last resort's use
   today per provider (`external`), shown only when it was used.
   `--json` gives the same as data. On your computer it reads the sweeps' state from the `sweep-state`
@@ -1309,7 +1329,10 @@ Both test suites check the shapes the admin tools accept (`pa_bailar/patterns.py
 against the same examples, `tests/fixtures/patterns.json`, so the inbox and the admin page can't drift apart.
 
 The tests use fake Instagram and Gemini clients, so no network or quota is involved. The
-autouse fixture `isolated_files` sends every file a test writes to a temporary folder.
+autouse fixture `isolated_files` sends every file a test writes to a temporary folder. Most modules have their own
+`tests/test_<module>.py`; two files guard what spans files: `test_workflows.py` (the sweep workflow's steps in a safe
+order, and a job limit that holds its longest run) and `test_config.py` (settings that must agree, such as every
+model of a role having its limits).
 
 ### 13.2 Dependencies
 
@@ -1343,23 +1366,23 @@ autouse fixture `isolated_files` sends every file a test writes to a temporary f
 
 ## 14. Quotas and capacity
 
-With **125 followed accounts** (5 October 2026, `accounts.txt`) and two runs a day (each account read about once a
+With **128 followed accounts** (8 October 2026, `accounts.txt`) and two runs a day (each account read about once a
 day, quiet ones less often: section 5, "Whose turn it is"):
 
 | Resource | Limit | Use per run | Use per day | Headroom |
 |---|---|---|---|---|
-| Instagram calls (Business Discovery: Meta's platform limit, per app, rolling 1 hour; `x-app-usage`) | Grows with the app's users (one); what runs out is `total_time`, Meta's processing time: ~1–1.3% per account read, whatever the fields or posts asked (measured 8 Oct 2026), so about 70 reads an hour | At most 69 (half the accounts, plus up to 5 late ones); about 54 at 129 accounts with the tiers | About 107 at 129 accounts (91 daily, 30 every other day, 7 weekly) | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run; the hour starts over by the next sweep. Two sweeps hold about 140 daily reads. `discover` keeps clear of sweep times |
+| Instagram calls (Business Discovery: Meta's platform limit, per app, rolling 1 hour; `x-app-usage`) | Grows with the app's users (one); what runs out is `total_time`, Meta's processing time: ~1–1.3% per account read, whatever the fields or posts asked (measured 8 Oct 2026), so about 70 reads an hour | At most 69 (half the accounts, plus up to 5 late ones); about 54 at 128 accounts with the tiers | About 107 at 128 accounts (91 daily, 30 every other day, 7 weekly) | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run; the hour starts over by the next sweep. Two sweeps hold about 140 daily reads. `discover` keeps clear of sweep times |
 | Gemini Flash-Lite (two models) | 500 / day each (996 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
-| Gemini Flash (four for extraction, one older for provisional reads) | 20 / day each (72 usable for extraction, 18 more provisional) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read by Flash-Lite (provisional) | The binding limit, but it loses no events: the overflow is read by Flash-Lite and shown. Both sweeps share one quota day (midnight Pacific), so a sweep leaves the later ones their share (`later_sweeps_in_quota_day`: the 6:30 one keeps half for 21:00), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end |
+| Gemini Flash (four for extraction, one older for provisional reads) | 20 / day each (72 usable for extraction, 18 more provisional) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read provisionally (by the older Flash or Flash-Lite) | The binding limit, but it loses no events: the overflow is read provisionally and shown. Both sweeps share one quota day (midnight Pacific), so a sweep leaves the later ones their share (`later_sweeps_in_quota_day`: the 6:30 one keeps half for 21:00), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end |
 | GitHub Actions minutes (backend, public since 6 Oct 2026) | Unlimited | 15–30 min (measured 6 Oct 2026: Gemini's pacing and busy retries, Instagram; no longer waiting for the data PR, #124) | ~35–50 | Free. Before (private: 2,000 a month), about 1,100–1,500 a month went to the sweeps, plus ci on pull requests |
 | GitHub Actions minutes (public site repository) | Unlimited | ci + deploy, ~2 min | | |
 | cron-job.org | Unlimited jobs | 1 call | 2 | |
 | healthchecks.io | Free plan | 1 ping | 2 | |
 
 **The time budget:** a run stops starting Gemini work after 30 minutes (`MAX_RUN_MINUTES`). The step
-itself stops at 35, and the job at 60, leaving room for the state, the PR and the merge. After the budget no
+itself stops at 35, and the job at 90 (section 5.2), leaving room for the state, the PR and the merge. After the budget no
 request starts, not even within a post already started (`gemini.OutOfTimeError`: the post waits), so a run ends
 at most one request and one pause later (about 3 minutes), and no more accounts are fetched. A post left
 waiting keeps its account due, so a "CANCELADO" edit is read on the next run. The last resort never starts a
