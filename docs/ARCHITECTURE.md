@@ -549,11 +549,11 @@ pass of 8 Oct 2026, after "se suspende el social de hoy" left a cancelled event 
 the event: a reminder that Flash re-reads as no event would take the event it joined off the site for good, so "no
 habrá" ("no habrá venta de boletas en taquilla"), "cancelación" ("política de cancelación") and "nueva fecha" don't
 count, nor "se canceló" paid ("ya se canceló", a price's word before it) (the bug hunt of 7 Oct 2026). Nor does "se
-cancela" meaning "is paid", read line by
-line: a price's word before it ("la entrada se cancela en la puerta", "la inversión se cancela el día del taller": the
-price words of `text.PRICE_WORDS`, which the rule checks' price line shares) or an amount ("Inversión: $50.000. Se
-cancela…", "20 mil", "15k", "50%": the dot of "$50.000" ends no sentence), or when or how it's paid after it ("en
-efectivo", "por Nequi", "el día del taller", "antes del taller", "el mismo día", "en dos cuotas"); never "se cancela por
+cancela" meaning "is paid", read line by line: a price's word before it in its sentence ("la entrada se cancela en la
+puerta", "la inversión se cancela el día del taller": the price words of `text.PRICE_WORDS`, which the rule checks'
+price line shares) or an amount ("Cover: 15k se cancela en la entrada", "$50.000", "20 mil", "50%": the dot of
+"$50.000" ends no sentence), or when or how it's paid after it ("en efectivo", "por Nequi", "el día del taller", "antes
+del taller", "el mismo día", "en dos cuotas"); never "se cancela por
 lluvia" nor "el día de hoy" (the bug-squash pass of 8 Oct 2026: a reminder's "Inversión: $50.000. Se cancela el día del
 taller" still took its event down). Nor a sentence that only says it might be off, or that it isn't: a condition ("si no
 se completa el cupo, el taller se aplaza", "en caso de lluvia se aplaza", "si el evento es cancelado se devuelve el
