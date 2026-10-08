@@ -213,6 +213,7 @@ def collect(
         for record in processed.values()
     )
     overdue = overdue_by_account(followed, states, posts, now)
+    sweep_gap = 24 / max(1, len(config.SWEEP_TIMES))  # hours between sweeps, on average
 
     events = storage.load_events() if config.EVENTS_FILE.exists() else None
     # Upcoming until its last day: an event over several days is on the site while it goes on.
@@ -252,7 +253,7 @@ def collect(
             ],
             # Past their turn (as the sweep counts turns) by more than a sweep's gap: a sweep didn't reach them (its
             # share, Instagram's limit). One never read isn't late but new (infinitely overdue).
-            "waiting": [account for account in followed if 12 < overdue[account] < float("inf")],
+            "waiting": [account for account in followed if sweep_gap < overdue[account] < float("inf")],
         },
         "posts": {
             "recorded": len(processed),
