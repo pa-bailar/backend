@@ -56,12 +56,42 @@ class InstagramError(RuntimeError):
         self.code = code
 
 
+# What Meta's usage headers measure, each as a share (0-100) of what the app may use: calls, CPU time, total time.
+USAGE_MEASURES = ("call_count", "total_cputime", "total_time")
+
+
+def usage_measures(app_header: str | None, business_header: str | None) -> dict[str, int]:
+    """Each measure's highest share used, in percent, of what Meta reports; empty for no header or an odd one:
+    - X-App-Usage: {"call_count": 28, "total_time": 25, "total_cputime": 25} (older apps);
+    - X-Business-Use-Case-Usage, what Instagram sends now: {"<id>": [{"type": "instagram", "call_count": 1,
+      "total_cputime": 1, "total_time": 1, "estimated_time_to_regain_access": 0}]}."""
+    readings: list[dict[str, Any]] = []
+    try:
+        if app_header:
+            readings.append(json.loads(app_header))
+        if business_header:
+            readings += [entry for entries in json.loads(business_header).values() for entry in entries]
+        detail: dict[str, int] = {}
+        for reading in readings:
+            for key in USAGE_MEASURES:
+                if key in reading:
+                    detail[key] = max(detail.get(key, 0), int(reading[key]))
+    except (ValueError, TypeError, AttributeError, KeyError):
+        return {}
+    return detail
+
+
 class InstagramClient:
     def __init__(self, access_token: str, ig_user_id: str):
         self._access_token = access_token
         self._ig_user_id = ig_user_id
-        # Share of the app's Graph API quota already used (0-100), from Meta's usage headers (_read_usage).
+        # Share of the app's Graph API quota already used (0-100), from Meta's usage headers (_read_usage): the
+        # highest of its measures, and each measure ("call_count", "total_cputime", "total_time").
         self.app_usage_percent = 0
+        self.usage_detail: dict[str, int] = {}
+        # The highest reading so far (a run's peak), and its measures: which one Meta's limit binds on.
+        self.peak_usage_percent = 0
+        self.peak_usage_detail: dict[str, int] = {}
 
     def _get(self, fields: str) -> dict[str, Any]:
         try:
@@ -94,25 +124,15 @@ class InstagramClient:
         return answer
 
     def _read_usage(self, app_header: str | None, business_header: str | None) -> None:
-        """The highest share used, in percent, of what Meta reports:
-          - X-App-Usage: {"call_count": 28, "total_time": 25, "total_cputime": 25} (older apps);
-          - X-Business-Use-Case-Usage, what Instagram sends now: {"<id>": [{"type": "instagram", "call_count": 1,
-            "total_cputime": 1, "total_time": 1, "estimated_time_to_regain_access": 0}]}.
-        No header (or an odd one) keeps the last value: it never stops the sweep."""
-        percents: list[int] = []
-        try:
-            if app_header:
-                percents += [int(value) for value in json.loads(app_header).values()]
-            if business_header:
-                for entries in json.loads(business_header).values():
-                    for entry in entries:
-                        percents += [
-                            int(entry[key]) for key in ("call_count", "total_cputime", "total_time") if key in entry
-                        ]
-        except (ValueError, TypeError, AttributeError, KeyError):
+        """The highest share used, in percent, of what Meta reports (usage_measures), and the run's peak so far. No
+        header (or an odd one) keeps the last value: it never stops the sweep."""
+        detail = usage_measures(app_header, business_header)
+        if not detail:
             return
-        if percents:
-            self.app_usage_percent = max(percents)
+        self.usage_detail = detail
+        self.app_usage_percent = max(detail.values())
+        if self.app_usage_percent >= self.peak_usage_percent:
+            self.peak_usage_percent, self.peak_usage_detail = self.app_usage_percent, detail
 
     def check_token(self) -> str:
         """Cheap call that fails fast if the token is invalid. Returns our own username."""

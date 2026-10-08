@@ -73,7 +73,8 @@ class RunRecord(BaseModel):
     external_outcomes: dict[str, dict[str, int]] = {}
     external_quarantined: list[str] = []
     external_problems: dict[str, str] = {}
-    instagram_usage: int | None = None  # share of Instagram's quota used when the run ended
+    instagram_usage: int | None = None  # the highest share of Instagram's quota used during the run
+    instagram_usage_detail: dict[str, int] = {}  # its measures: call_count, total_cputime, total_time
     warnings: list[str] = []  # keys of the warnings found (Finding.key)
 
 
@@ -111,6 +112,7 @@ def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) 
         external_quarantined=stats.external.quarantined,
         external_problems=stats.external.problems,
         instagram_usage=stats.instagram_usage,
+        instagram_usage_detail=stats.instagram_usage_detail,
     )
 
 

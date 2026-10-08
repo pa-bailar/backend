@@ -580,6 +580,14 @@ def test_the_sweep_stops_before_instagrams_limit():
     assert stats.rate_limited and stats.accounts == 0
 
 
+def test_a_run_records_its_peak_on_instagram_and_which_measure_it_was():
+    instagram = FakeInstagram({"academia": []})
+    instagram.peak_usage_percent = 88
+    instagram.peak_usage_detail = {"call_count": 30, "total_cputime": 88, "total_time": 70}
+    stats = run(instagram, FakeExtractor({}))
+    assert stats.instagram_usage == 88 and stats.instagram_usage_detail["total_cputime"] == 88
+
+
 # ---------- whose turn it is: each account about once a day ----------
 
 
