@@ -1066,6 +1066,8 @@ def test_an_event_in_another_city_isnt_published_and_an_unknown_city_is_flagged(
         "¡Este sábado! Taller de bachata\nSi no se completa el cupo mínimo, el taller se aplaza",
         "¡Nos vemos el sábado en el parque!\nEn caso de lluvia el evento se aplaza",
         "¡Sigue en pie! El social NO se cancela por la lluvia ☔",
+        # A price right after "se cancela" (the code-quality pass of 8 Oct 2026).
+        "¡Este sábado! Recuerda que se cancelan 20 mil al ingresar",
     ],
 )
 def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_caption):
@@ -1119,6 +1121,12 @@ def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_c
         "Hemos decidido aplazar el evento",
         "Nos vemos obligados a posponer la fiesta",
         "Por motivos de fuerza mayor el social no se llevará a cabo",
+        # A price's word in its next clause, a date after it; and a question right after it, with no period between
+        # (the code-quality pass of 8 Oct 2026: the question took the sentence that said it along).
+        "Se cancela el social de hoy, la entrada se devuelve por Nequi",
+        "Se cancela el 15 de octubre por lluvia",
+        "Evento cancelado ¿Quieres tu reembolso? Escríbenos",
+        "SE CANCELA EL SOCIAL ¿Dudas? Escríbenos",
     ],
 )
 def test_a_caption_saying_the_event_is_off(caption):
@@ -1156,6 +1164,12 @@ def test_a_caption_saying_the_event_is_off(caption):
         "Mensualidad $150.000 se cancela los primeros 5 días del mes",
         "Valor del taller: $45.000\n*Se cancela al momento de la inscripción",
         "Separa tu cupo con $20.000 y el saldo se cancela por adelantado",
+        # A price right after it, past an article at most (the code-quality pass of 8 Oct 2026).
+        "Recuerda que se cancelan 20 mil al ingresar",
+        "Se cancela el valor de la entrada al llegar",
+        "Nos vemos hoy: se cancela 15k en la puerta",
+        "Se cancela el 50% para reservar",
+        "Para separar tu cupo se cancela a $20.000",
         # A condition, a refund rule, a denial or a question: none says it's off (the same pass).
         "Si no se completa el cupo mínimo, el taller se aplaza",
         "El taller se aplaza si no se completa el cupo",
@@ -1196,6 +1210,8 @@ CANCELLED = PostAnalysis(is_event_post=False, reason="El evento fue cancelado", 
         "SE SUSPENDE EL SOCIAL DE HOY POR LLUVIA ☔",
         "Tuvimos que cancelar el social de este sábado 😔",
         "Lamentablemente el social se canceló",
+        # A question right after it, with no period between (the code-quality pass of 8 Oct 2026).
+        "Evento cancelado ¿Quieres tu reembolso? Escríbenos",
     ],
 )
 def test_a_cancelled_flyer_takes_its_event_off_even_when_a_reminder_also_announced_it(caption):

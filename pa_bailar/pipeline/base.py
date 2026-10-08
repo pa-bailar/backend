@@ -86,9 +86,10 @@ _CANCELLED = re.compile(
 
 # In Colombia "cancelar" is also "to pay": "se cancela" is paid after a price in its sentence ("la entrada se cancela
 # en la puerta", "Cover: 15k se cancela en la entrada"; a price's word not past a colon: "Entrada: se cancela el social"
-# says it's off), before when or how it's paid ("se cancela en efectivo", "Inversión: $50.000. Se cancela el día del
-# taller"), or already ("ya se canceló"); never "se cancela por lluvia" nor "el día de hoy". Read line by line: a price
-# on one line says nothing about the next.
+# says it's off), before a price ("se cancelan 20 mil al ingresar", "se cancela el valor de la entrada"), before when or
+# how it's paid ("se cancela en efectivo", "Inversión: $50.000. Se cancela el día del taller"), or already ("ya se
+# canceló"); never "se cancela por lluvia" nor "el día de hoy". Read line by line: a price on one line says nothing
+# about the next.
 #
 # A price's word: text.PRICE_WORDS (shared with the rule checks' price line), and how a payment is named.
 _PRICE_WORD = (
@@ -112,9 +113,14 @@ _WHEN_OR_HOW_PAID = (
     r"|antes del?\b|el mismo dia\b|el dia del?\b(?! (?:hoy|manana)\b)|directamente\b|por adelantado\b"
     r"|con anticipacion\b|por (?:nequi|daviplata|transferencia|pse|tarjeta|bancolombia)\b)"
 )
+# A price right after it, past an article at most: "se cancelan 20 mil", "se cancela a $20.000", "se cancela el 50%",
+# "se cancela el valor de la entrada" (the code-quality pass of 8 Oct 2026: each took a reminder's event down); not "se
+# cancela el social" nor "el 15 de octubre".
+_THEN_A_PRICE = rf"(?: (?:el|la|los|las|un|una|a|al|solo|solamente|unicamente))* (?:{_PRICE_WORD}|{_AMOUNT})"
 _PAID = re.compile(
     rf"(?:{_PRICE_WORD}|{_AMOUNT}){_IN_ITS_SENTENCE}\b{_SE_CANCELA}\b"
     r"|\bya se cancel(?:o|aron)\b"
+    rf"|\b{_SE_CANCELA}{_THEN_A_PRICE}"
     rf"|\b{_SE_CANCELA} {_WHEN_OR_HOW_PAID}"
 )
 
@@ -131,7 +137,10 @@ _DENIED = re.compile(rf"\b(?:no|ni) {_OFF_VERB}(?: ni {_OFF_VERB})*")
 # down for good (the bug-squash pass of 8 Oct 2026). A condition after the word governs it within its clause only: "se
 # cancela por lluvia, si ya pagaste te devolvemos el dinero" says it's off.
 _CONDITION = re.compile(r"\bsi\b(?!,| bien\b)|\ben caso de\b")
-_SENTENCE_END = re.compile(r"(?<=[!?])|(?<=\.)(?!\d)")  # not the dot of "$50.000"
+# A sentence ends after "!", "?" or a dot (not the dot of "$50.000"), and before a question's "¿": a question ignored
+# took the sentence before it along ("Evento cancelado ¿Quieres tu reembolso? Escríbenos": the code-quality pass of 8
+# Oct 2026).
+_SENTENCE_END = re.compile(r"(?<=[!?])|(?<=\.)(?!\d)|(?=¿)")
 _CLAUSE_END = re.compile(r"[,;]")
 
 
