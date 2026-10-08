@@ -170,7 +170,7 @@ export default {
 
     // Enter on "Ver N más" with the panel open: the panel on the first new event, the focus there
     await ctx.goto("/");
-    if (!(await page.locator(`${VIEW} .period-more`).count())) return ctx.skip("Enter on Ver N más", "no period with more events today");
+    if (!(await page.locator(`${VIEW} .period-more`).count())) return ctx.skip("Enter and Space on Ver N más", "no period with more events today");
     await ctx.key("ArrowDown");
     await ctx.settle();
     await page.evaluate((VIEW) => document.querySelector(`${VIEW} .period-more`).focus(), VIEW);

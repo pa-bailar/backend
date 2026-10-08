@@ -19,10 +19,11 @@ export default {
   devices: ["phone", "iphone"],
   async run(ctx) {
     const { page, check } = ctx;
-    if (!ctx.touch) throw new Skip("a finger's taps");
+    if (!ctx.touch) throw new Skip("a finger's taps are a phone's");
+    await ctx.goto("/");
+    if (!(await ctx.cards().count())) throw new Skip("no events on the list");
 
     // "Ver N más" or a folded period's "Ver los N eventos", double-tapped: the period opens, no event's details
-    await ctx.goto("/");
     const more = page.locator(`${VIEW} [data-show-period]`).first();
     if (await more.count()) {
       const period = await more.getAttribute("data-show-period");
