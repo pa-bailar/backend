@@ -134,6 +134,29 @@ function instagramCard(instagram, quota) {
   return `<section class="card"><h2>Instagram</h2>${token}${usage}</section>`;
 }
 
+// The audited fields, as the owner reads them (status.py _FIELD_NAMES).
+const FIELD_NAMES = {
+  date: "la fecha",
+  end_date: "el último día",
+  start_time: "la hora",
+  title: "el título",
+  venue: "el lugar",
+  event_type: "el tipo",
+  styles: "los ritmos",
+};
+
+/** What Flash changed in lighter models' readings, summed over the recorded runs (status.py lighter_reads_line). */
+function lighterReads(changes) {
+  if (!changes?.compared) return "";
+  const parts = Object.entries(FIELD_NAMES)
+    .filter(([key]) => changes[key])
+    .map(([key, name]) => `${name} en ${changes[key]}`);
+  if (changes.dropped) parts.push(`no mantuvo ${changes.dropped}`);
+  const plural = changes.compared === 1 ? "evento" : "eventos";
+  const found = parts.length ? `: ${parts.join(", ")}` : ": no cambió nada";
+  return `<p class="small">Flash releyó ${escapeHtml(changes.compared)} ${plural} que solo había leído un modelo más liviano${escapeHtml(found)}.</p>`;
+}
+
 function accountsCard(status) {
   const { accounts, posts, events, discovery } = status;
   const facts = [
@@ -155,7 +178,7 @@ function accountsCard(status) {
     : "";
   return `<section class="card"><h2>Cuentas y eventos</h2>
     <div class="facts">${facts.map(([number, label]) => `<div class="fact"><b>${escapeHtml(number)}</b>${escapeHtml(label)}</div>`).join("")}</div>
-    ${firstSweep}${late}</section>`;
+    ${lighterReads(status.lighter_reads)}${firstSweep}${late}</section>`;
 }
 
 // ---------- the tools: requests to the admin inbox (issues the admin workflow answers) ----------

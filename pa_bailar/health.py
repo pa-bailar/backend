@@ -79,6 +79,7 @@ class RunRecord(BaseModel):
     external_problems: dict[str, str] = {}
     instagram_usage: int | None = None  # the highest share of Instagram's quota used during the run
     instagram_usage_detail: dict[str, int] = {}  # its measures: call_count, total_cputime, total_time
+    upgrade_changes: dict[str, int] = {}  # what Flash changed in lighter readings (RunStats.upgrade_changes)
     warnings: list[str] = []  # keys of the warnings found (Finding.key)
 
 
@@ -117,6 +118,7 @@ def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) 
         external_problems=stats.external.problems,
         instagram_usage=stats.instagram_usage,
         instagram_usage_detail=stats.instagram_usage_detail,
+        upgrade_changes=dict(stats.upgrade_changes),
     )
 
 

@@ -21,7 +21,7 @@ from ..gemini import (
 )
 from ..instagram import InstagramError, Post, is_rate_limited, published_at, slide_count
 from ..models import AccountState, ProcessedPost, StoredEvent
-from ..text import parse_hhmm
+from ..text import fold, parse_hhmm
 from . import common
 from .common import RETRYABLE_ERRORS, RunStats, caption_hash, clip_for, flyer_slide
 from .hiding import Hiding
@@ -29,6 +29,23 @@ from .manual_post import ManualPosts
 from .story_admin import StoryAdmin
 
 log = logging.getLogger(__name__)
+
+# What an upgrade compares between a lighter model's reading of an event and Flash's (Sweep._audit_upgrade).
+AUDITED_FIELDS = ("date", "end_date", "start_time", "title", "venue", "event_type", "styles")
+
+
+def _reading(event: StoredEvent) -> dict[str, object]:
+    """An event's audited fields, as compared: titles and venues folded (accents and case aren't a misreading)."""
+    return {
+        "date": event.date,
+        "end_date": event.end_date,
+        "start_time": event.start_time,
+        "title": fold(event.title),
+        "venue": fold(event.venue or ""),
+        "event_type": event.event_type,
+        "styles": sorted(event.styles),
+    }
+
 
 # How the style filter's reason ends (accounts.txt `solo:`): a post recorded with it is filtered again, with the day's
 # words, whenever it comes back in the window (_filtered_before).
@@ -198,6 +215,34 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         except Exception:
             log.exception("   unexpected error with %s, continuing", what)
             self.stats.count(account, "errors")
+
+    def _lighter_readings(self, post_id: str) -> dict[str, dict[str, object]]:
+        """The events this post announced that only lighter models read, as read: what Flash's reading is compared
+        with. An event another post had Flash read already isn't: Flash's reading may not replace it there."""
+        return {
+            event.id: _reading(event)
+            for event in self.events
+            if any(media.post_id == post_id for media in event.media) and self._only_lighter_reads(event)
+        }
+
+    def _audit_upgrade(self, before: dict[str, dict[str, object]]) -> None:
+        """What Flash changed in a lighter model's reading of these events, counted per field in the run's record
+        (upgrade_changes): how the backup reads hold up on new posts, not only on the test set (the owner, 7 Oct
+        2026: is it more robust now?). An event Flash's reading didn't keep counts as "dropped"."""
+        if not before:
+            return
+        after = {event.id: _reading(event) for event in self.events if event.id in before}
+        found = {"compared": len(before), "dropped": len(before) - len(after)}
+        changed: set[str] = set()
+        for event_id, fields in after.items():
+            for name in AUDITED_FIELDS:
+                if fields[name] != before[event_id][name]:
+                    found[name] = found.get(name, 0) + 1
+                    changed.add(name)
+        changes = self.stats.upgrade_changes
+        for key, count in found.items():
+            changes[key] = changes.get(key, 0) + count
+        log.info("     Flash's reading: %s", "changed " + ", ".join(sorted(changed)) if changed else "the same")
 
     def _record_instagram_usage(self) -> None:
         """The run's highest reading of Instagram's quota, and which of Meta's measures it was (calls, CPU time, total
@@ -528,5 +573,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         except RETRYABLE_ERRORS as error:
             log.info("     upgrade postponed: %s", error)
             return
+        before = self._lighter_readings(post["id"])
         if self._store_analysis(account, post, images, analysis, model, provisional=False, count_as_new=False):
             self.stats.upgraded += 1
+            self._audit_upgrade(before)
