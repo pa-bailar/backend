@@ -930,15 +930,43 @@ def test_an_event_in_another_city_isnt_published_and_an_unknown_city_is_flagged(
 
 
 @pytest.mark.parametrize(
+    "reminder_caption",
+    [
+        "¡Este sábado nos vemos! Recuerda: no habrá venta de boletas en taquilla, compra la tuya en línea 🎟️",
+        "Últimos cupos 🔥 Política de cancelación: no hay devoluciones",
+        "¡Este sábado! Si no alcanzas, abrimos nueva fecha en noviembre",
+    ],
+)
+def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_caption):
+    """The bug hunt of 7 Oct 2026: a reminder read by a lighter model merges into the flyer's event; Flash's upgrade
+    finds no event in it, and words in its caption read as a cancellation took the event off the site for good."""
+    flyer, reminder = post("flyer", days_ago=3), post("reminder", "VIDEO", days_ago=1)
+    flyer["caption"] = "Social de salsa este sábado desde las 9 pm 💃"
+    reminder["caption"] = reminder_caption
+    analyses = {
+        "flyer": event_post("flyer", title="Social", start_time="21:00"),
+        "reminder": event_post("reminder", title="Social", same_as=event_id("Social"), start_time="21:00"),
+    }
+    run(FakeInstagram({"academia": [flyer], "otra": []}), FakeExtractor(analyses))  # the flyer, read by Flash
+    run(FakeInstagram({"academia": [flyer, reminder], "otra": []}), FakeExtractor(analyses, flash_available=False))
+    assert storage.load_processed_posts()["reminder"].provisional
+    flash = {"reminder": PostAnalysis(is_event_post=False, reason="Video recordatorio, sin evento nuevo", events=[])}
+    run(FakeInstagram({"academia": [flyer, reminder], "otra": []}), FakeExtractor(flash))  # Flash's upgrade
+    assert [[media["post_id"] for media in event["media"]] for event in read(config.EVENTS_FILE)] == [["flyer"]]
+
+
+@pytest.mark.parametrize(
     "caption",
     [
         "CANCELADO",
         "Se cancela el social de hoy",
-        "Se canceló el social de hoy por lluvia",
+        "El social de este sábado se cancela por lluvia 😔",  # not "por" a payment (the bug hunt of 7 Oct 2026)
+        "Entrada: se cancela el social por lluvia",
+        "Se cancelan las clases de esta semana",
         "Evento reprogramado para el 20",
-        "Lo postergamos: nueva fecha pronto",
-        "No habrá clase este jueves",
-        "Cancelación del taller",
+        "Lo postergamos para noviembre",
+        "El social se aplazó",
+        "El taller no se realizará",
     ],
 )
 def test_a_caption_saying_the_event_is_off(caption):
@@ -954,9 +982,14 @@ def test_a_caption_saying_the_event_is_off(caption):
         "El valor se cancela en efectivo al ingresar",
         "La inscripción se cancela antes del taller",
         "Cover: $20.000, se cancela por Nequi",
+        # Words that aren't about the event being off (the bug hunt of 7 Oct 2026: they took events down for good).
+        "Recuerda: no habrá venta de boletas en taquilla",
+        "Política de cancelación: no hay devoluciones",
+        "Si no alcanzas, abrimos nueva fecha en noviembre",
+        "Ya se canceló tu inscripción: ¡nos vemos!",
     ],
 )
-def test_se_cancela_meaning_it_is_paid_doesnt_cancel(caption):
+def test_se_cancela_meaning_it_is_paid_or_other_words_dont_cancel(caption):
     """In Colombia "cancelar" is also "to pay" (the audit of 7 Oct 2026)."""
     from pa_bailar.pipeline.base import _says_cancelled
 

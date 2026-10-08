@@ -136,8 +136,10 @@ def quota_line(quota: dict[str, Any], now: datetime) -> str:
     )
     text = f"Cuota de Instagram en el último barrido ({moment_label(quota['finished_at'], now)}): {quota['usage']}%"
     text += f" ({measures})." if measures else "."
-    if quota["stopped"]:
+    if quota["stopped"] and quota["usage"] >= quota["stop_at"]:
         text += " Se detuvo ahí: las cuentas que faltaron van primero en el siguiente."
+    elif quota["stopped"]:  # Meta's own rate-limit error, below our limit
+        text += " Meta lo frenó antes, con su propio límite: las cuentas que faltaron van primero en el siguiente."
     else:
         text += f" El barrido se detiene en {quota['stop_at']}%."
     return text

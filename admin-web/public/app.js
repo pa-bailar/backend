@@ -124,9 +124,12 @@ function instagramCard(instagram, quota) {
       .map(([key, value]) => `${MEASURES[key] ?? key} ${value}%`)
       .join(", ");
     const mark = quota.usage >= quota.stop_at ? `<span class="warn">⚠️</span> ` : "";
-    const after = quota.stopped
-      ? " Se detuvo ahí: las cuentas que faltaron van primero en el siguiente."
-      : ` El barrido se detiene en ${quota.stop_at}%.`;
+    // Stopped below our limit: Meta's own rate-limit error (status.py quota_line).
+    const after = !quota.stopped
+      ? ` El barrido se detiene en ${quota.stop_at}%.`
+      : quota.usage >= quota.stop_at
+        ? " Se detuvo ahí: las cuentas que faltaron van primero en el siguiente."
+        : " Meta lo frenó antes, con su propio límite: las cuentas que faltaron van primero en el siguiente.";
     usage = `<p>${mark}Cuota de Instagram en el último barrido (${escapeHtml(when(quota.finished_at))}): ${escapeHtml(quota.usage)}%${
       measures ? ` (${escapeHtml(measures)})` : ""
     }.${after}</p>`;

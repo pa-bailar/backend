@@ -104,6 +104,15 @@ def test_the_text_says_it_in_spanish():
     assert "1 en su primer barrido (más profundo): @nueva" in text
 
 
+def test_a_sweep_meta_stopped_below_our_limit_doesnt_say_it_stopped_there():
+    """The bug hunt of 7 Oct 2026: Meta's rate-limit error stops a sweep too, at any reading."""
+    quota = {"usage": 45, "detail": {"call_count": 45}, "stopped": True, "finished_at": NOW.isoformat(), "stop_at": 90}
+    text = status.quota_line(quota, NOW)
+    assert "45% (llamadas 45%). Meta lo frenó antes, con su propio límite" in text
+    assert "Se detuvo ahí" not in text
+    assert "Se detuvo ahí" in status.quota_line({**quota, "usage": 91}, NOW)
+
+
 def test_what_flash_changed_in_lighter_reads_is_summed_and_said():
     runs = [
         {"finished_at": "2026-10-02T09:12:00-05:00", "upgrade_changes": {"compared": 5, "dropped": 0, "start_time": 1}},
