@@ -28,6 +28,8 @@ export default {
             const s = document.getElementById("install-sheet");
             return s.scrollHeight <= s.clientHeight + 1;
           })(),
+          // the list's clips wait while the sheet's plays (iPhone closes a page short of video memory)
+          othersPlaying: [...document.querySelectorAll("video")].filter((v) => v.id !== "install-clip" && !v.paused).length,
           // each tap inside the sheet's content box ("Agregar a Inicio" ran into the padding at 320 px, 8 Oct 2026)
           tapsInside: (() => {
             const s = document.getElementById("install-sheet");
@@ -50,6 +52,7 @@ export default {
     check("the arrow at the bottom right (⋯)", s.pointer === "bottom-right", s);
     check("everything fits without scrolling the sheet", s.fits, s);
     check("the taps stay inside the sheet, each on one line", s.tapsInside, s);
+    check("no other video plays under the sheet", s.othersPlaying === 0, s);
     await ctx.shot("sheet");
 
     await ctx.tap('#install-sheet [data-close-sheet]');
