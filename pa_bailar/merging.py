@@ -146,15 +146,16 @@ def _same_title(a: EventDetails, b: EventDetails) -> bool:
 # "Fiesta" is its social. A concert too: a band's night ("Fiesta con Zafra" and "Zafra en concierto" at a bar the same
 # day, "Fiesta de aniversario" and "Concierto de aniversario": the bug hunt of 7 Oct 2026).
 _KIND_WORDS = {
-    "night": ("social", "sociales", "fiesta", "fiestas", "party", "rumba", "rumbas", "milonga", "milongas"),
-    "concert": ("concierto", "conciertos", "recital"),
+    "night": (
+        *("social", "sociales", "fiesta", "fiestas", "party", "rumba", "rumbas", "milonga", "milongas"),
+        *("concierto", "conciertos", "recital"),
+    ),
     "class": ("taller", "talleres", "clase", "clases", "workshop", "workshops", "masterclass", "master", "curso"),
     "practice": ("practica", "practicas"),
     "competition": ("competencia", "competition", "campeonato", "concurso", "batalla", "battle", "torneo"),
     "show": ("show", "gala", "muestra"),
 }
-# A concert is a night out: the same kind as a social or a party.
-_KIND_OF_WORD = {word: "night" if kind == "concert" else kind for kind, words in _KIND_WORDS.items() for word in words}
+_KIND_OF_WORD = {word: kind for kind, words in _KIND_WORDS.items() for word in words}
 
 
 def _kinds(title: str) -> set[str]:
