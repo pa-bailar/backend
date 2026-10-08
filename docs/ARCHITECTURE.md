@@ -756,6 +756,11 @@ flowchart TD
   budget still follow, then upgrades while Flash answers. On 7 Oct 2026 at 21:09 the 34 queued upgrades were given
   up at once, with 21 of the run's 30 minutes left; 40 of the 85 upcoming events had only a lighter reading. Out of
   quota, it doesn't wait; busy again after the wait, the rest waits for a later run.
+- **Each upgrade measures the lighter read** (`Sweep._audit_upgrade`): an event only lighter models had read is
+  compared before and after Flash's reading, field by field (date, end date, start time, title and venue folded,
+  type, styles), and the run records what changed (`upgrade_changes` in `run_history.json`). `admin status` and
+  the admin page sum it over the recorded runs ("Flash releyó 12 eventos que solo había leído un modelo más
+  liviano: la hora en 1, los ritmos en 3…"): how the backup reads hold up on new posts, beyond the test set.
 
 ### 7.3 The last resort: Groq and OpenRouter
 
