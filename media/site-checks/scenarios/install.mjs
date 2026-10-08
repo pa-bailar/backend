@@ -2,12 +2,15 @@
 // only when the sheet opens and stops when it closes, never stored by the service worker, only its poster with reduced
 // motion; the buttons to tap and no written steps; the arrow at the bottom right (⋯); the footer's "Cómo instalar…"
 // link, always there, even after "Ya la agregué". The "iphone" device is Safari 26 (its user agent says Version/26.x).
+import { Skip } from "../lib.mjs";
+
 export default {
   name: "install",
   summary: "iPhone: the steps' clip loads only with the sheet and stops with it (poster only with reduced motion), the taps, the arrow, the footer's link after Ya la agregué",
   devices: ["iphone"],
   async run(ctx) {
     const { page, check } = ctx;
+    if (!/iPhone/.test(await page.evaluate(() => navigator.userAgent))) throw new Skip("iPhone's steps: the device isn't one");
     const clips = [];
     page.on("request", (r) => {
       if (/\/install\/.+\.mp4/.test(r.url())) clips.push(r.url());
