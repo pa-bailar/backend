@@ -42,7 +42,7 @@ from ..normalize import (
     styles_in_text,
 )
 from ..prompts import account_rules
-from ..text import fold
+from ..text import PRICE_WORDS, fold
 from . import common
 from .common import Extractor, PostSource, RunStats, caption_hash, has_ended, media_for, unpublishable
 
@@ -57,17 +57,19 @@ def _with_doubt(event: ExtractedEvent, doubt: str) -> ExtractedEvent:
 # of the event: a reminder Flash finds no event in takes the account's events it announced off the site, so a word
 # that also means something else loses an event for good. Not "no habrá" ("no habrá venta de boletas en taquilla"),
 # "cancelación" ("política de cancelación"), "nueva fecha" ("abrimos nueva fecha en noviembre") nor "se canceló" ("ya
-# se canceló", paid): the audit of 7 Oct 2026, after #151 added them.
+# se canceló", paid): the audit of 7 Oct 2026, after #151 added them. The participles ("cancelado", "aplazadas"…) are
+# also how a doubt says an event may be off (health.PLACE_DOUBT): one list for both.
+CANCELLED_PARTICIPLES = r"cancelad[oa]s?|aplazad[oa]s?|pospuest[oa]s?|suspendid[oa]s?|reprogramad[oa]s?|postergad[oa]s?"
 _CANCELLED = re.compile(
-    r"\b(cancelad[oa]s?|cancelamos|se cancelan?|cancell?ed|aplazad[oa]s?|aplazamos|se aplaza|se aplazo"
-    r"|pospuest[oa]s?|posponemos|se pospone|se pospuso|postponed|suspendid[oa]s?|suspendemos|reprogramad[oa]s?"
-    r"|reprogramamos|se reprograma|postergad[oa]s?|postergamos|se posterga|no se realizara)\b"
+    rf"\b({CANCELLED_PARTICIPLES}|cancelamos|se cancelan?|cancell?ed|aplazamos|se aplaza|se aplazo|posponemos"
+    r"|se pospone|se pospuso|postponed|suspendemos|reprogramamos|se reprograma|postergamos|se posterga"
+    r"|no se realizara)\b"
 )
 # In Colombia "cancelar" is also "to pay": a price's word before it ("la entrada se cancela en la puerta"; not after a
 # colon: "Entrada: se cancela el social"), or how it's paid after it ("se cancela en efectivo", "por Nequi"); never
 # "se cancela por lluvia". Read line by line: a price on one line says nothing about the next.
 _PAID = re.compile(
-    r"\b(?:entrada|cover|valor|precio|costo|inscripcion|boleta|cuota|pago|mensualidad|reserva)s?\b[^.!?:]{0,30}?"
+    rf"\b(?:{'|'.join(PRICE_WORDS)}|entrada|inscripcion|matricula|cuota|pago|mensualidad|reserva)s?\b[^.!?:]{{0,30}}?"
     r"\bse cancelan?\b"
     r"|\bse cancelan? (?:en (?:efectivo|la puerta|puerta|taquilla|la entrada|caja|el lugar)"
     r"|con (?:tarjeta|efectivo|nequi|daviplata|transferencia)|al (?:ingresar|llegar|entrar|ingreso)"

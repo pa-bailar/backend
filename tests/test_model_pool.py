@@ -337,6 +337,21 @@ def test_only_paused_models_left_is_a_busy_failure_not_a_quota_wait(pool):
     assert fake.calls == []
 
 
+def test_flash_is_ready_when_its_soonest_pause_ends_and_never_without_budget(pool):
+    """What the upgrades wait for (Sweep._wait_for_flash): among the models with budget left, the soonest end of a
+    busy pause (a model not paused is ready now); with no budget left, nothing to wait for (None)."""
+    flash = ("gemini-3.8-flash", "gemini-3.5-flash")
+    now = gemini.time.monotonic()
+    pool._paused_until.update({"gemini-3.8-flash": now + 60, "gemini-3.5-flash": now + 30})
+    assert pool.ready_at(flash) == now + 30
+    pool._used["gemini-3.5-flash"] = gemini.daily_budget("gemini-3.5-flash")  # out of quota: its pause doesn't count
+    assert pool.ready_at(flash) == now + 60
+    del pool._paused_until["gemini-3.8-flash"]  # the pause is over
+    assert pool.ready_at(flash) <= gemini.time.monotonic()
+    pool._used["gemini-3.8-flash"] = gemini.daily_budget("gemini-3.8-flash")
+    assert pool.ready_at(flash) is None
+
+
 def test_a_one_off_busy_answer_doesnt_pause_the_model(pool):
     busy = errors.ServerError(503, {"error": {"code": 503, "message": "busy", "status": "UNAVAILABLE"}})
     with_models(pool, {"gemini-3.8-flash": [busy, ANSWER]})

@@ -135,7 +135,7 @@ Every service the system depends on. All of them are on free plans.
 | **What it needs** | A **Meta app** (Meta for Developers, with the Instagram Graph API product). A **Facebook Page** linked to **our own Instagram professional account**, whose id is `IG_USER_ID`. An access token for that Page (`META_ACCESS_TOKEN`) |
 | **Token** | A **Page access token that doesn't expire**. It's made from a short-lived Graph API Explorer token by `python -m pa_bailar refresh-token` (section 12.2). It stops working only if it's revoked (for example, a Facebook password change) |
 | **What it can see** | Only **business and creator** accounts. Personal or private accounts answer with error 100/110 ("not visible") |
-| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used in the `X-Business-Use-Case-Usage` header (`X-App-Usage` on older apps); `InstagramClient.app_usage_percent` reads both and keeps the highest, with each of Meta's measures (calls, CPU time, total time: `usage_detail`) and the run's peak (`peak_usage_percent`). The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
+| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used in the `X-Business-Use-Case-Usage` header (`X-App-Usage` on older apps); `InstagramClient.app_usage_percent` reads both and keeps the highest, and the run's peak with each of Meta's measures (calls, CPU time, total time: `peak_usage_percent`, `peak_usage_detail`). The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
 | **Cost per sweep** | **1 call per account read**, no matter how many posts are asked for (10 regular, 30 for a new account). Each account is read about once a day, so a sweep reads about half of them (section 5). Images are then downloaded from Instagram's CDN, which isn't an API call |
 | **Cost** | Free |
 | **If it fails** | Token invalid: the run stops at the start and fails, and healthchecks.io emails you. Rate limit: the run stops calling Instagram, and the remaining accounts wait for the next run (a notice, and a warning after 3 runs in a row). One account fails: logged, and the others continue |
@@ -490,7 +490,7 @@ flowchart TD
   - `solo:<styles>` (salsa, bachata, merengue, kizomba, tango): a general bar, club or cultural space that also
     holds salsa or bachata nights. A post whose caption names none of those styles (`FOCUS_KEYWORDS`:
     `normalize.TEXT_STYLE_WORDS` plus looser parts of words such as "salser", "salsotec", "sonero", "orquesta",
-    "bachat", "kiz", accents and case ignored) is recorded as no event for free, before any Gemini request ("no
+    "bachat", "tanguer", accents and case ignored) is recorded as no event for free, before any Gemini request ("no
     menciona salsa ni bachata"); the others get `prompts.FOCUS_RULES` too. A caption edited later is checked
     again, and so is a post the filter left out whenever it comes back in the window (`Sweep._filtered_before`,
     free): words added to the lists reach the posts dropped before them (the audit of 7 Oct 2026 found "SALSOTECA",
@@ -544,8 +544,9 @@ reprogramado, postergado, "no se realizará"…: `pipeline/base.py`, `_says_canc
 event: a reminder that Flash re-reads as no event would take the event it joined off the site for good, so "no habrá"
 ("no habrá venta de boletas en taquilla"), "cancelación" ("política de cancelación"), "nueva fecha" and "se canceló"
 ("ya se canceló", paid) don't count (the bug hunt of 7 Oct 2026). Nor does "se cancela" meaning "is paid", read line by
-line: a price's word before it ("la entrada se cancela en la puerta"), or how it's paid after it ("en efectivo", "por
-Nequi"), never "se cancela por lluvia".
+line: a price's word before it ("la entrada se cancela en la puerta", "la inversión se cancela el día del taller": the
+price words of `text.PRICE_WORDS`, which the rule checks' price line shares), or how it's paid after it ("en efectivo",
+"por Nequi"), never "se cancela por lluvia".
 its own account's events leave the site even when other posts announce them too; another account's event
 stays, with low confidence and a doubt ("@cuenta lo anunció cancelado o aplazado: revisar") that lists it for
 review (section 11.1) (`Sweep._take_down_cancelled`).
@@ -1458,6 +1459,6 @@ flowchart LR
 | `links.py` | Instagram post links (code, account), profile links, and links to the site's events |
 | `patterns.py` | The shapes the admin tools accept (an @account, a post link, a story's, an event's and an upload's id), mirrored by `admin-web/public/patterns.js` and checked against the same examples (`tests/fixtures/patterns.json`) |
 | `discovery.py` | Parsing the Instagram export, dance hints, the classification prompt, the report, quiet windows around sweeps |
-| `text.py`, `logs.py` | Accent-insensitive comparison, dates and times for the admin answers ("13–15 nov 2026", "sábado 10 oct 2026", "4 sesiones: 8, 22, 29 nov y 6 dic", "9:00 p. m."), reading "HH:MM", Spanish weekdays, logging setup |
+| `text.py`, `logs.py` | Accent-insensitive comparison and a text's folded words, the shared word tables (weekdays, months, price words), dates and times for the admin answers ("13–15 nov 2026", "sábado 10 oct 2026", "4 sesiones: 8, 22, 29 nov y 6 dic", "9:00 p. m."), reading "HH:MM", Spanish weekdays, logging setup |
 | `commands/*.py` | The commands (sweep, discover, refresh-token, admin): arguments, wiring, exit codes, GitHub outputs |
 | `commands/answers.py` | The admin tools' answers to `sweep --post`, `--story`, `--hide-story` and `--hide-event`, in Spanish |

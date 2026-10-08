@@ -150,8 +150,8 @@ def main(argv: list[str] | None = None) -> None:
     bake_parser.add_argument(
         "--models",
         nargs="+",
-        default=list(bakeoff.DEFAULT_MODELS),
-        help='a Gemini model or "<provider>:<model>" (default: Flash-Lite and every model of the last resort)',
+        help='a Gemini model or "<provider>:<model>" (default: Flash-Lite and every model of the last resort; with '
+        "--gold, Flash-Lite)",
     )
     bake_parser.add_argument("--repick", action="store_true", help="choose the posts again")
     bake_parser.add_argument("--score", action="store_true", help="only score the cached answers: no requests")
@@ -188,10 +188,11 @@ def main(argv: list[str] | None = None) -> None:
         if args.discover:
             bakeoff.discover()
         elif args.gold:
-            gold_models = args.models if args.models != list(bakeoff.DEFAULT_MODELS) else list(bakeoff.GOLD_MODELS)
-            bakeoff.run_gold(gold_models, score_only=args.score, with_ocr=args.ocr, thinking=args.thinking)
+            models = args.models or list(bakeoff.GOLD_MODELS)
+            bakeoff.run_gold(models, score_only=args.score, with_ocr=args.ocr, thinking=args.thinking)
         else:
-            bakeoff.run(args.posts, args.models, repick=args.repick, score_only=args.score)
+            models = args.models or list(bakeoff.DEFAULT_MODELS)
+            bakeoff.run(args.posts, models, repick=args.repick, score_only=args.score)
     elif args.tool == "inbox":
         # A comment, or a new issue's title and body (the admin workflow passes them as environment variables).
         issue = f"{os.environ.get('ISSUE_TITLE', '')}\n\n{os.environ.get('ISSUE_BODY', '')}"

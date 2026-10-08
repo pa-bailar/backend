@@ -6,11 +6,20 @@ dates and times in it (checks.py). Optional: without `rapidocr` installed, there
 
 from collections.abc import Sequence
 from functools import cache
-from typing import Any
+from typing import Any, NamedTuple
 
 from . import config
 
 Box = Sequence[Sequence[float]]  # four corners (x, y), as RapidOCR gives them
+
+
+class _Piece(NamedTuple):
+    """A piece of text found on the image, placed by its box (pixels): sorted top to bottom, then left to right."""
+
+    middle: float  # vertical
+    left: float
+    height: float
+    text: str
 
 
 def available() -> bool:
@@ -40,18 +49,18 @@ def group_rows(found: list[tuple[Box, str, float]]) -> list[str]:
     """Pieces of text into rows: pieces whose vertical middles are within OCR_ROW_OVERLAP of a line's height of the
     row's first piece share its row. Pieces read with a confidence under OCR_MIN_SCORE are left out (stray marks on
     a photo read as letters)."""
-    pieces = []
+    pieces: list[_Piece] = []
     for box, text, score in found:
         if score < config.OCR_MIN_SCORE or not text.strip():
             continue
         ys = [point[1] for point in box]
-        pieces.append((sum(ys) / len(ys), min(point[0] for point in box), max(ys) - min(ys), text.strip()))
+        pieces.append(_Piece(sum(ys) / len(ys), min(point[0] for point in box), max(ys) - min(ys), text.strip()))
     pieces.sort()
-    grouped: list[list[tuple[float, float, float, str]]] = []
+    grouped: list[list[_Piece]] = []
     for piece in pieces:
         first = grouped[-1][0] if grouped else None
-        if first and abs(piece[0] - first[0]) < config.OCR_ROW_OVERLAP * max(piece[2], first[2]):
+        if first and abs(piece.middle - first.middle) < config.OCR_ROW_OVERLAP * max(piece.height, first.height):
             grouped[-1].append(piece)
         else:
             grouped.append([piece])
-    return [" | ".join(text for _, _, _, text in sorted(row, key=lambda piece: piece[1])) for row in grouped]
+    return [" | ".join(piece.text for piece in sorted(row, key=lambda piece: piece.left)) for row in grouped]

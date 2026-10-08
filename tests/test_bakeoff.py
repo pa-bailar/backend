@@ -188,6 +188,19 @@ def test_running_a_model_caches_answers_and_retries_only_failures(tmp_path):
     assert bakeoff.load_cache(bakeoff.cache_file("m", tmp_path))["a"]["answer"]["reason"] == "ok"
 
 
+def test_a_post_is_read_with_its_accounts_rules_as_in_the_sweep(tmp_path):
+    """Until #149 the bake-off asked without the account's rules (accounts.txt): a bar's post was read more loosely
+    than the sweep reads it, so the test set measured another reading than the site's."""
+    (tmp_path / "flyers").mkdir()
+    (tmp_path / "flyers" / "a-0.webp").write_bytes(make_image())
+    item = {"post_id": "a", "account": "salsabar", "caption": "Aniversario", "flyer": "flyers/a-0.webp", "events": []}
+    item |= {"published": "2026-10-01T12:00:00+0000", "processed_at": "2026-10-01T10:00:00-05:00"}
+    assert "BAR or club" not in bakeoff.contents_for(item, tmp_path)[-1]  # no accounts.txt: no rules
+    config.ACCOUNTS_FILE.write_text("academia\nsalsabar  bar\n", encoding="utf-8")
+    assert "BAR or club" in bakeoff.contents_for(item, tmp_path)[-1]
+    assert "BAR or club" not in bakeoff.contents_for({**item, "account": "academia"}, tmp_path)[-1]
+
+
 def test_an_answer_to_another_prompt_is_asked_again(tmp_path, monkeypatch):
     """Review of 7 Oct 2026: answers were cached by post alone, so after the prompt changed (#149) the test set kept
     scoring the old prompt's answers as if they were the new one's."""
@@ -210,6 +223,26 @@ def test_an_answer_to_another_prompt_is_asked_again(tmp_path, monkeypatch):
     assert stale == 0
     monkeypatch.setattr(bakeoff, "EXTRACTION_PROMPT", bakeoff.EXTRACTION_PROMPT + "\nYet another.")
     assert bakeoff.stale_answers([item], bakeoff.load_cache(bakeoff.cache_file("m", tmp_path)), tmp_path) == 1
+
+
+def test_a_flyer_gone_since_keeps_its_answer_and_counts_as_current(tmp_path):
+    """The code-quality pass of 8 Oct 2026: once a picked post's flyer was gone (its event archived), `--score`
+    crashed counting stale answers, and the next run replaced the cached answer with the error."""
+    (tmp_path / "flyers").mkdir()
+    flyer = tmp_path / "flyers" / "a-0.webp"
+    flyer.write_bytes(make_image())
+    item = {"post_id": "a", "account": "academia", "caption": "Social", "flyer": "flyers/a-0.webp", "events": []}
+    item |= {"published": "2026-10-01T12:00:00+0000", "processed_at": "2026-10-01T10:00:00-05:00"}
+
+    def answering(model, contents):
+        return PostAnalysis(is_event_post=True, reason="ok", events=[])
+
+    bakeoff.run_model("m", [item], answering, tmp_path, cache_dir=tmp_path, say=lambda text: None)
+    flyer.unlink()
+    cache = bakeoff.load_cache(bakeoff.cache_file("m", tmp_path))
+    assert bakeoff.stale_answers([item], cache, tmp_path) == 0
+    bakeoff.run_model("m", [item], answering, tmp_path, cache_dir=tmp_path, say=lambda text: None)
+    assert bakeoff.load_cache(bakeoff.cache_file("m", tmp_path))["a"]["answer"]["reason"] == "ok"
 
 
 def test_groq_answers_every_post_waiting_for_its_tokens_and_a_skip_isnt_cached(tmp_path, monkeypatch):
@@ -345,6 +378,22 @@ def test_the_test_sets_options_need_the_test_set(capsys):
         with pytest.raises(SystemExit):
             admin.main(["bakeoff", *options])
         assert "go with --gold" in capsys.readouterr().err
+
+
+def test_each_mode_runs_its_default_models_or_the_ones_named(monkeypatch):
+    """Flash-Lite alone on the test set, Flash-Lite and the last resort's models against Flash; `--models` names the
+    ones run, even the other mode's defaults (they were taken for "no --models" and swapped)."""
+    from pa_bailar.commands import admin
+
+    monkeypatch.setattr(admin.sweep_state, "refresh", lambda: True)
+    ran: list[tuple[str, list[str]]] = []
+    monkeypatch.setattr(bakeoff, "run_gold", lambda models, **options: ran.append(("gold", models)))
+    monkeypatch.setattr(bakeoff, "run", lambda posts, models, **options: ran.append(("flash", models)))
+    defaults = list(bakeoff.DEFAULT_MODELS)
+    admin.main(["bakeoff", "--gold", "--score"])
+    admin.main(["bakeoff", "--score"])
+    admin.main(["bakeoff", "--gold", "--score", "--models", *defaults])
+    assert ran == [("gold", list(bakeoff.GOLD_MODELS)), ("flash", defaults), ("gold", defaults)]
 
 
 def test_the_ocr_variant_says_what_it_needs_without_the_engine(monkeypatch):

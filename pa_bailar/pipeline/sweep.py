@@ -124,7 +124,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         if len(due) > share:
             log.info("%s accounts' turn: %s this run, the rest first next run", len(due), share)
         for account in due[:share]:
-            usage = getattr(self.instagram, "app_usage_percent", 0)
+            usage = self.instagram.app_usage_percent
             if usage >= config.INSTAGRAM_USAGE_STOP:
                 log.warning("Instagram quota %s%% used: the remaining accounts wait for the next run", usage)
                 self.rate_limited = True
@@ -247,8 +247,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
     def _record_instagram_usage(self) -> None:
         """The run's highest reading of Instagram's quota, and which of Meta's measures it was (calls, CPU time, total
         time): the sweep stops at config.INSTAGRAM_USAGE_STOP, and what drives a run there decides what to change."""
-        peak = getattr(self.instagram, "peak_usage_percent", 0) or getattr(self.instagram, "app_usage_percent", 0)
-        detail: dict[str, int] = getattr(self.instagram, "peak_usage_detail", {})
+        peak, detail = self.instagram.peak_usage_percent, self.instagram.peak_usage_detail
         self.stats.instagram_usage, self.stats.instagram_usage_detail = peak, dict(detail)
         if detail:
             measures = ", ".join(f"{key} {value}%" for key, value in sorted(detail.items()))

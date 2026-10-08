@@ -22,7 +22,13 @@ RETRYABLE_ERRORS = (ExtractionError, genai_errors.APIError, OSError, httpx.Trans
 
 
 class PostSource(Protocol):
-    """Where posts come from: InstagramClient (tests pass a fake)."""
+    """Where posts come from: InstagramClient (tests pass a fake). Its readings of Instagram's quota (0-100, Meta's
+    usage headers: InstagramClient._read_usage): the share used now, where the sweep stops, and the run's peak with
+    each of Meta's measures, which the run records."""
+
+    app_usage_percent: int
+    peak_usage_percent: int
+    peak_usage_detail: dict[str, int]
 
     def check_token(self) -> str: ...
     def fetch_recent_posts(self, account: str, limit: int = ...) -> list[Post]: ...

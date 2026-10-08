@@ -14,15 +14,15 @@ from contextlib import suppress
 from datetime import date, timedelta
 from typing import Any
 
-from .text import fold
+from .text import MONTHS, PRICE_WORDS, WEEKDAYS, fold
 
 _MONTHS = {
     **{"enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6, "julio": 7, "agosto": 8},
     **{"septiembre": 9, "setiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12},
-    **{"ene": 1, "feb": 2, "mar": 3, "abr": 4, "may": 5, "jun": 6, "jul": 7, "ago": 8, "sept": 9, "sep": 9},
-    **{"set": 9, "oct": 10, "nov": 11, "dic": 12},
+    **{short: number for number, short in enumerate(MONTHS, start=1)},  # "ene" … "dic" (text.MONTHS)
+    **{"sept": 9, "set": 9},
 }
-_WEEKDAYS = {"lunes": 0, "martes": 1, "miercoles": 2, "jueves": 3, "viernes": 4, "sabado": 5, "domingo": 6}
+_WEEKDAYS = {fold(name): number for number, name in enumerate(WEEKDAYS)}  # "lunes": 0 … "domingo": 6 (text.WEEKDAYS)
 # The short forms flyers print ("SÁB 10 OCT", "VIE 9"), read only with a day after them; not "mar" (marzo).
 _WEEKDAYS_SHORT = {"lun": 0, "mie": 2, "mier": 2, "jue": 3, "vie": 4, "sab": 5, "dom": 6}
 _MONTH = "(?:" + "|".join(sorted(_MONTHS, key=len, reverse=True)) + ")"
@@ -103,8 +103,7 @@ _WORDS = re.compile(r"[a-z]+")
 # A price or a sale: "$70.000", "30k", "20 mil", "cover", "etapa", "boletería".
 _PRICE = re.compile(
     r"\$|\b\d+[ \t]*(?:k|mil)\b|\b\d{1,3}\.\d{3}\b"
-    r"|\b(?:cover|etapa|boleta|boletas|boleteria|taquilla|preventa|inversion|valor|precio|costo|tiquete|tiquetes"
-    r"|aporte|bono|consumible|donacion|cop)\b"
+    rf"|\b(?:{'|'.join(PRICE_WORDS)}|etapa|boleteria|taquilla|preventa|consumible|cop)\b"
 )
 
 DATES_WITHOUT_EVENT = "fechas sin evento"  # a coming date in the text, no event read (or only "recurring" ones)

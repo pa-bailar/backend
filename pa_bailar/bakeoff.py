@@ -1,4 +1,5 @@
-"""`admin bakeoff`: how well other models read posts, measured against what Gemini Flash read (docs/ADMIN.md).
+"""`admin bakeoff`: how well models read posts, measured against what Gemini Flash read, or against posts checked by
+hand (`--gold`, the test set) (docs/ADMIN.md).
 
 For re-checking the last resort's models (config.EXTERNAL_PROVIDERS) from time to time, or a new model before it's
 listed: free models change, get slower or disappear without notice. On your computer only; it spends real requests
@@ -9,11 +10,15 @@ a Gemini model ("gemini-3.5-flash-lite") or "<provider>:<model>" ("groq:qwen/qwe
      flyer) from the site's events (config.DATA_DIR) and the sweeps' records (the sweep-state branch). A third of
      them, when there are, are workshop series or events over several days, the hardest dates.
   2. run: each model reads each post's caption and its stored flyer (one image) with the sweep's own extraction
-     prompt. Answers are cached in state/bakeoff/ (never committed), so a rerun spends nothing on posts already
-     answered and retries only the ones that failed. Groq waits for its tokens per minute between posts (about one
-     a minute); a request its limits keep from being sent isn't cached as an error.
+     prompt and the account's rules (accounts.txt). Answers are cached in state/bakeoff/ (never committed) with a
+     fingerprint of the request, so a rerun spends nothing on what was answered with the same request and asks
+     again what failed or what a changed prompt asks differently. Groq waits for its tokens per minute between
+     posts (about one a minute); a request its limits keep from being sent isn't cached as an error.
   3. score: each model's events against Flash's, field by field. Agreement with Flash measures similarity, not
      truth, and every model misses what's only on slides it wasn't given (a test limit).
+  4. the test set (`--gold`): the same run on posts checked by hand (gold/, its README), scored against the truth,
+     so Flash is measured too and a change to the reading (the prompt, `--ocr`, `--thinking`) is judged before it
+     ships.
 `--discover` lists OpenRouter's free models now, with image input, and whether they take structured output: the
 candidates for the list (no key, no quota).
 """
@@ -39,7 +44,7 @@ from .external import ExternalTier, SkippedError, recorded_name
 from .gemini import ExtractionError, ModelPool, QuotaExhaustedError
 from .models import PostAnalysis
 from .prompts import EXTRACTION_PROMPT, OCR_NOTE, account_rules
-from .text import fold
+from .text import fold, folded_words
 
 CACHE_DIR = config.STATE_DIR / "bakeoff"
 DEFAULT_POSTS = 15
@@ -177,13 +182,21 @@ def request_fingerprint(contents: list[types.PartUnionDict]) -> str:
 
 
 def stale_answers(picks: list[Item], cache: dict[str, Any], data_dir: Path, with_ocr: bool = False) -> int:
-    """How many cached answers were read with another request than the one asked today."""
-    return sum(
-        1
-        for item in picks
-        if "answer" in cache.get(item["post_id"], {})
-        and cache[item["post_id"]].get("request") != request_fingerprint(contents_for(item, data_dir, with_ocr))
-    )
+    """How many cached answers were read with another request than the one asked today. A post whose flyer can't be
+    read anymore (removed with its event) can't be asked again, so its answer isn't stale: it crashed `--score` (the
+    code-quality pass of 8 Oct 2026)."""
+
+    def stale(item: Item) -> bool:
+        cached = cache.get(item["post_id"], {})
+        if "answer" not in cached:
+            return False
+        try:
+            contents = contents_for(item, data_dir, with_ocr)
+        except OSError:
+            return False
+        return bool(cached.get("request") != request_fingerprint(contents))
+
+    return sum(1 for item in picks if stale(item))
 
 
 def run_model(
@@ -203,8 +216,9 @@ def run_model(
     for item in picks:
         try:
             contents = contents_for(item, data_dir, with_ocr)
-        except OSError as error:  # the flyer can't be read: nothing to ask
-            cache[item["post_id"]] = {"error": str(error)[:300]}
+        except OSError as error:  # the flyer can't be read: nothing to ask; an answer cached before stays
+            if "answer" not in cache.get(item["post_id"], {}):
+                cache[item["post_id"]] = {"error": str(error)[:300]}
             say(f"  {item['post_id']}: error: {str(error)[:120]}")
             continue
         request = request_fingerprint(contents)
@@ -236,7 +250,7 @@ def run_model(
 
 def _words(text: str | None) -> set[str]:
     """Letters and digits only ("Tributo." is "tributo"), words of three or more."""
-    return {word for word in "".join(c if c.isalnum() else " " for c in fold(text)).split() if len(word) > 2}
+    return {word for word in folded_words(text) if len(word) > 2}
 
 
 def compare(reference: dict[str, Any], answer: dict[str, Any]) -> dict[str, bool]:

@@ -42,6 +42,10 @@ class FakeInstagram:
     def __init__(self, posts_by_account: dict[str, list[dict] | Exception]):
         self.posts_by_account = posts_by_account
         self.limits: dict[str, list[int]] = {}
+        # Instagram's quota as the real client reads it (PostSource): now, and the run's peak with its measures.
+        self.app_usage_percent = 0
+        self.peak_usage_percent = 0
+        self.peak_usage_detail: dict[str, int] = {}
 
     def check_token(self) -> str:
         return "me"
@@ -935,6 +939,7 @@ def test_an_event_in_another_city_isnt_published_and_an_unknown_city_is_flagged(
         "¡Este sábado nos vemos! Recuerda: no habrá venta de boletas en taquilla, compra la tuya en línea 🎟️",
         "Últimos cupos 🔥 Política de cancelación: no hay devoluciones",
         "¡Este sábado! Si no alcanzas, abrimos nueva fecha en noviembre",
+        "¡Este sábado! Recuerda: la inversión se cancela el día del taller",
     ],
 )
 def test_flash_finding_no_event_in_a_reminder_leaves_the_flyers_event(reminder_caption):
@@ -987,6 +992,10 @@ def test_a_caption_saying_the_event_is_off(caption):
         "Política de cancelación: no hay devoluciones",
         "Si no alcanzas, abrimos nueva fecha en noviembre",
         "Ya se canceló tu inscripción: ¡nos vemos!",
+        # Price words the rule checks already knew (the code-quality pass of 8 Oct 2026: one table, text.PRICE_WORDS).
+        "La inversión se cancela el día del taller",
+        "El aporte se cancela al inicio de la clase",
+        "La matrícula se cancela antes de empezar",
     ],
 )
 def test_se_cancela_meaning_it_is_paid_or_other_words_dont_cancel(caption):

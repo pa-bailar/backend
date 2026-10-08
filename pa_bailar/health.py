@@ -28,7 +28,8 @@ from .merging import title_words
 from .models import StoredEvent
 from .normalize import MULTI_DOUBT
 from .pipeline import RunStats
-from .text import event_dates_label, fold
+from .pipeline.base import CANCELLED_PARTICIPLES
+from .text import WEEKDAYS, event_dates_label, fold
 
 HISTORY_RUNS = 120  # runs kept: two a day, two months
 REPEATED_RUNS = 3  # a problem in this many runs in a row is a pattern, not bad luck
@@ -38,11 +39,10 @@ QUIET_MIN_POSTS = 10  # ...analyzing at least this many posts without finding a 
 INACTIVE_DAYS = 45  # an account without posts for this long may be abandoned
 # Doubts about the date (folded text): the costliest mistake. Its words, a month or a year guessed ("mes deducido"),
 # and a weekday that doesn't fit ("dice sábado, pero el 12 es domingo": stories.py).
-DATE_DOUBT = re.compile(r"\b(fechas?|dias?|mes|ano|lunes|martes|miercoles|jueves|viernes|sabado|domingo)\b")
-# Doubts about whether it takes place at all, or in Bogotá (folded text): as costly (normalize.CITY_DOUBT).
-PLACE_DOUBT = re.compile(
-    r"\b(bogota|cancelad[oa]s?|aplazad[oa]s?|pospuest[oa]s?|suspendid[oa]s?|reprogramad[oa]s?|postergad[oa]s?)\b"
-)
+DATE_DOUBT = re.compile(r"\b(fechas?|dias?|mes|ano|" + "|".join(fold(day) for day in WEEKDAYS) + r")\b")
+# Doubts about whether it takes place at all ("cancelado", "aplazada"…: the caption rule's words, pipeline/base.py) or
+# in Bogotá (folded text): as costly (normalize.CITY_DOUBT).
+PLACE_DOUBT = re.compile(rf"\b(bogota|{CANCELLED_PARTICIPLES})\b")
 # Several events in one post read by a lighter model (normalize.MULTI_DOUBT): times and prices may be mixed up.
 MULTI_DOUBT_RULE = re.compile(re.escape(fold(MULTI_DOUBT)))
 # "@name" in an issue mentions (and notifies) the GitHub user of that name. Instagram handles, and titles or

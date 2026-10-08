@@ -10,7 +10,7 @@ from datetime import date
 from . import config
 from .models import EventDetails, EventMedia, ExtractedEvent, StoredEvent, series_problems
 from .normalize import GUESSED_STYLES_DOUBT
-from .text import fold
+from .text import fold, folded_words
 
 _DETAIL_FIELDS = list(EventDetails.model_fields)
 # Logistics a later post may correct (rescheduled, new prices): the newest post's value wins. Everything
@@ -146,21 +146,21 @@ def _same_title(a: EventDetails, b: EventDetails) -> bool:
 # "Fiesta" is its social. A concert too: a band's night ("Fiesta con Zafra" and "Zafra en concierto" at a bar the same
 # day, "Fiesta de aniversario" and "Concierto de aniversario": the bug hunt of 7 Oct 2026).
 _KIND_WORDS = {
-    "night": ("social", "sociales", "fiesta", "fiestas", "party", "rumba", "rumbas", "milonga", "milongas"),
-    "concert": ("concierto", "conciertos", "recital"),
+    "night": (
+        *("social", "sociales", "fiesta", "fiestas", "party", "rumba", "rumbas", "milonga", "milongas"),
+        *("concierto", "conciertos", "recital"),
+    ),
     "class": ("taller", "talleres", "clase", "clases", "workshop", "workshops", "masterclass", "master", "curso"),
     "practice": ("practica", "practicas"),
     "competition": ("competencia", "competition", "campeonato", "concurso", "batalla", "battle", "torneo"),
     "show": ("show", "gala", "muestra"),
 }
-# A concert is a night out: the same kind as a social or a party.
-_KIND_OF_WORD = {word: "night" if kind == "concert" else kind for kind, words in _KIND_WORDS.items() for word in words}
+_KIND_OF_WORD = {word: kind for kind, words in _KIND_WORDS.items() for word in words}
 
 
 def _kinds(title: str) -> set[str]:
     """The kinds of event a title names ("Clase y social con Juan": class and night)."""
-    words = "".join(char if char.isalnum() else " " for char in fold(title)).split()
-    return {_KIND_OF_WORD[word] for word in words if word in _KIND_OF_WORD}
+    return {_KIND_OF_WORD[word] for word in folded_words(title) if word in _KIND_OF_WORD}
 
 
 # Words every dance event's title shares: they don't tell two events apart.
@@ -193,7 +193,7 @@ def _key(text: str | None) -> str:
 def title_words(title: str, across_accounts: bool = False) -> set[str]:
     """A title's distinctive words: no common words, nothing with a digit (years, "100%", "5to"), and across
     accounts no kind of event either (`_EVENT_WORDS`)."""
-    words = "".join(char if char.isalnum() else " " for char in fold(title)).split()
+    words = folded_words(title)
     ignored = _COMMON_WORDS | _EVENT_WORDS if across_accounts else _COMMON_WORDS
     return {word for word in words if len(word) >= 3 and word not in ignored and not any(c.isdigit() for c in word)}
 
@@ -222,7 +222,7 @@ def _title_names(event: EventDetails, account: str) -> bool:
     words = title_words(event.title, across_accounts=True)
     if any(len(word) >= 5 and handle.startswith(_key(word)) for word in words):
         return True
-    every = "".join(char if char.isalnum() else " " for char in fold(event.title)).split()
+    every = folded_words(event.title)
     runs = {"".join(every[start:end]) for start in range(len(every)) for end in range(start + 2, start + 4)}
     return any(len(run) >= 8 and handle.startswith(run) for run in runs)
 

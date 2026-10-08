@@ -16,6 +16,21 @@ def fold(text: str | None) -> str:
     return " ".join("".join(char for char in decomposed if not unicodedata.combining(char)).split())
 
 
+# Words that name a price in captions (folded): the rule checks' price line (checks._PRICE) and "se cancela" meaning
+# "is paid" (pipeline/base._PAID) each add their own to these. One table (the owner's rule for word lists): the two had
+# drifted apart, and "la inversión se cancela el día del taller" read as a cancellation (the code-quality pass of 8
+# Oct 2026). "Inversión" and "aporte" are how many workshops say their price.
+PRICE_WORDS = (
+    *("cover", "valor", "precio", "costo", "boleta", "boletas", "tiquete", "tiquetes"),
+    *("inversion", "aporte", "bono", "donacion"),
+)
+
+
+def folded_words(text: str | None) -> list[str]:
+    """A text's words, folded, letters and digits only: 'Salsa-Caleña, 2026!' → ['salsa', 'calena', '2026']."""
+    return "".join(char if char.isalnum() else " " for char in fold(text)).split()
+
+
 def dates_label(start: str | None, end: str | None = None) -> str:
     """An event's day for the admin tools' answers: its date as stored ('2026-11-13'), or the range of an event
     over several days: '13–15 nov 2026', '31 oct – 2 nov 2026', '30 dic 2026 – 1 ene 2027'."""
