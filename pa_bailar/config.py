@@ -122,6 +122,9 @@ DISCOVERY_LEAVES_FOR_SWEEPS = 250
 PACING_MARGIN_SECONDS = 0.5  # added to 60 / requests_per_minute between calls to the same model
 GEMINI_TIMEOUT_SECONDS = 120  # one request; a stuck call fails instead of hanging the run
 QUOTA_TIMEZONE = "America/Los_Angeles"  # Gemini daily quotas reset at midnight Pacific time
+# A sweep whose upgrades find Flash only paused as busy waits for the pause to end, once (Sweep._wait_for_flash), if
+# this much of its time budget (MAX_RUN_MINUTES) is still left after the wait: for the upgrades themselves.
+FLASH_WAIT_MARGIN_SECONDS = 4 * 60
 
 # ---------- External providers (the last resort) ----------
 # Models outside Gemini, on OpenAI-compatible chat APIs (external.py), used only for the extraction, when Flash and

@@ -100,6 +100,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
 
         self._share_flash()
         self._to_upgrade: list[tuple[str, Post, datetime]] = []
+        self._waited_for_flash = False  # once a run (_wait_for_flash)
         due = self._due_accounts()
         self.stats.due_accounts = due
         share = self._share_per_run()
@@ -159,12 +160,32 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             record = self.processed.get(post["id"])
             if not record or not record.provisional:
                 continue  # read again meanwhile (e.g. its caption was edited)
-            if not self.extractor.can_upgrade() or self._out_of_time():
+            if (not self.extractor.can_upgrade() and not self._wait_for_flash()) or self._out_of_time():
                 log.info("   no Flash (or time) left: %d wait for a later run", len(queue) - done)
                 break
             log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
             with self._contained(account, f"the upgrade of {post['permalink']}"):
                 self._upgrade_post(account, post, published)
+
+    def _wait_for_flash(self) -> bool:
+        """Flash only paused as busy, with budget left: wait for its pause to end, once a run, if the run's time
+        budget allows it, and say whether it's ready then. Flash answered 503 at sweep times for hours on 6–7 Oct, so
+        its upgrades found every model paused and none was done (34 waited on 7 Oct at 21:09, 9 of the run's 30
+        minutes used); a pause of BUSY_PAUSE_SECONDS later it may answer. Out of quota, nothing to wait for."""
+        if self._waited_for_flash:
+            return False
+        ready = self.extractor.flash_ready_at()
+        if ready is None:
+            return False
+        wait = ready - time.monotonic()
+        left = self.started + config.MAX_RUN_MINUTES * 60 - time.monotonic() - config.FLASH_WAIT_MARGIN_SECONDS
+        if wait > left:
+            return False
+        self._waited_for_flash = True
+        if wait > 0:
+            log.info("   Flash busy a moment ago: waiting %d s for it before the upgrades", wait)
+            time.sleep(wait)
+        return self.extractor.can_upgrade()
 
     @contextmanager
     def _contained(self, account: str, what: str) -> Iterator[None]:
