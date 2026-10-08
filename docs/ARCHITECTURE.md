@@ -135,7 +135,7 @@ Every service the system depends on. All of them are on free plans.
 | **What it needs** | A **Meta app** (Meta for Developers, with the Instagram Graph API product). A **Facebook Page** linked to **our own Instagram professional account**, whose id is `IG_USER_ID`. An access token for that Page (`META_ACCESS_TOKEN`) |
 | **Token** | A **Page access token that doesn't expire**. It's made from a short-lived Graph API Explorer token by `python -m pa_bailar refresh-token` (section 12.2). It stops working only if it's revoked (for example, a Facebook password change) |
 | **What it can see** | Only **business and creator** accounts. Personal or private accounts answer with error 100/110 ("not visible") |
-| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used in the `X-Business-Use-Case-Usage` header (`X-App-Usage` on older apps); `InstagramClient.app_usage_percent` reads both and keeps the highest. The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
+| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used in the `X-Business-Use-Case-Usage` header (`X-App-Usage` on older apps); `InstagramClient.app_usage_percent` reads both and keeps the highest, with each of Meta's measures (calls, CPU time, total time: `usage_detail`) and the run's peak (`peak_usage_percent`). The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
 | **Cost per sweep** | **1 call per account read**, no matter how many posts are asked for (10 regular, 30 for a new account). Each account is read about once a day, so a sweep reads about half of them (section 5). Images are then downloaded from Instagram's CDN, which isn't an API call |
 | **Cost** | Free |
 | **If it fails** | Token invalid: the run stops at the start and fails, and healthchecks.io emails you. Rate limit: the run stops calling Instagram, and the remaining accounts wait for the next run (a notice, and a warning after 3 runs in a row). One account fails: logged, and the others continue |
@@ -403,8 +403,11 @@ about **once a day**, half of them in each sweep, instead of every account twice
   short quota shortage delays a few accounts by one sweep, it can't snowball.
 - **Not over its turn:** an account whose posts still wait (Gemini's quota, time) stays due next sweep. An
   account that couldn't be read for another reason (not visible) waits for its next turn.
-- **Watching it:** each run records the share of Instagram's quota used (`instagram_usage`), and the dashboard
-  lists accounts waiting more than a sweep past their turn.
+- **Watching it:** each run records its highest reading of Instagram's quota and which of Meta's measures it was
+  (`instagram_usage`, `instagram_usage_detail`, also in the run's log), and the dashboard shows the last sweep's and
+  lists accounts waiting more than a sweep past their turn. Evening sweeps read more accounts than morning ones
+  (58–69 against 43 on 6–7 Oct, the share set by when each account was read before) and reached 90–93%, the
+  mornings 54–62%: the 90% stop moves the accounts it didn't reach to the morning sweep, which evens the two out.
 - **Everyone now:** `sweep --all` (the workflow's `all_accounts` input).
 
 ### 5.3 What a run decides is a failure
@@ -1231,8 +1234,9 @@ guide.
   words, since some commands spend Gemini or change `accounts.txt`. ADMIN.md, "From GitHub (the inbox)".
 - **`admin status`** (`pa_bailar/status.py`): the latest and next sweeps; Gemini usage per model against
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
-  otherwise); whether the Instagram token works and the share of Instagram's quota used (one call, `--no-instagram`
-  skips it); accounts still in their first sweep; provisional posts; upcoming events (until their last day);
+  otherwise); whether the Instagram token works (one call, `--no-instagram` skips it) and the last sweep's highest
+  reading of Instagram's quota with its measures (the token check's own reading is another counter: 1% at the end
+  of a sweep stopped at 90%); accounts still in their first sweep; provisional posts; upcoming events (until their last day);
   new workshop series to look at, with `/ocultar <id>` (section 9.1); discovery progress; the last resort's use
   today per provider (`external`), shown only when it was used.
   `--json` gives the same as data. On your computer it reads the sweeps' state from the `sweep-state`
