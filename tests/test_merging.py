@@ -427,11 +427,20 @@ def test_a_workshop_and_the_social_the_same_day_stay_two_events():
     """The audit of 7 Oct 2026: "Taller" and "Social" are common words, dropped before comparing titles, so a guest's
     workshop and the night's social merged when a post had no time. Different kinds of event now stay apart."""
     social = stored("social-juan", title="Social con Juan", start_time=None)
-    for title in ("Taller con Juan", "Clases con Juan", "Concierto con Juan", "Concurso con Juan", "Show con Juan"):
+    for title in ("Taller con Juan", "Clases con Juan", "Concurso con Juan", "Show con Juan"):
         assert not looks_like_same_event(social, "academia", extracted(title=title, start_time=None)), title
-    # One kind in common, or a party and a social (an academy's "Fiesta" is its social): still one event.
-    for title in ("Clase y social con Juan", "Fiesta con Juan", "Gran social con Juan"):
+    # One kind in common, or a party, a concert and a social (an academy's "Fiesta" is its social; a concert, a band's
+    # night): still one event.
+    for title in ("Clase y social con Juan", "Fiesta con Juan", "Gran social con Juan", "Concierto con Juan"):
         assert looks_like_same_event(social, "academia", extracted(title=title, start_time=None)), title
+
+
+def test_a_bands_concert_and_the_party_with_it_the_same_day_are_one_night():
+    """The bug hunt of 7 Oct 2026: #151's kinds split a bar's "Fiesta con Zafra" from "Zafra en concierto"."""
+    party = stored("fiesta-zafra", title="Fiesta con Zafra", start_time=None)
+    assert looks_like_same_event(party, "academia", extracted(title="Zafra en concierto", start_time=None))
+    party = stored("fiesta-aniversario", title="Fiesta de aniversario", start_time=None)
+    assert looks_like_same_event(party, "academia", extracted(title="Concierto de aniversario", start_time=None))
 
 
 def test_stored_duplicates_are_merged_into_the_fuller_one():
