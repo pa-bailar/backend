@@ -9,8 +9,11 @@
     that day and time, and their cover flyers in the media home's public/<video>/flyers/. An empty result writes
     nothing (the last snapshot stays) unless --allow-empty.
 
-The source is the published data on GitHub (what the site shows now). When it can't be reached, or with --checkout,
-it's the site checkout next to the backend (pa-bailar-web/data), and the tool says how old that checkout's data is.
+The source is the published data on GitHub (what the site shows now): events.json from the site's repository, the
+flyers from the images repository, pa-bailar/media (raw.githubusercontent.com). When it can't be reached, or with
+--checkout, it's the site checkout next to the backend (pa-bailar-web/data), and the tool says how old that
+checkout's data is; a flyer the checkout doesn't have (the site repository ignores them) comes from the images
+repository's local clone, pa-bailar-images, next to it.
 Both files are written whole or not at all: the flyers go to a fresh folder that replaces the old one, then
 events.json is replaced, so a failed run leaves the last snapshot and its flyers together.
 

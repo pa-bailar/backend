@@ -3,7 +3,7 @@
   .venv/Scripts/python media/tools/make.py <video> [stage ...] [--draft] [--force] [--dry-run] [--strict]
       Stages, in order: tts → timing → mix → render → sheet (default: all that apply to the video). A stage runs
       when its outputs are missing or older than its inputs:
-        tts     a voice line isn't in the cache (only those lines call Gemini)         .venv
+        tts     a voice line or the one take isn't cached (only those call Gemini)     .venv
         timing  timing.json was made from other lines (its voice_key), or no track    whisper venv
         mix     a soundtrack is older than the voice track or the bed, or video.json's .venv
                 music/mix settings changed (the mix.key mix.py leaves next to them)

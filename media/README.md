@@ -80,9 +80,11 @@ Each stage leaves a file the next stage reads. Never put the whole video in one 
    length, deliverables), `video.json` and a composition that already renders (on `VideoShell` and `EndCard`),
    registered in `src/Root.tsx`. Specs: 1080×1920, 30 fps, H.264 + AAC; text inside the safe zones (`SAFE`), nothing
    in a Story's sticker band (`STICKER_BAND`): a Story's `VideoShell` takes `story`, which fits the content under it.
-2. **Script → voice** (when it has one): the lines go in `video.json` → `tools/tts.py` (cached per line) → listen.
-   To choose a voice: `tts.py --audition "<line>" --voices A,B,C`.
-3. **Timing**: `tools/timing.py` joins the lines and times every word. The animation follows the voice.
+2. **Script → voice** (when it has one): the lines go in `video.json` → `tools/tts.py` (cached per line, or the whole
+   script in one take with `"one_take": true`, which sounds far less robotic: AUDIO.md) → listen. To choose a voice:
+   `tts.py --audition "<line>" --voices A,B,C`.
+3. **Timing**: `tools/timing.py` joins the lines (or cuts the one take and finds each line in it) and times every
+   word. The animation follows the voice.
 4. **Music** (optional; Stories often use Instagram's): `tools/music.py` generates candidates, then
    `tools/analyze.py` compares them, then set `bed` + `first_hit` → `tools/mix.py`.
 5. **Material**: real screens (`tools/capture.mjs`, or a scripted walk like the teaser's), real events and flyers
@@ -117,8 +119,8 @@ checklist repeats them.
   `preflight.py` warns past 3 min. The API takes 3 s–15 min.
 - **Captions for silent viewers**: Reels autoplay muted; the opt-in `captions` in `video.json` (below).
 - **Stories**: about 10–15 s per frame (creator guidance; a clip may run 60 s); one clear call to action; the link
-  sticker where the eye lands after the message and never under Instagram's own UI: ours is the band at the top
-  (`STICKER_BAND`) with "Link aquí arriba" and the drawn arrow right under it.
+  sticker where the eye lands after the message and never under Instagram's own UI: ours is the band under
+  Instagram's account row (`STICKER_BAND`, y 250–460) with "Link aquí arriba" and the drawn arrow right under it.
 - **Reels**: words inside the Reel safe zones (`REEL_SAFE`, `review.py reel`); the end card has a narrower layout for
   `cta="reel"` (v2.5) that keeps clear of the like, comment and share column.
 - **Cover**: 9:16, with what matters inside the centered 3:4 crop (1080×1440) the profile grid shows (`cover.py`).
@@ -141,9 +143,9 @@ in the media home unless they start with `projects/`.
 | `make.py <video> [stage …] [--draft --force --dry-run --strict]` | .venv | runs tts → timing → mix → render → sheet, only the stale ones and everything after a stage that ran, each with its Python; the sheet stage is done only when the review passed (`<render>-review.ok`) | what each stage writes |
 | `make.py doctor` | .venv | checks ffmpeg (and its libvmaf), Chrome, node and the packages, the three Pythons, the fonts, the key (set or not), each music bed, the media home | (prints) |
 | `new.py <video> [--title --duration --reel]` | .venv | a new video's folder: brief, `video.json`, a composition on the kit, its line in `src/Root.tsx` | `projects/<video>/`, `src/Root.tsx` |
-| `tts.py <video> [ids]` | .venv | Gemini TTS per line (voice, direction, `take` per line), retries timeouts and busy; stops at once on a refused key, skips a model on its daily quota | `cache/tts/<hash>.wav` |
+| `tts.py <video> [ids]` | .venv | Gemini TTS per line (voice, direction, `take` per line), or with `"one_take"` the whole script in one request (`"voice"."take"`; no ids then), retries timeouts and busy; stops at once on a refused key, skips a model on its daily quota | `cache/tts/<hash>.wav` |
 | `tts.py --audition "<text>" --voices …` | .venv | one sample per voice | `out/auditions/` |
-| `timing.py <video>` | whisper | trims and joins the lines (`lead`, `gap`, `max_pause`), Whisper word times, and a `voice_key` of what they were made from | `out/<video>/voice-track.wav`, `projects/<video>/data/timing.json` |
+| `timing.py <video>` | whisper | trims and joins the lines (`lead`, `gap`, `max_pause`), or cuts a one take to its words and finds each line in it by its first two words (her pauses kept); Whisper word times, and a `voice_key` of what they were made from | `out/<video>/voice-track.wav`, `projects/<video>/data/timing.json` |
 | `timing.py --transcribe <wav>` | whisper | what Whisper hears in a take (QA) | (prints) |
 | `music.py <video>` | ace | ACE-Step beds for every prompt × seed (cached), each with its provenance | `cache/music/<prompt>-s<seed>-<hash>.wav` and `.json` |
 | `analyze.py <wavs>` | whisper | bpm, beats, first hit, loudness, a spectrogram strip | `out/music/music-analysis.{png,json}` |
@@ -161,11 +163,12 @@ in the media home unless they start with `projects/`.
 | `review.py band <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | nothing but the background above y 462 (Instagram's top row, the sticker band + 2 px) on any frame; `--video` allows its `sticker_band.allow` spans; exit 1 when something enters | (prints) |
 | `review.py reel <mp4 or png …> [--video <name>] [--allow 4.2-4.3]` | .venv | the Reel's safe zones (108 top, 320 bottom, 60 left, 120 right): content in those margins is a warning per side, with the frames and how close to the edge it gets (images may run into them, words never); `--video` allows its `reel_safe.allow` spans | (prints) |
 | `publish.py <video> <deliverable> [--story \| --reel] [--caption-file --no-feed --thumb-offset --video-url --dry-run --confirm]` | .venv | **disabled** (below): posts a full render through Meta's Graph API: preflight `--api`, the quota, a container, the resumable upload, polling, `media_publish`, the permalink; once per render (its sha256), resumable after a crash, never twice. Without `--confirm` (or with `--dry-run`) it only prints the requests (token redacted); `--confirm` without `PA_BAILAR_PUBLISH_ENABLED=1` refuses. The render must pass the pre-flight either way | `publish_state.json` |
-| `clean.py [--yes]`, `clean.py --retire <video> [--yes]` | .venv | (skips what can't go to a Recycle Bin: a drive without one, an item too big for it) lists older versions, drafts, stills, sheets, comparisons, orphaned `-unversioned-` cuts, the mix's intermediate WAVs and scratch folders in the home's `out/`, the temporary flyer folders a stopped `events.py` left in `public/`, the voice takes and music in the home's `cache/` no `video.json` uses (this checkout's, every worktree's and every local branch's: the home is shared), the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, what a video uses, the archive and anything git tracks stay. `--retire <video>` lists a finished video whole (its `out/`, `public/` and `archive/` in the home, and the takes and music only it uses; the project stays in git). The `media-clean` skill runs it at the end of every video session | (the Recycle Bin) |
+| `clean.py [--yes]`, `clean.py --retire <video> [--yes]` | .venv | (skips what can't go to a Recycle Bin: a drive without one, an item too big for it) lists older versions, drafts, stills, sheets, comparisons, orphaned `-unversioned-` cuts, the mix's intermediate WAVs and scratch folders in the home's `out/`, the temporary flyer folders a stopped `events.py` left in `public/`, the voice takes and music in the home's `cache/` no `video.json` uses (this checkout's, every worktree's and every local branch's: the home is shared; none while one of them can't be read, with a warning naming it), the checkout's old copies the home already holds, and the teaser archive's leftovers; `--yes` moves them to the Recycle Bin. Latest versions, what a video uses, the archive and anything git tracks stay. `--retire <video>` lists a finished video whole (its `out/`, `public/` and `archive/` in the home, and the takes and music only it uses; the project stays in git). The `media-clean` skill runs it at the end of every video session | (the Recycle Bin) |
 | `npm run check` (in `media/`) | Node | `tsc`, every composition registers, one still per video | `out/check/` |
 | `npm test` (in `media/`) | Node | the weekend rule in JS against `tests/weekend-cases.json`, words and moments against `tests/timing-cases.json` (as the Python tests), the captions' pages and fades, the media home's paths | (prints) |
 
-The Python tests (`media/tests`, standard library only) run with the backend's: `.venv/Scripts/python -m pytest -q`.
+The Python tests (`media/tests`, standard library only, except `test_one_take.py`: numpy, skipped without it) run
+with the backend's: `.venv/Scripts/python -m pytest -q`.
 The `media` workflow (`.github/workflows/media-ci.yml`) runs `npm ci`, `tsc` and `npm test` on pull requests that change `media/`
 (not `site-checks/` nor Markdown).
 
@@ -293,6 +296,7 @@ and out over 3 frames per run of pages, keeping the first or last page on the ca
 |---|---|---|
 | [`teaser-v2`](projects/teaser-v2/) | The 21 s teaser of the site: voice, beat-cut scenes, a thumb driving the live site, three deliverables (Story ×2, Reel) | The worked example of everything. v2.3 (posted 4 Oct 2026, archived in the home) re-captured every screen with `capture.mjs`, rewritten for the site of 4 October (rhythm chips, pinned bar, details drawer), so it no longer matches the original project (`pa-bailar-teaser`) pixel for pixel. v2.4 (not posted) keeps the arrow and the opening title out of the sticker band; v2.5 (not posted) fits the Reel's end card inside the Reel safe zones (the Stories render as v2.4) |
 | [`este-finde`](projects/este-finde/) | A 12 s weekly Story of the coming weekend's events, from data only, no voice | `events.py este-finde --weekend`, then `make.py este-finde` (`este-finde-story`). Example, not yet reviewed by the owner |
+| [`puente`](projects/puente/) | A 23 s Story of the long weekend of 9–12 Oct 2026: the stripes as a bridge over the days, the six events the owner chose, then the rest | The first one-take voice (Despina) and the first licensed track (Pixabay); the sections follow her pauses (`beatAt`). Its README has the brief and each version; shelf life Sunday 11 Oct 2026 |
 
 ## Publishing (disabled)
 
@@ -344,4 +348,5 @@ without one (none of ours today).
 - Screens and events date a video: post it before its shelf life ends (`app.json`, `events.json` and `screens.json`'s
   clocks record it; `render.py` warns past it).
 - Gemini TTS times out at times: the tool retries, and a cached line never calls it again.
-- Don't regenerate what exists: change a line's `take` for a new reading; keep the cache (in the media home).
+- Don't regenerate what exists: change a line's `take` for a new reading (a one take: `"voice"."take"`); keep the
+  cache (in the media home).
