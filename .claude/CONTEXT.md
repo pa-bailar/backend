@@ -114,7 +114,11 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
   (a PR got the other repository's description). Name the target explicitly: `gh … -R pa-bailar/<repo>`,
   `git -C <path>`.
 - **Worktrees** for parallel agents. A site or media worktree has a `node_modules` junction: `cmd //c rmdir` it
-  BEFORE `git worktree remove`, or the real folder goes with it.
+  BEFORE `git worktree remove`, or the real folder goes with it. An agent working in a main checkout owns it until it
+  reports: no `git pull`, checkout or build there meanwhile (a pull nearly moved an agent's branch, 8 Oct 2026).
+- **The backend's CI has no numpy:** a media test that needs it (anything importing `timing.py` or `analyze.py`) goes in
+  `media/tests/test_one_take.py`-style files with `pytest.importorskip("numpy")`; pure logic belongs where no numpy is
+  imported (`common.py`), so it's tested in CI too.
 - **Browser checks:** first `pa-bailar/media/site-checks/` (its README): `run.mjs` runs the scenarios (`tour`,
   `arrows`, `walk`, `panel`, `stage`, `tab`, `places`, `taps`, `install`) on chrome or webkit, desktop, phone or iPhone (or any window: `--size 1100x800`), both themes, against the local
   preview or `--live`, printing only failures; `probe.mjs --do "tap:…" --do back …` prints the page's state after
