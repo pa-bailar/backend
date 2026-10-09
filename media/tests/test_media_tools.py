@@ -16,10 +16,12 @@ import make
 import mix
 import music
 import new
+import numpy as np
 import preflight
 import pytest
 import render
 import review
+import timing
 import tts
 
 CASES = json.loads((Path(__file__).parent / "weekend-cases.json").read_text(encoding="utf-8"))["cases"]
@@ -162,6 +164,107 @@ def test_a_failed_flyer_download_leaves_no_stray_folder(tmp_path, monkeypatch):
     with pytest.raises(RuntimeError):
         events.write_snapshot(V(), picked, {"from": "2026-10-09", "to": "2026-10-12"}, live=True)
     assert not list(V.public.glob(".flyers-*"))
+
+
+# The bug-squash pass of 8 Oct 2026 (the toolkit): what each guard keeps from coming back.
+
+
+def test_a_failed_flyer_swap_puts_the_previous_flyers_back(tmp_path, monkeypatch):
+    class V:
+        public = tmp_path / "public"
+        data = tmp_path / "data"
+
+    old = touch(V.public / "flyers" / "old.webp")
+    monkeypatch.setattr(events, "fetch", lambda url, live: b"new")
+    monkeypatch.setattr(events, "probe", lambda path: {"streams": [{"width": 3, "height": 4}]})
+    monkeypatch.setattr(events, "occurrence", lambda e, start, end: (start, None, None))
+    real = Path.rename
+
+    def busy(self, target):  # Windows: a handle open on the new folder (Studio, a browser)
+        if self.name.startswith(".flyers-") and not self.name.startswith(".flyers-old-"):
+            raise PermissionError("in use")
+        return real(self, target)
+
+    monkeypatch.setattr(Path, "rename", busy)
+    with pytest.raises(PermissionError):
+        events.write_snapshot(
+            V(), [{"media": [{"flyer": "flyers/1-0.webp"}]}], {"from": "2026-10-09", "to": "2026-10-12"}, True
+        )
+    assert old.exists()  # where events.json expects them
+    assert not list(V.public.glob(".flyers-*"))
+
+
+def test_the_cleaner_never_lists_the_flyers_a_failed_swap_parked(tmp_path, monkeypatch):
+    monkeypatch.setattr(clean, "HOME", tmp_path)
+    (tmp_path / "public" / "puente" / ".flyers-old-77").mkdir(parents=True)
+    assert clean.stray_public() == []
+
+
+def test_a_one_take_video_uses_its_take_not_its_lines(tmp_path, monkeypatch):
+    voice = {"name": "Despina", "one_take": True, "lines": [{"id": "a", "text": "Hola."}, {"id": "b", "text": "Chao."}]}
+    assert clean.uses({"voice": voice}) == {common.one_take_path(voice).resolve()}
+    v = type("V", (), {"settings": {"voice": voice}})()
+    assert make.voice_lines(v) == [common.one_take_path(voice)]  # make.py ran it all again, every time
+
+
+def test_whats_in_use_counts_other_worktrees_and_branches(tmp_path, monkeypatch):
+    here, other = tmp_path / "here" / "media", tmp_path / "other" / "media"
+    for root, name, bed in ((here, "puente", "cache/music/a.mp3"), (other, "nuevo", "cache/music/b.mp3")):
+        path = root / "projects" / name / "video.json"
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps({"music": {"bed": bed}}), encoding="utf-8")
+    branch = json.dumps({"music": {"bed": "cache/music/c.mp3"}})
+    answers = {
+        ("worktree", "list", "--porcelain"): f"worktree {tmp_path / 'here'}\nHEAD x\n\nworktree {tmp_path / 'other'}\n",
+        ("for-each-ref", "--format=%(refname)", "refs/heads"): "refs/heads/feat/rama\n",
+        (
+            "ls-tree",
+            "-r",
+            "--name-only",
+            "--full-name",
+            "refs/heads/feat/rama",
+            "--",
+            "projects",
+        ): "media/projects/rama/video.json\n",
+        ("show", "refs/heads/feat/rama:media/projects/rama/video.json"): branch,
+    }
+    monkeypatch.setattr(clean, "MEDIA", here)
+    monkeypatch.setattr(clean, "HOME", tmp_path / "home")
+    monkeypatch.setattr(clean, "git", lambda *args: answers.get(args, ""))
+    used = clean.in_use()
+    for bed in ("a", "b", "c"):
+        assert (tmp_path / "home" / "cache" / "music" / f"{bed}.mp3").resolve() in used
+    assert sorted(name for name, _ in clean.project_settings()) == ["nuevo", "puente", "rama"]
+
+
+def one_take(monkeypatch, tmp_path, lines: list[str], heard_words: list[str]):
+    """timing.build_one_take on a silent take, Whisper replaced by `heard_words` half a second apart."""
+    voice = {"name": "Despina", "one_take": True, "lines": [{"id": f"l{i}", "text": t} for i, t in enumerate(lines)]}
+    v = type("V", (), {"name": "x", "fps": 30, "duration": 10.0, "settings": {"voice": voice}})()
+    v.out, v.data = tmp_path / "out", tmp_path / "data"
+    v.out.mkdir()
+    heard = [{"word": w, "start": 0.5 * i + 0.2, "end": 0.5 * i + 0.6, "p": 0.9} for i, w in enumerate(heard_words)]
+    monkeypatch.setattr(timing, "read", lambda p: np.zeros(int(0.5 * len(heard_words) * 24000 + 48000), np.float32))
+    monkeypatch.setattr(timing, "words_of", lambda p, s: heard)
+    timing.build_one_take(v, voice, 0.15)
+    return json.loads((v.data / "timing.json").read_text(encoding="utf-8"))
+
+
+def test_a_one_take_whose_last_word_whisper_missed_fails_instead_of_cutting_it(tmp_path, monkeypatch):
+    with pytest.raises(SystemExit, match='last word is "el"'):
+        one_take(
+            monkeypatch,
+            tmp_path,
+            ["Todo en Pa' Bailar.", "Te dejo el link."],
+            ["Todo", "en", "Pa'", "Bailar.", "Te", "dejo", "el"],
+        )
+    assert not (tmp_path / "out" / "voice-track.wav").exists()  # nothing written half-way
+
+
+def test_one_take_lines_split_where_the_script_does(tmp_path, monkeypatch):
+    lines = ["El sábado y el domingo hay salsa.", "Y el domingo, bachata."]
+    got = one_take(monkeypatch, tmp_path, lines, " ".join(lines).split())
+    assert [" ".join(w["word"] for w in line["words"]) for line in got["lines"]] == lines
 
 
 # ---------- times ----------

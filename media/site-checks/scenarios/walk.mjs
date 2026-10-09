@@ -1,5 +1,5 @@
 // ↓ all the way down the list on a desktop (the owner, 6 Oct): the arrows go on past the cards to the summarized
-// periods ("Ver los 23 eventos", "Ver 7 más"), Enter opens one and the focus lands on its first new event, the walk
+// periods (the month blocks: "Ver los 23 eventos"), Enter opens one and the focus lands on its first new event, the walk
 // reaches the list's last card, and the focus never leaves the screen. Then back closes the reading pane and folds.
 import { Skip } from "../lib.mjs";
 

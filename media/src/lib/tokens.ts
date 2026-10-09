@@ -26,7 +26,9 @@ export const STICKER_BAND = { top: brand.stickerBand.top, bottom: brand.stickerB
 /**
  * Stories: layouts are drawn on the canvas as for any format (words inside `SAFE`), and `VideoShell`'s `story` fit
  * moves and scales that safe area into `STORY_AREA`, under the sticker band (the owner, 8 Oct 2026: the sticker had no
- * room over the account's row, and the bottom of the frame was empty). The paper and the grain stay full frame.
+ * room over the account's row, and the bottom of the frame was empty). The paper and the grain stay full frame; a
+ * scene's own full-frame layer (a color wiping in, a full-bleed photo) is fitted too, so it shows as an inset card:
+ * give a Story's full-frame color to `VideoShell`'s `background` instead (the bug-squash pass of 8 Oct 2026).
  */
 export const STORY_AREA = { top: brand.storyArea.top, bottom: brand.storyArea.bottom };
 export const STORY_FIT = {

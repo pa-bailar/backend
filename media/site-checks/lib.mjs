@@ -194,7 +194,7 @@ export const focusedCardId = (s) => (s.focus.startsWith("card:") ? s.focus.slice
 
 /**
  * The page's state in one compact object: what a check usually needs. Falsy parts are left out of `fmt()`.
- *   url, y (scrollY), focus ("card:<id>", "#id", "[Ver 7 más]" or a tag), drawer (its event id, or ""), stage ("2/5"
+ *   url, y (scrollY), focus ("card:<id>", "#id", "[2026-11: Ver los 11 eventos]" or a tag), drawer (its event id, or ""), stage ("2/5"
  *   when the image stage is open), open (other open dialogs' ids), screen (body data-screen), folded (the periods
  *   still summarized in the visible view), ox (horizontal overflow, px)
  */

@@ -164,7 +164,13 @@ def write_snapshot(v: Video, picked: list[dict], meta: dict, live: bool) -> list
     old = flyers.with_name(f".flyers-old-{os.getpid()}")
     if flyers.exists():
         flyers.rename(old)
-    fresh.rename(flyers)
+    try:
+        fresh.rename(flyers)
+    except OSError:  # Windows: a handle open on it (Studio, a browser); the previous flyers go back where they were
+        if old.exists():
+            old.rename(flyers)
+        shutil.rmtree(fresh, ignore_errors=True)
+        raise
     shutil.rmtree(old, ignore_errors=True)
     v.data.mkdir(parents=True, exist_ok=True)
     tmp = v.data / ".events.json.tmp"

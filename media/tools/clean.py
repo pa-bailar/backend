@@ -13,7 +13,8 @@ Looks in four places:
   wrote with `--out`, `check/` from tools/check.mjs), the mix's intermediate WAVs and rejected soundtracks, and logs.
   Each deliverable's latest version and its `<deliverable>.mp4` link stay. The home's archive/ (posted versions) is
   never touched. In public/<video>/, the temporary flyer folders (`.flyers-<pid>`) a stopped tools/events.py left.
-- the media home's cache/tts and cache/music: what no video uses any more, read from every projects/*/video.json (a
+- the media home's cache/tts and cache/music: what no video uses any more, read from every projects/*/video.json of
+  this checkout, every other worktree and every local branch (the home is shared: a video on a branch is in use) (a
   voice line or one take that isn't any video's now, like the takes before the one the owner approved; a bed or a
   downloaded track no video's "music"."bed" names, with its .json). What a video uses stays (the owner, 8 Oct 2026:
   "you create several versions of voice or video, and then just leave them there").
@@ -190,19 +191,23 @@ def in_home_archive(path: Path) -> bool:
 
 
 def stray_public() -> list[Path]:
-    """Temporary flyer folders in public/<video>/ that a stopped tools/events.py left (`.flyers-<pid>`)."""
+    """Temporary flyer folders in public/<video>/ that a stopped tools/events.py left (`.flyers-<pid>`). Never its
+    `.flyers-old-<pid>`: if the swap failed half-way, the video's current flyers are in it (events.py puts them
+    back)."""
     public = HOME / "public"
-    return sorted(public.glob("*/.flyers-*")) if public.exists() else []
+    if not public.exists():
+        return []
+    return sorted(p for p in public.glob("*/.flyers-*") if not p.name.startswith(".flyers-old-"))
 
 
 def uses(settings: dict) -> set[Path]:
     """The cache files a video uses: its voice lines (or its one take) and its music bed (with the bed's .json)."""
     used: set[Path] = set()
     voice = settings.get("voice")
-    if voice:
+    if voice and voice.get("one_take"):
+        used.add(one_take_path(voice).resolve())  # its lines aren't recorded one by one
+    elif voice:
         direction = voice.get("direction", DIRECTION)
-        if voice.get("one_take"):
-            used.add(one_take_path(voice).resolve())
         for line in voice["lines"]:
             used.add(tts_path(line["text"], voice["name"], direction, line.get("take", 0)).resolve())
     bed = settings.get("music", {}).get("bed")
@@ -211,12 +216,54 @@ def uses(settings: dict) -> set[Path]:
     return used
 
 
+def git(*args: str) -> str:
+    """A git command in this checkout; "" when git or the command fails (then only this checkout's files count)."""
+    try:
+        run = subprocess.run(
+            ["git", "-C", str(MEDIA), *args], capture_output=True, text=True, encoding="utf-8", check=True
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return ""
+    return run.stdout
+
+
+def project_settings() -> list[tuple[str, dict]]:
+    """Every video's settings the shared media home serves, as (video, video.json): this checkout's and every other
+    worktree's files, and each local branch's committed ones. Only this checkout's, the bug-squash pass of 8 Oct 2026
+    found, listed a branch's new video's takes and bed as unused."""
+    found: list[tuple[str, dict]] = []
+    roots = [MEDIA] + [
+        Path(line.removeprefix("worktree ")) / "media"
+        for line in git("worktree", "list", "--porcelain").splitlines()
+        if line.startswith("worktree ")
+    ]
+    seen: set[Path] = set()
+    for root in roots:
+        for path in sorted((root / "projects").glob("*/video.json")):
+            if path.resolve() in seen:
+                continue
+            seen.add(path.resolve())
+            try:
+                found.append((path.parent.name, json.loads(path.read_text(encoding="utf-8"))))
+            except (OSError, ValueError):
+                continue
+    for ref in git("for-each-ref", "--format=%(refname)", "refs/heads").split():
+        for name in git("ls-tree", "-r", "--name-only", "--full-name", ref, "--", "projects").splitlines():
+            if not name.endswith("/video.json"):
+                continue
+            try:
+                found.append((name.split("/")[-2], json.loads(git("show", f"{ref}:{name}"))))
+            except ValueError:
+                continue
+    return found
+
+
 def in_use(skip: str | None = None) -> set[Path]:
-    """The cache files some video uses (every projects/*/video.json but `skip`'s)."""
+    """The cache files some video uses (every video's settings but `skip`'s: project_settings)."""
     used: set[Path] = set()
-    for path in (MEDIA / "projects").glob("*/video.json"):
-        if path.parent.name != skip:
-            used |= uses(json.loads(path.read_text(encoding="utf-8")))
+    for name, settings in project_settings():
+        if name != skip:
+            used |= uses(settings)
     return used
 
 
