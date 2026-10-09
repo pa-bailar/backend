@@ -94,7 +94,6 @@ class ModelLimit:
 # The free tier's limits per model (AI Studio's rate-limit page, 6 Oct 2026): each model has its own daily quota.
 MODEL_LIMITS = {
     "gemini-3.8-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
-    "gemini-3.7-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3.6-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3.5-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3-flash-preview": ModelLimit(requests_per_minute=5, requests_per_day=20),
@@ -108,9 +107,11 @@ LITE_ONLY = os.environ.get("GEMINI_LITE_ONLY", "").strip() == "1"
 # the binding limit while 3.7 and 3.6 Flash and a second Flash-Lite sat unused). Roles:
 LITE_MODELS = ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite")
 TRIAGE_MODELS = LITE_MODELS  # cheap yes/no: does the post announce an event?
-# Full details, best quality: Flash of this generation (80 a day; the bake-off's baseline). Lite-only mode:
+# Full details, best quality: Flash of this generation (60 a day; the bake-off's baseline). Lite-only mode:
 # Flash-Lite, as final results.
-FLASH_MODELS = ("gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash")
+# Not gemini-3.7-flash: deprecated on 9 Oct 2026, its calls are answered by 3.8 Flash (checked: response model_version),
+# so in the pool it only spent 3.8's quota under another name, and its own budget of 20 was never real.
+FLASH_MODELS = ("gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash")
 EXTRACTION_MODELS = LITE_MODELS if LITE_ONLY else FLASH_MODELS
 # When those are out: saved, then upgraded on a later run (none in lite-only mode). An older Flash first (its reads
 # weren't compared with this generation's yet: a 6 Oct bake-off met Google's overload), then Flash-Lite.
