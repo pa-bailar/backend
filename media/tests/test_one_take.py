@@ -35,7 +35,8 @@ def test_a_one_take_whose_last_word_whisper_missed_fails_instead_of_cutting_it(t
     assert not (tmp_path / "out" / "voice-track.wav").exists()  # nothing written half-way
 
 
-def test_one_take_lines_split_where_the_script_does(tmp_path, monkeypatch):
+def test_one_take_writes_each_lines_words(tmp_path, monkeypatch):
+    # Where the lines split is common.line_starts (tested without numpy in test_media_tools.py).
     lines = ["El sábado y el domingo hay salsa.", "Y el domingo, bachata."]
     got = one_take(monkeypatch, tmp_path, lines, " ".join(lines).split())
     assert [" ".join(w["word"] for w in line["words"]) for line in got["lines"]] == lines

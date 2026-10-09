@@ -36,7 +36,6 @@ from pathlib import Path
 from common import (
     BACKEND,
     CACHE,
-    DIRECTION,
     FONTS,
     HOME,
     MEDIA,
@@ -44,10 +43,9 @@ from common import (
     backend_path,
     load_env,
     mix_key,
-    one_take_path,
     shown,
-    tts_path,
     video,
+    voice_files,
     voice_key,
 )
 from render import passed_marker
@@ -79,16 +77,6 @@ def stale(outputs: list[Path], inputs: list[Path]) -> bool:
 
 def files(*folders: Path) -> list[Path]:
     return [f for d in folders if d.exists() for f in d.rglob("*") if f.is_file() and "node_modules" not in f.parts]
-
-
-def voice_lines(v: Video) -> list[Path]:
-    """The cached recordings the voice is made of: its one take, or each line's. (Each line's for a one-take video
-    never exist, so every run made it all again, the render over the cut being posted: the bug-squash pass of 8 Oct.)"""
-    voice = v.settings["voice"]
-    if voice.get("one_take"):
-        return [one_take_path(voice)]
-    direction = voice.get("direction", DIRECTION)
-    return [tts_path(x["text"], voice["name"], direction, x.get("take", 0)) for x in voice["lines"]]
 
 
 def soundtracks(v: Video) -> list[Path]:
@@ -129,7 +117,7 @@ def plan(v: Video, draft: bool) -> dict[str, str | None]:
     """Each stage → why it should run (None: up to date; absent: doesn't apply to this video)."""
     out: dict[str, str | None] = {}
     if v.settings.get("voice"):
-        missing = [p for p in voice_lines(v) if not p.exists()]
+        missing = [p for p in voice_files(v.settings["voice"]) if not p.exists()]
         out["tts"] = f"{len(missing)} line(s) not cached" if missing else None
         out["timing"] = timing_reason(v)
     tracks = soundtracks(v)

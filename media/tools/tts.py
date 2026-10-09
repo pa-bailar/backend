@@ -18,7 +18,19 @@ import os
 import re
 import time
 
-from common import CACHE, DIRECTION, HOME, key, load_env, one_take_path, script_text, shown, tts_path, video, write_wav
+from common import (
+    CACHE,
+    DIRECTION,
+    HOME,
+    key,
+    load_env,
+    one_take_path,
+    script_text,
+    shown,
+    video,
+    voice_files,
+    write_wav,
+)
 
 # 2.5 answers reliably on the free tier; both time out at times (90 s timeout, retries with backoff).
 MODELS = ("gemini-2.5-flash-preview-tts", "gemini-3.8-flash-tts")
@@ -100,10 +112,9 @@ def lines(name: str, wanted: list[str]) -> None:
         write_wav(path, pcm)
         print(f"one take: {len(pcm) / 48000:.2f} s ({model}); check it: timing.py --transcribe {shown(path)}")
         return
-    for line in settings["lines"]:
+    for line, path in zip(settings["lines"], voice_files(settings), strict=True):
         if wanted and line["id"] not in wanted:
             continue
-        path = tts_path(line["text"], voice, direction, line.get("take", 0))
         if path.exists():
             print(f"{line['id']}: cached ({path.name}) {line['text']}")
             continue

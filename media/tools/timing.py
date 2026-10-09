@@ -20,7 +20,18 @@ import wave
 from pathlib import Path
 
 import numpy as np
-from common import DIRECTION, TTS_RATE, _norm, one_take_path, script_text, shown, tts_path, video, voice_key
+from common import (
+    TTS_RATE,
+    Video,
+    _norm,
+    line_starts,
+    one_take_path,
+    script_text,
+    shown,
+    video,
+    voice_files,
+    voice_key,
+)
 
 RATE = TTS_RATE
 
@@ -72,19 +83,33 @@ def whisper():
     return WhisperModel("medium", device="cpu", compute_type="int8")
 
 
-def words_of(path: Path, prompt: str) -> list[dict]:
-    """Whisper's words (start, end, probability) of a file, with the script as a hint so names come out as written."""
+def hear(path: Path, prompt: str) -> tuple[list[dict], list[dict]]:
+    """Whisper's words (start, end, probability) and segments (start, end, text) of a file, with the script as a hint
+    so names come out as written."""
     segments, _ = whisper().transcribe(
         str(path), language="es", word_timestamps=True, initial_prompt=prompt, vad_filter=False, beam_size=5
     )
-    return [
-        {"word": w.word.strip(), "start": round(w.start, 3), "end": round(w.end, 3), "p": round(w.probability, 2)}
-        for s in segments
-        for w in s.words
-    ]
+    words, segs = [], []
+    for s in segments:
+        segs.append({"start": round(s.start, 3), "end": round(s.end, 3), "text": s.text.strip()})
+        for w in s.words:
+            words.append(
+                {
+                    "word": w.word.strip(),
+                    "start": round(w.start, 3),
+                    "end": round(w.end, 3),
+                    "p": round(w.probability, 2),
+                }
+            )
+    return words, segs
 
 
-def build_one_take(v, voice: dict, lead: float) -> None:
+def words_of(path: Path, prompt: str) -> list[dict]:
+    """Whisper's words of a file (hear())."""
+    return hear(path, prompt)[0]
+
+
+def build_one_take(v: Video, voice: dict, lead: float) -> None:
     """A one-take recording ("voice"."one_take"): cut from just before its first word to just after its last (the
     model leaves noise past the end: a clipped burst after "link" in the puente take of 8 Oct 2026), its own pauses
     kept, after `lead` seconds of silence; each line found in it by its first two words, in order."""
@@ -98,10 +123,10 @@ def build_one_take(v, voice: dict, lead: float) -> None:
     # ("link" dropped, the bug-squash pass of 8 Oct 2026). Listen to the take; re-record it if the word isn't there.
     said = [_norm(w) for w in script.split()]
     got = [_norm(w["word"]) for w in heard]
-    for where, want, have in (("first", said[0], got[0]), ("last", said[-1], got[-1])):
-        if want != have:
+    for where, expected, have in (("first", said[0], got[0]), ("last", said[-1], got[-1])):
+        if expected != have:
             raise SystemExit(
-                f'Whisper\'s {where} word is "{have}", the script\'s "{want}": it would be cut off the track'
+                f'Whisper\'s {where} word is "{have}", the script\'s "{expected}": it would be cut off the track'
             )
     start, end = max(0.0, heard[0]["start"] - 0.06), heard[-1]["end"] + 0.12
     take = raw[int(start * RATE) : int(end * RATE)].copy()
@@ -112,25 +137,7 @@ def build_one_take(v, voice: dict, lead: float) -> None:
 
     shift = lead - start
     words = [{**w, "start": round(w["start"] + shift, 3), "end": round(w["end"] + shift, 3)} for w in heard]
-    counts = [len(line["text"].split()) for line in voice["lines"]]
-    if got == said:  # heard word for word: each line by its own count
-        starts = [sum(counts[:k]) for k in range(len(counts))]
-    else:
-        # Each line starts at its first two words, searched in order (two words: "El viernes" vs "El sábado"), not
-        # before most of the line before it ("Y el domingo" inside "El sábado y el domingo hay salsa").
-        starts, at = [], 0
-        for line, count in zip(voice["lines"], counts, strict=True):
-            want = [_norm(w) for w in line["text"].split()[:2]]
-            found = next(
-                (i for i in range(at, len(words)) if [_norm(w["word"]) for w in words[i : i + len(want)]] == want), None
-            )
-            if found is None:
-                heard_text = " ".join(w["word"] for w in words[at:])
-                raise SystemExit(
-                    f'line {line["id"]}: "{" ".join(want)}" not heard after word {at} (heard: {heard_text})'
-                )
-            starts.append(found)
-            at = found + max(1, count - 2)
+    starts = line_starts(voice["lines"], words)
     lines = []
     for k, line in enumerate(voice["lines"]):
         mine = words[starts[k] : starts[k + 1] if k + 1 < len(starts) else len(words)]
@@ -139,14 +146,10 @@ def build_one_take(v, voice: dict, lead: float) -> None:
         )
     write(out, track)  # only now: a take whose lines aren't found leaves the track and timing.json as they were
     print(f"{out.name}: {len(track) / RATE:.2f} s, one take (the video is {v.duration} s)")
-    write_timing(
-        v, voice, track, out, lead, lines, segments=[], note="One take: line and word times are Whisper medium (es)."
-    )
+    write_timing(v, track, out, lead, lines, segments=[], note="One take: line and word times are Whisper medium (es).")
 
 
-def write_timing(
-    v, voice: dict, track: np.ndarray, out: Path, lead: float, lines: list, segments: list, note: str
-) -> None:
+def write_timing(v: Video, track: np.ndarray, out: Path, lead: float, lines: list, segments: list, note: str) -> None:
     timing = {
         "fps_hint": v.fps,
         "duration": round(len(track) / RATE, 3),
@@ -170,14 +173,13 @@ def write_timing(
 def build(name: str) -> None:
     v = video(name)
     voice = v.settings["voice"]
-    direction = voice.get("direction", DIRECTION)
     lead = float(voice.get("lead", 0.55))
     if voice.get("one_take"):
         return build_one_take(v, voice, lead)
     max_pause = float(voice.get("max_pause", 0.32))
     parts, lines, t = [np.zeros(int(lead * RATE), np.float32)], [], lead
-    for line in voice["lines"]:
-        audio = tighten(trim(read(tts_path(line["text"], voice["name"], direction, line.get("take", 0)))), max_pause)
+    for line, path in zip(voice["lines"], voice_files(voice), strict=True):
+        audio = tighten(trim(read(path)), max_pause)
         lines.append(
             {"id": line["id"], "text": line["text"], "start": round(t, 3), "end": round(t + len(audio) / RATE, 3)}
         )
@@ -189,22 +191,7 @@ def build(name: str) -> None:
     write(out, track)
     print(f"{out.name}: {len(track) / RATE:.2f} s (the video is {v.duration} s)")
 
-    prompt = " ".join(line["text"] for line in voice["lines"])
-    segments, _ = whisper().transcribe(
-        str(out), language="es", word_timestamps=True, initial_prompt=prompt, vad_filter=False, beam_size=5
-    )
-    words, segs = [], []
-    for s in segments:
-        segs.append({"start": round(s.start, 3), "end": round(s.end, 3), "text": s.text.strip()})
-        for w in s.words:
-            words.append(
-                {
-                    "word": w.word.strip(),
-                    "start": round(w.start, 3),
-                    "end": round(w.end, 3),
-                    "p": round(w.probability, 2),
-                }
-            )
+    words, segs = hear(out, script_text(voice))
     for line in lines:
         line["words"] = []
     for w in words:  # each word to the one line it falls in (or the nearest, within 0.15 s), never to two
@@ -219,7 +206,6 @@ def build(name: str) -> None:
             w["end"] = min(max(w["end"], w["start"] + 0.05), line["end"] + 0.1)
     write_timing(
         v,
-        voice,
         track,
         out,
         lead,

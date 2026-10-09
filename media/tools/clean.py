@@ -48,7 +48,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from common import DIRECTION, HOME, MEDIA, one_take_path, parse_render_name, tts_path
+from common import HOME, MEDIA, parse_render_name, voice_files
 
 ARCHIVE = MEDIA.parent.parent / "pa-bailar-teaser"
 SCRATCH_DIRS = {
@@ -220,13 +220,8 @@ def stray_public() -> list[Path]:
 def uses(settings: dict) -> set[Path]:
     """The cache files a video uses: its voice lines (or its one take) and its music bed (with the bed's .json)."""
     used: set[Path] = set()
-    voice = settings.get("voice")
-    if voice and voice.get("one_take"):
-        used.add(one_take_path(voice).resolve())  # its lines aren't recorded one by one
-    elif voice:
-        direction = voice.get("direction", DIRECTION)
-        for line in voice["lines"]:
-            used.add(tts_path(line["text"], voice["name"], direction, line.get("take", 0)).resolve())
+    if voice := settings.get("voice"):
+        used |= {path.resolve() for path in voice_files(voice)}
     bed = settings.get("music", {}).get("bed")
     if bed:
         used |= {(HOME / bed).resolve(), (HOME / f"{bed}.json").resolve(), (HOME / bed).with_suffix(".json").resolve()}

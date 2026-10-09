@@ -200,9 +200,38 @@ def test_the_cleaner_never_lists_the_flyers_a_failed_swap_parked(tmp_path, monke
 
 def test_a_one_take_video_uses_its_take_not_its_lines(tmp_path, monkeypatch):
     voice = {"name": "Despina", "one_take": True, "lines": [{"id": "a", "text": "Hola."}, {"id": "b", "text": "Chao."}]}
+    # make.py looked for its lines, which never exist, and ran it all again, every time
+    assert common.voice_files(voice) == [common.one_take_path(voice)]
     assert clean.uses({"voice": voice}) == {common.one_take_path(voice).resolve()}
-    v = type("V", (), {"settings": {"voice": voice}})()
-    assert make.voice_lines(v) == [common.one_take_path(voice)]  # make.py ran it all again, every time
+
+
+def test_a_line_by_line_voice_uses_each_lines_take_and_direction():
+    lines = [{"id": "a", "text": "Hola."}, {"id": "b", "text": "Chao.", "take": 2}]
+    voice = {"name": "Achird", "lines": lines}
+    assert common.voice_files(voice) == [
+        common.tts_path("Hola.", "Achird", common.DIRECTION, 0),
+        common.tts_path("Chao.", "Achird", common.DIRECTION, 2),
+    ]
+    assert common.voice_files(voice | {"direction": "Otra."})[0] == common.tts_path("Hola.", "Achird", "Otra.", 0)
+    assert clean.uses({"voice": voice}) == {p.resolve() for p in common.voice_files(voice)}
+
+
+def heard(text: str) -> list[dict]:
+    return [{"word": w} for w in text.split()]
+
+
+def test_one_take_lines_split_where_the_script_does():
+    lines = [{"id": "a", "text": "El sábado y el domingo hay salsa."}, {"id": "b", "text": "Y el domingo, bachata."}]
+    assert common.line_starts(lines, heard("El sábado y el domingo hay salsa. Y el domingo, bachata.")) == [0, 7]
+    # Not heard word for word ("salza", an extra "eh"): each line is searched by its first two words, and the second
+    # isn't the "y el" inside the first.
+    assert common.line_starts(lines, heard("eh El sábado y el domingo hay salza. Y el domingo bachata")) == [1, 8]
+
+
+def test_a_one_take_line_not_heard_stops_with_what_was_heard():
+    lines = [{"id": "a", "text": "Todo en Pa' Bailar."}, {"id": "b", "text": "Te dejo el link."}]
+    with pytest.raises(SystemExit, match='line b: "te dejo" not heard after word 2'):
+        common.line_starts(lines, heard("Todo en Pa' Bailar. Ve dejó el link."))
 
 
 def test_whats_in_use_counts_other_worktrees_and_branches(tmp_path, monkeypatch):
