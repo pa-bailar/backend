@@ -2,56 +2,56 @@
   "zafradance": {
     "first_seen": "2026-10-01",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:40-05:00",
+    "last_swept_at": "2026-10-09T06:35:51-05:00",
     "latest_post": "2026-09-30",
     "unreadable": {}
   },
   "bembeacademiadebaile": {
     "first_seen": "2026-10-01",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:41-05:00",
+    "last_swept_at": "2026-10-09T06:35:53-05:00",
     "latest_post": "2026-09-30",
     "unreadable": {}
   },
   "esferalatinaoficial": {
     "first_seen": "2026-10-01",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:50-05:00",
-    "latest_post": "2026-10-06",
+    "last_swept_at": "2026-10-09T06:35:56-05:00",
+    "latest_post": "2026-09-26",
     "unreadable": {}
   },
   "madyumdance": {
     "first_seen": "2026-10-01",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:52-05:00",
+    "last_swept_at": "2026-10-09T06:36:00-05:00",
     "latest_post": "2026-10-06",
     "unreadable": {}
   },
   "academiadebailepasolatino": {
     "first_seen": "2026-10-01",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:56-05:00",
+    "last_swept_at": "2026-10-09T06:36:08-05:00",
     "latest_post": "2026-09-25",
     "unreadable": {}
   },
   "bureodancestudio": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:57-05:00",
-    "latest_post": "2026-09-21",
+    "last_swept_at": "2026-10-09T06:36:38-05:00",
+    "latest_post": "2026-10-08",
     "unreadable": {}
   },
   "ludancestudios": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:59-05:00",
+    "last_swept_at": "2026-10-09T06:36:43-05:00",
     "latest_post": "2026-10-01",
     "unreadable": {}
   },
   "ritmosacademiadebaile": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:33:00-05:00",
+    "last_swept_at": "2026-10-09T06:36:49-05:00",
     "latest_post": "2026-09-13",
     "unreadable": {}
   },
@@ -93,7 +93,7 @@
   "studio110dance": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:33:03-05:00",
+    "last_swept_at": "2026-10-09T06:36:54-05:00",
     "latest_post": "2026-09-26",
     "unreadable": {}
   },
@@ -107,21 +107,21 @@
   "academyfeel": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:33:07-05:00",
+    "last_swept_at": "2026-10-09T06:36:59-05:00",
     "latest_post": "2026-09-19",
     "unreadable": {}
   },
   "soondanz_company": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:33:09-05:00",
+    "last_swept_at": "2026-10-09T06:37:13-05:00",
     "latest_post": "2026-09-28",
     "unreadable": {}
   },
   "imperiolatino": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:33:11-05:00",
+    "last_swept_at": "2026-10-09T06:37:17-05:00",
     "latest_post": "2026-10-05",
     "unreadable": {}
   },
@@ -226,15 +226,15 @@
   "tributo.salsayjazz": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-07T21:09:13-05:00",
+    "last_swept_at": "2026-10-09T06:31:31-05:00",
     "latest_post": "2026-10-07",
     "unreadable": {}
   },
   "ritmomoderno": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:27-05:00",
-    "latest_post": "2026-10-07",
+    "last_swept_at": "2026-10-09T06:35:37-05:00",
+    "latest_post": "2026-10-08",
     "unreadable": {}
   },
   "terrazasalsera": {
@@ -415,7 +415,7 @@
   "dreamcupco": {
     "first_seen": "2026-10-04",
     "backfill_done": true,
-    "last_swept_at": "2026-10-06T21:13:20-05:00",
+    "last_swept_at": "2026-10-09T06:31:40-05:00",
     "latest_post": "2026-06-08",
     "unreadable": {}
   },
@@ -450,7 +450,7 @@
   "andonybaron": {
     "first_seen": "2026-10-04",
     "backfill_done": true,
-    "last_swept_at": "2026-10-06T21:13:22-05:00",
+    "last_swept_at": "2026-10-09T06:31:45-05:00",
     "latest_post": "2026-08-20",
     "unreadable": {}
   },
@@ -478,7 +478,7 @@
   "oswaldgil2": {
     "first_seen": "2026-10-04",
     "backfill_done": true,
-    "last_swept_at": "2026-10-06T21:13:25-05:00",
+    "last_swept_at": "2026-10-09T06:31:52-05:00",
     "latest_post": "2026-05-29",
     "unreadable": {}
   },
@@ -828,43 +828,43 @@
   "chanchanlatino": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-07T21:08:29-05:00",
-    "latest_post": "2026-09-21",
+    "last_swept_at": "2026-10-09T06:31:03-05:00",
+    "latest_post": "2026-10-08",
     "unreadable": {}
   },
   "el_bochinche_cafe_": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-07T21:08:56-05:00",
-    "latest_post": "2026-10-07",
+    "last_swept_at": "2026-10-09T06:31:26-05:00",
+    "latest_post": "2026-10-08",
     "unreadable": {}
   },
   "callejonsalsa": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-07T21:08:58-05:00",
+    "last_swept_at": "2026-10-09T06:31:29-05:00",
     "latest_post": "2026-10-05",
     "unreadable": {}
   },
   "ilhehabana": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-07T21:09:15-05:00",
+    "last_swept_at": "2026-10-09T06:31:35-05:00",
     "latest_post": "2026-09-30",
     "unreadable": {}
   },
   "restaurantecasadecitas": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:31:01-05:00",
+    "last_swept_at": "2026-10-09T06:32:05-05:00",
     "latest_post": "2026-10-06",
     "unreadable": {}
   },
   "ladiezluxury_outlet": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:31:03-05:00",
-    "latest_post": "2026-10-05",
+    "last_swept_at": "2026-10-09T06:35:33-05:00",
+    "latest_post": "2026-10-08",
     "unreadable": {}
   },
   "quemaquequema": {
@@ -884,7 +884,7 @@
   "discojaguar.bta": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:30-05:00",
+    "last_swept_at": "2026-10-09T06:35:40-05:00",
     "latest_post": "2026-10-07",
     "unreadable": {}
   },
@@ -898,15 +898,15 @@
   "lamecanica_original": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:34-05:00",
+    "last_swept_at": "2026-10-09T06:35:44-05:00",
     "latest_post": "2026-10-07",
     "unreadable": {}
   },
   "aseismanos": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:35-05:00",
-    "latest_post": "2026-10-07",
+    "last_swept_at": "2026-10-09T06:35:46-05:00",
+    "latest_post": "2026-10-08",
     "unreadable": {}
   },
   "mundanobaroficial": {
@@ -919,14 +919,14 @@
   "danceholicproject": {
     "first_seen": "2026-10-06",
     "backfill_done": true,
-    "last_swept_at": "2026-10-08T06:32:39-05:00",
+    "last_swept_at": "2026-10-09T06:35:49-05:00",
     "latest_post": "2026-10-04",
     "unreadable": {}
   },
   "cremadeajiaco": {
     "first_seen": "2026-10-06",
     "backfill_done": true,
-    "last_swept_at": "2026-10-06T21:22:40-05:00",
+    "last_swept_at": "2026-10-09T06:32:01-05:00",
     "latest_post": "2026-07-16",
     "unreadable": {}
   },
