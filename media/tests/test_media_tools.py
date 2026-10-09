@@ -858,6 +858,15 @@ def test_tts_stops_clearly_without_a_key(monkeypatch):
     assert tts.api_key() == "k"
 
 
+def test_tts_refuses_line_ids_for_a_one_take_voice(monkeypatch):
+    voice = {"name": "Despina", "one_take": True, "lines": [{"id": "a", "text": "Hola."}]}
+    monkeypatch.setattr(tts, "video", lambda name: common.Video(name, {"voice": voice}))
+    monkeypatch.setattr(tts, "say", lambda *a: pytest.fail("called Gemini"))
+    with pytest.raises(SystemExit, match=r'one take: no line ids \(a\)\. For a new reading, bump "voice"\."take"'):
+        tts.lines("x", ["a"])
+    assert tts.BYTES_PER_SECOND == 48000  # Gemini's 24 kHz 16-bit mono
+
+
 def test_tts_retries_only_transient_errors():
     assert tts.classify(FakeError(401, "unauthenticated")) == "stop"
     assert tts.classify(FakeError(400, "API key not valid")) == "stop"
