@@ -223,8 +223,8 @@ digits), `TYPE.sans(size, color?)` (anything with numbers).
 - `rise(frame, start, {distance, exitAt})` is THE entrance (and exit) as a style. `leave(frame, at)` is an exit
   progress.
 - `jit(seed)` gives irregular staggers of ±1–2 frames. `mix(a, b, k)` and `clamp` are helpers.
-- `grid(bpm)` gives `BEAT`, `BAR`, `beats(from, to)` and `downbeats(from, to)`; `gridOf(settings)` takes the tempo
-  from a video.json.
+- `grid(bpm)` gives `BEAT`, `BAR`, `beats(from, to)`, `downbeats(from, to)` and `beatAt(s)` (the beat at or before
+  `s` seconds: a cue on the beat at or just before a voice line); `gridOf(settings)` takes the tempo from a video.json.
 - `kick(t, times)` is a beat accent 0→1→0. `wobble(frame, times)` is a damped nudge (secondary action).
 - `camera(t, from, to, {zoom, driftX, driftY})(depth)` is the slow push-in and drift with parallax by depth.
 
@@ -285,7 +285,7 @@ and out over 3 frames per run of pages, keeping the first or last page on the ca
   `events.py` and `capture.mjs`, tested against one table): Friday to Sunday; Monday to Thursday the coming one,
   Friday to Sunday the one under way (on Sunday, the weekend ending today).
 - `dateLabel`, `spanLabel`, `timeLabel` and `priceLabel` give the site's wording ("sábado 10 oct", "8:00 p. m.", "Desde
-  $25.000").
+  $25.000"); `capital` capitalizes one that starts a line ("Sábado 10 oct").
 
 ## Videos
 

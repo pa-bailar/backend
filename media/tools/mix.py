@@ -38,6 +38,11 @@ from pathlib import Path
 
 from common import BRAND, HOME, Video, ffmpeg, mix_key, probe, provenance_problems, shown, tool, video
 
+# The mix's intermediates in out/<video>/: removed after each mix (they're normalized into the soundtracks already);
+# tools/clean.py lists the ones an older or stopped run left.
+MUSIC_ONLY_RAW, VOICE_48K, WITH_MUSIC_RAW = "music-only-raw.wav", "voice-48k.wav", "with-music-raw.wav"
+SCRATCH = (MUSIC_ONLY_RAW, VOICE_48K, WITH_MUSIC_RAW)
+
 LOUD = BRAND["loudness"]
 TP = LOUD["true_peak_target"]
 
@@ -307,7 +312,7 @@ def main(name: str, strict: bool = False) -> None:
     if "music-only" in goals:
         if not music.get("bed"):
             raise SystemExit("no voice and no music bed in video.json: nothing to mix")
-        raw = v.out / "music-only-raw.wav"
+        raw = v.out / MUSIC_ONLY_RAW
         trim = f"atrim=start={float(music.get('first_hit', 0))},asetpts=PTS-STARTPTS,aresample=48000"
         fade_out = f"afade=t=out:st={duration - 1.2}:d=1.2"
         ffmpeg("-i", str(HOME / music["bed"]), "-af", f"{trim},{fade_out}", "-t", str(duration), str(raw))
@@ -316,17 +321,17 @@ def main(name: str, strict: bool = False) -> None:
     else:
         if not voice.exists():
             raise SystemExit(f"no {shown(voice)}: run tools/timing.py {name} first")
-        tmp = v.out / "voice-48k.wav"
+        tmp = v.out / VOICE_48K
         ffmpeg("-i", str(voice), "-af", "aresample=48000", "-ac", "2", str(tmp))
         made.append(normalize(v, tmp, "voice-only", goals["voice-only"], fade))
         if "with-music" in goals:
-            raw, ducked = v.out / "with-music-raw.wav", v.out / "music-ducked.wav"
+            raw, ducked = v.out / WITH_MUSIC_RAW, v.out / "music-ducked.wav"
             mix_music(v, voice, HOME / music["bed"], raw, ducked)
             made.append(normalize(v, raw, "with-music", goals["with-music"], fade))
             print(f"{shown(ducked)}: the bed alone after ducking (not normalized)")
             phone_check(v)
     failed = settle(made)
-    for scratch in ("music-only-raw.wav", "voice-48k.wav", "with-music-raw.wav"):  # normalized already
+    for scratch in SCRATCH:
         (v.out / scratch).unlink(missing_ok=True)
     if failed:
         raise SystemExit("mix failed (the previous soundtracks stay):\n  " + "\n  ".join(failed))

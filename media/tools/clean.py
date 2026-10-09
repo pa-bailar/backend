@@ -49,6 +49,7 @@ import sys
 from pathlib import Path
 
 from common import HOME, MEDIA, parse_render_name, voice_files
+from mix import SCRATCH as MIX_SCRATCH  # its intermediates (it removes them after a mix; older runs left them)
 
 ARCHIVE = MEDIA.parent.parent / "pa-bailar-teaser"
 SCRATCH_DIRS = {
@@ -64,8 +65,6 @@ SCRATCH_DIRS = {
     ".bundle",
     "check",
 }
-# tools/mix.py's intermediates (it removes them after a mix; older runs left them).
-MIX_SCRATCH = {"voice-48k.wav", "with-music-raw.wav", "music-only-raw.wav"}
 # Site checks kept in the checkout's media/out/ (not video output): never listed. New ones are media/site-checks/.
 SITE_CHECKS = {"site-bugs", "site-quality", "admin-tabs", "site-checks"}
 VERSIONED = re.compile(r"^(?P<name>.+?)-v(?P<version>\d+(?:\.\d+)*)-(?P<deliverable>[\w-]+)\.mp4$")
