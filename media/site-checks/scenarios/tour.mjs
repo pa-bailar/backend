@@ -1,6 +1,6 @@
 // A visitor's tour on a phone (from the Safari-on-iPhone checks, 6 Oct): a first visit, scrolling, the details and back
 // (the card where it was), a carousel swipe, saving → Guardados → reload, the calendar, the search, Filtros and a
-// period's "Ver más", each with back. Any engine and device; on a desktop the bar's parts become the header's.
+// month's block ("Ver los 22 eventos"), each with back. Any engine and device; on a desktop the bar's parts become the header's.
 import { Skip } from "../lib.mjs";
 
 /** The first visible match of `selector`, or null. */
@@ -12,7 +12,7 @@ async function visible(page, selector) {
 
 export default {
   name: "tour",
-  summary: "a visitor's phone tour: details, carousel, save, Guardados, calendar, search, Filtros, Ver más, with back",
+  summary: "a visitor's phone tour: details, carousel, save, Guardados, calendar, search, Filtros, a month's block, with back",
   devices: ["phone"],
   async run(ctx) {
     const { page, check, skip } = ctx;
@@ -182,15 +182,19 @@ export default {
       check("back closes Filtros", !fc.open.length && fc.url === "/", fc);
     } else skip("Filtros", "no Filtros button here (the desktop's pills)");
 
-    // Every event in the feed (the owner, 8 Oct 2026: "Ver 25 más" scrolled by unnoticed): the cards add up to the
-    // periods' counts, and no button folds any of them
-    await ctx.goto("/");
-    const feed = await page.evaluate(() => {
-      const view = document.querySelector('[role="tabpanel"]:not([hidden])');
-      const counted = [...view.querySelectorAll(".agenda-group__count")].reduce((sum, c) => sum + (parseInt(c.textContent, 10) || 0), 0);
-      return { cards: view.querySelectorAll("[data-event-card]").length, counted, buttons: view.querySelectorAll("[data-show-period]").length };
-    });
-    check("the feed shows every event: its cards match the periods' counts", feed.cards === feed.counted && !feed.buttons, feed);
+    // A month's block, then back
+    const more = await visible(page, '[role="tabpanel"]:not([hidden]) [data-show-period]');
+    if (more) {
+      const period = await more.getAttribute("data-show-period");
+      await more.scrollIntoViewIfNeeded();
+      const folded = (await ctx.snap()).folded;
+      await ctx.tap(more);
+      const m = await look("Ver más");
+      check("Ver más opens the period whole", !m.folded.includes(period) && m.folded.length === folded.length - 1, m);
+      await ctx.back();
+      const mb = await look("back");
+      check("back folds it again", mb.folded.includes(period) && mb.url === "/", mb);
+    } else skip("Ver más", "no folded period in today's data");
 
     check("no horizontal overflow", !overflow.length, overflow.join(", "));
   },

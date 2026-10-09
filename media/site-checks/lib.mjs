@@ -194,14 +194,21 @@ export const focusedCardId = (s) => (s.focus.startsWith("card:") ? s.focus.slice
 
 /**
  * The page's state in one compact object: what a check usually needs. Falsy parts are left out of `fmt()`.
- *   url, y (scrollY), focus ("card:<id>", "#id" or a tag), drawer (its event id, or ""), stage ("2/5" when the image
- *   stage is open), open (other open dialogs' ids), screen (body data-screen), ox (horizontal overflow, px)
+ *   url, y (scrollY), focus ("card:<id>", "#id", "[Ver 7 más]" or a tag), drawer (its event id, or ""), stage ("2/5"
+ *   when the image stage is open), open (other open dialogs' ids), screen (body data-screen), folded (the periods
+ *   still summarized in the visible view), ox (horizontal overflow, px)
  */
 export const snapshot = (page) =>
   page.evaluate((VIEW) => {
     const a = document.activeElement;
     const card = a?.closest?.("[data-event-card]")?.dataset.eventCard;
-    const focus = card ? `card:${card}` : a?.id ? `#${a.id}` : (a?.tagName?.toLowerCase() ?? "");
+    const focus = a?.dataset?.showPeriod
+      ? `[${a.dataset.showPeriod}: ${a.textContent.trim().replace(/\s+/g, " ")}]`
+      : card
+        ? `card:${card}`
+        : a?.id
+          ? `#${a.id}`
+          : (a?.tagName?.toLowerCase() ?? "");
     const drawerOpen = Boolean(document.querySelector("#event-drawer[open]"));
     const fromPath = decodeURIComponent(location.pathname).match(/^\/evento\/([^/]+)/)?.[1];
     const stage = document.getElementById("lightbox");
@@ -215,6 +222,7 @@ export const snapshot = (page) =>
         .map((d) => d.id || d.className.toString().split(" ")[0] || "dialog")
         .filter((id) => id !== "event-drawer" && id !== "lightbox"),
       screen: document.body.dataset.screen ?? "",
+      folded: [...document.querySelectorAll(`${VIEW} [data-show-period]`)].map((b) => b.dataset.showPeriod),
       ox: Math.max(0, document.documentElement.scrollWidth - innerWidth),
     };
   }, VIEW);
@@ -228,6 +236,7 @@ export function fmt(s) {
   if (s.stage) parts.push(`stage=${s.stage}`);
   if (s.open?.length) parts.push(`open=${s.open.join(",")}`);
   if (s.screen) parts.push(`screen=${s.screen}`);
+  if (s.folded?.length) parts.push(`folded=${s.folded.length}`);
   if (s.ox) parts.push(`OVERFLOW=${s.ox}px`);
   return parts.join(" ");
 }
@@ -308,7 +317,7 @@ export function recorder({ echo = false } = {}) {
       r.log(`${condition ? "PASS" : "FAIL"} ${label}`, detail);
       return Boolean(condition);
     },
-    /** A part that today's data can't exercise (no carousel, nothing left to save…): not a failure. */
+    /** A part that today's data can't exercise (no carousel, no folded period…): not a failure. */
     skip(label, reason) {
       result.skips.push(`${label}: ${reason}`);
       r.log(`SKIP ${label}`, reason);

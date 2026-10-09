@@ -34,17 +34,17 @@ node media/site-checks/run.mjs --help        the scenarios and what each covers
 
 | Scenario | Devices | What it checks |
 |---|---|---|
-| `tour` | phone | A visitor's tour: first visit, scroll, the details and back (the card where it was), a carousel swipe, save → Guardados → reload, the calendar, the search and Filtros, each with back; every event in the feed (its cards match the periods' counts, no "Ver más"); no horizontal overflow. Runs on any engine and device (on a desktop the bar's parts are the header's) |
+| `tour` | phone | A visitor's tour: first visit, scroll, the details and back (the card where it was), a carousel swipe, save → Guardados → reload, the calendar, the search, Filtros and a month's block ("Ver los 22 eventos"), each with back; no horizontal overflow. Runs on any engine and device (on a desktop the bar's parts are the header's) |
 | `arrows` | desktop | ↑ ↓: from nothing selected, on the list, with the details and image open; mid-page (the card focused is on screen, clear of the pinned bar); the Cuándo menu keeps its own arrows; the calendar's cards |
-| `walk` | desktop | ↓ through the whole list, card by card: the walk ends on the last card, the focus never leaves the screen; back closes the reading pane, on the list |
+| `walk` | desktop | ↓ through the whole list: each period's button is reached, Enter opens it with the focus on its first new event, the walk ends on the last card, the focus never leaves the screen; back folds a period again |
 | `panel` | desktop | The side panel and the image beside it: the panel follows the card clicked or focused, its buttons stay usable, → moves both, Escape, × and back close both, the list stays where it was |
-| `stage` | desktop | ← → through an event's photos then the next event (← back: its last photo); from the details, ↓ walks to the list's last event; a reload with the details of an event deep in the list keeps them, and back then stays on the site |
+| `stage` | desktop | ← → through an event's photos then the next event (← back: its last photo); from the details, every period's block opens on the way down; Escape, back, forward and a reload after a block opened that way |
 | `tab` | desktop | Tab: one stop per event, in the list's reading order (like →), never a card's own button, the panel following; Enter into the panel, past its end on to the next event, Shift+Tab back, Escape; out of the page without looping. WebKit: Safari's default (links skipped) |
-| `places` | desktop | Where the keys start and the page keeping its place (the fixes of site #145, #167): a click in the list's gaps, a card clicked then Escape (Safari doesn't focus it), the skip link, scrolled away from the card in focus; closing the panel after scrolling; Escape in the search, then again; Guardados and a search from deep in the list start at the top |
+| `places` | desktop | Where the keys start and the page keeping its place (the fixes of site #145, #167): a click in the list's gaps, a card clicked then Escape (Safari doesn't focus it), the skip link, scrolled away from the card in focus; closing the panel after scrolling; Escape in the search, then again; Guardados and a search from deep in the list start at the top; Enter and Space on a month's block with the panel open |
 | `install` | iphone | Installing on iPhone (Safari 26, the device's user agent): the steps' clip loads only when the sheet opens (`?instalar`) and stops when it closes, the service worker stores none, reduced motion gets its poster only; the buttons to tap and no written steps; the arrow at the bottom right; everything fits, the taps inside the sheet (at 320 px too), no other video playing under it; after "Ya la agregué" the banner goes and the footer's "Cómo instalar…" link still opens the steps |
-| `taps` | phone, iphone | A finger's taps on what changes under it (site #165): a notice's button double-tapped opens no event's details; a tap on the viewer's own edge keeps it open, one on its backdrop closes it |
+| `taps` | phone, iphone | A finger's taps on what changes under it (site #165): a period's button and a notice's button double-tapped open no event's details; a tap on the viewer's own edge keeps it open, one on its backdrop closes it |
 
-The scenarios find what they need in today's data (the first card with a carousel, a notice after saving…) and
+The scenarios find what they need in today's data (the first card with a carousel, the first folded period…) and
 skip a part, saying why, when the data has none.
 
 ## Probe: one-off debugging
@@ -64,8 +64,8 @@ first-visit flags unset.
 node media/site-checks/probe.mjs --device iphone --engine webkit --do "tap:hit:3" --do back --do "eval:history.length"
 ```
 
-The state line: `<path> y=<scroll> focus=<card:id | #id | tag> drawer=<event id>
-stage=<photo n/N | open> open=<other dialogs> screen=<body data-screen>
+The state line: `<path> y=<scroll> focus=<card:id | #id | [period: button text] | tag> drawer=<event id>
+stage=<photo n/N | open> open=<other dialogs> screen=<body data-screen> folded=<periods still summarized>
 OVERFLOW=<px>`; empty parts are left out.
 
 ## Add a scenario
