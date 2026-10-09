@@ -295,6 +295,20 @@ def one_take_path(voice: dict) -> Path:
     return tts_path(script_text(voice), voice["name"], voice.get("direction", DIRECTION), voice.get("take", 0))
 
 
+def voice_files(voice: dict) -> list[Path]:
+    """The cached recordings a voice ("voice" in video.json) is made of: its one take ("one_take"), else each line's,
+    in order (its words, "take" and the direction). The one list tts, timing, make and clean read: make.py once
+    looked for a one-take video's lines, which never exist, and made it all again on every run (8 Oct 2026)."""
+    if voice.get("one_take"):
+        return [one_take_path(voice)]
+    direction = voice.get("direction", DIRECTION)
+    return [tts_path(line["text"], voice["name"], direction, line.get("take", 0)) for line in voice["lines"]]
+
+
+def _audio_hash(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:16] if path.exists() else "missing"
+
+
 def voice_key(settings: dict) -> str | None:
     """A key of everything the voice track and its timing are made of: each line's words, take and gap, the voice,
     the direction, the lead and the pauses, and the bytes of each cached line (or of the one take). tools/timing.py
@@ -305,16 +319,12 @@ def voice_key(settings: dict) -> str | None:
         return None
     direction = voice.get("direction", DIRECTION)
     parts: list[object] = [voice["name"], direction, voice.get("lead", 0.55), voice.get("max_pause", 0.32)]
+    recordings = voice_files(voice)
     if voice.get("one_take"):
-        path = one_take_path(voice)
-        audio = hashlib.sha256(path.read_bytes()).hexdigest()[:16] if path.exists() else "missing"
-        return key(
-            *parts, "one-take", script_text(voice), [line["id"] for line in voice["lines"]], voice.get("take", 0), audio
-        )
-    for line in voice["lines"]:
-        path = tts_path(line["text"], voice["name"], direction, line.get("take", 0))
-        audio = hashlib.sha256(path.read_bytes()).hexdigest()[:16] if path.exists() else "missing"
-        parts.append([line["text"], line.get("take", 0), line.get("gap", 0.3), audio])
+        ids = [line["id"] for line in voice["lines"]]
+        return key(*parts, "one-take", script_text(voice), ids, voice.get("take", 0), _audio_hash(recordings[0]))
+    for line, path in zip(voice["lines"], recordings, strict=True):
+        parts.append([line["text"], line.get("take", 0), line.get("gap", 0.3), _audio_hash(path)])
     return key(*parts)
 
 
@@ -326,6 +336,29 @@ def _norm(word: str) -> str:
     )
     plain = re.sub("[‘’ʼ]", "'", plain)  # Whisper's curly apostrophe (Pa’l): the script's straight one
     return re.sub(r"[^a-z']", "", plain)
+
+
+def line_starts(lines: list[dict], heard: list[dict]) -> list[int]:
+    """Where each line ("voice"."lines") starts in a one-take recording, as indexes into Whisper's words (`heard`).
+    Heard word for word: each line by its own count. Otherwise each line starts at its first two words, searched in
+    order (two words: "El viernes" vs "El sábado"), not before most of the line before it ("Y el domingo" inside "El
+    sábado y el domingo hay salsa"). Here, not in tools/timing.py: it's pure, and tested without numpy."""
+    counts = [len(line["text"].split()) for line in lines]
+    said = [_norm(w) for line in lines for w in line["text"].split()]
+    got = [_norm(w["word"]) for w in heard]
+    if got == said:
+        return [sum(counts[:k]) for k in range(len(counts))]
+    starts: list[int] = []
+    at = 0
+    for line, count in zip(lines, counts, strict=True):
+        first = [_norm(w) for w in line["text"].split()[:2]]
+        found = next((i for i in range(at, len(got)) if got[i : i + len(first)] == first), None)
+        if found is None:
+            heard_text = " ".join(w["word"] for w in heard[at:])
+            raise SystemExit(f'line {line["id"]}: "{" ".join(first)}" not heard after word {at} (heard: {heard_text})')
+        starts.append(found)
+        at = found + max(1, count - 2)
+    return starts
 
 
 def at_seconds(spec: str, timing: dict | None, fps: int = 30) -> float:

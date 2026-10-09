@@ -6,7 +6,8 @@
       reading of a line, add or bump its "take" in video.json and run again (the old take stays cached).
       With "voice"."one_take": true, the whole script is read in ONE request instead (it sounds far less robotic:
       the owner, 8 Oct 2026), cached by the script, voice, direction and "voice"."take"; tools/timing.py then cuts it
-      and finds each line in it.
+      and finds each line in it. Line ids are refused then (the script is one recording): bump "voice"."take" for a
+      new reading.
   .venv/Scripts/python media/tools/tts.py --audition "<text>" --voices Achird,Sulafat,Puck [--direction "<text>"]
       One sample per voice → out/auditions/<voice>-<key>.wav (media home), to choose a voice or a direction.
 
@@ -18,10 +19,24 @@ import os
 import re
 import time
 
-from common import CACHE, DIRECTION, HOME, key, load_env, one_take_path, script_text, shown, tts_path, video, write_wav
+from common import (
+    CACHE,
+    DIRECTION,
+    HOME,
+    TTS_RATE,
+    key,
+    load_env,
+    one_take_path,
+    script_text,
+    shown,
+    video,
+    voice_files,
+    write_wav,
+)
 
 # 2.5 answers reliably on the free tier; both time out at times (90 s timeout, retries with backoff).
 MODELS = ("gemini-2.5-flash-preview-tts", "gemini-3.8-flash-tts")
+BYTES_PER_SECOND = 2 * TTS_RATE  # 16-bit mono PCM: two bytes a sample
 
 
 def classify(error: Exception) -> str:
@@ -92,24 +107,29 @@ def lines(name: str, wanted: list[str]) -> None:
     voice = settings["name"]
     direction = settings.get("direction", DIRECTION)
     if settings.get("one_take"):
+        if wanted:  # they'd be ignored: there are no lines to record one by one
+            raise SystemExit(
+                f"{name} records its whole script in one take: no line ids ({' '.join(wanted)}). For a new reading, "
+                'bump "voice"."take" in video.json and run tts.py again without them.'
+            )
         path = one_take_path(settings)
         if path.exists():
             print(f"one take: cached ({path.name})")
             return
         pcm, model = say(script_text(settings), voice, direction)
         write_wav(path, pcm)
-        print(f"one take: {len(pcm) / 48000:.2f} s ({model}); check it: timing.py --transcribe {shown(path)}")
+        seconds = len(pcm) / BYTES_PER_SECOND
+        print(f"one take: {seconds:.2f} s ({model}); check it: timing.py --transcribe {shown(path)}")
         return
-    for line in settings["lines"]:
+    for line, path in zip(settings["lines"], voice_files(settings), strict=True):
         if wanted and line["id"] not in wanted:
             continue
-        path = tts_path(line["text"], voice, direction, line.get("take", 0))
         if path.exists():
             print(f"{line['id']}: cached ({path.name}) {line['text']}")
             continue
         pcm, model = say(line["text"], voice, direction)
         write_wav(path, pcm)
-        print(f"{line['id']}: {len(pcm) / 48000:.2f} s ({model}) {line['text']}", flush=True)
+        print(f"{line['id']}: {len(pcm) / BYTES_PER_SECOND:.2f} s ({model}) {line['text']}", flush=True)
 
 
 def audition(text: str, voices: list[str], direction: str) -> None:

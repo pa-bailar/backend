@@ -11,6 +11,7 @@ import {
   assets,
   C,
   camera,
+  capital,
   dateLabel,
   EndCard,
   FPS,
@@ -56,8 +57,6 @@ const HEAD_TOP = 276;
 // The end card (the kit's EndCard, as the teaser's): the call to action right under the band, the icon and the
 // record around SPOT, the wordmark and the sign-off below.
 const SPOT = { x: 540, y: 820 };
-
-const capital = (s: string) => s[0].toUpperCase() + s.slice(1);
 
 const Card: React.FC<{ e: VideoEvent; i: number; frame: number }> = ({ e, i, frame }) => {
   const start = sec(CARDS_AT + i * BEAT) + jit(`card${i}`, 1);

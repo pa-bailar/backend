@@ -69,6 +69,11 @@ export function weekend(today: string): { from: string; to: string } {
   return { from: fri.toISOString().slice(0, 10), to: sun.toISOString().slice(0, 10) };
 }
 
+/** A label that starts a line, with its first letter in capitals: "sábado 10 oct" → "Sábado 10 oct". */
+export function capital(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 /** "sábado 10 oct" (the site's short form). */
 export function dateLabel(iso: string, withWeekday = true): string {
   const d = day(iso);

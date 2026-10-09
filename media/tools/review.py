@@ -83,8 +83,6 @@ def _sheet(path: Path, at: list[float], out: Path, tmp: Path, reel: bool) -> Non
         f"drawbox=y=ih*{top / HEIGHT:.4f}:w=iw:h=1:color=cyan@0.8:t=fill,"
         f"drawbox=y=ih*{bottom / HEIGHT:.4f}:w=iw:h=1:color=cyan@0.8:t=fill"
     )
-    if not reel:
-        lines += f",drawbox=y=ih*{BAND['top'] / HEIGHT:.4f}:w=iw:h=1:color=yellow@0.8:t=fill"
     if reel:
         lines += (
             f",drawbox=y=ih*{REEL['top'] / HEIGHT:.4f}:w=iw:h=1:color=magenta@0.8:t=fill"
@@ -92,6 +90,8 @@ def _sheet(path: Path, at: list[float], out: Path, tmp: Path, reel: bool) -> Non
             f",drawbox=x=iw*{REEL['left'] / WIDTH:.4f}:w=1:h=ih:color=magenta@0.8:t=fill"
             f",drawbox=x=iw*{1 - REEL['right'] / WIDTH:.4f}:w=1:h=ih:color=magenta@0.8:t=fill"
         )
+    else:
+        lines += f",drawbox=y=ih*{BAND['top'] / HEIGHT:.4f}:w=iw:h=1:color=yellow@0.8:t=fill"
     label = f"drawtext=fontfile='{FONT}':fontsize=22:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=6:x=8:y=8"
     graph = ";".join(f"[{i}]scale=360:-1,{lines},{label}:text='{t:.2f} s'[p{i}]" for i, t in enumerate(at))
     if len(at) > 1:  # hstack needs two inputs at least

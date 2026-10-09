@@ -87,7 +87,9 @@ export function grid(bpm: number) {
     for (let n = Math.ceil(from / step - 1e-6); n * step < to; n++) out.push(n * step);
     return out;
   };
-  return { bpm, BEAT, BAR, beats: every(BEAT), downbeats: every(BAR) };
+  /** The beat at or before `s` seconds (its number): a cue on the beat at or just before a voice line (AUDIO.md). */
+  const beatAt = (s: number) => Math.floor(s / BEAT + 1e-6);
+  return { bpm, BEAT, BAR, beats: every(BEAT), downbeats: every(BAR), beatAt };
 }
 
 /** A video's grid from its video.json: `music.bpm`, or brand.json's default tempo. */

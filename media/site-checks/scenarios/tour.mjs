@@ -189,12 +189,16 @@ export default {
       await more.scrollIntoViewIfNeeded();
       const folded = (await ctx.snap()).folded;
       await ctx.tap(more);
-      const m = await look("Ver más");
-      check("Ver más opens the period whole", !m.folded.includes(period) && m.folded.length === folded.length - 1, m);
+      const m = await look("a month's block");
+      check(
+        "a month's block opens the period whole",
+        !m.folded.includes(period) && m.folded.length === folded.length - 1,
+        m,
+      );
       await ctx.back();
       const mb = await look("back");
       check("back folds it again", mb.folded.includes(period) && mb.url === "/", mb);
-    } else skip("Ver más", "no folded period in today's data");
+    } else skip("a month's block", "no folded period in today's data");
 
     check("no horizontal overflow", !overflow.length, overflow.join(", "));
   },

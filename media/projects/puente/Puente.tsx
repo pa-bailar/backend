@@ -12,6 +12,7 @@ import {
   assets,
   C,
   camera,
+  capital,
   clamp,
   type Cta,
   dateLabel,
@@ -53,7 +54,7 @@ import settings from "./video.json";
 /** Files in the media home's public/puente/ (flyers from tools/events.py, the two clips, the mixed soundtrack). */
 export const file = assets("puente");
 const DURATION_S = settings.duration;
-const { BEAT, beats, downbeats } = gridOf(settings);
+const { BEAT, beats, downbeats, beatAt } = gridOf(settings);
 /** The frame of beat `n` (the song's grid from its first hit). */
 const bt = (n: number) => sec(n * BEAT);
 const data = snapshot as EventsSnapshot;
@@ -63,8 +64,6 @@ const said = (id: string, w: string) => sec(word(id, w));
 
 // ---------- the events: the owner's six, in the order shown ----------
 
-/** The beat at or before `s` seconds. */
-const beatAt = (s: number) => Math.floor(s / BEAT + 1e-6);
 /**
  * The sections, in beats, each on the beat at or just before its voice line (one take: her pauses fall where she made
  * them, so the grid follows her): a day's stage whips in just before she names the day. Then the rest of the
@@ -111,7 +110,6 @@ const leaving = (i: number) => {
 const OTHERS = data.events.filter((e) => !SHOWN.some((s) => s.id === e.id) && e.flyer);
 const MORE = OTHERS.length; // "+25 planes más": the real count of this snapshot
 
-const capital = (s: string) => s[0].toUpperCase() + s.slice(1);
 /** The title as it reads on a flyer: the part before " - " ("Tardeo Latino - Edición: Ángeles" → "Tardeo Latino"). */
 const shortTitle = (t: string) => t.split(" - ")[0].trim();
 

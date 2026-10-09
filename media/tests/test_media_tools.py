@@ -5,6 +5,7 @@ import filecmp
 import json
 import os
 import time
+import urllib.error
 from datetime import date
 from pathlib import Path
 
@@ -148,6 +149,24 @@ def test_retire_takes_a_videos_folders_and_only_the_music_no_other_video_uses(tm
         clean.retired("missing")
 
 
+def test_offline_the_events_come_from_the_site_checkout_and_the_flyers_from_the_images_clone(tmp_path, monkeypatch):
+    site, images = tmp_path / "pa-bailar-web" / "data", tmp_path / "pa-bailar-images"
+    monkeypatch.setattr(events, "SITE_DATA", site)
+    monkeypatch.setattr(events, "IMAGES", images)
+    monkeypatch.setattr(events, "checkout_age", lambda: "last commit today")
+
+    def offline(*args, **kwargs):
+        raise urllib.error.URLError("no network")
+
+    monkeypatch.setattr(events.urllib.request, "urlopen", offline)
+    touch(site / "events.json").write_text('[{"id": "x"}]', encoding="utf-8")
+    touch(images / "flyers" / "1-0.webp").write_bytes(b"clone")
+    assert events.load_events(checkout=False) == ([{"id": "x"}], False)
+    assert events.fetch("flyers/1-0.webp", live=False) == b"clone"  # the site checkout has no copy
+    touch(site / "flyers" / "1-0.webp").write_bytes(b"copied")  # once `npm run media` copied them in
+    assert events.fetch("flyers/1-0.webp", live=False) == b"copied"
+
+
 def test_a_failed_flyer_download_leaves_no_stray_folder(tmp_path, monkeypatch):
     class V:
         public = tmp_path / "public"
@@ -200,9 +219,38 @@ def test_the_cleaner_never_lists_the_flyers_a_failed_swap_parked(tmp_path, monke
 
 def test_a_one_take_video_uses_its_take_not_its_lines(tmp_path, monkeypatch):
     voice = {"name": "Despina", "one_take": True, "lines": [{"id": "a", "text": "Hola."}, {"id": "b", "text": "Chao."}]}
+    # make.py looked for its lines, which never exist, and ran it all again, every time
+    assert common.voice_files(voice) == [common.one_take_path(voice)]
     assert clean.uses({"voice": voice}) == {common.one_take_path(voice).resolve()}
-    v = type("V", (), {"settings": {"voice": voice}})()
-    assert make.voice_lines(v) == [common.one_take_path(voice)]  # make.py ran it all again, every time
+
+
+def test_a_line_by_line_voice_uses_each_lines_take_and_direction():
+    lines = [{"id": "a", "text": "Hola."}, {"id": "b", "text": "Chao.", "take": 2}]
+    voice = {"name": "Achird", "lines": lines}
+    assert common.voice_files(voice) == [
+        common.tts_path("Hola.", "Achird", common.DIRECTION, 0),
+        common.tts_path("Chao.", "Achird", common.DIRECTION, 2),
+    ]
+    assert common.voice_files(voice | {"direction": "Otra."})[0] == common.tts_path("Hola.", "Achird", "Otra.", 0)
+    assert clean.uses({"voice": voice}) == {p.resolve() for p in common.voice_files(voice)}
+
+
+def heard(text: str) -> list[dict]:
+    return [{"word": w} for w in text.split()]
+
+
+def test_one_take_lines_split_where_the_script_does():
+    lines = [{"id": "a", "text": "El sábado y el domingo hay salsa."}, {"id": "b", "text": "Y el domingo, bachata."}]
+    assert common.line_starts(lines, heard("El sábado y el domingo hay salsa. Y el domingo, bachata.")) == [0, 7]
+    # Not heard word for word ("salza", an extra "eh"): each line is searched by its first two words, and the second
+    # isn't the "y el" inside the first.
+    assert common.line_starts(lines, heard("eh El sábado y el domingo hay salza. Y el domingo bachata")) == [1, 8]
+
+
+def test_a_one_take_line_not_heard_stops_with_what_was_heard():
+    lines = [{"id": "a", "text": "Todo en Pa' Bailar."}, {"id": "b", "text": "Te dejo el link."}]
+    with pytest.raises(SystemExit, match='line b: "te dejo" not heard after word 2'):
+        common.line_starts(lines, heard("Todo en Pa' Bailar. Ve dejó el link."))
 
 
 def test_whats_in_use_counts_other_worktrees_and_branches(tmp_path, monkeypatch):
@@ -230,9 +278,62 @@ def test_whats_in_use_counts_other_worktrees_and_branches(tmp_path, monkeypatch)
     monkeypatch.setattr(clean, "HOME", tmp_path / "home")
     monkeypatch.setattr(clean, "git", lambda *args: answers.get(args, ""))
     used = clean.in_use()
+    assert used is not None
     for bed in ("a", "b", "c"):
         assert (tmp_path / "home" / "cache" / "music" / f"{bed}.mp3").resolve() in used
-    assert sorted(name for name, _ in clean.project_settings()) == ["nuevo", "puente", "rama"]
+    found, unreadable = clean.project_settings()
+    assert sorted(name for name, _ in found) == ["nuevo", "puente", "rama"] and unreadable == []
+
+
+def cache_with_one_video(tmp_path, monkeypatch):
+    """A media home whose cache holds a used bed, an unused take, a folder with nothing used and a folder with one
+    used file; one video (`media/projects/v`) uses the bed and the folder's file. Git sees no worktrees or branches."""
+    home, media = tmp_path / "home", tmp_path / "media"
+    monkeypatch.setattr(clean, "HOME", home)
+    monkeypatch.setattr(clean, "MEDIA", media)
+    monkeypatch.setattr(clean, "git", lambda *args: "")
+    project = media / "projects" / "v" / "video.json"
+    project.parent.mkdir(parents=True)
+    project.write_text(json.dumps({"music": {"bed": "cache/music/kept/bed.mp3"}}), encoding="utf-8")
+    for rel in ("music/kept/bed.mp3", "music/kept/other.wav", "music/gone/a.wav", "music/gone/b.wav", "tts/x.wav"):
+        touch(home / "cache" / rel)
+    return home / "cache", media
+
+
+def test_unused_cache_takes_a_folder_whole_only_when_nothing_in_it_is_used(tmp_path, monkeypatch):
+    cache, _ = cache_with_one_video(tmp_path, monkeypatch)
+    assert sorted(clean.unused_cache()) == sorted(
+        [cache / "music" / "gone", cache / "music" / "kept" / "other.wav", cache / "tts" / "x.wav"]
+    )
+
+
+def test_an_unreadable_video_json_lists_nothing_in_the_cache(tmp_path, monkeypatch, capsys):
+    # Skipped silently, a broken video.json made its takes and bed "unused" for --yes to recycle (8 Oct 2026).
+    _, media = cache_with_one_video(tmp_path, monkeypatch)
+    broken = media / "projects" / "half-written" / "video.json"
+    broken.parent.mkdir(parents=True)
+    broken.write_text('{"voice": ', encoding="utf-8")
+    assert clean.unused_cache() == []
+    assert str(broken) in capsys.readouterr().err
+    touch(clean.HOME / "out" / "v" / "x.mp4")
+    assert clean.retired("v") == [clean.HOME / "out" / "v"]  # its folders, but no cache file "only it" uses
+
+
+def test_an_unreadable_branch_video_json_is_named_too(monkeypatch):
+    answers = {
+        ("for-each-ref", "--format=%(refname)", "refs/heads"): "refs/heads/x\n",
+        (
+            "ls-tree",
+            "-r",
+            "--name-only",
+            "--full-name",
+            "refs/heads/x",
+            "--",
+            "projects",
+        ): "media/projects/y/video.json",
+    }
+    monkeypatch.setattr(clean, "git", lambda *args: answers.get(args, "not json"))
+    assert clean.branch_settings() == ([], ["refs/heads/x:media/projects/y/video.json"])
 
 
 # ---------- times ----------
@@ -494,6 +595,24 @@ def test_provenance_is_required_for_the_bed_in_use():
     assert len(found) == 3 and any("'seed'" in p for p in found) and any("date like" in p for p in found)
 
 
+def test_a_licensed_tracks_provenance_needs_its_source_and_a_download_date():
+    bed = "cache/music/x.mp3"
+    entry = {
+        "source": "Pixabay",
+        "url": "https://pixabay.com/music/x",
+        "author": "someone",
+        "license": "Pixabay Content License",
+        "downloaded": "2026-10-08",
+    }
+    assert common.provenance_problems({"bed": bed, "provenance": {bed: entry}}) == []  # no model, seed… asked for
+    no_author = {k: v for k, v in entry.items() if k != "author"}
+    assert common.provenance_problems({"bed": bed, "provenance": {bed: no_author}}) == [
+        f"{bed}: provenance has no 'author'"
+    ]
+    found = common.provenance_problems({"bed": bed, "provenance": {bed: entry | {"downloaded": "8 Oct"}}})
+    assert len(found) == 1 and '"downloaded" should be a date' in found[0]
+
+
 def test_every_video_with_a_bed_records_its_provenance():
     for folder in sorted((common.MEDIA / "projects").iterdir()):
         if (folder / "video.json").exists():
@@ -534,6 +653,26 @@ def test_timing_problem_when_the_voice_changed(tmp_path, monkeypatch):
     settings["voice"]["lines"][0]["take"] = 1
     assert "changed" in render.timing_problem(v)
     assert render.timing_problem(common.Video("y", {})) is None
+
+
+def test_a_rerender_drops_the_link_to_the_file_it_replaces(tmp_path, monkeypatch):
+    monkeypatch.setattr(common, "HOME", tmp_path)
+    v = common.Video("x", {"version": "2", "renders": {"reel": "x-reel"}})
+    dest, older, link = v.render("reel"), v.out / "x-v1-reel.mp4", v.out / "reel.mp4"
+    touch(dest).write_bytes(b"old cut")
+    touch(older)
+    os.link(older, link)
+    render.drop_link_to(v, "reel", dest)
+    assert link.exists()  # a link to another version stays: latest_link() replaces it
+    link.unlink()
+    os.link(dest, link)
+    render.drop_link_to(v, "reel", dest)
+    assert not link.exists() and dest.exists()
+    dest.unlink()
+    dest.write_bytes(b"new cut")  # the render replaces its file
+    render.latest_link(v, "reel", dest)
+    assert link.read_bytes() == b"new cut"
+    assert not list(v.out.glob("*-unversioned-*"))  # the old cut wasn't kept as a stale "unversioned" render
 
 
 # ---------- make ----------
@@ -717,6 +856,15 @@ def test_tts_stops_clearly_without_a_key(monkeypatch):
         tts.api_key()
     monkeypatch.setenv("MEDIA_GEMINI_API_KEY", " k ")
     assert tts.api_key() == "k"
+
+
+def test_tts_refuses_line_ids_for_a_one_take_voice(monkeypatch):
+    voice = {"name": "Despina", "one_take": True, "lines": [{"id": "a", "text": "Hola."}]}
+    monkeypatch.setattr(tts, "video", lambda name: common.Video(name, {"voice": voice}))
+    monkeypatch.setattr(tts, "say", lambda *a: pytest.fail("called Gemini"))
+    with pytest.raises(SystemExit, match=r'one take: no line ids \(a\)\. For a new reading, bump "voice"\."take"'):
+        tts.lines("x", ["a"])
+    assert tts.BYTES_PER_SECOND == 48000  # Gemini's 24 kHz 16-bit mono
 
 
 def test_tts_retries_only_transient_errors():

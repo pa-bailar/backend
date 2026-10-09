@@ -23,9 +23,14 @@ session (the `teaser` skill's last step), not an occasional chore.
    media home's `archive/<video>/v<version>/` (the `teaser` skill, rule 5): the cleaner never touches `archive/`.
 2. **List:** `.venv/Scripts/python media/tools/clean.py` (from the backend root). It looks at:
    - the media home's `out/`: older versions of each deliverable, drafts, keyframe sheets, comparisons, scratch
-     folders (`stills…/`, `music-…/`, `auditions/`, the stills bundles), orphaned `-unversioned-` cuts and logs;
+     folders (`stills…/`, `music-…/`, `auditions/`, the stills bundles), the mix's intermediate WAVs, orphaned
+     `-unversioned-` cuts and logs;
+   - the media home's `public/<video>/`: the stray `.flyers-<pid>` folders a stopped `events.py` left (never a
+     `.flyers-old-<pid>`: a failed swap parks the video's current flyers there);
    - the media home's `cache/tts` and `cache/music`: takes and tracks no `projects/*/video.json` uses (its lines, its
-     one take, its bed);
+     one take, its bed). In use means any video.json of this checkout, of every other worktree and of every local
+     branch (the home is shared). While one of them can't be read, the cache isn't listed at all and a warning names
+     the file: fix it (or finish the edit) and list again;
    - old copies in the checkout and the first teaser project.
 3. **Read the list before recycling.** Nothing in use may be on it: each deliverable's latest render, the take a video
    uses (an approved audition must be in the cache under the video's key first: `media/AUDIO.md`, rule 9), the bed.
