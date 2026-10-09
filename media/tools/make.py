@@ -44,6 +44,7 @@ from common import (
     backend_path,
     load_env,
     mix_key,
+    one_take_path,
     shown,
     tts_path,
     video,
@@ -81,7 +82,11 @@ def files(*folders: Path) -> list[Path]:
 
 
 def voice_lines(v: Video) -> list[Path]:
+    """The cached recordings the voice is made of: its one take, or each line's. (Each line's for a one-take video
+    never exist, so every run made it all again, the render over the cut being posted: the bug-squash pass of 8 Oct.)"""
     voice = v.settings["voice"]
+    if voice.get("one_take"):
+        return [one_take_path(voice)]
     direction = voice.get("direction", DIRECTION)
     return [tts_path(x["text"], voice["name"], direction, x.get("take", 0)) for x in voice["lines"]]
 

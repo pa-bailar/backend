@@ -8,6 +8,7 @@ export const plain = (s: string) =>
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
+    .replace(/[‘’ʼ]/g, "'") // Whisper's curly apostrophe (Pa’l) is the script's straight one
     .replace(/[^a-z']/g, "");
 
 type Lines = { lines: { id: string; start: number; words: { word: string; start: number }[] }[] } | null | undefined;

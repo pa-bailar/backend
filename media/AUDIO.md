@@ -11,8 +11,10 @@ the first one-take had "an American accent" and "sped up"; the fourth was "great
 1. **Record the whole script in one take** (`"voice"."one_take": true` in `video.json`). Recorded line by line, every
    line restarts its intonation: six separate readings, which is what sounds robotic. In one take she carries the
    momentum from phrase to phrase. `tools/tts.py` sends the whole script in one request; `tools/timing.py` cuts it
-   from just before the first word to just after the last and finds each line by its first two words (Whisper, with
-   the script as a hint so names come out as written). The video's sections then follow her pauses: put each on the
+   from just before the first word to just after the last and finds each line (by the script's word counts when
+   Whisper heard it word for word, else by its first two words; Whisper, with the script as a hint so names come out
+   as written). If Whisper's first or last word isn't the script's, it stops rather than cut a word off: listen to
+   the take, and re-record if the word isn't there. The video's sections then follow her pauses: put each on the
    beat at or just before its line (`beatAt(line(id).start)`), not on a fixed grid with gaps.
 2. **Write the direction in Spanish, structured** as Google's TTS prompting guide does: a profile, the scene, the
    director's notes, then the transcript. In English, the model drifted to an American accent; unstructured, the

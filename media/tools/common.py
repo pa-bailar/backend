@@ -324,6 +324,7 @@ def _norm(word: str) -> str:
     plain = "".join(
         c for c in unicodedata.normalize("NFD", word.lower()) if not unicodedata.category(c).startswith("M")
     )
+    plain = re.sub("[‘’ʼ]", "'", plain)  # Whisper's curly apostrophe (Pa’l): the script's straight one
     return re.sub(r"[^a-z']", "", plain)
 
 

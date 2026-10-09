@@ -85,8 +85,13 @@ export default {
         );
         return before.at(-1)?.dataset.eventCard ?? null;
       }, period);
-    const intoBlock = async () => {
+    /** The list from a fresh entry: a reload of one with blocks open keeps them open (site, 8 Oct 2026). */
+    const fresh = async () => {
+      await page.evaluate(() => history.replaceState(null, "", location.pathname));
       await ctx.goto("/");
+    };
+    const intoBlock = async () => {
+      await fresh();
       const period = (await ctx.snap()).folded[0];
       const last = page.locator(`[role="tabpanel"]:not([hidden]) [data-event-card="${await cardBefore(period)}"]`);
       await last.locator("[data-card-image]").first().click();
@@ -99,7 +104,7 @@ export default {
       ctx.log(`history: → into ${period}`, s);
       return { period, s };
     };
-    await ctx.goto("/");
+    await fresh();
     if (blocks.length && (await cardBefore(blocks[0]))) {
       let { period, s } = await intoBlock();
       check("history: → from the card before a block opens it", !s.folded.includes(period) && s.drawer, s);
@@ -138,6 +143,8 @@ export default {
         r.drawer === s.drawer,
         `${s.drawer} → ${r.drawer || "closed"} (${r.url})`,
       );
+      // The bug-squash pass of 8 Oct 2026: a reload folded the block, and the next back did nothing.
+      check("history: a reload keeps the block open", !r.folded.includes(period), r);
       await ctx.back();
       const rb = await ctx.step("history: back");
       check("history: back after the reload closes them, on the site", rb.url === "/" && !rb.drawer, rb);

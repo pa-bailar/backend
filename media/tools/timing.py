@@ -94,35 +94,51 @@ def build_one_take(v, voice: dict, lead: float) -> None:
     heard = words_of(raw_path, script)
     if not heard:
         raise SystemExit(f"Whisper heard nothing in {raw_path.name}")
+    # The cut follows Whisper's first and last words: one it missed there would be cut out of the track, silently
+    # ("link" dropped, the bug-squash pass of 8 Oct 2026). Listen to the take; re-record it if the word isn't there.
+    said = [_norm(w) for w in script.split()]
+    got = [_norm(w["word"]) for w in heard]
+    for where, want, have in (("first", said[0], got[0]), ("last", said[-1], got[-1])):
+        if want != have:
+            raise SystemExit(
+                f'Whisper\'s {where} word is "{have}", the script\'s "{want}": it would be cut off the track'
+            )
     start, end = max(0.0, heard[0]["start"] - 0.06), heard[-1]["end"] + 0.12
     take = raw[int(start * RATE) : int(end * RATE)].copy()
     fade = int(0.08 * RATE)
     take[-fade:] *= np.linspace(1, 0, fade, dtype=np.float32)
     track = np.concatenate([np.zeros(int(lead * RATE), np.float32), take, np.zeros(int(0.3 * RATE), np.float32)])
     out = v.out / "voice-track.wav"
-    write(out, track)
-    print(f"{out.name}: {len(track) / RATE:.2f} s, one take (the video is {v.duration} s)")
 
     shift = lead - start
     words = [{**w, "start": round(w["start"] + shift, 3), "end": round(w["end"] + shift, 3)} for w in heard]
-    # Each line starts at its first two words, searched in order (two words: "El viernes" vs "El sábado").
-    starts, at = [], 0
-    for line in voice["lines"]:
-        want = [_norm(w) for w in line["text"].split()[:2]]
-        found = next(
-            (i for i in range(at, len(words)) if [_norm(w["word"]) for w in words[i : i + len(want)]] == want), None
-        )
-        if found is None:
-            heard_text = " ".join(w["word"] for w in words[at:])
-            raise SystemExit(f'line {line["id"]}: "{" ".join(want)}" not heard after word {at} (heard: {heard_text})')
-        starts.append(found)
-        at = found + 1
+    counts = [len(line["text"].split()) for line in voice["lines"]]
+    if got == said:  # heard word for word: each line by its own count
+        starts = [sum(counts[:k]) for k in range(len(counts))]
+    else:
+        # Each line starts at its first two words, searched in order (two words: "El viernes" vs "El sábado"), not
+        # before most of the line before it ("Y el domingo" inside "El sábado y el domingo hay salsa").
+        starts, at = [], 0
+        for line, count in zip(voice["lines"], counts, strict=True):
+            want = [_norm(w) for w in line["text"].split()[:2]]
+            found = next(
+                (i for i in range(at, len(words)) if [_norm(w["word"]) for w in words[i : i + len(want)]] == want), None
+            )
+            if found is None:
+                heard_text = " ".join(w["word"] for w in words[at:])
+                raise SystemExit(
+                    f'line {line["id"]}: "{" ".join(want)}" not heard after word {at} (heard: {heard_text})'
+                )
+            starts.append(found)
+            at = found + max(1, count - 2)
     lines = []
     for k, line in enumerate(voice["lines"]):
         mine = words[starts[k] : starts[k + 1] if k + 1 < len(starts) else len(words)]
         lines.append(
             {"id": line["id"], "text": line["text"], "start": mine[0]["start"], "end": mine[-1]["end"], "words": mine}
         )
+    write(out, track)  # only now: a take whose lines aren't found leaves the track and timing.json as they were
+    print(f"{out.name}: {len(track) / RATE:.2f} s, one take (the video is {v.duration} s)")
     write_timing(
         v, voice, track, out, lead, lines, segments=[], note="One take: line and word times are Whisper medium (es)."
     )
