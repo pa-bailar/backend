@@ -17,7 +17,8 @@ Looks in four places:
   this checkout, every other worktree and every local branch (the home is shared: a video on a branch is in use) (a
   voice line or one take that isn't any video's now, like the takes before the one the owner approved; a bed or a
   downloaded track no video's "music"."bed" names, with its .json). What a video uses stays (the owner, 8 Oct 2026:
-  "you create several versions of voice or video, and then just leave them there").
+  "you create several versions of voice or video, and then just leave them there"). While any of those video.json
+  files can't be read, nothing in the cache is listed (a warning names each): what it uses is unknown.
 - the checkout's media/cache, media/public/<video> and media/out/<video> from before the media home: a file is
   listed only when the home holds an identical copy (a render of a posted version: in the archive). The site checks
   that live in media/out/ (`*.mjs`, `site-bugs/`, `site-quality/`, `admin-tabs/`, and `site-checks/`: the
@@ -44,6 +45,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from common import DIRECTION, HOME, MEDIA, one_take_path, parse_render_name, tts_path
@@ -69,12 +71,27 @@ SITE_CHECKS = {"site-bugs", "site-quality", "admin-tabs", "site-checks"}
 VERSIONED = re.compile(r"^(?P<name>.+?)-v(?P<version>\d+(?:\.\d+)*)-(?P<deliverable>[\w-]+)\.mp4$")
 
 
+def git(*args: str, root: Path | None = None) -> str:
+    """A git command in `root` (default: this checkout); "" when git or the command fails (then only this checkout's
+    files count)."""
+    try:
+        run = subprocess.run(
+            ["git", "-C", str(MEDIA if root is None else root), *args],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return ""
+    return run.stdout
+
+
 def tracked(root: Path) -> set[Path]:
     """Files a git checkout tracks (never removed)."""
     if not (root / ".git").exists():
         return set()
-    out = subprocess.run(["git", "-C", str(root), "ls-files"], capture_output=True, text=True, encoding="utf-8").stdout
-    return {(root / line).resolve() for line in out.splitlines()}
+    return {(root / line).resolve() for line in git("ls-files", root=root).splitlines()}
 
 
 def size(path: Path) -> int:
@@ -216,22 +233,13 @@ def uses(settings: dict) -> set[Path]:
     return used
 
 
-def git(*args: str) -> str:
-    """A git command in this checkout; "" when git or the command fails (then only this checkout's files count)."""
-    try:
-        run = subprocess.run(
-            ["git", "-C", str(MEDIA), *args], capture_output=True, text=True, encoding="utf-8", check=True
-        )
-    except (OSError, subprocess.CalledProcessError):
-        return ""
-    return run.stdout
+Settings = list[tuple[str, dict]]  # (video, its video.json)
 
 
-def project_settings() -> list[tuple[str, dict]]:
-    """Every video's settings the shared media home serves, as (video, video.json): this checkout's and every other
-    worktree's files, and each local branch's committed ones. Only this checkout's, the bug-squash pass of 8 Oct 2026
-    found, listed a branch's new video's takes and bed as unused."""
-    found: list[tuple[str, dict]] = []
+def worktree_settings() -> tuple[Settings, list[str]]:
+    """The video.json files of this checkout and every other worktree, and the ones that couldn't be read."""
+    found: Settings = []
+    unreadable: list[str] = []
     roots = [MEDIA] + [
         Path(line.removeprefix("worktree ")) / "media"
         for line in git("worktree", "list", "--porcelain").splitlines()
@@ -246,7 +254,14 @@ def project_settings() -> list[tuple[str, dict]]:
             try:
                 found.append((path.parent.name, json.loads(path.read_text(encoding="utf-8"))))
             except (OSError, ValueError):
-                continue
+                unreadable.append(str(path))
+    return found, unreadable
+
+
+def branch_settings() -> tuple[Settings, list[str]]:
+    """Each local branch's committed video.json files, and the ones that couldn't be read (as `<ref>:<path>`)."""
+    found: Settings = []
+    unreadable: list[str] = []
     for ref in git("for-each-ref", "--format=%(refname)", "refs/heads").split():
         for name in git("ls-tree", "-r", "--name-only", "--full-name", ref, "--", "projects").splitlines():
             if not name.endswith("/video.json"):
@@ -254,14 +269,30 @@ def project_settings() -> list[tuple[str, dict]]:
             try:
                 found.append((name.split("/")[-2], json.loads(git("show", f"{ref}:{name}"))))
             except ValueError:
-                continue
-    return found
+                unreadable.append(f"{ref}:{name}")
+    return found, unreadable
 
 
-def in_use(skip: str | None = None) -> set[Path]:
-    """The cache files some video uses (every video's settings but `skip`'s: project_settings)."""
+def project_settings() -> tuple[Settings, list[str]]:
+    """Every video's settings the shared media home serves (this checkout's and every other worktree's files, and each
+    local branch's committed ones), and the video.json files that couldn't be read. Only this checkout's, the
+    bug-squash pass of 8 Oct 2026 found, listed a branch's new video's takes and bed as unused."""
+    here, bad_here = worktree_settings()
+    branches, bad_branches = branch_settings()
+    return here + branches, bad_here + bad_branches
+
+
+def in_use(skip: str | None = None) -> set[Path] | None:
+    """The cache files some video uses (every video's settings but `skip`'s: project_settings), or None when a
+    video.json couldn't be read: that video's takes and bed are unknown, so nothing in the cache is known unused (a
+    broken file skipped silently made them "unused", and --yes would have recycled them)."""
+    found, unreadable = project_settings()
+    for where in unreadable:
+        print(f"WARNING: can't read {where}: the voice takes and music in the cache aren't listed", file=sys.stderr)
+    if unreadable:
+        return None
     used: set[Path] = set()
-    for name, settings in project_settings():
+    for name, settings in found:
         if name != skip:
             used |= uses(settings)
     return used
@@ -269,19 +300,24 @@ def in_use(skip: str | None = None) -> set[Path]:
 
 def retired(name: str) -> list[Path]:
     """A finished video's files in the media home: its out/, public/ and archive/ folders, and the cache files only it
-    uses. The project folder (in git) stays."""
+    uses (none while a video.json can't be read: in_use). The project folder (in git) stays."""
     project = MEDIA / "projects" / name / "video.json"
     if not project.exists():
         raise SystemExit(f"no video called {name!r} (no {project})")
-    folders = [HOME / top / name for top in ("out", "public", "archive")]
+    folders = [f for f in (HOME / top / name for top in ("out", "public", "archive")) if f.exists()]
     others = in_use(skip=name)
+    if others is None:
+        return sorted(folders)
     own = uses(json.loads(project.read_text(encoding="utf-8")))
-    return sorted([f for f in folders if f.exists()] + [f for f in own if f.exists() and f not in others])
+    return sorted(folders + [f for f in own if f.exists() and f not in others])
 
 
 def unused_cache() -> list[Path]:
-    """Voice takes and music in the home's cache that no video uses (a folder whole when nothing in it is used)."""
+    """Voice takes and music in the home's cache that no video uses (a folder whole when nothing in it is used); none
+    while a video.json can't be read (in_use)."""
     used = in_use()
+    if used is None:
+        return []
     picks: list[Path] = []
     for top in ("tts", "music"):
         root = HOME / "cache" / top

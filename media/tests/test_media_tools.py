@@ -230,9 +230,62 @@ def test_whats_in_use_counts_other_worktrees_and_branches(tmp_path, monkeypatch)
     monkeypatch.setattr(clean, "HOME", tmp_path / "home")
     monkeypatch.setattr(clean, "git", lambda *args: answers.get(args, ""))
     used = clean.in_use()
+    assert used is not None
     for bed in ("a", "b", "c"):
         assert (tmp_path / "home" / "cache" / "music" / f"{bed}.mp3").resolve() in used
-    assert sorted(name for name, _ in clean.project_settings()) == ["nuevo", "puente", "rama"]
+    found, unreadable = clean.project_settings()
+    assert sorted(name for name, _ in found) == ["nuevo", "puente", "rama"] and unreadable == []
+
+
+def cache_with_one_video(tmp_path, monkeypatch):
+    """A media home whose cache holds a used bed, an unused take, a folder with nothing used and a folder with one
+    used file; one video (`media/projects/v`) uses the bed and the folder's file. Git sees no worktrees or branches."""
+    home, media = tmp_path / "home", tmp_path / "media"
+    monkeypatch.setattr(clean, "HOME", home)
+    monkeypatch.setattr(clean, "MEDIA", media)
+    monkeypatch.setattr(clean, "git", lambda *args: "")
+    project = media / "projects" / "v" / "video.json"
+    project.parent.mkdir(parents=True)
+    project.write_text(json.dumps({"music": {"bed": "cache/music/kept/bed.mp3"}}), encoding="utf-8")
+    for rel in ("music/kept/bed.mp3", "music/kept/other.wav", "music/gone/a.wav", "music/gone/b.wav", "tts/x.wav"):
+        touch(home / "cache" / rel)
+    return home / "cache", media
+
+
+def test_unused_cache_takes_a_folder_whole_only_when_nothing_in_it_is_used(tmp_path, monkeypatch):
+    cache, _ = cache_with_one_video(tmp_path, monkeypatch)
+    assert sorted(clean.unused_cache()) == sorted(
+        [cache / "music" / "gone", cache / "music" / "kept" / "other.wav", cache / "tts" / "x.wav"]
+    )
+
+
+def test_an_unreadable_video_json_lists_nothing_in_the_cache(tmp_path, monkeypatch, capsys):
+    # Skipped silently, a broken video.json made its takes and bed "unused" for --yes to recycle (8 Oct 2026).
+    _, media = cache_with_one_video(tmp_path, monkeypatch)
+    broken = media / "projects" / "half-written" / "video.json"
+    broken.parent.mkdir(parents=True)
+    broken.write_text('{"voice": ', encoding="utf-8")
+    assert clean.unused_cache() == []
+    assert str(broken) in capsys.readouterr().err
+    touch(clean.HOME / "out" / "v" / "x.mp4")
+    assert clean.retired("v") == [clean.HOME / "out" / "v"]  # its folders, but no cache file "only it" uses
+
+
+def test_an_unreadable_branch_video_json_is_named_too(monkeypatch):
+    answers = {
+        ("for-each-ref", "--format=%(refname)", "refs/heads"): "refs/heads/x\n",
+        (
+            "ls-tree",
+            "-r",
+            "--name-only",
+            "--full-name",
+            "refs/heads/x",
+            "--",
+            "projects",
+        ): "media/projects/y/video.json",
+    }
+    monkeypatch.setattr(clean, "git", lambda *args: answers.get(args, "not json"))
+    assert clean.branch_settings() == ([], ["refs/heads/x:media/projects/y/video.json"])
 
 
 # ---------- times ----------
