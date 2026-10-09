@@ -1,7 +1,7 @@
 // Taps that change what's under the finger (site #165, the bug hunt of 7 Oct 2026): a double-tap's second tap never
-// presses what the first one opened (the view under a notice's button), and a tap on a
+// presses what the first one opened (a month block's new cards, the view under a notice's button), and a tap on a
 // sheet's own edge doesn't close it, while one on its backdrop does. Phones.
-import { Skip } from "../lib.mjs";
+import { Skip, VIEW } from "../lib.mjs";
 
 /** A finger's double-tap at the middle of `locator`: two taps `gap` ms apart, on the same spot. */
 async function doubleTap(page, locator, gap = 150) {
@@ -15,13 +15,24 @@ async function doubleTap(page, locator, gap = 150) {
 
 export default {
   name: "taps",
-  summary: "a double-tap's second tap never presses what the first opened (a notice's button); a sheet's edge doesn't close it",
+  summary: "a double-tap's second tap never presses what the first opened (a month's block, a notice's button); a sheet's edge doesn't close it",
   devices: ["phone", "iphone"],
   async run(ctx) {
     const { page, check } = ctx;
     if (!ctx.touch) throw new Skip("a finger's taps are a phone's");
     await ctx.goto("/");
     if (!(await ctx.cards().count())) throw new Skip("no events on the list");
+
+    // A folded period's "Ver los N eventos", double-tapped: the period opens, no event's details
+    const more = page.locator(`${VIEW} [data-show-period]`).first();
+    if (await more.count()) {
+      const period = await more.getAttribute("data-show-period");
+      await doubleTap(page, more);
+      await ctx.settle();
+      const opened = await ctx.step("a period's button double-tapped");
+      check("a period's button double-tapped opens no event's details", !opened.drawer, opened);
+      check("…and opens its period", !opened.folded.includes(period), opened);
+    } else ctx.skip("a period's button double-tapped", "no folded period today");
 
     // A notice's "Ver guardados", double-tapped: Guardados, and no event's details under the finger
     await ctx.goto("/");

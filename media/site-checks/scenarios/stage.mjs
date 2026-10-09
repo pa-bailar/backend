@@ -1,13 +1,13 @@
 // The image beside the details on a desktop (the owner and a review, 6 Oct): ← → go through an event's photos first,
-// then the next event (← back: the previous one's last photo); from the details ↓ walks the whole list to its last
-// event; the details of an event deep in the list survive a reload, and back then stays on the site.
+// then the next event (← back: the previous one's last photo); from the details, moving onto a period's block opens it
+// and shows its first new event; with a block opened that way, Escape, back, forward and a reload stay sane.
 import { Skip } from "../lib.mjs";
 
 const visibleCards = '[role="tabpanel"]:not([hidden]) [data-event-card]';
 
 export default {
   name: "stage",
-  summary: "photos then events with ← →, the whole list from the details, a reload with them open (desktop)",
+  summary: "photos then events with ← →, blocks opened from the details, and the history after that (desktop)",
   devices: ["desktop"],
   async run(ctx) {
     const { page, check, skip } = ctx;
@@ -44,35 +44,103 @@ export default {
       await ctx.key("Escape");
     } else skip("photos", "no event with several photos in today's data");
 
-    // (2) From the details, ↓ to the end: the whole list, card by card, ends on its last card (the list shows every
-    // event since 8 Oct 2026: no block to open on the way)
+    // (2) From the details, ↓ to the end: every block on the way opens and shows its first new event
     await ctx.goto("/");
-    const lastId = await page.locator(visibleCards).last().getAttribute("data-event-card");
-    await ctx.key("ArrowDown");
-    await ctx.key("Enter");
-    let prev = await ctx.step("walk: Enter on the first card");
-    for (let i = 0; i < 400; i++) {
+    const blocks = (await ctx.snap()).folded;
+    if (blocks.length) {
       await ctx.key("ArrowDown");
-      const now = await ctx.snap();
-      if (now.drawer === prev.drawer) break;
-      prev = now;
-    }
-    const end = await ctx.step("walk: the end");
-    check("walk: ↓ from the details reaches the list's last event", end.drawer === lastId, `${end.drawer} (last: ${lastId})`);
-    await ctx.key("Escape");
+      await ctx.key("Enter");
+      let prev = await ctx.step("blocks: Enter on the first card");
+      const silent = [];
+      let opened = 0;
+      for (let i = 0; i < 300; i++) {
+        await ctx.key("ArrowDown");
+        const now = await ctx.snap();
+        if (now.folded.length < prev.folded.length) {
+          opened += prev.folded.length - now.folded.length;
+          ctx.log(`blocks: opened ${prev.folded.filter((p) => !now.folded.includes(p)).join(",")}`, now);
+          if (now.drawer === prev.drawer) silent.push(prev.folded.find((p) => !now.folded.includes(p)));
+        }
+        if (now.drawer === prev.drawer && now.folded.length === prev.folded.length) break;
+        prev = now;
+      }
+      const end = await ctx.step("blocks: the end");
+      check(
+        "blocks: every block opens on the way down",
+        opened === blocks.length && !end.folded.length,
+        `${opened} of ${blocks.length}, left ${end.folded.join(",")}`,
+      );
+      check("blocks: each shows its first new event", !silent.length, `stopped silently on ${silent.join(",")}`);
+      await ctx.key("Escape");
+    } else skip("blocks", "no folded period in today's data");
 
-    // (3) The details of an event deep in the list: a reload keeps them; back then closes them, on the site
+    // (3) A block opened from the details (→ from the card just before it): Escape, back, forward, reload
+    /** The last card before the first folded period's block, in the page's order (null: none). */
+    const cardBefore = (period) =>
+      page.evaluate((p) => {
+        const view = document.querySelector('[role="tabpanel"]:not([hidden])');
+        const block = view.querySelector(`[data-period="${p}"]`);
+        const before = [...view.querySelectorAll("[data-event-card]")].filter(
+          (card) => card.compareDocumentPosition(block) & Node.DOCUMENT_POSITION_FOLLOWING,
+        );
+        return before.at(-1)?.dataset.eventCard ?? null;
+      }, period);
+    const intoBlock = async () => {
+      await ctx.goto("/");
+      const period = (await ctx.snap()).folded[0];
+      const last = page.locator(`[role="tabpanel"]:not([hidden]) [data-event-card="${await cardBefore(period)}"]`);
+      await last.locator("[data-card-image]").first().click();
+      await ctx.settle();
+      let s = await ctx.snap();
+      for (let i = 0; i < 12 && s.folded.includes(period); i++) {
+        await ctx.key("ArrowRight");
+        s = await ctx.snap();
+      }
+      ctx.log(`history: → into ${period}`, s);
+      return { period, s };
+    };
     await ctx.goto("/");
-    const deep = page.locator(visibleCards).last();
-    const deepId = await deep.getAttribute("data-event-card");
-    await deep.locator("[data-card-image]").first().click();
-    await ctx.settle();
-    await page.reload({ waitUntil: "load" });
-    await ctx.settle();
-    const r = await ctx.step("history: reload (details open)");
-    check("history: a reload keeps the event's details", r.drawer === deepId, `${deepId} → ${r.drawer || "closed"} (${r.url})`);
-    await ctx.back();
-    const rb = await ctx.step("history: back");
-    check("history: back after the reload closes them, on the site", rb.url === "/" && !rb.drawer, rb);
+    if (blocks.length && (await cardBefore(blocks[0]))) {
+      let { period, s } = await intoBlock();
+      check("history: → from the card before a block opens it", !s.folded.includes(period) && s.drawer, s);
+      await ctx.key("Escape");
+      const e = await ctx.step("history: Escape");
+      check(
+        "history: Escape closes the details, the block stays open",
+        !e.drawer && !e.stage && e.url === "/" && !e.folded.includes(period),
+        e,
+      );
+      await ctx.back();
+      const b = await ctx.step("history: back");
+      check("history: back folds the block", b.url === "/" && b.folded.includes(period) && !b.drawer, b);
+      await ctx.forward();
+      const f = await ctx.step("history: forward");
+      check("history: forward opens it again, no details", f.url === "/" && !f.folded.includes(period) && !f.drawer, f);
+
+      ({ period, s } = await intoBlock());
+      await ctx.back();
+      const b1 = await ctx.step("history: back (details open)");
+      check(
+        "history: back closes the details, the block stays",
+        !b1.drawer && !b1.stage && b1.url === "/" && !b1.folded.includes(period),
+        b1,
+      );
+      await ctx.back();
+      const b2 = await ctx.step("history: back again");
+      check("history: back again folds the block", b2.url === "/" && b2.folded.includes(period), b2);
+
+      ({ period, s } = await intoBlock());
+      await page.reload({ waitUntil: "load" });
+      await ctx.settle();
+      const r = await ctx.step("history: reload (details open)");
+      check(
+        "history: a reload keeps the event's details",
+        r.drawer === s.drawer,
+        `${s.drawer} → ${r.drawer || "closed"} (${r.url})`,
+      );
+      await ctx.back();
+      const rb = await ctx.step("history: back");
+      check("history: back after the reload closes them, on the site", rb.url === "/" && !rb.drawer, rb);
+    } else skip("history", "no folded period after a card in today's data");
   },
 };
