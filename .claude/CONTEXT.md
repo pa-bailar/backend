@@ -68,9 +68,11 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
 - **Clicks are delegated:** one listener in `main.ts` (`CONTROLS`, matched with `closest()`). No page-level element
   may carry a control's `data-*`: the view is marked on `<body>` as `data-screen`, never `data-view` (that made every
   click a tap on the current tab; a guard test checks it).
-- **History:** `screenHistory.ts` gives screens (a period opened whole, the calendar, Guardados) and overlays (sheets,
+- **History:** `screenHistory.ts` gives screens (the calendar, Guardados) and overlays (sheets,
   the details, menus, the search field) their own entries; back must never leave the site unexpectedly. Every change
   to navigation needs back, forward, reload and "opened straight on that address" checked.
+- **The list shows every event** (8 Oct 2026): no "Ver N más" or folded months; a button in the middle of a feed
+  scrolls by unnoticed. The weekend goes under a heading per day; the calendar is for browsing ahead.
 - **The filter model is pure** (`lib/filterModel.ts`, `state.ts` `matchesFilters`): every path that shows events goes
   through it. Guardados ignores the filters; the search applies everywhere.
 - **Bogotá time** everywhere (`lib/dates.ts`), never the device's zone; events past midnight end at their end time.

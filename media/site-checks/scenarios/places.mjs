@@ -1,8 +1,8 @@
 // Where the keys start and the page keeping its place (the bug-squash pass of 6 Oct, site #145; the code-quality pass
 // of 7 Oct): a click in the list's gaps or a card clicked (Safari doesn't focus it) leaves the arrows a start; the
 // skip link too; scrolled away from the card in focus, an arrow starts on screen; closing the side panel keeps what
-// the visitor sees; Escape in the toolbar's search ends it, and the next one closes the panel; Enter on "Ver N más"
-// moves the panel to the first new event, and so does Space. From deep in the list, Guardados and a search start at
+// the visitor sees; Escape in the toolbar's search ends it, and the next one closes the panel. From deep in the list,
+// Guardados and a search start at
 // the top, under the toolbar (site #167: the sticky toolbar read 0 once pinned, and the page never went back up).
 // Desktop, 1366 × 768 or the device's size.
 import { Skip, VIEW, fmt, focusedCardId } from "../lib.mjs";
@@ -25,11 +25,11 @@ const gapAt = (page, y) =>
     { VIEW, y },
   );
 
-/** The list's first piece in sight (a card, a heading, a block), marked, and its top: what closing keeps in place. */
+/** The list's first piece in sight (a card, a heading), marked, and its top: what closing keeps in place. */
 const markAnchor = (page) =>
   page.evaluate((VIEW) => {
     const bar = document.querySelector(".toolbar")?.getBoundingClientRect().bottom ?? 0;
-    const pieces = [...document.querySelectorAll(`${VIEW} [data-event-card], ${VIEW} .agenda-group__header, ${VIEW} [data-show-period]`)]
+    const pieces = [...document.querySelectorAll(`${VIEW} [data-event-card], ${VIEW} .agenda-group__header`)]
       .filter((e) => e.getClientRects().length)
       .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
     const piece = pieces.find((e) => {
@@ -52,10 +52,10 @@ const tops = (page) =>
 /** The view's content starts at its top: right under the toolbar (2 px for rounding), high on the first screen. */
 const atTheTop = ({ toolbar, main }) => main >= toolbar - 2 && main < 400;
 
-/** The stop in focus (a card or a block): its top on screen, or null. */
+/** The card in focus: its top on screen, or null. */
 const focusedStopTop = (page) =>
   page.evaluate(() => {
-    const stop = document.activeElement?.closest("[data-event-card], [data-show-period]");
+    const stop = document.activeElement?.closest("[data-event-card]");
     return stop ? Math.round(stop.getBoundingClientRect().top) : null;
   });
 
@@ -167,31 +167,5 @@ export default {
     await ctx.settle();
     const searched = await tops(page);
     check("from deep in the list, a search's results start at the top", atTheTop(searched), searched);
-
-    // Enter on "Ver N más" with the panel open: the panel on the first new event, the focus there
-    await ctx.goto("/");
-    if (!(await page.locator(`${VIEW} .period-more`).count())) return ctx.skip("Enter and Space on Ver N más", "no period with more events today");
-    await ctx.key("ArrowDown");
-    await ctx.settle();
-    await page.evaluate((VIEW) => document.querySelector(`${VIEW} .period-more`).focus(), VIEW);
-    await ctx.key("Enter");
-    await ctx.settle();
-    const more = await ctx.snap();
-    check("Enter on Ver N más: the panel on the new card in focus", focusedCardId(more) && more.drawer === focusedCardId(more), more);
-
-    // Space does the same as Enter: the new card on screen, the panel on it (it was left 184 px above, the panel behind)
-    await ctx.goto("/");
-    await ctx.key("ArrowDown");
-    await ctx.settle();
-    await page.evaluate((VIEW) => document.querySelector(`${VIEW} .period-more`).focus(), VIEW);
-    await ctx.key("Space");
-    await ctx.settle();
-    const spaced = await ctx.snap();
-    const spacedTop = await focusedStopTop(page);
-    check(
-      "Space on Ver N más: the new card in focus, on screen, the panel on it",
-      focusedCardId(spaced) && spaced.drawer === focusedCardId(spaced) && spacedTop !== null && spacedTop >= 0,
-      `${fmt(spaced)}, the stop's top ${spacedTop}`,
-    );
   },
 };
