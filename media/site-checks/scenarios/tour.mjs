@@ -182,19 +182,15 @@ export default {
       check("back closes Filtros", !fc.open.length && fc.url === "/", fc);
     } else skip("Filtros", "no Filtros button here (the desktop's pills)");
 
-    // A period's "Ver más", then back
-    const more = await visible(page, '[role="tabpanel"]:not([hidden]) [data-show-period]');
-    if (more) {
-      const period = await more.getAttribute("data-show-period");
-      await more.scrollIntoViewIfNeeded();
-      const folded = (await ctx.snap()).folded;
-      await ctx.tap(more);
-      const m = await look("Ver más");
-      check("Ver más opens the period whole", !m.folded.includes(period) && m.folded.length === folded.length - 1, m);
-      await ctx.back();
-      const mb = await look("back");
-      check("back folds it again", mb.folded.includes(period) && mb.url === "/", mb);
-    } else skip("Ver más", "no folded period in today's data");
+    // Every event in the feed (the owner, 8 Oct 2026: "Ver 25 más" scrolled by unnoticed): the cards add up to the
+    // periods' counts, and no button folds any of them
+    await ctx.goto("/");
+    const feed = await page.evaluate(() => {
+      const view = document.querySelector('[role="tabpanel"]:not([hidden])');
+      const counted = [...view.querySelectorAll(".agenda-group__count")].reduce((sum, c) => sum + (parseInt(c.textContent, 10) || 0), 0);
+      return { cards: view.querySelectorAll("[data-event-card]").length, counted, buttons: view.querySelectorAll("[data-show-period]").length };
+    });
+    check("the feed shows every event: its cards match the periods' counts", feed.cards === feed.counted && !feed.buttons, feed);
 
     check("no horizontal overflow", !overflow.length, overflow.join(", "));
   },

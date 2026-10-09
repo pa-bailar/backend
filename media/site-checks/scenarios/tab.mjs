@@ -1,6 +1,6 @@
 // Tab on a desktop: one stop per event (the owner, 6 Oct). From the toolbar, Tab walks the list in its reading order,
-// each event once (never one of its own buttons), the periods' Compartir and the "Ver N más" / month blocks where they
-// are, the side panel following each event, then the footer, and out of the page (never into the panel, never round
+// each event once (never one of its own buttons), the periods' Compartir where they are, the side panel following
+// each event, then the footer, and out of the page (never into the panel, never round
 // again). Enter goes into the panel; past its last control Tab goes on to the next event; Shift+Tab from its start
 // goes back to the event it shows; Escape closes it; Shift+Tab walks the list back like ←. WebKit checks Safari's
 // default: its Tab skips links (the cards, the footer's) unless "Press Tab to highlight each item" is on, which a test
@@ -18,11 +18,11 @@ const where = (page) =>
     return (a.getAttribute("aria-label") || a.textContent || a.tagName).trim().replace(/\s+/g, " ").slice(0, 30);
   });
 
-/** The list's stops in its reading order, as Tab should meet them: cards, the periods' share buttons, the blocks. */
+/** The list's stops in its reading order, as Tab should meet them: cards and the periods' share buttons. */
 const expectedStops = (page) =>
   page.evaluate(() => {
     const view = document.querySelector('[role="tabpanel"]:not([hidden])');
-    return [...view.querySelectorAll("a.event-card__hit, .agenda-group__header button, [data-show-period]")]
+    return [...view.querySelectorAll("a.event-card__hit, .agenda-group__header button")]
       .filter((e) => e.getClientRects().length > 0)
       .map((e) => (e.matches("a.event-card__hit") ? `card:${e.closest("[data-event-card]").dataset.eventCard}` : (e.getAttribute("aria-label") || e.textContent).trim().replace(/\s+/g, " ").slice(0, 30)));
   });
