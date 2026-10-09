@@ -125,6 +125,15 @@ def latest_link(v: Video, deliverable: str, dest: Path) -> None:
         print(f"(no {link.name} link: {error})")
 
 
+def drop_link_to(v: Video, deliverable: str, dest: Path) -> None:
+    """Before `dest` is rendered again: drop out/<video>/<deliverable>.mp4 when it's a hard link to it. Re-rendering a
+    version replaces its file, so the link would keep the old cut and latest_link() would then save it as
+    "-unversioned-" (six stale cuts on 8 Oct 2026). A link to another version stays (latest_link() replaces it)."""
+    link = v.out / f"{deliverable}.mp4"
+    if dest.exists() and link.exists() and os.path.samefile(link, dest):
+        link.unlink()
+
+
 def passed_marker(dest: Path) -> Path:
     """<render>-review.ok: written only when a render's review passed (make.py's sheet stage is up to date only when
     it's newer than the render; the sheet is written whether the review passes or not)."""
@@ -201,11 +210,7 @@ def main() -> None:
             props.write_text(json.dumps({"blur": False}))
             remotion("render", renders[name], str(dest), "--scale=0.5", f"--props={props}")
         else:
-            # Re-rendering a version replaces its file: drop the <deliverable>.mp4 link to it first, or the link keeps
-            # the old cut and latest_link() then saves it as "-unversioned-" (six stale cuts on 8 Oct 2026).
-            link = v.out / f"{name}.mp4"
-            if dest.exists() and link.exists() and os.path.samefile(link, dest):
-                link.unlink()
+            drop_link_to(v, name, dest)
             remotion("render", renders[name], str(dest))
             latest_link(v, name, dest)
         print(shown(dest))

@@ -5,6 +5,7 @@ import filecmp
 import json
 import os
 import time
+import urllib.error
 from datetime import date
 from pathlib import Path
 
@@ -146,6 +147,24 @@ def test_retire_takes_a_videos_folders_and_only_the_music_no_other_video_uses(tm
     assert not clean.retired("shared")  # its bed is the other video's too; it has no folders
     with pytest.raises(SystemExit, match="no video called"):
         clean.retired("missing")
+
+
+def test_offline_the_events_come_from_the_site_checkout_and_the_flyers_from_the_images_clone(tmp_path, monkeypatch):
+    site, images = tmp_path / "pa-bailar-web" / "data", tmp_path / "pa-bailar-images"
+    monkeypatch.setattr(events, "SITE_DATA", site)
+    monkeypatch.setattr(events, "IMAGES", images)
+    monkeypatch.setattr(events, "checkout_age", lambda: "last commit today")
+
+    def offline(*args, **kwargs):
+        raise urllib.error.URLError("no network")
+
+    monkeypatch.setattr(events.urllib.request, "urlopen", offline)
+    touch(site / "events.json").write_text('[{"id": "x"}]', encoding="utf-8")
+    touch(images / "flyers" / "1-0.webp").write_bytes(b"clone")
+    assert events.load_events(checkout=False) == ([{"id": "x"}], False)
+    assert events.fetch("flyers/1-0.webp", live=False) == b"clone"  # the site checkout has no copy
+    touch(site / "flyers" / "1-0.webp").write_bytes(b"copied")  # once `npm run media` copied them in
+    assert events.fetch("flyers/1-0.webp", live=False) == b"copied"
 
 
 def test_a_failed_flyer_download_leaves_no_stray_folder(tmp_path, monkeypatch):
@@ -576,6 +595,24 @@ def test_provenance_is_required_for_the_bed_in_use():
     assert len(found) == 3 and any("'seed'" in p for p in found) and any("date like" in p for p in found)
 
 
+def test_a_licensed_tracks_provenance_needs_its_source_and_a_download_date():
+    bed = "cache/music/x.mp3"
+    entry = {
+        "source": "Pixabay",
+        "url": "https://pixabay.com/music/x",
+        "author": "someone",
+        "license": "Pixabay Content License",
+        "downloaded": "2026-10-08",
+    }
+    assert common.provenance_problems({"bed": bed, "provenance": {bed: entry}}) == []  # no model, seed… asked for
+    no_author = {k: v for k, v in entry.items() if k != "author"}
+    assert common.provenance_problems({"bed": bed, "provenance": {bed: no_author}}) == [
+        f"{bed}: provenance has no 'author'"
+    ]
+    found = common.provenance_problems({"bed": bed, "provenance": {bed: entry | {"downloaded": "8 Oct"}}})
+    assert len(found) == 1 and '"downloaded" should be a date' in found[0]
+
+
 def test_every_video_with_a_bed_records_its_provenance():
     for folder in sorted((common.MEDIA / "projects").iterdir()):
         if (folder / "video.json").exists():
@@ -616,6 +653,26 @@ def test_timing_problem_when_the_voice_changed(tmp_path, monkeypatch):
     settings["voice"]["lines"][0]["take"] = 1
     assert "changed" in render.timing_problem(v)
     assert render.timing_problem(common.Video("y", {})) is None
+
+
+def test_a_rerender_drops_the_link_to_the_file_it_replaces(tmp_path, monkeypatch):
+    monkeypatch.setattr(common, "HOME", tmp_path)
+    v = common.Video("x", {"version": "2", "renders": {"reel": "x-reel"}})
+    dest, older, link = v.render("reel"), v.out / "x-v1-reel.mp4", v.out / "reel.mp4"
+    touch(dest).write_bytes(b"old cut")
+    touch(older)
+    os.link(older, link)
+    render.drop_link_to(v, "reel", dest)
+    assert link.exists()  # a link to another version stays: latest_link() replaces it
+    link.unlink()
+    os.link(dest, link)
+    render.drop_link_to(v, "reel", dest)
+    assert not link.exists() and dest.exists()
+    dest.unlink()
+    dest.write_bytes(b"new cut")  # the render replaces its file
+    render.latest_link(v, "reel", dest)
+    assert link.read_bytes() == b"new cut"
+    assert not list(v.out.glob("*-unversioned-*"))  # the old cut wasn't kept as a stale "unversioned" render
 
 
 # ---------- make ----------
