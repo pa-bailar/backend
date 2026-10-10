@@ -352,10 +352,22 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
     def _due_accounts(self) -> list[str]:
         """The accounts whose turn it is, in reading order: accounts in their regular sweep before new ones (a
         new account's first, deeper sweep can take days of quota), and within each, those that waited longest
-        first. So an account a sweep didn't reach (its share, Instagram's limit) is first next time."""
+        first. So an account a sweep didn't reach (its share, Instagram's limit) is first next time. A sweep with room
+        in its share also reads, after them, those due within config.READ_AHEAD_HOURS: the 3:00 sweep takes part of
+        the 6:30 sweep's accounts (due at 4:30), and they keep the 3:00 sweep from then on."""
         followed = storage.read_accounts()
         overdue = overdue_by_account(followed, self.accounts, self.processed.values(), self.events, config.now_bogota())
         due = followed if self.all_accounts else [account for account in followed if overdue[account] >= 0]
+        if not self.all_accounts and len(due) < self._share_per_run():
+            ahead = [account for account in followed if -config.READ_AHEAD_HOURS <= overdue[account] < 0]
+            if ahead:
+                log.info(
+                    "%s accounts' turn, and %s due within %s h read ahead",
+                    len(due),
+                    len(ahead),
+                    config.READ_AHEAD_HOURS,
+                )
+            due += ahead
 
         def is_new(account: str) -> bool:
             state = self.accounts.get(account)

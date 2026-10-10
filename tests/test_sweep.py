@@ -768,9 +768,23 @@ def turn(states: dict, accounts: str = "academia\notra\n") -> list[str]:
 
 def test_an_account_is_read_once_a_day():
     assert turn({"academia": swept(23), "otra": swept(3)}) == ["academia"]  # otra was read this morning
-    # 22 h: the same sweep the next day (a 6:30 read is not due at the next 3:00, 20.5 h later; 9 Oct 2026)
-    assert turn({"academia": swept(20.5), "otra": swept(3)}) == []
+    # 22 h: the same sweep the next day; no sweep of the same day reads it again (9 Oct 2026)
+    assert turn({"academia": swept(18), "otra": swept(3)}) == []
     assert turn({"academia": swept(3), "otra": swept(3)}) == []
+
+
+def test_a_sweep_with_room_reads_ahead_the_accounts_due_soon():
+    """10 Oct 2026: the first 3:00 sweep read no account (a 6:30 read is due at 4:30), and the 6:30 one, on a slow
+    Meta morning, stopped at 95% with 10 left. With room, a sweep takes those due within READ_AHEAD_HOURS."""
+    assert turn({"academia": swept(20.5), "otra": swept(23)}) == ["otra", "academia"]  # at 3:00, a 6:30 read
+    assert turn({"academia": swept(18), "otra": swept(23)}) == ["otra"]  # at 21:00, a 3:00 read: 4 h ahead, not taken
+    assert turn({"academia": swept(9.5), "otra": swept(3)}) == []  # at 6:30, a 21:00 read: the evening keeps it
+
+
+def test_reading_ahead_never_takes_a_due_account_s_place(monkeypatch):
+    monkeypatch.setattr(config, "EXTRA_ACCOUNTS_PER_RUN", 0)  # a share of 1 for 2 accounts and 3 sweeps
+    assert turn({"academia": swept(20.5), "otra": swept(23)}) == ["otra"]
+    assert turn({"academia": swept(20.5), "otra": swept(3)}) == ["academia"]  # room: the one due soon
 
 
 def test_the_longest_waiting_go_first():
