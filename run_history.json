@@ -1481,5 +1481,120 @@
       "new": 4,
       "merged": 2
     }
+  },
+  {
+    "finished_at": "2026-10-09T21:19:47-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/38015315662",
+    "accounts": 25,
+    "failed_accounts": [],
+    "read_accounts": [
+      "and1erita",
+      "babou_candelaria",
+      "bilongocolombia",
+      "bulevarsalsabar",
+      "bulevarsalsarooftop",
+      "casaquiebracanto",
+      "casavander_",
+      "danitello22",
+      "dlivingstudio",
+      "el_panteon_de_la_salsa",
+      "elgocepagano",
+      "elratonsalsaclub",
+      "fernandoespanadj",
+      "frank.de.latorre",
+      "galeriacafelibro",
+      "jaleocompetencia_",
+      "la33orquesta",
+      "oronegroclub",
+      "pachanga_y_pochola",
+      "parchexbogota",
+      "salsacamaraoficial",
+      "salsaysonoficial",
+      "sarasandoval.oficial",
+      "teffa_mg",
+      "zaimora24"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 11,
+    "events_new": 1,
+    "events_merged": 3,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 8,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3.5-flash": 3
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 45,
+    "instagram_usage_detail": {
+      "call_count": 9,
+      "total_cputime": 0,
+      "total_time": 45
+    },
+    "instagram_reads": {
+      "accounts": 25,
+      "mean_seconds": 2.3,
+      "median_seconds": 1.64,
+      "max_seconds": 6.06,
+      "mean_cost": 1.88,
+      "max_cost": 5,
+      "max_cost_account": "sarasandoval.oficial",
+      "headers": {
+        "X-App-Usage": 25
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "warnings": [
+      "missed-sweep:03:00"
+    ],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "halloween-salsero-31-oct",
+        "title": "Halloween Salsero",
+        "account": "salsaysonoficial",
+        "date": "2026-10-31",
+        "detail": null
+      },
+      {
+        "kind": "reread",
+        "id": "tardeo-viva-salsa-social-11-oct",
+        "title": "Tardeo ¡Viva Salsa! Social",
+        "account": "fernandoespanadj",
+        "date": "2026-10-11",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "social-pal-parche-10-oct",
+        "title": "Social Pal Parche",
+        "account": "jaleocompetencia_",
+        "date": "2026-10-10",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "issac-delgado-y-su-orquesta-en-pachanga-pochola-9-oct",
+        "title": "Issac Delgado y su Orquesta en Pachanga & Pochola",
+        "account": "pachanga_y_pochola",
+        "date": "2026-10-09",
+        "detail": "Flash confirmó la lectura"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 1,
+      "reread": 3
+    }
   }
 ]
