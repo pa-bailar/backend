@@ -142,8 +142,8 @@ Instagram posts, Gemini extracts the events, and the site rebuilds. Owner: jzamo
 The rules are in `WORKSPACE.md`; these are the lessons behind them.
 
 - **Merge only when every check reports pass** (not "mergeable": two PRs were merged early). Changes to the sweep path
-  or workflows only outside the sweep windows (2:30–3:45, 6:00–7:15 and 20:30–21:45 Bogotá; GitHub may start the
-  3:00 one late: check `gh run list` first).
+  or workflows only outside the sweep windows (2:30–3:45, 6:00–7:15 and 20:30–21:45 Bogotá; a run can start a few
+  minutes late or run long: check `gh run list` first).
 - **Verify before claiming:** an unconfirmed "free Flash ends 20 Oct" came from news about the Gemini app, not the
   API. Say what was checked and what wasn't.
 - **Test like a visitor:** 375 px, both themes, scrolled down, a first visit, back and reload; the live site after

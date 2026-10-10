@@ -288,7 +288,8 @@ def _quota_stop(run: RunRecord) -> str:
 
 def missed_sweeps(runs: list[RunRecord], now: datetime) -> list[str]:
     """The scheduled times (config.SWEEP_TIMES) with no run finishing within SWEEP_WINDOW_HOURS of them on each of the
-    last MISSED_DAYS days whose window has passed. A time the history doesn't reach back to isn't judged."""
+    last MISSED_DAYS days whose window has passed. A time the history doesn't reach back to isn't judged, nor one newer
+    than those days (config.SWEEP_TIMES_SINCE: a time just added)."""
     finished = [datetime.fromisoformat(run.finished_at) for run in runs]
     if not finished:
         return []
@@ -302,7 +303,8 @@ def missed_sweeps(runs: list[RunRecord], now: datetime) -> list[str]:
             if start + window <= now:
                 starts.append(start)
             day -= timedelta(days=1)
-        if starts[-1] < oldest:
+        since = config.SWEEP_TIMES_SINCE.get(clock)
+        if starts[-1] < oldest or (since and starts[-1].date() < date.fromisoformat(since)):
             continue
         if not any(start <= moment < start + window for start in starts for moment in finished):
             missed.append(clock)
