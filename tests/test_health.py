@@ -214,9 +214,10 @@ def runs_at(*moments: str) -> list[RunRecord]:
 AT_6_50 = datetime(2026, 10, 10, 6, 50, tzinfo=config.BOGOTA_TZ)
 
 
-def test_a_scheduled_sweep_that_stopped_coming_is_a_warning():
+def test_a_scheduled_sweep_that_stopped_coming_is_a_warning(monkeypatch):
     """A cron-job.org job can stop (an expired token, a paused job): the 3:00 sweep (9 Oct 2026) missing two days in a
     row is reported, which healthchecks.io can't tell while the other two still run."""
+    monkeypatch.setattr(config, "SWEEP_TIMES_SINCE", {})  # a time that existed all along
     every_sweep = runs_at("08T03:40", "08T06:50", "08T21:20", "09T03:35", "09T06:45", "09T21:15", "10T06:50")
     assert health.missed_sweeps(every_sweep, AT_6_50) == []
     without_3 = [run for run in every_sweep if "T03" not in run.finished_at]
@@ -224,6 +225,17 @@ def test_a_scheduled_sweep_that_stopped_coming_is_a_warning():
     assert levels(check(without_3[-1], without_3[:-1])) == {"missed-sweep:03:00": "warning"}
     one_day = runs_at("08T06:50", "08T21:20", "09T06:45", "09T21:15", "10T03:30", "10T06:50")
     assert health.missed_sweeps(one_day, AT_6_50) == []  # missed once only (the first night, say)
+
+
+def test_a_sweep_time_just_added_is_not_missed_before_it_was_due():
+    """The 3:00 sweep was added on 9 Oct 2026; that night's 21:00 sweep warned "no sweep at 03:00" for 8 and 9 Oct,
+    when it didn't exist yet. Judged only from its first day (config.SWEEP_TIMES_SINCE)."""
+    at_21_20 = datetime(2026, 10, 9, 21, 20, tzinfo=config.BOGOTA_TZ)
+    before = runs_at("08T06:50", "08T21:20", "09T06:45", "09T21:15")
+    assert health.missed_sweeps(before, at_21_20) == []
+    at_6_50_12th = datetime(2026, 10, 12, 6, 50, tzinfo=config.BOGOTA_TZ)
+    never_came = runs_at("10T06:50", "10T21:20", "11T06:45", "11T21:15", "12T06:50")
+    assert health.missed_sweeps(never_came, at_6_50_12th) == ["03:00"]  # from its first day on, judged as usual
 
 
 def test_a_run_the_quota_stopped_says_why_and_how_its_reads_went():

@@ -291,6 +291,10 @@ SWEEP_TRIGGERS = {
     "21:00": "cron-job.org",
 }
 SWEEP_TIMES = tuple(SWEEP_TRIGGERS)
+# The first day each time ran: health.missed_sweeps judges a time only from then (the 3:00 one, added on 9 Oct 2026,
+# raised "no sweep at 03:00" that very night, before it had ever been due). A time missing here is judged as far back
+# as the history goes.
+SWEEP_TIMES_SINCE = {"03:00": "2026-10-10"}
 # Flash's few daily requests are shared by every sweep of a Gemini quota day (midnight to midnight Pacific: the 3:00,
 # 6:30 and 21:00 sweeps fall in one). A sweep leaves the later ones of that day an equal share each (flash_reserve in
 # pipeline/sweep.py): before, the morning's (academies, few posts) could take them all and the evening's (the busy
