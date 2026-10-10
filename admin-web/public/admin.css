@@ -168,7 +168,14 @@ a { color: var(--accent); }
   transform: rotate(45deg);
 }
 .history[open] > .history__summary::after, .run[open] > .run__summary::after { transform: rotate(-135deg); margin-top: 4px; }
-.history__runs { padding: 0 16px 4px; }
+/* Opened, the history scrolls inside its card instead of pushing the rest of the dashboard away (the owner, 9 Oct
+   2026); its own scroll stops at its ends, so the page doesn't take over mid-swipe. */
+.history__runs {
+  padding: 0 16px 4px;
+  max-height: min(60dvh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
 .run { border-top: 1px solid var(--divider); }
 .run__summary { padding: 10px 0; }
 .run__what { font-weight: 600; }
