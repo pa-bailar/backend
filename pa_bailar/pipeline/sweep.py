@@ -409,8 +409,8 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             state.latest_post = account_stats.latest_post
         window = timedelta(days=config.BACKFILL_DAYS) if backfill else self.lookback
         cutoff = datetime.now(UTC) - window
+        self._batch = []  # this account's posts waiting for a shared extraction request (batches.py)
         # Oldest first, so a flyer is usually stored before the video or reminder that follows it.
-        self._batch = []
         for post in sorted(posts, key=lambda p: p["timestamp"]):
             published = published_at(post)
             if published >= cutoff:

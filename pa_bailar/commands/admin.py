@@ -8,6 +8,7 @@ Usage (from the repository root):
     .venv\\Scripts\\python -m pa_bailar admin inbox             answer an admin issue (the admin workflow)
     .venv\\Scripts\\python -m pa_bailar admin bakeoff           the last resort's models against Flash (spends requests)
     .venv\\Scripts\\python -m pa_bailar admin bakeoff --gold    a model against the test set, gold/ (spends requests)
+    .venv\\Scripts\\python -m pa_bailar admin bakeoff --gold --batch 2    and 2 posts a request, side by side
 Adding a post is `python -m pa_bailar sweep --post <link>`, and a story `sweep --story <ids>` (`--hide-story` takes
 one off the site, `--hide-event <id>` any event): they need Gemini or write the site's data, so the sweep workflow
 does them.

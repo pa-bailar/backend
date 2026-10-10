@@ -9,6 +9,7 @@ from google.genai import types
 from pa_bailar import config, extraction, gemini, storage
 from pa_bailar.batching import (
     NO_ANSWER,
+    NO_EVENT,
     OTHER_IMAGE,
     STRAY_ANSWER,
     TWO_ANSWERS,
@@ -113,6 +114,13 @@ def test_an_event_citing_another_posts_image_leaves_its_post_out():
     assert list(analyses) == [0] and left_out == {1: OTHER_IMAGE}
     _, left_out = split_answer(answer(("A", [5])), [1])  # an image no post has
     assert left_out == {0: OTHER_IMAGE}
+
+
+def test_a_post_the_shared_answer_finds_no_event_in_is_confirmed_alone():
+    """The test set (9 Oct 2026): the two events batching lost were "no"s, a bar's night beside another account's
+    workshops and an academy's closing show. A "no" is final, so it's never taken from a shared answer."""
+    analyses, left_out = split_answer(answer(("A", [0]), ("B", [])), [1, 1])
+    assert list(analyses) == [0] and left_out == {1: NO_EVENT}
 
 
 def test_an_answer_for_a_post_the_request_doesnt_hold_leaves_every_post_out():

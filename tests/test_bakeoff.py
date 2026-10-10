@@ -544,3 +544,23 @@ def test_batch_and_take_go_with_the_test_set(capsys, monkeypatch):
     monkeypatch.setattr(bakeoff, "run_gold", lambda models, **options: ran.append(options))
     admin.main(["bakeoff", "--gold", "--batch", "2", "--take", "2", "--score"])
     assert ran[0]["batch"] == 2 and ran[0]["take"] == 2
+
+
+def test_a_shared_no_event_is_confirmed_alone_in_the_run_and_in_answers_cached_before(tmp_path):
+    """9 Oct 2026: the two events batching lost on the test set were shared "no"s; a "no" is now confirmed alone, and
+    answers cached before that check get it on the next run (one request each, nothing else asked again)."""
+    import json
+
+    posts = [gold_item("a1", "a", "Uno"), gold_item("a2", "a", "Dos")]
+    with_flyers(tmp_path, posts)
+    asker = FakeAsker(posts, batch_answer=[batch_of(("A", "Uno", 0))])  # nothing for B
+    bakeoff.run_batched("m", posts, asker, tmp_path, 2, cache_dir=tmp_path, say=lambda text: None)
+    cache = bakeoff.load_cache(bakeoff.cache_file("m+batch2", tmp_path))
+    assert asker.asked == ["batch", "one"] and cache["a2"]["alone"].startswith("sin respuesta")
+
+    cache["a2"] = {**cache["a1"], "answer": {**cache["a1"]["answer"], "events": []}}  # a "no" cached before the check
+    bakeoff.cache_file("m+batch2", tmp_path).write_text(json.dumps(cache), encoding="utf-8")
+    bakeoff.run_batched("m", posts, asker, tmp_path, 2, cache_dir=tmp_path, say=lambda text: None)
+    cache = bakeoff.load_cache(bakeoff.cache_file("m+batch2", tmp_path))
+    assert asker.asked == ["batch", "one", "one"]
+    assert cache["a2"]["alone"].startswith("sin eventos") and cache["a2"]["answer"]["events"][0]["title"] == "Dos"

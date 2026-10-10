@@ -19,6 +19,9 @@ a Gemini model ("gemini-3.5-flash-lite") or "<provider>:<model>" ("groq:qwen/qwe
   4. the test set (`--gold`): the same run on posts checked by hand (gold/, its README), scored against the truth,
      so Flash is measured too and a change to the reading (the prompt, `--ocr`, `--thinking`) is judged before it
      ships.
+  5. batched (`--gold --batch N`): the test set also read N posts a request (batching.py, as the sweep does with
+     config.EXTRACTION_BATCH_POSTS), scored beside the one-post reading with the requests each took; `--take K`
+     caches another take apart, to measure how much two runs of the same reading differ.
 `--discover` lists OpenRouter's free models now, with image input, and whether they take structured output: the
 candidates for the list (no key, no quota).
 """
@@ -41,7 +44,7 @@ from pydantic import BaseModel
 
 from . import config, ocr, storage, sweep_state
 from .account_options import AccountOptions
-from .batching import batch_contents, split_answer
+from .batching import NO_EVENT, batch_contents, split_answer
 from .external import ExternalTier, SkippedError, recorded_name
 from .gemini import ExtractionError, ModelPool, QuotaExhaustedError
 from .models import BatchAnalysis, PostAnalysis
@@ -555,6 +558,25 @@ def _read_alone(model: str, item: Item, ask: Ask, data_dir: Path) -> dict[str, A
     return {"answer": answer.model_dump(mode="json"), "seconds": round(time.monotonic() - started, 1)}
 
 
+def _confirm_no_events(
+    model: str, batch: list[Item], cache: dict[str, Any], ask: Ask, data_dir: Path, say: Callable[[str], None]
+) -> bool:
+    """A batch answered before a shared "no event" was confirmed alone (batching.NO_EVENT, 9 Oct 2026): its posts with
+    no event in the shared answer are read alone now, as the sweep would. False when no quota is left."""
+    for item in batch if len(batch) > 1 else []:
+        entry = cache[item["post_id"]]
+        if "alone" in entry or entry["answer"]["events"]:
+            continue
+        try:
+            alone = _read_alone(model, item, ask, data_dir)
+            cache[item["post_id"]] = {"request": entry["request"], "batch": entry["batch"], "alone": NO_EVENT, **alone}
+        except QuotaExhaustedError as error:
+            say(f"  no quota left today: {error}. The rest waits for another day.")
+            return False
+        say(f"  {item['post_id']}: no event in the shared answer, read alone")
+    return True
+
+
 def run_batched(
     model: str,
     posts: list[Item],
@@ -579,6 +601,9 @@ def run_batched(
             continue
         request = request_fingerprint(contents)
         if all("answer" in cache.get(i, {}) and cache[i].get("request") == request for i in ids):
+            if not _confirm_no_events(model, batch, cache, ask, data_dir, say):
+                break
+            path.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
             continue
         started = time.monotonic()
         try:
