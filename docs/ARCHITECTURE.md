@@ -376,7 +376,7 @@ sequenceDiagram
 | 9b | Save the images to their repository | Unless cancelled | `media_store push`: new and changed images (and the archive's small flyers) copied into `media/`, the current ones no longer used removed (only if neither this run's events nor the published ones point to them, and they're gone from `site/data`: an archived event's image stays until its data PR has merged, so builds and checks in between still find it; the next run removes it); committed as the bot and pushed straight to `main`, no PR (pull request references would keep old images alive). If it fails, no data PR is opened, so the run's posts stay unread | App token |
 | 10 | Open a data PR | Unless cancelled, and the images were saved | Only if `data/events.json` or `data/archive` changed (clips change `events.json` too; `meta.json` alone doesn't count; the images went to their own repository at step 9b, and the site repository ignores them). Branch `data/sweep-<day>-<run id>`, commit as the bot, PR labelled `data`, auto-merge (squash) enabled. It runs before the state is saved, so the state never marks posts as analyzed whose events didn't leave the runner | App token |
 | 10b | Keep the site data of a data PR that wasn't opened | The data PR step failed | Uploads `site/data` (events, flyers, clips) as the run's artifact `site-data-<run id>`, kept 14 days, to recover by hand (section 15) | |
-| 11 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real. **If the data PR step didn't succeed**, `processed_posts.json` and `accounts.json` keep their previous versions (a warning says so): this run's posts stay unread and its accounts due, so the next run reads them again and its PR carries their events. Gemini's usage, the run history and `status.json` are saved either way | `GITHUB_TOKEN` (this step only) |
+| 11 | Save the sweep state | Unless cancelled | Copies `state/*.json` back and commits. Then `gh auth setup-git` and push to `sweep-state`. Runs even when the sweep failed partway: its progress is real. **If the data PR step didn't succeed**, `processed_posts.json` and `accounts.json` keep their previous versions (a warning says so): this run's posts stay unread and its accounts due, so the next run reads them again and its PR carries their events. Gemini's usage, the run history, the admin requests' runs and `status.json` are saved either way | `GITHUB_TOKEN` (this step only) |
 | 11b | Save an account added by hand | `post_url` or `story`, and `accounts.txt` changed | Commits `accounts.txt` to `main` | `GITHUB_TOKEN` (this step only) |
 | 12 | Update the sweep health issue | Unless cancelled, and the sweep produced its health output | Opens, updates, comments on or closes the `Sweep health` issue (section 11.3) | `GITHUB_TOKEN` (issues) |
 | 13 | Wait for the data PR to merge | A PR was opened, for an owner's request (admin): a scheduled sweep doesn't wait (it saved Actions minutes while the repository was private; now it keeps runs short); the next run's step 1b catches a PR that didn't merge | Polls every 30 s, up to 20 minutes. Fails if the PR is closed or doesn't merge in time | App token |
@@ -1072,7 +1072,8 @@ memory between runs; the site never sees it.
 | `external_usage.json` | The last resort's day (UTC) and, per provider, requests, tokens and the answers per model | The day's runs share Groq's and OpenRouter's budgets (section 7.3) |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
 | `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load. Adding one of its posts by hand publishes it again (ADMIN.md, "Ocultar evento") |
-| `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests (and the last resort's, per provider) and models the key couldn't use; what each of the last resort's models did, those set aside and the providers turned off; Instagram's highest reading and its measures (section 5.2); what Flash changed in lighter readings (`upgrade_changes`, section 7.2); warning keys | The health rules compare a run with the previous ones (section 11) |
+| `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests (and the last resort's, per provider) and models the key couldn't use; what each of the last resort's models did, those set aside and the providers turned off; Instagram's highest reading and its measures (section 5.2); what Flash changed in lighter readings (`upgrade_changes`, section 7.2); warning keys; and what the run did to which event (`changes`, `change_counts`, `changes_left_out`: section 10.3) | The health rules compare a run with the previous ones (section 11); the admin page's history shows the changes |
+| `admin_runs.json` | The last 20 admin requests that ran in the sweep workflow (`sweep --post`, `--story`, `--hide-event`, `--hide-story`): when, which (`action`, `target`), why it couldn't (`error`), and what it did to which event (section 10.3; `changes.AdminRun`) | The admin page's history. Not in `run_history.json`: those runs aren't sweeps, and the health rules compare sweeps |
 
 ```mermaid
 flowchart LR
@@ -1112,6 +1113,56 @@ be useful later"): the record to `data/archive/<year>.json`, a small copy of eac
 full flyers and clips are deleted with the unused ones.
 
 ---
+
+### 10.3 What each run did to which event (the admin page's history)
+
+The owner asked for it on 9 Oct 2026: a run's counts ("3 nuevos, 2 unidos") don't say which events. Each sweep
+notes one change per event it touched (`RunStats.changes`, `pa_bailar/changes.py`), and each admin request that runs
+in the sweep workflow does too:
+
+| Kind | When | Detail (Spanish, for the owner) |
+|---|---|---|
+| `new` | A new event on the site | |
+| `provisional` | A new event a lighter model read (Flash out of quota or busy); not for a story, never read again | "leído por un modelo más liviano…" |
+| `merged` | Another post or story of an event already on the site | "otra publicación", "una historia de @x" |
+| `corrected` | Flash re-read what only a lighter model had read, and changed an audited field (section 7.2) | "Flash cambió la hora y el lugar" |
+| `updated` | Its post was read again (an edited caption, Volver a leer) and the event changed; or a hidden story left it | "publicación editada: cambió el lugar" |
+| `reread` | Read again, nothing changed | "Flash confirmó la lectura" |
+| `dropped` | A new reading of its post (Flash's, an edited caption) no longer announces it: off the site | "Flash no lo encontró al releer" |
+| `cancelled` | Its post says it's cancelled or postponed: off the site (section 6.3) | |
+| `flagged` | Another account's post says it's cancelled: kept, marked for review | |
+| `hidden` | Taken off the site by hand (Ocultar, or its story hidden) | |
+| `kept_hidden` | A post of an event hidden by hand: left off the site | |
+| `restored` | Hidden before, published again by adding its post by hand | |
+| `duplicate` | Two stored events the rules now say are one, merged on load (section 9) | "unido con «…»" |
+| `archived` | Past for 60 days: moved to the archive | |
+
+Each change has the event's `id` (its link), `title`, `account` (the one it's stored under) and `date`. One per
+event per run (`changes.noted`): the latest wins, except that an event added in the run stays `new` through a
+second post or Flash's re-read in the same run. Discarded readings (recurring, past, outside Bogotá) never became
+events and aren't listed. The changes are noted after the post's state is saved, and recorded with the run's
+record (`health.record_of`, `run_history.json`) or the request's (`changes.record_admin_run`,
+`admin_runs.json`), both written after the run's own state, as before. Bounded: at most `RUN_CHANGES_KEPT` (80)
+per run, the most telling kinds first (`changes.KIND_ORDER`), the rest only counted (`changes_left_out`;
+`change_counts` counts them all); the lists stay only on the latest `CHANGES_KEPT_RUNS` (14) records, so
+`run_history.json` stays small. `meta.json` (the site's data) doesn't carry them.
+
+`admin status` gathers both files as `history` (`status.history_of`): the latest 10 runs, newest first, each with
+its `kind` (`sweep`, or the request: `post`, `post_again`, `story`, `hide_event`, `hide_story`), `slot` (the
+scheduled sweep it was, `06:30` or `21:00`, when it ended within 90 minutes of that time; none: an extra one),
+`finished_at`, `run_url`, `target`, `error`, `counts`, `left_out` and `changes` (each with its `url` on the site;
+`null` for a run recorded before 9 Oct 2026: its `events_new` and `events_merged` stand in as counts). Example:
+
+```json
+{"kind": "sweep", "slot": "21:00", "finished_at": "2026-10-09T21:26:43-05:00",
+ "run_url": "https://github.com/pa-bailar/backend/actions/runs/…", "target": null, "error": null,
+ "counts": {"new": 2, "corrected": 1, "merged": 1}, "left_out": 0,
+ "changes": [{"kind": "corrected", "id": "charanga-new-york-en-vivo-10-oct", "title": "Charanga New York en vivo",
+   "account": "galeriacafelibro", "date": "2026-10-10", "detail": "Flash cambió la hora y el lugar",
+   "url": "https://pa-bailar.github.io/evento/charanga-new-york-en-vivo-10-oct/"}, …]}
+```
+
+`sweeps.recent` keeps the run records without their `changes` (the history has them).
 
 ## 11. Monitoring and health
 
@@ -1296,7 +1347,8 @@ guide.
   turn (section 5.2); provisional posts, and what Flash changed when it re-read lighter readings (section 7.2);
   upcoming events (until their last day);
   new workshop series to look at, with `/ocultar <id>` (section 9.1); discovery progress; the last resort's use
-  today per provider (`external`), shown only when it was used.
+  today per provider (`external`), shown only when it was used; and the history, what the latest sweeps and admin
+  requests did to which event (`history`, section 10.3: the admin page's "Historial").
   `--json` gives the same as data. On your computer it reads the sweeps' state from the `sweep-state`
   branch.
 - **`admin bakeoff`** (`pa_bailar/bakeoff.py`): re-checks the last resort's models (section 7.3): runs
@@ -1487,7 +1539,7 @@ flowchart LR
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |
 | `ids.py` | Readable, stable event ids (the event's URL) |
 | `pipeline/` | `Sweep`, one class built from a module per part (the package re-exports the public names): |
-| `pipeline/common.py` | Run statistics (`RunStats`), the clients' protocols, `AddPostError`, retryable errors, flyers and media records |
+| `pipeline/common.py` | Run statistics (`RunStats`, with the run's changes), the clients' protocols, `AddPostError`, retryable errors, flyers and media records |
 | `pipeline/base.py` | `SweepBase`: the state (events, analyzed posts, hidden events, accounts), storing one analyzed post (only upcoming events in Bogotá; a cancelled post's events taken down), one identity per post |
 | `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; `overdue_by_account` (each account's turn, for the sweep and the status page) |
 | `pipeline/manual_post.py`, `story_admin.py`, `hiding.py` | The admin tools, mixed into `Sweep`: add a post (`add_post`), add a story (`add_story`), hide a story or an event (`hide_story`, `hide_event`) |
@@ -1495,7 +1547,8 @@ flowchart LR
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, the archive of past events, `accounts.txt` |
 | `media_store.py` | The images' repository (`pa-bailar/media`): `pull` into the site's data before a run, `push` what changed after it |
 | `health.py` | Run history, health rules, events to review, the report and its fingerprint |
-| `status.py` | What `admin status` shows: sweeps, Gemini usage, Instagram, accounts, events, new workshop series (data and Spanish text) |
+| `status.py` | What `admin status` shows: sweeps, Gemini usage, Instagram, accounts, events, new workshop series, the history (data and Spanish text) |
+| `changes.py` | What a run did to which event (section 10.3): the kinds of change, one per event, bounded; the admin requests' runs (`admin_runs.json`) |
 | `sweep_state.py` | The sweeps' latest state on your computer: reads the `sweep-state` branch with git |
 | `why.py` | `admin why`: why a post's event is or isn't on the site (fixed checks, Spanish answer) |
 | `inbox.py` | The admin inbox: what an issue or comment asks for |

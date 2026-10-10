@@ -6,12 +6,11 @@
 // picked here go to "Agregar desde una historia".
 
 import { HIDE_STORY_COMMAND, MAX_SCREENSHOTS, NOTES_MAX, POST_LINK_IN_TEXT, STORY_LINK_IN_TEXT } from "./patterns.js";
-import { escapeHtml, seriesCard } from "./render.js";
+import { escapeHtml, historyCard, seriesCard, when } from "./render.js";
 import { initialTab, TAB_KEY, tabAfterKey, tabFromHash, tabsHtml } from "./tabs.js";
 
 const main = document.getElementById("main");
 const userLine = document.getElementById("user");
-const WEEKDAYS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 const ROLES = { triage: "filtro", extraction: "extracción", provisional: "provisional", none: "sin uso" };
 const MESSAGES = {
   config: "Falta configurar el inicio de sesión: los secretos de GitHub en Cloudflare (docs/ADMIN.md).",
@@ -19,21 +18,6 @@ const MESSAGES = {
   denied: "Esa cuenta de GitHub no tiene acceso a esta página.",
 };
 
-
-/** Bogotá time: "hoy 9:00 p. m.", "ayer 9:12 a. m.", "sábado 4/10, 9:00 a. m.". */
-function when(iso) {
-  const bogota = (date) => new Date(date.toLocaleString("en-US", { timeZone: "America/Bogota" }));
-  const moment = bogota(new Date(iso));
-  const today = bogota(new Date());
-  const hours = moment.getHours();
-  const hour = `${hours % 12 || 12}:${String(moment.getMinutes()).padStart(2, "0")} ${hours < 12 ? "a. m." : "p. m."}`;
-  const startOfDay = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-  const days = Math.round((startOfDay(moment) - startOfDay(today)) / 86_400_000);
-  if (days === 0) return `hoy ${hour}`;
-  if (days === -1) return `ayer ${hour}`;
-  if (days === 1) return `mañana ${hour}`;
-  return `${WEEKDAYS[moment.getDay()]} ${moment.getDate()}/${moment.getMonth() + 1}, ${hour}`;
-}
 
 const count = (number, one, many) => (number ? `${number} ${number === 1 ? one : many}` : "");
 
@@ -62,7 +46,7 @@ function sweepsCard(sweeps) {
     ? `<ul class="runs">${sweeps.recent.map(runItem).join("")}</ul>`
     : `<p class="muted">Todavía no hay barridos registrados.</p>`;
   return `<section class="card"><h2>Barridos</h2>${runs}
-    <p class="small muted">Próximos: ${sweeps.next.map(when).join(" y ")}</p></section>`;
+    <p class="small muted">Próximos: ${sweeps.next.map((moment) => when(moment)).join(" y ")}</p></section>`;
 }
 
 function geminiCard(gemini) {
@@ -137,7 +121,7 @@ function instagramCard(instagram, quota) {
   return `<section class="card"><h2>Instagram</h2>${token}${usage}</section>`;
 }
 
-// The audited fields, as the owner reads them (status.py _FIELD_NAMES).
+// The audited fields, as the owner reads them (pa_bailar/changes.py FIELD_NAMES).
 const FIELD_NAMES = {
   date: "la fecha",
   end_date: "el último día",
@@ -724,6 +708,7 @@ function statusCards(result) {
   try {
     const stats = [
       sweepsCard(status.sweeps),
+      historyCard(status.history),
       geminiCard(status.gemini),
       externalCard(status.external),
       instagramCard(status.instagram, status.instagram_quota),
