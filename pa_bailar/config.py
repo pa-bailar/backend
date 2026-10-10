@@ -79,6 +79,12 @@ INSTAGRAM_COST_WINDOW = 5
 # 46 h, the same sweep two days later.
 SWEEP_EVERY_HOURS = 22
 QUIET_SWEEP_EVERY_HOURS = 46
+# A sweep with room in its share also reads the accounts due within this many hours (Sweep._due_accounts), closest to
+# their turn first, up to its share and Instagram's forecast stop. Without it the 3:00 sweep had no account due (a 6:30
+# read is due at 4:30) and read none on 10 Oct 2026, while the 6:30 one, on a slow Meta morning (~4% a read), stopped
+# at 95% with 10 accounts left. 3 h takes a 6:30 read at 3:00 (1.5 h ahead) and never a 3:00 read at 21:00 (4 h ahead)
+# nor a 21:00 read at 6:30 (12.5 h): the evening sweep keeps its accounts.
+READ_AHEAD_HOURS = 3
 QUIET_AFTER_DAYS = 30  # 45 until 8 Oct 2026
 # Occasional accounts (the owner, 9 Oct 2026, to save Instagram reads without missing events): last post 8 to 29 days
 # ago, every other day too, unless something of theirs waits for their next read (pipeline.sweep.hours_overdue,

@@ -419,7 +419,11 @@ the three sweeps (`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_o
   share, Instagram's stop) moves to the next sweep and stays there; the overflow goes round (3:00 → 6:30 → 21:00 →
   3:00). At 20 hours (until 9 Oct 2026) a 6:30 read was due at 2:30, so the 3:00 sweep took the 6:30 sweep's
   accounts for good and the evening sweep, the one that catches the day's posts before that night's events, lost
-  every account it once skipped (the bug-squash pass). Every 46 hours: quiet
+  every account it once skipped (the bug-squash pass). **Reading ahead:** a sweep with room in its share also reads
+  the accounts due within 3 hours (`READ_AHEAD_HOURS`), after the due ones: the 3:00 sweep takes part of the 6:30
+  sweep's accounts (due at 4:30), and they keep the 3:00 sweep from then on; never a 3:00 read at 21:00 (4 h ahead)
+  nor a 21:00 read at 6:30. Without it the first 3:00 sweep (10 Oct 2026) had no account due and read none, and the
+  6:30 one, on a slow Meta morning (~4% a read), stopped at 95% with 10 accounts left. Every 46 hours: quiet
   accounts, with no post in 30 days (`QUIET_AFTER_DAYS`; 45 until 8 Oct 2026), and unproductive ones, whose posts read (`UNPRODUCTIVE_AFTER_POSTS`, 10, among the records kept: the last 45
   days) never became an event (`pipeline.unproductive_accounts`, `models.had_events`; their first event brings them
   back to daily). Dormant ones, with no post in 180 days (`DORMANT_AFTER_DAYS`), once a week (164 hours). Lower
@@ -448,8 +452,8 @@ the three sweeps (`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_o
   4.3 s against 1.6 s), and since Meta's limit counts its processing time, the 6:30 sweep reached the 90% stop after
   28 accounts and 23 waited. With a third sweep at 3:00 each reads about a third of the accounts (at most 48 at 128
   accounts, about 62% of the hour at the usual cost), and at 3:00 Meta and Google are quiet. The 3:00 sweep reads
-  first the accounts the 21:00 one didn't reach, then those whose turn came overnight (read at 3:00 or 6:30 the day
-  before).
+  first the accounts the 21:00 one didn't reach, then those read at 3:00 the day before, then, reading ahead, part
+  of the 6:30 sweep's.
 - **Not over its turn:** an account whose posts still wait (Gemini's quota, time) stays due next sweep. An
   account that couldn't be read for another reason (not visible) waits for its next turn.
 - **Watching it:** each run records its highest reading of Instagram's quota and which of Meta's measures it was
