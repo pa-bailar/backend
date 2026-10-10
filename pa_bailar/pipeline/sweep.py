@@ -302,7 +302,10 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
 
     def _instagram_full(self) -> bool:
         """Whether the next read would take Instagram's quota past config.INSTAGRAM_USAGE_CEILING (the share now plus
-        its expected cost: instagram_usage.ReadCosts): then the remaining accounts wait, first next run."""
+        its expected cost: instagram_usage.ReadCosts): then the remaining accounts wait, first next run. Not once Meta
+        stopped the run itself (_fetch_posts): its reason stays "meta", not our ceiling (bug-squash pass, 9 Oct)."""
+        if self.rate_limited:
+            return False
         usage = self.instagram.app_usage_percent
         reason = self.read_costs.stop_reason(usage)
         if reason is None:

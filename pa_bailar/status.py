@@ -33,7 +33,7 @@ RECENT_RUNS = 5
 HISTORY_ITEMS = 10  # runs in the history (status["history"]): sweeps and admin requests, newest first
 # A sweep that ends within this long after one of config.SWEEP_TIMES is that scheduled one (it can wait for a data PR
 # or a request before it, then runs up to config.MAX_RUN_MINUTES); else it's an extra one, started by hand.
-SCHEDULED_SWEEP_MINUTES = 90
+SCHEDULED_SWEEP_MINUTES = 150  # 90 until 9 Oct 2026: a 3:00 run waiting for a data PR read as "extra"
 _FLAT_STOP = 90  # where the sweep stopped reading accounts until 9 Oct 2026, for the records from before
 
 
@@ -51,7 +51,8 @@ def next_sweeps(now: datetime, count: int = 2) -> list[datetime]:
 
 
 def sweep_slot(finished_at: str) -> str | None:
-    """The scheduled sweep (config.SWEEP_TIMES: "06:30", "21:00") a run that ended then was, or None (an extra one)."""
+    """The scheduled sweep (config.SWEEP_TIMES: "03:00", "06:30", "21:00") a run that ended then was, or None (an
+    extra one)."""
     moment = datetime.fromisoformat(finished_at).astimezone(config.BOGOTA_TZ)
     for hhmm in config.SWEEP_TIMES:
         start = datetime.combine(moment.date(), parse_hhmm(hhmm), config.BOGOTA_TZ)
@@ -60,10 +61,21 @@ def sweep_slot(finished_at: str) -> str | None:
     return None
 
 
-def _history_item(run: dict[str, Any], kind: str) -> dict[str, Any]:
+def _finished(item: dict[str, Any]) -> datetime:
+    """When a run finished, for the history's order: in Bogotá when the record has no offset (none the backend writes
+    today; mixing them broke the sort)."""
+    moment = datetime.fromisoformat(item["finished_at"])
+    return moment if moment.tzinfo else moment.replace(tzinfo=config.BOGOTA_TZ)
+
+
+def _history_item(run: dict[str, Any], kind: str, live: set[str] | None) -> dict[str, Any]:
     """One run in the history: what kind (a sweep, which one, or an admin request), when, and what it did to which
-    event. `changes` is None for a run recorded before they were kept: its counts only ("sin detalle")."""
+    event. `changes` is None for a run recorded before they were kept: its counts only ("sin detalle"). An event gets
+    its page's link only while it's on the site (`live`: the ids in events.json; None: unknown, linked): one hidden,
+    cancelled or archived since gave a 404 (the bug-squash pass of 9 Oct 2026)."""
     changes = run.get("changes")
+    if changes is not None:
+        changes = [item for item in changes if item.get("id")]  # a record without one can't be shown or linked
     counted = run.get("change_counts") or {}
     if changes is None and not counted:  # a sweep recorded before the changes were: its own counts
         counted = {name: run[key] for name, key in (("new", "events_new"), ("merged", "events_merged")) if run.get(key)}
@@ -74,18 +86,25 @@ def _history_item(run: dict[str, Any], kind: str) -> dict[str, Any]:
         "run_url": run.get("run_url"),
         "target": run.get("target"),
         "error": run.get("error"),
-        "changes": None if changes is None else [{**item, "url": links.event_url(item["id"])} for item in changes],
+        "changes": None
+        if changes is None
+        else [
+            {**item, "url": links.event_url(item["id"]) if live is None or item["id"] in live else None}
+            for item in changes
+        ],
         "left_out": run.get("changes_left_out", 0),
         "counts": counted,
     }
 
 
-def history_of(runs: list[dict[str, Any]], admin_runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def history_of(
+    runs: list[dict[str, Any]], admin_runs: list[dict[str, Any]], live: set[str] | None = None
+) -> list[dict[str, Any]]:
     """The admin page's "Historial": the latest sweeps (run_history.json) and admin requests (admin_runs.json),
-    newest first, each with what it did to which event (changes.py)."""
-    items = [_history_item(run, "sweep") for run in runs[-HISTORY_ITEMS:]]
-    items += [_history_item(run, run["action"]) for run in admin_runs[-HISTORY_ITEMS:]]
-    items.sort(key=lambda item: datetime.fromisoformat(item["finished_at"]), reverse=True)
+    newest first, each with what it did to which event (changes.py). `live`: the events on the site, linked."""
+    items = [_history_item(run, "sweep", live) for run in runs[-HISTORY_ITEMS:]]
+    items += [_history_item(run, run.get("action", "request"), live) for run in admin_runs[-HISTORY_ITEMS:]]
+    items.sort(key=_finished, reverse=True)
     return items[:HISTORY_ITEMS]
 
 
@@ -130,7 +149,10 @@ def _instagram_quota(history: list[dict[str, Any]]) -> dict[str, Any] | None:
     """The last sweep's highest reading of Instagram's quota, its measures, whether it stopped early and why (`stop`:
     our forecast or ceiling, or Meta's own limit; None in records from before 9 Oct 2026), the ceiling it stops
     under (`stop_at`), and its reads in short (instagram_usage.ReadsSummary: Meta's time, the cost of a read)."""
-    last = next((run for run in reversed(history) if run.get("instagram_usage") is not None), None)
+    measured = [run for run in history if run.get("instagram_usage") is not None]
+    # The last run that read accounts: a sweep with none due (a 6:30 one after the 3:00) only checked the token.
+    read = [run for run in measured if (run.get("instagram_reads") or {}).get("accounts")]
+    last = read[-1] if read else measured[-1] if measured else None
     if last is None:
         return None
     stopped = bool(last.get("rate_limited"))
@@ -334,7 +356,7 @@ def collect(
             "low_confidence": sum(1 for event in upcoming if event.confidence == "low"),
         },
         "new_series": new_series(events or [], processed, now),
-        "history": history_of(history, admin_runs),
+        "history": history_of(history, admin_runs, None if events is None else {event.id for event in events}),
         "discovery": None
         if not discovered
         else {

@@ -157,7 +157,7 @@ Every service the system depends on. All of them are on free plans.
 | **What for** | Deciding whether a post announces an event (triage), extracting the event's details as JSON (extraction), and classifying accounts during discovery |
 | **SDK** | `google-genai` (`pa_bailar/gemini.py`), using structured output: `response_mime_type="application/json"` plus a Pydantic `response_schema` |
 | **Key** | `GEMINI_API_KEY`, an API key from Google AI Studio (aistudio.google.com) |
-| **Models and roles** | Each model has its own free daily quota, so each role takes several, in order (the owner, 6 Oct 2026). Flash-Lite (`gemini-3.5-flash-lite`, then `gemini-3.1-flash-lite`, `config.LITE_MODELS`: 1,000 a day) does triage and discovery. Flash of this generation (`gemini-3.8-flash`, `3.6`, then `3.5`: 60 a day) does extraction (not `3.7`: deprecated on 9 Oct 2026 and answered by 3.8, it only spent 3.8's quota). Provisional extraction, when those are out: `gemini-3-flash-preview` (an older Flash, not yet compared with this generation's), then Flash-Lite (`config.TRIAGE_MODELS`, `EXTRACTION_MODELS`, `PROVISIONAL_MODELS`) |
+| **Models and roles** | Each model has its own free daily quota, so each role takes several, in order (the owner, 6 Oct 2026). Flash-Lite (`gemini-3.5-flash-lite`, then `gemini-3.1-flash-lite`, `config.LITE_MODELS`: 1,000 a day) does triage and discovery. Flash of this generation (`gemini-3.8-flash`, then `3.6`: 40 a day) does extraction (not `3.7` nor `3.5`: deprecated on 9 Oct 2026 and answered by 3.8 and 3.6, they only spent those models' quota). Provisional extraction, when those are out: `gemini-3-flash-preview` (an older Flash, not yet compared with this generation's), then Flash-Lite (`config.TRIAGE_MODELS`, `EXTRACTION_MODELS`, `PROVISIONAL_MODELS`) |
 | **Free quotas** | Flash-Lite: 15 requests/minute and 500/day. Each Flash model: 5/minute and 20/day (`config.MODEL_LIMITS`, read from AI Studio's rate-limit page on 6 Oct 2026). Each model has its own quota. Days reset at **midnight Pacific time** |
 | **Cost** | Free (the free tier may use prompts to improve Google's products; posts are public anyway) |
 | **If it fails** | Out of quota: the next model, then the last resort (section 3.10), else the post waits. Busy or unreachable: retried, then the next model, else the post waits. Rejected: recorded as rejected, never retried. Details in section 7.2 |
@@ -414,10 +414,13 @@ Instagram's quota for us is small (Meta's hourly limit per app, which grows with
 14), so each account is read at most **once a day** (quiet, occasional, unproductive and dormant ones less often), about a third of them in each of
 the three sweeps (`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_overdue`):
 
-- **Each account's turn:** 20 hours after a sweep last read it (`SWEEP_EVERY_HOURS`: the same sweep the next
-  day finds it due; over 18 hours, so no later sweep of the same day reads it again). One read at 6:30 is due at
-  2:30, so the 3:00 sweep takes it if it has room, and the 6:30 one reads the rest: the 3:00 and 21:00 sweeps
-  keep their accounts, and the 6:30 one reads what they leave (a third's share caps each). Every 44 hours: quiet
+- **Each account's turn:** 22 hours after a sweep last read it (`SWEEP_EVERY_HOURS`): each account keeps its sweep,
+  the same one the next day finds it due (a 6:30 read is due at 4:30, past the next 3:00 sweep), with 2 hours of
+  slack for a late start, and no later sweep of the same day reads it again. An account a sweep couldn't reach (its
+  share, Instagram's stop) moves to the next sweep and stays there; the overflow goes round (3:00 → 6:30 → 21:00 →
+  3:00). At 20 hours (until 9 Oct 2026) a 6:30 read was due at 2:30, so the 3:00 sweep took the 6:30 sweep's
+  accounts for good and the evening sweep, the one that catches the day's posts before that night's events, lost
+  every account it once skipped (the bug-squash pass). Every 46 hours: quiet
   accounts, with no post in 30 days (`QUIET_AFTER_DAYS`; 45 until 8 Oct 2026), and unproductive ones, whose posts read (`UNPRODUCTIVE_AFTER_POSTS`, 10, among the records kept: the last 45
   days) never became an event (`pipeline.unproductive_accounts`, `models.had_events`; their first event brings them
   back to daily). Dormant ones, with no post in 180 days (`DORMANT_AFTER_DAYS`), once a week (164 hours). Lower
@@ -425,12 +428,12 @@ the three sweeps (`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_o
   app's hourly allowance (section 14). The owner chose these tiers over a third sweep, at 128 accounts (8 Oct 2026), then added the third sweep too (9 Oct, below). An account silent for over a year is better
   commented out in `accounts.txt`, with a note. `accounts.json` keeps `last_swept_at` and `latest_post` (its day in Bogotá).
 - **Occasional accounts** (the owner, 9 Oct 2026: fewer Instagram reads without missing events): an account whose
-  last post is 8 to 29 days old (`OCCASIONAL_AFTER_DAYS`) also takes its turn every 44 hours, unless something of it
+  last post is 8 to 29 days old (`OCCASIONAL_AFTER_DAYS`) also takes its turn every 46 hours, unless something of it
   waits for its next read, which keeps it daily (`hours_overdue`, `pipeline.busy_accounts`): an event on the site
   that hasn't ended (its own, or one a post of its joined: a change or a cancellation must show within a day), a
   post read by a lighter model that a sweep can still re-read with Flash (first read within the lookback: only a
   read of the account re-reads it), a post no model could read yet (`unreadable`), or its first sweep. Posted within
-  the week: daily. The tier starts past the 7-day lookback, so none of its posts is still re-read; and 44 hours
+  the week: daily. The tier starts past the 7-day lookback, so none of its posts is still re-read; and 46 hours
   between reads (plus a sweep late) is well inside it, so a new post is always read, at worst about a day later than
   daily (two 10-post reads a day apart cover far more than such an account posts). Replayed on the real state of the
   sweeps of 3–9 Oct (8 Oct site data): 16 of 134 accounts in it on 9 Oct (12 more kept daily by the safeguards),
@@ -489,7 +492,7 @@ Section 11 covers how those are reported.
 ```mermaid
 flowchart TD
     A["Check the Instagram token<br/>(cheap call: our username)"] -->|invalid| X["Stop: run fails"]
-    A --> B["Accounts whose turn it is<br/>(20 h since last read, 44 h if quiet<br/>or unproductive, a week if dormant),<br/>regular ones first, new ones last;<br/>this run's share: a third plus 5"]
+    A --> B["Accounts whose turn it is<br/>(22 h since last read, 46 h if quiet<br/>or unproductive, a week if dormant),<br/>regular ones first, new ones last;<br/>this run's share: a third plus 5"]
     B --> C{"Instagram rate limit hit, or would<br/>the next read pass 98% of its quota?"}
     C -->|yes| R["Stop calling Instagram:<br/>the rest wait for the next run"]
     C -->|no| D{"Account's first sweep<br/>done? (state/accounts.json)"}
@@ -1509,7 +1512,7 @@ section 5, "Whose turn it is"):
 | Gemini Flash-Lite (two models) | 500 / day each (996 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
-| Gemini Flash (three for extraction, one older for provisional reads) | 20 / day each (54 usable for extraction, 18 more provisional; 3.7 Flash left the pool on 9 Oct 2026: deprecated, answered by 3.8) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read provisionally (by the older Flash or Flash-Lite) | The binding limit, but it loses no events: the overflow is read provisionally and shown. The three sweeps share one quota day (midnight Pacific: 2:00 Bogotá, 3:00 in the Pacific's winter), 3:00 first, so a sweep leaves each later one an equal share (`flash_reserve`: the 3:00 one keeps two thirds of each model's 18, the 6:30 one a third; 18 of the 54 per sweep, and what one leaves unused passes on to the next), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end. Batched extraction (`GEMINI_BATCH_POSTS`, off by default; section 7.2) reads an account's posts two or three per request: on the records of 9 Oct 2026 about 19% (two) or 30% (three) fewer extraction requests, the posts confirmed alone included |
+| Gemini Flash (two for extraction, one older for provisional reads) | 20 / day each (36 usable for extraction, 18 more provisional; 3.7 and 3.5 Flash left the pool on 9 Oct 2026: deprecated, answered by 3.8 and 3.6) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read provisionally (by the older Flash or Flash-Lite) | The binding limit, but it loses no events: the overflow is read provisionally and shown. The three sweeps share one quota day (midnight Pacific: 2:00 Bogotá, 3:00 in the Pacific's winter), 3:00 first, so a sweep leaves each later one an equal share (`flash_reserve`: the 3:00 one keeps two thirds of each model's 18, the 6:30 one a third; 12 of the 36 per sweep, and what one leaves unused passes on to the next), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end. Batched extraction (`GEMINI_BATCH_POSTS`, off by default; section 7.2) reads an account's posts two or three per request: on the records of 9 Oct 2026 about 19% (two) or 30% (three) fewer extraction requests, the posts confirmed alone included |
 | GitHub Actions minutes (backend, public since 6 Oct 2026) | Unlimited | 15–30 min (measured 6 Oct 2026: Gemini's pacing and busy retries, Instagram; no longer waiting for the data PR, #124) | ~50–75 (three runs) | Free. Before (private: 2,000 a month), about 1,100–1,500 a month went to the sweeps, plus ci on pull requests |
 | GitHub Actions minutes (public site repository) | Unlimited | ci + deploy, ~2 min | | |
 | cron-job.org | Unlimited jobs | 1 call | 2 | |

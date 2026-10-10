@@ -767,7 +767,9 @@ def turn(states: dict, accounts: str = "academia\notra\n") -> list[str]:
 
 
 def test_an_account_is_read_once_a_day():
-    assert turn({"academia": swept(21), "otra": swept(3)}) == ["academia"]  # otra was read this morning
+    assert turn({"academia": swept(23), "otra": swept(3)}) == ["academia"]  # otra was read this morning
+    # 22 h: the same sweep the next day (a 6:30 read is not due at the next 3:00, 20.5 h later; 9 Oct 2026)
+    assert turn({"academia": swept(20.5), "otra": swept(3)}) == []
     assert turn({"academia": swept(3), "otra": swept(3)}) == []
 
 
@@ -1525,3 +1527,11 @@ def test_duplicates_stored_by_an_older_rule_are_merged_on_the_next_run():
     run(FakeInstagram({"academia": [], "otra": []}), FakeExtractor({}))
     assert [event.id for event in storage.load_events()] == ["salsoteca-dc-acere"]
     assert storage.load_processed_posts()["video"].event_ids == ["salsoteca-dc-acere"]
+
+
+def test_meta_s_own_limit_is_recorded_as_meta_not_our_ceiling():
+    """Meta answers error 4 with its header at 100: the next loop pass called it our ceiling (9 Oct 2026)."""
+    config.ACCOUNTS_FILE.write_text("academia\notra\n", encoding="utf-8")
+    limited = InstagramError("(#4) Application request limit reached", code=4)
+    stats = run(FakeInstagram({"academia": limited, "otra": []}, usage=[100]), FakeExtractor({}))
+    assert stats.instagram_stop == "meta"

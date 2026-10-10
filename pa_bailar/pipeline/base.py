@@ -181,6 +181,11 @@ def _details(event: ExtractedEvent) -> dict[str, Any]:
     return event.model_dump(include=set(EventDetails.model_fields))
 
 
+# The doubt another account's "cancelled" post leaves on an event it doesn't own (SweepBase._take_down_cancelled):
+# "@<account> lo anunció cancelado o aplazado: revisar". Kept through re-reads (SweepBase._keep_review_flags).
+CANCEL_FLAG = "lo anunció cancelado o aplazado: revisar"
+
+
 class _Fit(NamedTuple):
     """How well an event a post announced before fits a new reading of the post. Compared as a tuple: the same date
     weighs most, then the same title, start time and type, in that order."""
@@ -427,9 +432,11 @@ class SweepBase:
         if not publishable:
             log.info("     skipped: %s", analysis.reason)
         readings = list(zip(publishable, flyers, strict=True))
+        rebuilt = list(reusable)  # as they were: _add_readings takes from `reusable` as it gives their ids back
         added = self._add_readings(
             account, post, readings, reusable, count=count_as_new, light=light, announced=announced
         )
+        self._keep_review_flags(rebuilt)
         results = [result for result in added if result]
         outcome: tuple[PostOutcome, list[str], str | None]
         if results:
@@ -503,6 +510,17 @@ class SweepBase:
                 gone = "Flash no lo encontró al releer" if upgrade else f"{why}: ya no lo anuncia"
                 self.stats.note("dropped", event, gone)
 
+    def _keep_review_flags(self, before: list[StoredEvent]) -> None:
+        """An event rebuilt from a new reading of its only post (`before`: as it was) keeps another account's
+        cancellation flag (_take_down_cancelled): low confidence and its doubt. A re-read (Flash's upgrade, an edited
+        caption) doesn't make the cancellation less worth a look; rebuilt from the reading alone, the flag was lost
+        when Flash re-read the event's remaining post in the same run (the bug-squash pass of 9 Oct 2026)."""
+        flags = {event.id: [doubt for doubt in event.doubts if doubt.endswith(CANCEL_FLAG)] for event in before}
+        for index, event in enumerate(self.events):
+            kept = [doubt for doubt in flags.get(event.id, []) if doubt not in event.doubts]
+            if kept:
+                self.events[index] = event.model_copy(update={"confidence": "low", "doubts": [*event.doubts, *kept]})
+
     def _take_down_cancelled(self, account: str, event_ids: set[str]) -> None:
         """A post that announced these events now says they're cancelled or postponed (its caption edited to
         "CANCELADO"); those only it announced are gone already (detach_post). Of the others, still announced by
@@ -521,10 +539,10 @@ class SweepBase:
                         record.outcome, record.detail, record.provisional = "discarded", "cancelado", False
                 log.info("     cancelled, taken off the site: %s %s", _days(event), event.title)
             else:
-                doubt = f"@{account} lo anunció cancelado o aplazado: revisar"
+                doubt = f"@{account} {CANCEL_FLAG}"
                 flagged = event.model_copy(update={"confidence": "low", "doubts": [*event.doubts, doubt]})
                 self.events[self.events.index(event)] = flagged
-                self.stats.note("flagged", flagged, f"@{account} lo anunció cancelado o aplazado: revisar")
+                self.stats.note("flagged", flagged, doubt)
                 log.info("     @%s says it's cancelled, flagged for review: %s %s", account, _days(event), event.title)
 
     def _discard_reasons(self, account: str, post_id: str, event: ExtractedEvent) -> list[str]:

@@ -31,7 +31,12 @@ def bogota(day: int, hour: int, minute: int = 0) -> datetime:
         (bogota(6, 6, 0), 1),  # started a bit early: it's still the 6:30 one, not a later one
         (bogota(6, 13), 1),  # a manual run at midday leaves the evening its share
         (bogota(6, 21, 5), 0),  # the evening sweep: the next one (6:30) is the next Pacific day
-        (bogota(6, 2), 2),  # past Pacific midnight (2:00 Bogotá): the 3:00 sweep (early), then 6:30 and 21:00
+        (bogota(6, 2), 3),  # past Pacific midnight (2:00 Bogotá), a run by hand: the day's three sweeps are later
+        (bogota(6, 2, 40), 2),  # the 3:00 sweep a little early: itself, then 6:30 and 21:00
+        (
+            bogota(6, 20, 5),
+            1,
+        ),  # a run by hand before the evening's: it keeps its share (it took it all at a 60' margin)
         (bogota(6, 3, 10), 2),  # the 3:00 sweep, first of the quota day
         (bogota(6, 1, 30), 0),  # before Pacific midnight: the quota day of yesterday's sweeps, all done
     ],
