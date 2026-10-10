@@ -92,9 +92,8 @@ class Batches(SweepBase):
         for index, item in enumerate(items):
             analysis = reading.analyses.get(index) if reading else None
             why = reading.left_out.get(index) if reading else None
-            if (
-                analysis is not None and announced
-            ):  # the same event as an earlier post's, which the request couldn't name?
+            # The same event as an earlier post's, which the request couldn't name?
+            if analysis is not None and announced:
                 earlier = [event for event in self.events if event.id in announced]
                 if repeats_earlier(analysis, earlier, self.events, account, item.post["id"]):
                     analysis, why = None, SAME_DAY
