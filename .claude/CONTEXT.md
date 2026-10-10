@@ -31,8 +31,9 @@ docs: it says how the pieces fit, where each truth lives, and what bites. Durabl
 
 ## 3. The project in one paragraph
 
-A free ($0) site of dance events in Bogotá. Two sweeps a day (6:30 and 21:00 Bogotá; 9:00 until 7 Oct 2026) read ~130 organizers' Instagram
-posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two repositories in `C:\Users\Jhoan\Code`:
+A free ($0) site of dance events in Bogotá. Three sweeps a day (3:00, 6:30 and 21:00 Bogotá; the morning one was
+at 9:00 until 7 Oct 2026, and the 3:00 one came on 9 Oct, when a slow Meta left accounts unread) read ~130 organizers'
+Instagram posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two repositories in `C:\Users\Jhoan\Code`:
 
 | Piece | Where |
 |---|---|
@@ -44,8 +45,10 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
 
 ## 4. How the pieces connect
 
-- **An event's life:** cron-job.org starts `daily-sweep.yml` → `sweep` picks whose turn it is (`accounts.txt`;
-  quiet, unproductive and dormant accounts less often) → Instagram Graph API (Business Discovery) → Flash-Lite triage
+- **An event's life:** cron-job.org (6:30, 21:00) or GitHub's own schedule (3:00) starts `daily-sweep.yml` →
+  `sweep` picks whose turn it is (`accounts.txt`; quiet, unproductive and dormant accounts less often; about a third
+  a sweep), reading until the next read would take Instagram's hourly quota past 98% (a forecast from the run's own
+  reads) → Instagram Graph API (Business Discovery) → Flash-Lite triage
   → Flash extraction (the `ModelPool`; an older Flash and Lite, then Groq/OpenRouter as the last resort, all
   provisional) → `normalize.py` safeguards → merging into events (`merging.py`, `ids.py`; stored duplicates repaired
   on every load) → images pushed to `pa-bailar/media` (`media_store.py`), then the data written to the site repo
@@ -89,8 +92,9 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
   real limits and today's use per model are on AI Studio's rate-limit page (the owner can paste it; our own counter
   can differ: Google counts failed requests). The model ids: list them with the API (`client.models.list()`), not
   from memory. Reads by a lighter model are provisional and re-read with Flash later, the soonest events first; a
-  sweep leaves the day's later sweep half of Flash. Flash often answers 503 "overloaded" for hours (Google's
-  capacity, not shown on its status page): the pool pauses a busy model instead of retrying. **A 402 "prepayment
+  sweep leaves each later sweep of the quota day (3:00, 6:30, 21:00, from 2:00 Bogotá) a third of Flash. Flash
+  often answers 503 "overloaded" for hours (Google's capacity, not shown on its status page): the pool pauses a busy
+  model instead of retrying. **A 402 "prepayment
   credits are depleted" means billing got turned on** for that key's project (since Mar 2026 a project with billing
   isn't on the free tier): the owner disables it in AI Studio / Google Cloud billing (7 Oct 2026).
 - **Judge a change to the reading on the test set,** not on impressions: `gold/` (40 posts checked by hand) and
@@ -138,7 +142,8 @@ posts, Gemini extracts the events, and the site rebuilds. Owner: jzamora5. Two r
 The rules are in `WORKSPACE.md`; these are the lessons behind them.
 
 - **Merge only when every check reports pass** (not "mergeable": two PRs were merged early). Changes to the sweep path
-  or workflows only outside the sweep windows (6:00–7:15 and 20:30–21:45 Bogotá).
+  or workflows only outside the sweep windows (2:30–3:45, 6:00–7:15 and 20:30–21:45 Bogotá; GitHub may start the
+  3:00 one late: check `gh run list` first).
 - **Verify before claiming:** an unconfirmed "free Flash ends 20 Oct" came from news about the Gemini app, not the
   API. Say what was checked and what wasn't.
 - **Test like a visitor:** 375 px, both themes, scrolled down, a first visit, back and reload; the live site after

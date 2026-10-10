@@ -109,8 +109,8 @@ docs or memory, not a deliberate exception explained in a comment). Discard what
 
 Run the automatic checks again (step 1), then the usual way (WORKSPACE.md): commit, `sync-docs`, push, open the PR
 in its own command, merge only when every check is green (backend changes to the sweep or workflows: outside the
-sweep windows, 6:00–7:15 and 20:30–21:45 Bogotá; the time from `node`, not `TZ=… date`), then check the live site
-after a site deploy.
+sweep windows, 2:30–3:45, 6:00–7:15 and 20:30–21:45 Bogotá; the time from `node`, not `TZ=… date`), then check the
+live site after a site deploy.
 
 ## 6. Report
 
