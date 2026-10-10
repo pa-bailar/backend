@@ -392,11 +392,10 @@ issue (step 16) still report it.
 Other workflow settings:
 - **`concurrency: data`** (`cancel-in-progress: false`): two sweeps never run at the same time. A new one
   waits, and if several are started meanwhile, only the newest waits (the others show as "cancelled").
-- **Triggers:** `workflow_dispatch` (cron-job.org at 6:30 and 21:00, the `admin` workflow, *Run workflow*) and
-  `schedule` for the 3:00 sweep (section 3.4); no push trigger. A scheduled run has no inputs, so every `inputs.*`
-  is empty (GitHub's expressions treat that as `''`): the `request` job is skipped, `LOOKBACK_DAYS` is 7, no
-  `--all`, no admin answer, and it reports to healthchecks.io like any regular sweep. It runs the default branch's
-  workflow.
+- **Triggers:** `workflow_dispatch` only (cron-job.org at 3:00, 6:30 and 21:00, the `admin` workflow, *Run
+  workflow*; section 3.4); no `schedule`, no push trigger. cron-job.org's call passes no inputs, so each takes its
+  default (`days` 7, the rest empty or false): the `request` job is skipped, `LOOKBACK_DAYS` is 7, no `--all`, no
+  admin answer, and it reports to healthchecks.io like any regular sweep. It runs the default branch's workflow.
 - **Single-post mode** (`post_url`, started by the `admin` workflow): `sweep --post` adds one post by hand (with `again`, "Volver a leer", even if it was read before and hasn't
   changed), then the same state save and data PR. It isn't recorded in the run history, opens no health issue
   and doesn't ping healthchecks.io.
@@ -715,7 +714,7 @@ above; any post the shared answer leaves out, mixes up or finds no event in is r
 | Step | Model(s) | Input | Output (schema) | Thinking |
 |---|---|---|---|---|
 | Triage | Flash-Lite (`LITE_MODELS`) | Caption, account, publication date, today's date, first image as a 512 px JPEG | `Triage`: `is_event_post`, `reason` | Low |
-| Extraction | Flash: `gemini-3.8-flash`, `3.7`, `3.6`, then `3.5` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day and a series' sessions, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `sessions`, `image_index`, `same_as` and `in_bogota`, the last three never stored) | Model default |
+| Extraction | Flash: `gemini-3.8-flash`, then `3.6` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day and a series' sessions, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `sessions`, `image_index`, `same_as` and `in_bogota`, the last three never stored) | Model default |
 | Provisional extraction | `gemini-3-flash-preview`, then Flash-Lite | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
 | Story (admin tools) | Extraction's models, then the provisional ones when Flash is out (kept as it is) | Up to 4 screenshots of one story (numbered), when the screenshot was taken, the admin's notes and account, the account's known events | `StoryAnalysis`: the header's account, a reshared post's author, mentions, location sticker, the story's age, a `content_box` per screenshot, `events[]` (`StoryEvent`: dates as printed, a series' sessions too (`StorySession`), worked out in code by `stories.resolve_date`) | Model default |
 | Discovery | Flash-Lite (`LITE_MODELS`, the triage's) | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, whether it announces one-time events, reason | Model default |

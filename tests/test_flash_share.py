@@ -52,8 +52,9 @@ def test_the_later_sweeps_of_the_quota_day(now, later):
         (bogota(10, 6, 40), 1 / 3),  # the 6:30 one leaves the evening's third
         (bogota(10, 21, 5), 0),  # the evening's is the last: what's left is its own
         (bogota(10, 13), 1 / 3),  # a manual run at midday leaves the evening its third
-        # The Pacific's winter (from 1 Nov): the quota day starts at 3:00 Bogotá sharp, and GitHub's 3:00 start, never
-        # early, is in it; a run just before is still in the day before, whose sweeps are all done.
+        # The Pacific's winter (from 1 Nov): the quota day starts at 3:00 Bogotá sharp, and cron-job.org's 3:00 call (on
+        # the minute, the run seconds to minutes after) is in it; a run just before is still in the day before, whose
+        # sweeps are all done.
         (datetime(2026, 11, 15, 3, 5, tzinfo=config.BOGOTA_TZ), 2 / 3),
         (datetime(2026, 11, 15, 2, 50, tzinfo=config.BOGOTA_TZ), 0),
     ],
@@ -63,8 +64,8 @@ def test_each_sweep_leaves_the_later_ones_an_equal_share_of_flash(now, reserve):
 
 
 def test_three_sweeps_split_flash_in_thirds_and_pass_on_what_they_leave(tmp_path, monkeypatch):
-    """Each Flash model's daily budget (18 usable of 20) split by the three sweeps' reserves: 6 each at most, 18 of
-    the three models' 54 per sweep; what one leaves unused, the next can take."""
+    """Each Flash model's daily budget (18 usable of 20) split by the three sweeps' reserves: 6 each at most, 12 of
+    the two models' 36 per sweep; what one leaves unused, the next can take."""
     monkeypatch.setattr(config, "GEMINI_USAGE_FILE", tmp_path / "usage.json")
     model = config.FLASH_MODELS[0]
 
