@@ -122,8 +122,8 @@ def sweeps_in_quota_day(now: datetime) -> list[datetime]:
 
 
 def later_sweeps_in_quota_day(now: datetime) -> int:
-    """How many scheduled sweeps still start in `now`'s Gemini quota day, past the margin that makes a sweep starting
-    late this run."""
+    """How many scheduled sweeps still start in `now`'s Gemini quota day, past config.LATER_SWEEP_MARGIN_MINUTES (one
+    starting within it is this run, started a little early)."""
     soonest = now + timedelta(minutes=config.LATER_SWEEP_MARGIN_MINUTES)
     return sum(1 for starts in sweeps_in_quota_day(now) if starts > soonest)
 
@@ -208,7 +208,7 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         return self.stats
 
     def _share_flash(self) -> None:
-        """Leave the later sweeps of this Gemini quota day their share of Flash (config.LATER_SWEEP_MARGIN_MINUTES)."""
+        """Leave the later sweeps of this Gemini quota day their share of Flash (flash_reserve)."""
         now = datetime.now(UTC)
         if share := flash_reserve(now):
             self.extractor.reserve_flash(share)
