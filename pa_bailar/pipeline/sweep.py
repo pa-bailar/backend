@@ -74,20 +74,32 @@ def overdue_by_account(
     return {account: hours_overdue(states.get(account), now, account in unproductive) for account in accounts}
 
 
-def later_sweeps_in_quota_day(now: datetime) -> int:
-    """How many scheduled sweeps (config.SWEEP_TIMES, Bogotá) still start in `now`'s Gemini quota day (Pacific), past
-    the margin that makes a sweep starting late this run."""
+def sweeps_in_quota_day(now: datetime) -> list[datetime]:
+    """When the scheduled sweeps (config.SWEEP_TIMES, Bogotá) of `now`'s Gemini quota day (Pacific) start, in order:
+    3:00, 6:30 and 21:00 of one Bogotá day (its quota day starts at 2:00 Bogotá, or 3:00 in the Pacific's winter)."""
     day = quota_date(now)
-    soonest = now + timedelta(minutes=config.LATER_SWEEP_MARGIN_MINUTES)
     today = now.astimezone(config.BOGOTA_TZ).date()
-    later = 0
-    for offset in (0, 1):
-        on = today + timedelta(days=offset)
-        for clock in config.SWEEP_TIMES:
-            starts = datetime.combine(on, parse_hhmm(clock), config.BOGOTA_TZ)
-            if starts > soonest and quota_date(starts) == day:
-                later += 1
-    return later
+    starts = [
+        datetime.combine(today + timedelta(days=offset), parse_hhmm(clock), config.BOGOTA_TZ)
+        for offset in (-1, 0, 1)
+        for clock in config.SWEEP_TIMES
+    ]
+    return sorted(moment for moment in starts if quota_date(moment) == day)
+
+
+def later_sweeps_in_quota_day(now: datetime) -> int:
+    """How many scheduled sweeps still start in `now`'s Gemini quota day, past the margin that makes a sweep starting
+    late this run."""
+    soonest = now + timedelta(minutes=config.LATER_SWEEP_MARGIN_MINUTES)
+    return sum(1 for starts in sweeps_in_quota_day(now) if starts > soonest)
+
+
+def flash_reserve(now: datetime) -> float:
+    """The share of Flash's daily budget a run starting at `now` leaves unused: each later sweep of the quota day keeps
+    an equal share of the day's sweeps (two thirds at 3:00, one third at 6:30, nothing at 21:00). What a sweep leaves
+    unused passes on to the next one."""
+    later = later_sweeps_in_quota_day(now)
+    return later / max(len(sweeps_in_quota_day(now)), later + 1) if later else 0.0
 
 
 def upgrade_urgency(event_ids: list[str], events: dict[str, StoredEvent], today: str) -> tuple[int, str]:
@@ -132,10 +144,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         if len(due) > share:
             log.info("%s accounts' turn: %s this run, the rest first next run", len(due), share)
         for account in due[:share]:
-            usage = self.instagram.app_usage_percent
-            if usage >= config.INSTAGRAM_USAGE_STOP:
-                log.warning("Instagram quota %s%% used: the remaining accounts wait for the next run", usage)
-                self.rate_limited = True
+            if self._instagram_full():
                 break
             if self.rate_limited:
                 log.warning("Instagram rate limit reached: the remaining accounts wait for the next run")
@@ -143,9 +152,13 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             if self._out_of_time():  # no Gemini work would start: they wait, first next run (_due_accounts)
                 break
             self.stats.accounts += 1
+            call = self.instagram.last_call
             with self._contained(account, f"@{account}"):
                 self._process_account(account)
+            if self.instagram.last_call is not None and self.instagram.last_call is not call:
+                log.info("   %s", self.read_costs.record(account, self.instagram.last_call).line())
 
+        self.stats.instagram_reads = self.read_costs.summary()
         self._upgrade_by_urgency()
         self._apply_retention()
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
@@ -161,10 +174,10 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
 
     def _share_flash(self) -> None:
         """Leave the later sweeps of this Gemini quota day their share of Flash (config.LATER_SWEEP_MARGIN_MINUTES)."""
-        later = later_sweeps_in_quota_day(datetime.now(UTC))
-        if later:
-            share = later / (later + 1)
+        now = datetime.now(UTC)
+        if share := flash_reserve(now):
             self.extractor.reserve_flash(share)
+            later = later_sweeps_in_quota_day(now)
             log.info("Flash: %d%% of today's requests left for %d later sweep(s) today", share * 100, later)
 
     def _upgrade_by_urgency(self) -> None:
@@ -252,18 +265,44 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             changes[key] = changes.get(key, 0) + count
         log.info("     Flash's reading: %s", "changed " + ", ".join(sorted(changed)) if changed else "the same")
 
+    def _instagram_full(self) -> bool:
+        """Whether the next read would take Instagram's quota past config.INSTAGRAM_USAGE_CEILING (the share now plus
+        its expected cost: instagram_usage.ReadCosts): then the remaining accounts wait, first next run."""
+        usage = self.instagram.app_usage_percent
+        reason = self.read_costs.stop_reason(usage)
+        if reason is None:
+            return False
+        log.warning(
+            "Instagram quota %s%% used, a read costs up to %s%%: stopping before %s%%; the remaining accounts wait "
+            "for the next run",
+            usage,
+            self.read_costs.expected_cost(),
+            self.read_costs.ceiling,
+        )
+        self.rate_limited = True
+        self.stats.instagram_stop = reason
+        return True
+
     def _record_instagram_usage(self) -> None:
         """The run's highest reading of Instagram's quota, and which of Meta's measures it was (calls, CPU time, total
-        time): the sweep stops at config.INSTAGRAM_USAGE_STOP, and what drives a run there decides what to change."""
+        time): what drives a run to its ceiling (config.INSTAGRAM_USAGE_CEILING) decides what to change."""
         peak, detail = self.instagram.peak_usage_percent, self.instagram.peak_usage_detail
         self.stats.instagram_usage, self.stats.instagram_usage_detail = peak, dict(detail)
         if detail:
             measures = ", ".join(f"{key} {value}%" for key, value in sorted(detail.items()))
+            log.info("Instagram quota at its highest this run: %s%% (%s)", peak, measures)
+        if reads := self.stats.instagram_reads:
             log.info(
-                "Instagram quota at its highest this run: %s%% (%s; stops at %s%%)",
-                peak,
-                measures,
-                config.INSTAGRAM_USAGE_STOP,
+                "Instagram reads: %s, %.1f s each (median %.1f s, at most %.1f s); %s%% of the quota each (at most "
+                "%s%%, @%s); headers %s",
+                reads.accounts,
+                reads.mean_seconds,
+                reads.median_seconds,
+                reads.max_seconds,
+                reads.mean_cost,
+                reads.max_cost,
+                reads.max_cost_account,
+                reads.headers,
             )
 
     def _share_per_run(self) -> int:
@@ -364,7 +403,9 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         except InstagramError as error:
             log.error("   could not fetch posts: %s", error)
             self.rate_limited = is_rate_limited(error)
-            if not self.rate_limited:
+            if self.rate_limited:
+                self.stats.instagram_stop = "meta"  # Meta's own limit, before our ceiling
+            else:
                 state.last_swept_at = config.now_bogota().isoformat(timespec="seconds")  # tried: its turn is over
             self.stats.count(account, "errors")
             self.stats.account(account).fetch_failed = True

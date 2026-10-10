@@ -13,7 +13,8 @@ from .. import clips, config, storage
 from ..changes import ChangeKind, EventChange, change, noted
 from ..external import ExternalReport
 from ..gemini import ExtractionError, quota_reset
-from ..instagram import Post, download_image, image_urls, slide_count, video_url
+from ..instagram import CallReading, Post, download_image, image_urls, slide_count, video_url
+from ..instagram_usage import ReadsSummary, StopReason
 from ..models import EventDetails, EventMedia, ExtractedEvent, PostAnalysis, StoredEvent, StoryAnalysis, Triage
 from ..text import clock
 
@@ -25,11 +26,13 @@ RETRYABLE_ERRORS = (ExtractionError, genai_errors.APIError, OSError, httpx.Trans
 class PostSource(Protocol):
     """Where posts come from: InstagramClient (tests pass a fake). Its readings of Instagram's quota (0-100, Meta's
     usage headers: InstagramClient._read_usage): the share used now, where the sweep stops, and the run's peak with
-    each of Meta's measures, which the run records."""
+    each of Meta's measures, which the run records; and its latest call (Meta's time, the usage per header), which
+    the sweep records per read (instagram_usage.ReadCosts)."""
 
     app_usage_percent: int
     peak_usage_percent: int
     peak_usage_detail: dict[str, int]
+    last_call: CallReading | None
 
     def check_token(self) -> str: ...
     def fetch_recent_posts(self, account: str, limit: int = ...) -> list[Post]: ...
@@ -108,6 +111,8 @@ class RunStats:
     due_accounts: list[str] = field(default_factory=list)  # whose turn it was (the ones not read wait for the next run)
     instagram_usage: int = 0  # the highest share of Instagram's quota used during the run (0-100)
     instagram_usage_detail: dict[str, int] = field(default_factory=dict)  # its measures (instagram.USAGE_MEASURES)
+    instagram_reads: ReadsSummary | None = None  # Meta's time and the quota's share per read (instagram_usage.py)
+    instagram_stop: StopReason | None = None  # why it stopped reading accounts early, if it did
     by_account: dict[str, AccountStats] = field(default_factory=dict)
     # What happened to which event, one change per event by id (changes.py): the admin page's history. Not in meta.json.
     changes: dict[str, EventChange] = field(default_factory=dict)

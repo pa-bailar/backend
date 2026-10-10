@@ -3,6 +3,8 @@
 import re
 from pathlib import Path
 
+from pa_bailar import config
+
 ROOT = Path(__file__).resolve().parent.parent
 SWEEP = (ROOT / ".github" / "workflows" / "daily-sweep.yml").read_text(encoding="utf-8")
 
@@ -54,3 +56,12 @@ def test_the_sweep_job_has_room_for_its_longest_run():
     assert job_limit and step_limit
     longest = minutes("OPEN_DATA_PR_WAIT_MINUTES") + int(step_limit.group(1)) + minutes("MERGE_TIMEOUT_MINUTES") + 10
     assert int(job_limit.group(1)) >= longest, f"the job's {job_limit.group(1)} minutes < the longest run's {longest}"
+
+
+def test_githubs_schedule_starts_the_sweeps_config_says_it_does():
+    """The 3:00 sweep (9 Oct 2026) is started by GitHub's own schedule, in UTC: its cron must be config's time in
+    Bogotá (UTC-5 all year), or the Flash share and the missed-sweep check would plan for a sweep that never comes."""
+    crons = re.findall(r'^    - cron: "(\d+) (\d+) \* \* \*"', SWEEP, re.MULTILINE)
+    scheduled = sorted(f"{(int(hour) - 5) % 24:02d}:{int(minute):02d}" for minute, hour in crons)
+    by_github = sorted(clock for clock, trigger in config.SWEEP_TRIGGERS.items() if trigger.startswith("GitHub"))
+    assert scheduled == by_github == ["03:00"]

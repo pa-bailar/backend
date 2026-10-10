@@ -12,7 +12,7 @@ from pa_bailar.commands.sweep import summary_markdown
 from pa_bailar.external import ExternalReport
 from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError, UnreadableAnswerError
 from pa_bailar.ids import new_event_id
-from pa_bailar.instagram import InstagramError
+from pa_bailar.instagram import APP_HEADER, CallReading, InstagramError
 from pa_bailar.models import PostAnalysis, ProcessedPost, Triage, had_events
 from pa_bailar.pipeline import Sweep, unproductive_accounts
 from tests.factories import EVENT_DATE, event_id, extracted, make_image, media, stored
@@ -39,19 +39,25 @@ def post(post_id: str, media_type: str = "IMAGE", days_ago: float = 2) -> dict:
 
 
 class FakeInstagram:
-    def __init__(self, posts_by_account: dict[str, list[dict] | Exception]):
+    def __init__(self, posts_by_account: dict[str, list[dict] | Exception], usage: list[int] | None = None):
         self.posts_by_account = posts_by_account
         self.limits: dict[str, list[int]] = {}
-        # Instagram's quota as the real client reads it (PostSource): now, and the run's peak with its measures.
+        # Instagram's quota as the real client reads it (PostSource): now, and the run's peak with its measures, and
+        # the latest call. `usage`: the share (total_time, X-App-Usage) each read leaves, in order.
         self.app_usage_percent = 0
         self.peak_usage_percent = 0
         self.peak_usage_detail: dict[str, int] = {}
+        self.last_call: CallReading | None = None
+        self.usage = list(usage or [])
 
     def check_token(self) -> str:
         return "me"
 
     def fetch_recent_posts(self, account: str, limit: int = config.POSTS_PER_ACCOUNT) -> list[dict]:
         self.limits.setdefault(account, []).append(limit)
+        if self.usage:
+            self.app_usage_percent = self.usage.pop(0)
+            self.last_call = CallReading(1.5, {APP_HEADER: {"total_time": self.app_usage_percent}})
         result = self.posts_by_account[account]
         if isinstance(result, Exception):
             raise result
@@ -674,11 +680,58 @@ def test_models_this_key_cant_use_are_reported():
 # ---------- Instagram's quota ----------
 
 
-def test_the_sweep_stops_before_instagrams_limit():
+def test_the_sweep_never_starts_a_read_at_the_ceiling():
     instagram = FakeInstagram({"academia": [], "otra": []})
-    instagram.app_usage_percent = config.INSTAGRAM_USAGE_STOP
+    instagram.app_usage_percent = config.INSTAGRAM_USAGE_CEILING
     stats = run(instagram, FakeExtractor({}))
-    assert stats.rate_limited and stats.accounts == 0
+    assert stats.rate_limited and stats.accounts == 0 and stats.instagram_stop == "ceiling"
+
+
+def quota_run(start: int, usage: list[int]):
+    """A sweep over as many accounts as `usage` has reads, Instagram's share at `start` before the first; each read
+    leaves the next share of `usage` (in X-App-Usage)."""
+    names = [f"a{i:02d}" for i in range(len(usage))]
+    config.ACCOUNTS_FILE.write_text("\n".join(names) + "\n", encoding="utf-8")
+    instagram = FakeInstagram({name: [] for name in names}, usage=usage)
+    instagram.app_usage_percent = start
+    return run(instagram, FakeExtractor({})), instagram
+
+
+def test_at_normal_speed_more_accounts_fit_than_under_the_flat_90():
+    """~1.3% a read (deltas of 1 and 2): the forecast reads on to 97%, where the next read (up to 2) would pass 98;
+    the flat stop at 90% (until 9 Oct 2026) read 7 of these."""
+    usage = [81, 83, 84, 86, 87, 88, 90, 91, 93, 94, 96, 97, 98, 99]
+    stats, instagram = quota_run(80, usage)
+    assert stats.accounts == 12 and instagram.app_usage_percent == 97
+    assert stats.rate_limited and stats.instagram_stop == "forecast"
+
+
+def test_when_meta_is_slow_the_sweep_stops_before_passing_the_ceiling():
+    """Three times slower (9 Oct 2026): ~4% a read. The forecast stops at 96%, before a read that would reach 100."""
+    usage = list(range(64, 104, 4))  # 64, 68 … 100
+    stats, instagram = quota_run(60, usage)
+    assert instagram.app_usage_percent == 96 and stats.accounts == 9
+    assert stats.instagram_stop == "forecast"
+    reads = stats.instagram_reads
+    assert reads is not None and reads.accounts == 9 and reads.max_cost == 4 and reads.expected_cost == 4
+    assert reads.headers == {APP_HEADER: 9} and reads.median_seconds == 1.5
+
+
+def test_a_sudden_spike_raises_the_forecast_at_once():
+    """Reads at 1% until one costs 9: the next read is expected to cost as much, so the sweep stops at 97%; one that
+    reaches the ceiling stops it whatever the forecast."""
+    stats, instagram = quota_run(85, [86, 87, 88, 97, 98])
+    assert stats.accounts == 4 and instagram.app_usage_percent == 97 and stats.instagram_stop == "forecast"
+    assert stats.instagram_reads is not None and stats.instagram_reads.max_cost == 9
+    assert stats.instagram_reads.max_cost_account == "a03"
+    stats, _ = quota_run(85, [86, 87, 88, 99, 99])
+    assert stats.accounts == 4 and stats.instagram_stop == "ceiling"
+
+
+def test_metas_own_limit_is_told_apart_from_ours():
+    limited = InstagramError("(#4) Application request limit reached", code=4)
+    stats = run(FakeInstagram({"academia": limited, "otra": []}), FakeExtractor({}))
+    assert stats.rate_limited and stats.instagram_stop == "meta"
 
 
 def test_a_run_records_its_peak_on_instagram_and_which_measure_it_was():
@@ -823,9 +876,12 @@ def test_each_sweep_reads_its_share_and_the_rest_go_first_next_time(monkeypatch)
     accounts = "\n".join(names) + "\n"
     states = {name: swept(30 + i) for i, name in enumerate(names)}  # a5 waited longest
     first = turn(states, accounts)
-    assert first == ["a5", "a4", "a3"]  # half: two sweeps a day
+    assert first == ["a5", "a4"]  # a third: three sweeps a day
     second = turn(storage.read_json(config.ACCOUNT_STATE_FILE, {}), accounts)
-    assert second == ["a2", "a1", "a0"]
+    assert second == ["a3", "a2"]
+    third = turn(storage.read_json(config.ACCOUNT_STATE_FILE, {}), accounts)
+    assert third == ["a1", "a0"]
+    assert turn(storage.read_json(config.ACCOUNT_STATE_FILE, {}), accounts) == []  # all read: their turn is tomorrow
 
 
 def test_an_account_instagrams_limit_didnt_reach_stays_due():

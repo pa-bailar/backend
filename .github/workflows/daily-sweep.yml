@@ -1,4 +1,4 @@
-# Twice a day: collect new events from Instagram and publish real changes to the (public) site
+# Three times a day: collect new events from Instagram and publish real changes to the (public) site
 # repository through a pull request.
 #
 #   this repo (public): sweep ── images ──▶ pa-bailar/media (pushed directly)
@@ -11,7 +11,7 @@
 # - The sweep's state (analyzed posts, accounts' turns and first-sweep progress, today's Gemini usage and the last
 #   resort's, the run history, the events hidden by hand, the admin page's status) lives in this repository's
 #   sweep-state branch: read before the run, written back after it, so posts aren't sent to Gemini twice and the
-#   two daily runs share the quotas.
+#   three daily runs share the quotas.
 # - Started with `post_url` (by the admin workflow, docs/ADMIN.md), it adds that one post by hand instead of
 #   sweeping (`sweep --post`), then answers on the admin issue. Such runs don't count for the health checks.
 #   With `again` ("Volver a leer"), the post is read again even if it was read before and hasn't changed.
@@ -28,12 +28,19 @@ run-name: >-
   inputs.hide && format('Hide from the site (#{0})', inputs.issue) || 'Sweep' }}
 
 on:
-  # Started twice a day (6:30 AM and 9:00 PM Bogotá) by cron-job.org, which calls GitHub's "run workflow"
-  # API with a token limited to Actions on this repository: GitHub's own `schedule` never fired in this
-  # repository (a known, undocumented problem of new private repositories), so it isn't used. See the
-  # README, "Deployment". Two runs a day: the evening one catches the day's posts, and a missed run
-  # doesn't leave the site stale. They share Gemini's daily quotas (the usage is in the state) and never
-  # overlap (concurrency below).
+  # Three runs a day (config.SWEEP_TIMES). 6:30 AM and 9:00 PM Bogotá: started by cron-job.org, which calls GitHub's
+  # "run workflow" API with a token limited to Actions on this repository (GitHub's own `schedule` never fired here
+  # while the repository was private, a known, undocumented problem of new private repositories). 3:00 AM Bogotá:
+  # GitHub's own schedule, below (the repository is public since 6 Oct 2026; added 9 Oct, the owner): it needs no
+  # change in cron-job.org, and if it stops firing the health checks say so (health.missed_sweeps). See the README,
+  # "Deployment". The evening run catches the day's posts, the 3:00 one takes a third of the accounts while Meta and
+  # Google are quiet, and a missed run doesn't leave the site stale. They share Gemini's daily quotas (the usage is in
+  # the state) and never overlap (concurrency below).
+  schedule:
+    # 08:00 UTC = 3:00 Bogotá (UTC-5 all year). GitHub starts it late at times, never early; tests/test_workflows.py
+    # checks it matches config.SWEEP_TIMES. A scheduled run has no inputs: every `inputs.*` below is empty, so it's a
+    # regular sweep (the `request` job skipped, LOOKBACK_DAYS 7, no --all), run from the default branch.
+    - cron: "0 8 * * *"
   workflow_dispatch:
     inputs:
       days:

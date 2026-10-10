@@ -5,7 +5,7 @@ How the whole system works, from an academy posting a flyer on Instagram to that
 `pa-bailar/backend`) in depth, and every service around it. The site's side is in the site
 repository's `docs/ARCHITECTURE.md` (`pa-bailar/pa-bailar.github.io`).
 
-Last reviewed: 8 October 2026.
+Last reviewed: 9 October 2026.
 
 Contents:
 
@@ -41,6 +41,7 @@ Pa' Bailar has no server. Everything runs on free services:
 flowchart LR
     subgraph Outside["Outside services"]
         CJ["cron-job.org<br/>6:30 AM and 9:00 PM Bogotá"]
+        GS["GitHub's schedule<br/>3:00 AM Bogotá"]
         IG["Instagram Graph API<br/>(Meta, Business Discovery)"]
         GM["Gemini API<br/>(Google AI Studio)"]
         HC["healthchecks.io"]
@@ -65,6 +66,7 @@ flowchart LR
     VIS(("Visitors"))
 
     CJ -- "POST workflow dispatch<br/>(fine-grained token)" --> WF
+    GS -- "schedule (cron 0 8 * * *)" --> WF
     WF -- "1 call per account" --> IG
     WF -- "triage + extraction" --> GM
     WF <-- "read / write state" --> SS
@@ -83,8 +85,9 @@ flowchart LR
 
 In words:
 
-1. **cron-job.org** calls GitHub's API twice a day to start the `daily-sweep` workflow. This is the same
-   as pressing *Run workflow*.
+1. **Three sweeps a day** (3:00, 6:30 and 21:00 Bogotá): **cron-job.org** calls GitHub's API at 6:30 and 21:00
+   to start the `daily-sweep` workflow (the same as pressing *Run workflow*), and **GitHub's own schedule** starts
+   it at 3:00 (section 3.4).
 2. **The sweep** reads the recent posts of every followed academy from **Instagram**. It asks **Gemini**
    which posts announce one-time events, and to extract their details. It saves the events into a checkout
    of the site repository, and pushes a copy of each flyer (and of each video's clip) to the images
@@ -145,8 +148,8 @@ Every service the system depends on. All of them are on free plans.
 | **What it needs** | A **Meta app** (Meta for Developers, with the Instagram Graph API product). A **Facebook Page** linked to **our own Instagram professional account**, whose id is `IG_USER_ID`. An access token for that Page (`META_ACCESS_TOKEN`) |
 | **Token** | A **Page access token that doesn't expire**. It's made from a short-lived Graph API Explorer token by `python -m pa_bailar refresh-token` (section 12.2). It stops working only if it's revoked (for example, a Facebook password change) |
 | **What it can see** | Only **business and creator** accounts. Personal or private accounts answer with error 100/110 ("not visible") |
-| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used in one of two headers, and Meta has used each: `X-Business-Use-Case-Usage` on 3 Oct 2026, `X-App-Usage` on 8 Oct (Business Discovery's answers, the other empty). `InstagramClient.app_usage_percent` reads both and keeps the highest, and the run's peak with each of Meta's measures (calls, CPU time, total time: `peak_usage_percent`, `peak_usage_detail`). The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
-| **Cost per sweep** | **1 call per account read**, no matter how many posts are asked for (10 regular, 30 for a new account). Most accounts are read once a day (quiet ones less often), so a sweep reads at most about half of them (section 5). Images are then downloaded from Instagram's CDN, which isn't an API call |
+| **Limits** | A quota for our app, counted by Meta over a rolling window. Every answer reports the share used in one of two headers, and Meta has used each: `X-Business-Use-Case-Usage` on 3 Oct 2026, `X-App-Usage` on 8 Oct (Business Discovery's answers, the other empty). `InstagramClient.app_usage_percent` reads both and keeps the highest, and the run's peak with each of Meta's measures (calls, CPU time, total time: `peak_usage_percent`, `peak_usage_detail`); each call's time and usage are kept per header (`last_call`, section 8). At 100% every call fails until the hour rolls on. The sweep stops before a read that would take the share past 98% (`INSTAGRAM_USAGE_CEILING`: the share now plus the read's expected cost, section 8; a flat 90% until 9 Oct 2026) instead of running into the limit; when the quota is spent anyway, the answer is error 4, 17, 32, 613 or 80001–80009 (`is_rate_limited`). Accounts not reached stay due and go first next run (section 5) |
+| **Cost per sweep** | **1 call per account read**, no matter how many posts are asked for (10 regular, 30 for a new account). Most accounts are read once a day (quiet ones less often), so a sweep reads at most about a third of them (section 5). Images are then downloaded from Instagram's CDN, which isn't an API call |
 | **Cost** | Free |
 | **If it fails** | Token invalid: the run stops at the start and fails, and healthchecks.io emails you. Rate limit: the run stops calling Instagram, and the remaining accounts wait for the next run (a notice, and a warning after 3 runs in a row). One account fails: logged, and the others continue |
 
@@ -180,8 +183,8 @@ Every service the system depends on. All of them are on free plans.
 
 | | |
 |---|---|
-| **What for** | Starting the sweep at fixed times: **6:30 AM and 9:00 PM, Bogotá time** (`config.SWEEP_TIMES`, which they must match). Until 7 Oct 2026 the morning run was at 9:00, where Google's Flash refused 97% of weekday requests as busy (the owner moved it, from the logs of 29 runs) |
-| **Why not GitHub's own `schedule`** | It never fired in this repository while it was private (until 6 Oct 2026). That's a known, undocumented problem of new private repositories, with no fix from GitHub, and community reports describe runs delayed by hours or dropped. The workflow has **no `schedule:` trigger** on purpose: if GitHub's scheduler started working, every run would happen twice |
+| **What for** | Starting the sweep at fixed times: **6:30 AM and 9:00 PM, Bogotá time** (`config.SWEEP_TIMES` and `SWEEP_TRIGGERS`, which they must match). Until 7 Oct 2026 the morning run was at 9:00, where Google's Flash refused 97% of weekday requests as busy (the owner moved it, from the logs of 29 runs) |
+| **The 3:00 AM sweep: GitHub's own `schedule`** | Added on 9 Oct 2026 (the owner): `daily-sweep.yml`'s `schedule:` trigger, `cron: "0 8 * * *"` (08:00 UTC = 3:00 Bogotá, UTC−5 all year; `tests/test_workflows.py` checks it matches `SWEEP_TRIGGERS`), so it needs no cron-job.org job. GitHub's schedule never fired here while the repository was private (until 6 Oct 2026, a known, undocumented problem of new private repositories); community reports describe runs delayed (never early) or dropped, and a public repository's schedules are turned off after 60 days without activity. A scheduled run has no inputs: a regular sweep. If it stops firing, the health warning "No sweep ran at 03:00" says so (section 11.1): then add a third cron-job.org job like the others. **One trigger per time:** a time started by both would run twice (queued by the `data` concurrency group, the second spending Instagram quota for nothing) |
 | **The two jobs** | `pa-bailar sweep 6:30` and `pa-bailar sweep 21:00`, time zone America/Bogota |
 | **The request** | `POST https://api.github.com/repos/pa-bailar/backend/actions/workflows/daily-sweep.yml/dispatches`, with body `{"ref":"main"}` and headers `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json` and `Authorization: Bearer <token>`. GitHub answers `204 No Content` |
 | **Token** | A **fine-grained personal access token**, owned by the `pa-bailar` organization, limited to this repository and to **Actions: read and write**. It can start and cancel runs; it can't read the code or the secrets. Stored only in cron-job.org |
@@ -194,7 +197,7 @@ Every service the system depends on. All of them are on free plans.
 |---|---|
 | **What for** | A dead man's switch: it emails when a sweep **fails**, or when **no sweep arrives** in time, which is the case GitHub itself never reports |
 | **How** | The workflow's last step always runs. It pings `HEALTHCHECK_URL` on success, or `HEALTHCHECK_URL/fail` on failure, with the run's health report as the body, so the report shows in the check's event log |
-| **Schedule** | **Period 15 hours (12 until the morning run moved, 7 Oct 2026), grace 2 hours:** the runs are 14.5 and 9.5 hours apart (6:30 and 21:00), so a single missed run is noticed within about 17 hours |
+| **Schedule** | **Period 15 hours (12 until the morning run moved, 7 Oct 2026), grace 2 hours:** the runs are 3.5, 14.5 and 6 hours apart (3:00, 6:30 and 21:00), so a missed 6:30 or 21:00 run is noticed within about 17 hours. A missed 3:00 run isn't (21:00 to 6:30 is 9.5 hours): the health rules warn when a scheduled time had no sweep two days in a row (section 11.1) |
 | **Cost** | Free |
 
 ### 3.6 Cloudflare Workers
@@ -287,7 +290,7 @@ are in `accounts.txt`.
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CJ as cron-job.org
+    participant CJ as cron-job.org (or GitHub's schedule at 3:00)
     participant GH as GitHub API
     participant R as Actions runner (backend)
     participant IG as Instagram Graph API
@@ -302,9 +305,9 @@ sequenceDiagram
     R->>S: wait for an earlier data PR still open (up to 20 min)
     R->>R: check out backend, sweep-state, site and images (no stored credentials)
     R->>R: pip install (hash-pinned requirements.txt), copy the images into the site's data
-    loop each account whose turn it is (half of accounts.txt plus 5, regular ones first, until 90% of Instagram's quota)
+    loop each account whose turn it is (a third of accounts.txt plus 5, regular ones first, while the next read fits under 98% of Instagram's quota)
         R->>IG: business_discovery.username(account){media}
-        IG-->>R: recent posts (+ usage header)
+        IG-->>R: recent posts (+ usage header: the read's time and cost logged)
         loop each new or changed post
             R->>R: download its images (Instagram CDN)
             R->>G: triage (Flash-Lite, caption + 1 small image)
@@ -391,7 +394,11 @@ issue (step 16) still report it.
 Other workflow settings:
 - **`concurrency: data`** (`cancel-in-progress: false`): two sweeps never run at the same time. A new one
   waits, and if several are started meanwhile, only the newest waits (the others show as "cancelled").
-- **`workflow_dispatch` only:** there's no schedule (section 3.4), and no push trigger.
+- **Triggers:** `workflow_dispatch` (cron-job.org at 6:30 and 21:00, the `admin` workflow, *Run workflow*) and
+  `schedule` for the 3:00 sweep (section 3.4); no push trigger. A scheduled run has no inputs, so every `inputs.*`
+  is empty (GitHub's expressions treat that as `''`): the `request` job is skipped, `LOOKBACK_DAYS` is 7, no
+  `--all`, no admin answer, and it reports to healthchecks.io like any regular sweep. It runs the default branch's
+  workflow.
 - **Single-post mode** (`post_url`, started by the `admin` workflow): `sweep --post` adds one post by hand (with `again`, "Volver a leer", even if it was read before and hasn't
   changed), then the same state save and data PR. It isn't recorded in the run history, opens no health issue
   and doesn't ping healthchecks.io.
@@ -406,31 +413,41 @@ Other workflow settings:
 ### Whose turn it is: most accounts once a day
 
 Instagram's quota for us is small (Meta's hourly limit per app, which grows with the app's users: one, section
-14), so each account is read at most **once a day** (quiet ones less often), about half of them in each sweep,
-instead of every account twice a day (`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_overdue`):
+14), so each account is read at most **once a day** (quiet ones less often), about a third of them in each of
+the three sweeps (`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_overdue`):
 
 - **Each account's turn:** 20 hours after a sweep last read it (`SWEEP_EVERY_HOURS`: the same sweep the next
-  day finds it due). Every 44 hours: quiet accounts, with no post in 30 days (`QUIET_AFTER_DAYS`; 45 until 8 Oct
-  2026), and unproductive ones, whose posts read (`UNPRODUCTIVE_AFTER_POSTS`, 10, among the records kept: the last 45
+  day finds it due; over 18 hours, so no later sweep of the same day reads it again). One read at 6:30 is due at
+  2:30, so the 3:00 sweep takes it if it has room, and the 6:30 one reads the rest: the 3:00 and 21:00 sweeps
+  keep their accounts, and the 6:30 one reads what they leave (a third's share caps each). Every 44 hours: quiet
+  accounts, with no post in 30 days (`QUIET_AFTER_DAYS`; 45 until 8 Oct 2026), and unproductive ones, whose posts read (`UNPRODUCTIVE_AFTER_POSTS`, 10, among the records kept: the last 45
   days) never became an event (`pipeline.unproductive_accounts`, `models.had_events`; their first event brings them
   back to daily). Dormant ones, with no post in 180 days (`DORMANT_AFTER_DAYS`), once a week (164 hours). Lower
   priority, never dropped: each read is an Instagram call that rarely finds anything new, and costs ~1.3% of the
-  app's hourly allowance (section 14). The owner chose these tiers over a third sweep, at 128 accounts (8 Oct 2026). An account silent for over a year is better
+  app's hourly allowance (section 14). The owner chose these tiers over a third sweep, at 128 accounts (8 Oct 2026), then added the third sweep too (9 Oct, below). An account silent for over a year is better
   commented out in `accounts.txt`, with a note. `accounts.json` keeps `last_swept_at` and `latest_post` (its day in Bogotá).
 - **Order:** due accounts in their regular sweep before new ones (a new account's first, deeper sweep can
   take days of quota); within each, those that waited longest first.
-- **A sweep's share:** half the accounts plus 5 (`EXTRA_ACCOUNTS_PER_RUN`), and it stops earlier at 90% of
-  Instagram's quota. Accounts not reached stay due, and having waited longest, they're first next time: a
-  short quota shortage delays a few accounts by one sweep, it can't snowball.
+- **A sweep's share:** a third of the accounts plus 5 (`EXTRA_ACCOUNTS_PER_RUN`; half until 9 Oct 2026), and it
+  stops earlier, before a read that would take Instagram's quota past 98% (section 8). Accounts not reached stay
+  due, and having waited longest, they're first next time: a short quota shortage delays a few accounts by one
+  sweep, it can't snowball.
+- **Why three sweeps** (the owner, 9 Oct 2026): that morning Meta took three times its usual time per read (a median
+  4.3 s against 1.6 s), and since Meta's limit counts its processing time, the 6:30 sweep reached the 90% stop after
+  28 accounts and 23 waited. With a third sweep at 3:00 each reads about a third of the accounts (at most 48 at 128
+  accounts, about 62% of the hour at the usual cost), and at 3:00 Meta and Google are quiet. The 3:00 sweep reads
+  first the accounts the 21:00 one didn't reach, then those whose turn came overnight (read at 3:00 or 6:30 the day
+  before).
 - **Not over its turn:** an account whose posts still wait (Gemini's quota, time) stays due next sweep. An
   account that couldn't be read for another reason (not visible) waits for its next turn.
 - **Watching it:** each run records its highest reading of Instagram's quota and which of Meta's measures it was
-  (`instagram_usage`, `instagram_usage_detail`, also in the run's log), and the dashboard shows the last sweep's and
-  lists accounts waiting more than a sweep past their turn (their turns counted by the sweep's own
-  `overdue_by_account`; a sweep's gap from `SWEEP_TIMES`: 12 hours). Evening sweeps read more accounts than
-  morning ones (58–69 against 43 on 6–7 Oct, the share set by when each account was read before) and reached
-  90–93%, the mornings 54–62%: the 90% stop moves the accounts it didn't reach to the morning sweep, which evens the
-  two out.
+  (`instagram_usage`, `instagram_usage_detail`, also in the run's log), its reads in short (`instagram_reads`: Meta's
+  mean and median seconds a read, the mean and highest cost, the header; one log line per read) and why it
+  stopped (`instagram_stop`), and the dashboard shows the last sweep's and lists accounts waiting more than a
+  sweep past their turn (their turns counted by the sweep's own `overdue_by_account`; a sweep's gap from
+  `SWEEP_TIMES`: 8 hours). Before the third sweep, evening sweeps read more accounts than morning ones (58–69
+  against 43 on 6–7 Oct, the share set by when each account was read before) and reached 90–93%, the mornings
+  54–62%.
 - **Everyone now:** `sweep --all` (the workflow's `all_accounts` input).
 
 ### 5.3 What a run decides is a failure
@@ -462,8 +479,8 @@ Section 11 covers how those are reported.
 ```mermaid
 flowchart TD
     A["Check the Instagram token<br/>(cheap call: our username)"] -->|invalid| X["Stop: run fails"]
-    A --> B["Accounts whose turn it is<br/>(20 h since last read, 44 h if quiet<br/>or unproductive, a week if dormant),<br/>regular ones first, new ones last;<br/>this run's share: half plus 5"]
-    B --> C{"Instagram rate limit hit,<br/>or 90% of its quota used?"}
+    A --> B["Accounts whose turn it is<br/>(20 h since last read, 44 h if quiet<br/>or unproductive, a week if dormant),<br/>regular ones first, new ones last;<br/>this run's share: a third plus 5"]
+    B --> C{"Instagram rate limit hit, or would<br/>the next read pass 98% of its quota?"}
     C -->|yes| R["Stop calling Instagram:<br/>the rest wait for the next run"]
     C -->|no| D{"Account's first sweep<br/>done? (state/accounts.json)"}
     D -->|no: new account| E["Fetch its last 30 posts<br/>keep those from the last 30 days"]
@@ -748,8 +765,9 @@ flowchart TD
 - **Budget:** each model's daily limit minus 2, kept free for manual runs and retries
   (`DAILY_BUDGET_MARGIN`).
 - **Shared across the day's runs:** usage is saved in `state/gemini_usage.json` with its quota day,
-  which is midnight to midnight Pacific time. So the 6:30 AM and 9:00 PM runs share one day's budget. So are the
-  models Gemini said the key can't use (403, 404) that day: the day's later runs skip them without asking, and still
+  which is midnight to midnight Pacific time (2:00 Bogotá, or 3:00 in the Pacific's winter). So the 3:00 AM,
+  6:30 AM and 9:00 PM runs share one day's budget, in that order: each leaves the later ones an equal share of
+  Flash (`flash_reserve`, section 14). So are the models Gemini said the key can't use (403, 404) that day: the day's later runs skip them without asking, and still
   report them, so the health check counts every run (until 6 Oct 2026 the second run reported none and the count of
   runs in a row started over).
   `discover`, run on your computer, uses the same key but keeps its own count: it reads the sweeps' usage
@@ -871,9 +889,22 @@ flowchart TD
   - network failures and non-JSON answers become an `InstagramError` for that account only.
 - **Quota awareness:** every answer updates `app_usage_percent` from both of Meta's usage headers, since Meta has
   used each (reading only `X-App-Usage` on 3 Oct 2026, when the share came in the other, meant the stop never
-  triggered; on 8 Oct it came in `X-App-Usage`). `discover` pauses at
-  60%. The sweep stops reading accounts at 90% (`INSTAGRAM_USAGE_STOP`), or on the first rate-limit error,
-  and the remaining accounts go first next run.
+  triggered; on 8 Oct it came in `X-App-Usage`). `discover` pauses at 60%.
+- **Each call measured** (since 9 Oct 2026): `last_call` (`CallReading`) holds Meta's time for the call (its round
+  trip) and the usage its answer reported, each header apart (`usage_by_header`). The sweep logs one line per account
+  read ("Instagram: 4.3 s, 40→44% (+4, X-App-Usage)") and keeps the run's summary (`instagram_usage.ReadCosts`,
+  `ReadsSummary`: reads, mean and median seconds, mean and highest cost and its account, which header) in the run's
+  record and the dashboard. A read's cost is the share after it minus the share after the read before, in the same
+  header (none for the run's first read or a change of header: the token check's reading is another counter).
+- **The stop is a forecast** (since 9 Oct 2026; a flat 90% before): before each account the sweep stops if the
+  share now plus the next read's expected cost would pass 98% (`INSTAGRAM_USAGE_CEILING`), and never starts a read
+  at 98% or above. The expected cost is the highest of the run's last 5 costs (`INSTAGRAM_COST_WINDOW`, at least
+  1), or 4% before the run has measured one (`INSTAGRAM_READ_COST`, a slow day's cost). At the usual ~1.3% a read,
+  a sweep with that many accounts would read on to about 96–97% (more than at 90%); when Meta is three times slower
+  it stops around 94–96%, before a read that would reach 100% and lock the app for the rest of the hour; a sudden
+  spike raises the forecast at once. It also stops on the first rate-limit error (Meta's own
+  limit). Why it stopped is recorded (`instagram_stop`: `forecast`, `ceiling` or `meta`), and the remaining
+  accounts go first next run.
 - **The token never shows in errors:** it travels in the URL, and connection errors quote the URL, so
   `instagram.redact` removes it before an error's text reaches logs, `status.json` or an admin answer. It
   also hides `client_secret`, `fb_exchange_token` and `input_token`, which `refresh-token` sends, and that
@@ -1072,7 +1103,7 @@ memory between runs; the site never sees it.
 | `external_usage.json` | The last resort's day (UTC) and, per provider, requests, tokens and the answers per model | The day's runs share Groq's and OpenRouter's budgets (section 7.3) |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
 | `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load. Adding one of its posts by hand publishes it again (ADMIN.md, "Ocultar evento") |
-| `run_history.json` | The last 120 runs in short (about two months): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests (and the last resort's, per provider) and models the key couldn't use; what each of the last resort's models did, those set aside and the providers turned off; Instagram's highest reading and its measures (section 5.2); what Flash changed in lighter readings (`upgrade_changes`, section 7.2); warning keys; and what the run did to which event (`changes`, `change_counts`, `changes_left_out`: section 10.3) | The health rules compare a run with the previous ones (section 11); the admin page's history shows the changes |
+| `run_history.json` | The last 180 runs in short (about two months, three a day: `HISTORY_RUNS`): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests (and the last resort's, per provider) and models the key couldn't use; what each of the last resort's models did, those set aside and the providers turned off; Instagram's highest reading and its measures, its reads in short and why it stopped (`instagram_reads`, `instagram_stop`: section 8); what Flash changed in lighter readings (`upgrade_changes`, section 7.2); warning keys; and what the run did to which event (`changes`, `change_counts`, `changes_left_out`: section 10.3) | The health rules compare a run with the previous ones (section 11); the admin page's history shows the changes |
 | `admin_runs.json` | The last 20 admin requests that ran in the sweep workflow (`sweep --post`, `--story`, `--hide-event`, `--hide-story`): when, which (`action`, `target`), why it couldn't (`error`), and what it did to which event (section 10.3; `changes.AdminRun`) | The admin page's history. Not in `run_history.json`: those runs aren't sweeps, and the health rules compare sweeps |
 
 ```mermaid
@@ -1149,7 +1180,7 @@ per run, the most telling kinds first (`changes.KIND_ORDER`), the rest only coun
 
 `admin status` gathers both files as `history` (`status.history_of`): the latest 10 runs, newest first, each with
 its `kind` (`sweep`, or the request: `post`, `post_again`, `story`, `hide_event`, `hide_story`), `slot` (the
-scheduled sweep it was, `06:30` or `21:00`, when it ended within 90 minutes of that time; none: an extra one),
+scheduled sweep it was, `03:00`, `06:30` or `21:00`, when it ended within 90 minutes of that time; none: an extra one),
 `finished_at`, `run_url`, `target`, `error`, `counts`, `left_out` and `changes` (each with its `url` on the site;
 `null` for a run recorded before 9 Oct 2026: its `events_new` and `events_merged` stand in as counts). Example:
 
@@ -1173,6 +1204,7 @@ flowchart TB
     subgraph Start["Did the sweep start?"]
         CJ["cron-job.org<br/>email when the call to GitHub fails"]
         HC["healthchecks.io<br/>email when no run arrives in 15 h + 2 h"]
+        MS["Health rule: a scheduled time<br/>with no sweep two days in a row"]
     end
     subgraph Run["Did it work?"]
         FAIL["Failed run → healthchecks.io /fail → email"]
@@ -1193,12 +1225,13 @@ They run after every sweep. No AI, no quota.
 | Finding | Level | Rule |
 |---|---|---|
 | `@account` couldn't be read | Notice, then **warning** after 3 failed tries in a row | Renamed, private or no longer a business account? Each account is read on its turn (about once a day, quiet ones less often), so runs that didn't try it (`RunRecord.read_accounts`) don't break the streak |
-| Instagram's rate limit stopped the run early | Notice, then **warning** after 3 runs in a row | Too many accounts for the app's quota? Discovery or tests using it? |
+| Instagram's hourly quota stopped the run early | Notice, then **warning** after 3 runs in a row | The notice says why (the forecast passing 98%, or Meta's own limit) and how the reads went (Meta's median seconds, the cost of a read). Too many accounts for the app's quota, Meta slow, or discovery or tests using it? |
+| No sweep at a scheduled time | **Warning** (`missed-sweep:<time>`) | No run finished within 3 hours of a time in `SWEEP_TIMES` on each of the last 2 days (`missed_sweeps`; times the history doesn't reach aren't judged): its trigger stopped (`SWEEP_TRIGGERS`: GitHub's schedule for 3:00, cron-job.org for the others). healthchecks.io can't tell a missed 3:00 run (section 3.5) |
 | The run used its whole time budget | Notice, then **warning** after 3 runs in a row | Is the backlog too big? |
 | Posts failed | Notice, then **warning** after 3 runs in a row | Gemini rejections, image downloads, unexpected errors. Posts waiting for quota aren't failures |
 | A Gemini model the key can't use | Notice, then **warning** after 3 runs in a row (every run of the day reports it: asked again after midnight Pacific) | Google may have dropped it: the next model of the same role reads meanwhile, so take it out of `config.py`'s lists; only with every Flash of the extraction gone, `GEMINI_LITE_ONLY=1` (Flash-Lite as final results) |
 | Pending posts | Notice, or **warning** when the backlog hasn't gone down in 4 runs | The quotas or the time are too small for the accounts followed |
-| No events in a week | **Warning** | 14 runs with at least 10 posts analyzed and not a single event: are triage or extraction rejecting everything? |
+| No events in a week | **Warning** | 21 runs (a week of three a day) with at least 10 posts analyzed and not a single event: are triage or extraction rejecting everything? |
 | Posts read provisionally | Notice | Read without this generation's Flash (out of quota, busy, or kept for a later sweep that day): by an older Flash, Flash-Lite or the last resort, re-read with Flash on later runs |
 | The last resort was used | Notice | Gemini ran out: requests per provider, what each model did (answered, busy, invalid, skipped…) and the ones set aside after failing twice |
 | A provider of the last resort turned off | Notice, then **warning** after 3 runs in a row | Groq or OpenRouter answered 401, 402 or 403: check its key secret and the account, or delete the secret to stop using it |
@@ -1342,8 +1375,9 @@ guide.
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
   otherwise); whether the Instagram token works (one call, `--no-instagram` skips it) and the last sweep's highest
   reading of Instagram's quota with its measures (the token check's own reading is another counter: 1% at the end
-  of a sweep stopped at 90%), and whether the sweep stopped there or Meta's own rate-limit error stopped it below
-  that ("Meta lo frenó antes"); accounts still in their first sweep, and those waiting more than a sweep past their
+  of a sweep stopped at 90%), whether the sweep stopped itself (before the next read passed 98%) or Meta's own
+  rate-limit error stopped it ("Meta lo frenó antes"), and its reads in short (Meta's seconds a read, the cost
+  of a read); accounts still in their first sweep, and those waiting more than a sweep past their
   turn (section 5.2); provisional posts, and what Flash changed when it re-read lighter readings (section 7.2);
   upcoming events (until their last day);
   new workshop series to look at, with `/ocultar <id>` (section 9.1); discovery progress; the last resort's use
@@ -1419,20 +1453,20 @@ model of a role having its limits).
 
 ## 14. Quotas and capacity
 
-With **128 followed accounts** (8 October 2026, `accounts.txt`) and two runs a day (each account read about once a
-day, quiet ones less often: section 5, "Whose turn it is"):
+With **128 followed accounts** (8 October 2026, `accounts.txt`) and three runs a day (3:00, 6:30 and 21:00 since
+9 Oct 2026; each account read about once a day, quiet ones less often: section 5, "Whose turn it is"):
 
 | Resource | Limit | Use per run | Use per day | Headroom |
 |---|---|---|---|---|
-| Instagram calls (Business Discovery: Meta's platform limit, per app, rolling 1 hour; `x-app-usage`) | Grows with the app's users (one); what runs out is `total_time`, Meta's processing time: ~1–1.3% per account read, whatever the fields or posts asked (measured 8 Oct 2026), so about 70 reads an hour | At most 69 (half the accounts, plus up to 5 late ones); about 54 at 128 accounts with the tiers | About 107 at 128 accounts (91 daily, 30 every other day, 7 weekly) | The sweep stops at 90% usage (`INSTAGRAM_USAGE_STOP`) and the accounts not reached go first next run; the hour starts over by the next sweep. Two sweeps hold about 140 daily reads. `discover` keeps clear of sweep times |
+| Instagram calls (Business Discovery: Meta's platform limit, per app, rolling 1 hour; `x-app-usage`) | Grows with the app's users (one); what runs out is `total_time`, Meta's processing time: ~1–1.3% per account read, whatever the fields or posts asked (measured 8 Oct 2026), so about 75 reads an hour up to 98%; three times that when Meta is slow (9 Oct 2026), about 24 | At most 48 (a third of the accounts, plus up to 5 late ones); about 36 at 128 accounts with the tiers | About 107 at 128 accounts (91 daily, 30 every other day, 7 weekly) | The sweep stops before a read would pass 98% (`INSTAGRAM_USAGE_CEILING`, section 8) and the accounts not reached go first next run; the hour starts over by the next sweep (3.5 hours or more apart). Three sweeps hold their shares, about 144 daily reads, at the usual cost; about 70 on a slow day (the rest wait a sweep). `discover` keeps clear of sweep times |
 | Gemini Flash-Lite (two models) | 500 / day each (996 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
-| Gemini Flash (three for extraction, one older for provisional reads) | 20 / day each (54 usable for extraction, 18 more provisional; 3.7 Flash left the pool on 9 Oct 2026: deprecated, answered by 3.8) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read provisionally (by the older Flash or Flash-Lite) | The binding limit, but it loses no events: the overflow is read provisionally and shown. Both sweeps share one quota day (midnight Pacific), so a sweep leaves the later ones their share (`later_sweeps_in_quota_day`: the 6:30 one keeps half for 21:00), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end |
-| GitHub Actions minutes (backend, public since 6 Oct 2026) | Unlimited | 15–30 min (measured 6 Oct 2026: Gemini's pacing and busy retries, Instagram; no longer waiting for the data PR, #124) | ~35–50 | Free. Before (private: 2,000 a month), about 1,100–1,500 a month went to the sweeps, plus ci on pull requests |
+| Gemini Flash (three for extraction, one older for provisional reads) | 20 / day each (54 usable for extraction, 18 more provisional; 3.7 Flash left the pool on 9 Oct 2026: deprecated, answered by 3.8) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read provisionally (by the older Flash or Flash-Lite) | The binding limit, but it loses no events: the overflow is read provisionally and shown. The three sweeps share one quota day (midnight Pacific: 2:00 Bogotá, 3:00 in the Pacific's winter), 3:00 first, so a sweep leaves each later one an equal share (`flash_reserve`: the 3:00 one keeps two thirds of each model's 18, the 6:30 one a third; 18 of the 54 per sweep, and what one leaves unused passes on to the next), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end |
+| GitHub Actions minutes (backend, public since 6 Oct 2026) | Unlimited | 15–30 min (measured 6 Oct 2026: Gemini's pacing and busy retries, Instagram; no longer waiting for the data PR, #124) | ~50–75 (three runs) | Free. Before (private: 2,000 a month), about 1,100–1,500 a month went to the sweeps, plus ci on pull requests |
 | GitHub Actions minutes (public site repository) | Unlimited | ci + deploy, ~2 min | | |
 | cron-job.org | Unlimited jobs | 1 call | 2 | |
-| healthchecks.io | Free plan | 1 ping | 2 | |
+| healthchecks.io | Free plan | 1 ping | 3 | |
 
 **The time budget:** a run stops starting Gemini work after 30 minutes (`MAX_RUN_MINUTES`). The step
 itself stops at 35, and the job at 90 (section 5.2), leaving room for the state, the PR and the merge. After the budget no
@@ -1455,12 +1489,14 @@ spent only on the few that announce events.
 | cron-job.org email "execution failed", with HTTP `401` | The fine-grained token expired or was revoked | Create a new one (resource owner `pa-bailar`, repository `backend`, Actions read/write) and replace it in both cron jobs |
 | cron-job.org email with HTTP `404` | Workflow file renamed, or the token can't see the repository | Fix the URL or the token's repository access |
 | healthchecks.io "DOWN", **no ping** | No run started: cron-job.org disabled, or GitHub accepted the call but never ran it | Check cron-job.org's history and the Actions page. Start a run with *Run workflow* |
+| Warning: no sweep at 03:00 on the last 2 days | GitHub's schedule stopped firing (or never did: it didn't while the repository was private), or GitHub turned it off after 60 days without activity | Check the Actions page for `schedule` runs and that the workflow is enabled. Meanwhile the 6:30 sweep reads what the 3:00 one would have. If it keeps missing, add a cron-job.org job `pa-bailar sweep 3:00` like the other two (section 3.4) |
+| Warning: no sweep at 06:30 or 21:00 on the last 2 days | The cron-job.org job was disabled or its token expired | cron-job.org's history; see the rows above |
 | healthchecks.io "DOWN", **failure ping** | The run failed: open the run log linked in the ping body | See the next rows |
 | "Instagram token invalid" | The Page token was revoked (for example, a Facebook password change) | Section 12.2: `refresh-token`, then update the `META_ACCESS_TOKEN` secret |
 | "Every account failed" | Something besides the rate limit broke every call (the Graph API version retired, a permission removed from the Meta app) | Read the errors in the log. Check the app in Meta for Developers. Raise `GRAPH_API_URL`'s version if Meta retired it |
 | "The data PR did not merge within 20 minutes" | The site's `ci` failed on the data (`check-data.mjs`), or GitHub was slow | Open the PR in the site repository and read `ci`. A contract mismatch means `models.py` and the site's `check-data.mjs` / `types.ts` disagree: fix both |
 | Warning: `@account` couldn't be read in 3 runs | Renamed, made private, or switched to a personal account | Check on Instagram. Update or remove the line in `accounts.txt` |
-| Warning: rate limit in 3 runs | Too many accounts, or `discover` running at sweep times | Reduce `discover` runs. Spread accounts across the two runs if needed |
+| Warning: Instagram's hourly quota in 3 runs | Too many accounts, Meta slow (the notice's seconds a read, the dashboard's), or `discover` running at sweep times | Reduce `discover` runs. If Meta is slow, nothing to do: the accounts not reached go first next sweep. If it lasts, more tiers or fewer accounts (section 5) |
 | Warning: backlog stuck | Gemini's free quota is too small for the posts coming in | Lower `POSTS_PER_ACCOUNT`, remove inactive accounts, or check AI Studio's current limits and update `MODEL_LIMITS` |
 | Warning: no events in a week | A prompt or the triage rejecting everything (for example, a model change) | Read "not an event" reasons in the logs; tune `prompts.py` |
 | "Gemini API key doesn't work" (the run fails) | The key was revoked, expired or deleted | Create a key in Google AI Studio and update `GEMINI_API_KEY` (`.env` and the GitHub secret). No post was marked: they're read on the next run (`GeminiKeyError`) |
@@ -1524,7 +1560,8 @@ flowchart LR
 |---|---|
 | `config.py` | Paths, secrets from the environment, quotas, windows, retention, sweep times, Bogotá's time zone |
 | `models.py` | Pydantic models: what Gemini returns (`Triage`, `PostAnalysis`, `ExtractedEvent`, `StoryAnalysis`, `AccountClassification`) and what is stored (`StoredEvent`, `EventMedia`, `Session`, `ProcessedPost`, `AccountState`), with a workshop series' rules (`series_problems`). The source of truth for the data contract |
-| `instagram.py` | Graph API client: token check, posts, profiles, images, error classification, app usage |
+| `instagram.py` | Graph API client: token check, posts, profiles, images, error classification, app usage (and each call's time and usage per header, `last_call`) |
+| `instagram_usage.py` | What each account read costs Instagram's hourly quota, the forecast that stops the sweep before 98% (`ReadCosts`), and the run's reads in short (`ReadsSummary`) |
 | `public_post.py` | One post from its public embed page, for the admin tools when the API can't give it (section 3.7) |
 | `gemini.py` | `ModelPool`: model order, pacing, daily budgets shared across runs, retries, error classes |
 | `prompts.py` | The triage and extraction prompts, and the story prompt |

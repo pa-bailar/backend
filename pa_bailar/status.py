@@ -34,6 +34,7 @@ HISTORY_ITEMS = 10  # runs in the history (status["history"]): sweeps and admin 
 # A sweep that ends within this long after one of config.SWEEP_TIMES is that scheduled one (it can wait for a data PR
 # or a request before it, then runs up to config.MAX_RUN_MINUTES); else it's an extra one, started by hand.
 SCHEDULED_SWEEP_MINUTES = 90
+_FLAT_STOP = 90  # where the sweep stopped reading accounts until 9 Oct 2026, for the records from before
 
 
 def next_sweeps(now: datetime, count: int = 2) -> list[datetime]:
@@ -126,16 +127,24 @@ def check_instagram() -> dict[str, Any]:
 
 
 def _instagram_quota(history: list[dict[str, Any]]) -> dict[str, Any] | None:
-    """The last sweep's highest reading of Instagram's quota, its measures, and where the sweep stops."""
+    """The last sweep's highest reading of Instagram's quota, its measures, whether it stopped early and why (`stop`:
+    our forecast or ceiling, or Meta's own limit; None in records from before 9 Oct 2026), the ceiling it stops
+    under (`stop_at`), and its reads in short (instagram_usage.ReadsSummary: Meta's time, the cost of a read)."""
     last = next((run for run in reversed(history) if run.get("instagram_usage") is not None), None)
     if last is None:
         return None
+    stopped = bool(last.get("rate_limited"))
+    stop = last.get("instagram_stop")
+    if "instagram_stop" not in last and stopped:  # before 9 Oct 2026 the sweep stopped flat at 90%
+        stop = "ceiling" if last["instagram_usage"] >= _FLAT_STOP else "meta"
     return {
         "usage": last["instagram_usage"],
         "detail": last.get("instagram_usage_detail") or {},
-        "stopped": bool(last.get("rate_limited")),
+        "stopped": stopped,
+        "stop": stop,
         "finished_at": last["finished_at"],
-        "stop_at": config.INSTAGRAM_USAGE_STOP,
+        "stop_at": config.INSTAGRAM_USAGE_CEILING,
+        "reads": last.get("instagram_reads"),
     }
 
 
@@ -163,21 +172,47 @@ def lighter_reads_line(changes: dict[str, int]) -> str:
 _MEASURE_NAMES = {"call_count": "llamadas", "total_cputime": "CPU", "total_time": "tiempo"}
 
 
+def _decimal(number: float) -> str:
+    """1.5 → "1,5"; 2.0 → "2" (the owner reads Spanish)."""
+    return f"{number:.1f}".rstrip("0").rstrip(".").replace(".", ",")
+
+
+def reads_line(reads: dict[str, Any]) -> str:
+    """ "42 cuentas leídas, 1,6 s cada una (mediana; la más lenta 4,8 s), 1,3% de la cuota cada una (la más cara 4%,
+    @salsa.club), por X-App-Usage." """
+    text = (
+        f"{reads['accounts']} {'cuenta leída' if reads['accounts'] == 1 else 'cuentas leídas'}, "
+        f"{_decimal(reads['median_seconds'])} s cada una (mediana; la más lenta {_decimal(reads['max_seconds'])} s)"
+    )
+    if reads.get("mean_cost") is not None:
+        text += f", {_decimal(reads['mean_cost'])}% de la cuota cada una"
+        if reads.get("max_cost_account"):
+            text += f" (la más cara {reads['max_cost']}%, @{reads['max_cost_account']})"
+    if headers := reads.get("headers"):
+        text += ", por " + " y ".join(sorted(headers))
+    return text + "."
+
+
 def quota_line(quota: dict[str, Any], now: datetime) -> str:
-    """ "Cuota de Instagram en el último barrido (hoy 9:09 p. m.): 90% (CPU 90%, llamadas 31%, tiempo 77%). Se
-    detuvo ahí: las cuentas que faltaron van primero en el siguiente." """
+    """ "Cuota de Instagram en el último barrido (hoy 9:09 p. m.): 95% (tiempo 95%, CPU 40%, llamadas 31%). Se detuvo
+    ahí, antes de que la siguiente cuenta la pasara de 98%: las que faltaron van primero en el siguiente." """
     measures = ", ".join(
         f"{_MEASURE_NAMES.get(key, key)} {value}%"
         for key, value in sorted(quota["detail"].items(), key=lambda item: -item[1])
     )
     text = f"Cuota de Instagram en el último barrido ({moment_label(quota['finished_at'], now)}): {quota['usage']}%"
     text += f" ({measures})." if measures else "."
-    if quota["stopped"] and quota["usage"] >= quota["stop_at"]:
-        text += " Se detuvo ahí: las cuentas que faltaron van primero en el siguiente."
+    if quota["stopped"] and quota.get("stop") in ("forecast", "ceiling"):
+        text += (
+            f" Se detuvo ahí, antes de que la siguiente cuenta la pasara de {quota['stop_at']}%: las que faltaron van "
+            "primero en el siguiente."
+        )
     elif quota["stopped"]:  # Meta's own rate-limit error, below our limit
         text += " Meta lo frenó antes, con su propio límite: las cuentas que faltaron van primero en el siguiente."
     else:
-        text += f" El barrido se detiene en {quota['stop_at']}%."
+        text += f" El barrido se detiene antes de que la siguiente cuenta la pase de {quota['stop_at']}%."
+    if reads := quota.get("reads"):
+        text += " " + reads_line(reads)
     return text
 
 

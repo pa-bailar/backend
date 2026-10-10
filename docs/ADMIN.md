@@ -64,12 +64,13 @@ address follows the tab you pick. On a keyboard, ← and → (or Home, End) move
 
 **Estadísticas:** the sweeps (✅ or ⚠️, with links to the runs), the history (below), Gemini usage per model and when it resets,
 the last resort's use (Groq, OpenRouter: a card only on a day Gemini ran out), Instagram (whether the token works,
-and the last sweep's highest reading of its quota), accounts (those still in their first sweep or waiting past their
+the last sweep's highest reading of its quota, whether it stopped itself before the next read passed 98% or Meta
+stopped it, and its reads in short: Meta's seconds a read and what a read cost), accounts (those still in their first sweep or waiting past their
 turn) and events, with what Flash changed when it re-read lighter models' readings. It's the latest `status.json`, as of the last sweep. When it can't be read
 (none saved yet, GitHub failing, offline), a note takes its place and Herramientas still works.
 
 **Historial** (under Barridos, collapsed until tapped): what the latest 10 runs did to which event, so a count
-like "3 nuevos" says which. One row per run, newest first: what ran ("Barrido de la mañana", "de la noche", "Barrido
+like "3 nuevos" says which. One row per run, newest first: what ran ("Barrido de la madrugada" at 3:00, "de la mañana", "de la noche", "Barrido
 extra" for one started by hand or at another time, or the request: "Agregar publicación", "Volver a leer",
 "Agregar historia", "Ocultar evento", "Ocultar historia"), when, and a summary ("1 cancelado · 2 nuevos · 1
 corregido"). Tapping a row (the newest is open) lists its events: a colored label for what happened (Nuevo,

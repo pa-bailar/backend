@@ -166,6 +166,7 @@ describe("the history card", () => {
     assert.equal(runLabel({ kind: "hide_story", finished_at: "" }), "Ocultar historia");
     assert.equal(runLabel({ kind: "__proto__", finished_at: "" }), "Pedido");
     assert.equal(runLabel({ kind: "sweep", slot: "13:00", finished_at: "" }), "Barrido de la tarde");
+    assert.equal(runLabel({ kind: "sweep", slot: "03:00", finished_at: "" }), "Barrido de la madrugada"); // 9 Oct 2026
   });
 
   it("is empty without a history, and says so when it has none yet", () => {

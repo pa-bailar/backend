@@ -18,26 +18,34 @@ import hashlib
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, timedelta
 from typing import Literal
 
 from pydantic import BaseModel, TypeAdapter
 
 from . import config, storage
 from .changes import EventChange, bounded, counts
+from .instagram_usage import ReadsSummary, StopReason
 from .merging import title_words
 from .models import StoredEvent
 from .normalize import MULTI_DOUBT
 from .pipeline import RunStats
 from .pipeline.base import CANCELLED_PARTICIPLES
-from .text import WEEKDAYS, event_dates_label, fold
+from .text import WEEKDAYS, event_dates_label, fold, parse_hhmm
 
-HISTORY_RUNS = 120  # runs kept: two a day, two months
+RUNS_PER_DAY = len(config.SWEEP_TIMES)  # three since 9 Oct 2026 (3:00, 6:30 and 21:00)
+HISTORY_RUNS = 60 * RUNS_PER_DAY  # runs kept: two months
 REPEATED_RUNS = 3  # a problem in this many runs in a row is a pattern, not bad luck
 STUCK_RUNS = 4  # pending posts not going down over this many runs: the backlog is stuck
-QUIET_RUNS = 14  # a week of runs...
+QUIET_RUNS = 7 * RUNS_PER_DAY  # a week of runs...
 QUIET_MIN_POSTS = 10  # ...analyzing at least this many posts without finding a single event
 INACTIVE_DAYS = 45  # an account without posts for this long may be abandoned
+# A scheduled sweep (config.SWEEP_TIMES) finishes within this long of its time: GitHub's schedule starts the 3:00 one
+# late, often by minutes and sometimes by an hour, and a run takes up to ~45 minutes. None finished in this window on
+# MISSED_DAYS days in a row: its trigger stopped (GitHub's schedule never fired here while the repository was private;
+# cron-job.org could stop too), which healthchecks.io's ping can't tell when the other sweeps still run.
+SWEEP_WINDOW_HOURS = 3
+MISSED_DAYS = 2
 # Doubts about the date (folded text): the costliest mistake. Its words, a month or a year guessed ("mes deducido"),
 # and a weekday that doesn't fit ("dice sábado, pero el 12 es domingo": stories.py).
 DATE_DOUBT = re.compile(r"\b(fechas?|dias?|mes|ano|" + "|".join(fold(day) for day in WEEKDAYS) + r")\b")
@@ -80,6 +88,8 @@ class RunRecord(BaseModel):
     external_problems: dict[str, str] = {}
     instagram_usage: int | None = None  # the highest share of Instagram's quota used during the run
     instagram_usage_detail: dict[str, int] = {}  # its measures: call_count, total_cputime, total_time
+    instagram_reads: ReadsSummary | None = None  # Meta's time and the quota's share per read (instagram_usage.py)
+    instagram_stop: StopReason | None = None  # why it stopped reading early: our forecast or ceiling, or Meta's limit
     upgrade_changes: dict[str, int] = {}  # what Flash changed in lighter readings (RunStats.upgrade_changes)
     warnings: list[str] = []  # keys of the warnings found (Finding.key)
     # What happened to which event (changes.py), the most telling first: the admin page's history. None in records
@@ -130,6 +140,8 @@ def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) 
         external_problems=stats.external.problems,
         instagram_usage=stats.instagram_usage,
         instagram_usage_detail=stats.instagram_usage_detail,
+        instagram_reads=stats.instagram_reads,
+        instagram_stop=stats.instagram_stop,
         upgrade_changes=dict(stats.upgrade_changes),
         changes=changes,
         changes_left_out=left_out,
@@ -252,6 +264,44 @@ def _external_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
     return findings
 
 
+def _quota_stop(run: RunRecord) -> str:
+    """Why a run stopped reading accounts, and how its reads went: "the next read would have passed 98%; Meta took a
+    median 4.3 s a read, 3.4% of the quota each"."""
+    why = (
+        "Meta's own rate limit"
+        if run.instagram_stop == "meta"
+        else f"the next read would have passed {config.INSTAGRAM_USAGE_CEILING}%"
+    )
+    if reads := run.instagram_reads:
+        why += f"; Meta took a median {reads.median_seconds:.1f} s a read"
+        if reads.mean_cost is not None:
+            why += f", {reads.mean_cost:.1f}% of the quota each"
+    return why
+
+
+def missed_sweeps(runs: list[RunRecord], now: datetime) -> list[str]:
+    """The scheduled times (config.SWEEP_TIMES) with no run finishing within SWEEP_WINDOW_HOURS of them on each of the
+    last MISSED_DAYS days whose window has passed. A time the history doesn't reach back to isn't judged."""
+    finished = [datetime.fromisoformat(run.finished_at) for run in runs]
+    if not finished:
+        return []
+    oldest, window = min(finished), timedelta(hours=SWEEP_WINDOW_HOURS)
+    missed = []
+    for clock in config.SWEEP_TIMES:
+        starts: list[datetime] = []
+        day = now.astimezone(config.BOGOTA_TZ).date()
+        while len(starts) < MISSED_DAYS:
+            start = datetime.combine(day, parse_hhmm(clock), config.BOGOTA_TZ)
+            if start + window <= now:
+                starts.append(start)
+            day -= timedelta(days=1)
+        if starts[-1] < oldest:
+            continue
+        if not any(start <= moment < start + window for start in starts for moment in finished):
+            missed.append(clock)
+    return missed
+
+
 def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date) -> list[Finding]:
     """What this run (with the ones before it) says needs a look. Warnings first."""
     runs = [*history, run]
@@ -279,9 +329,11 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
         runs,
         lambda r: r.rate_limited,
         "rate-limit",
-        "Instagram's rate limit stopped the last {runs} runs early: the accounts after it waited each time. "
-        "Too many accounts for the app's hourly quota?",
-        f"Instagram's rate limit stopped this run early: {len(run.skipped_accounts)} accounts wait for the next one.",
+        "Instagram's hourly quota stopped the last {runs} runs early: the accounts after it waited each time. "
+        "Too many accounts for the app's hourly quota, or is Meta slow (each run's seconds per read, in `admin "
+        "status`)?",
+        f"Instagram's hourly quota stopped this run early ({_quota_stop(run)}): {len(run.skipped_accounts)} accounts "
+        "wait for the next one.",
     )
     findings += _repeated(
         runs,
@@ -327,6 +379,17 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
         )
 
     findings += _model_findings(runs, run)
+
+    for clock in missed_sweeps(runs, datetime.fromisoformat(run.finished_at)):
+        findings.append(
+            Finding(
+                "warning",
+                f"missed-sweep:{clock}",
+                f"No sweep ran at {clock} (Bogotá) on the last {MISSED_DAYS} days: has "
+                f"{config.SWEEP_TRIGGERS.get(clock, 'its trigger')} stopped starting it? "
+                "Start it by hand meanwhile (Run workflow); docs/ARCHITECTURE.md, section 15.",
+            )
+        )
 
     for account, s in stats.by_account.items():
         if s.fetch_failed:
