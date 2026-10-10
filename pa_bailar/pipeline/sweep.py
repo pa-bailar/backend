@@ -411,13 +411,13 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             state.latest_post = account_stats.latest_post
         window = timedelta(days=config.BACKFILL_DAYS) if backfill else self.lookback
         cutoff = datetime.now(UTC) - window
-        self._batch = []  # this account's posts waiting for a shared extraction request (batches.py)
-        # Oldest first, so a flyer is usually stored before the video or reminder that follows it.
-        for post in sorted(posts, key=lambda p: p["timestamp"]):
-            published = published_at(post)
-            if published >= cutoff:
-                self._read_post(account, post, published)
-        self._read_batch(account)  # the posts still waiting for a shared request (batches.py), before the turn's end
+        # The posts waiting for a shared extraction request (batches.py) are read before the turn's end, error or not.
+        with self._account_batch(account):
+            # Oldest first, so a flyer is usually stored before the video or reminder that follows it.
+            for post in sorted(posts, key=lambda p: p["timestamp"]):
+                published = published_at(post)
+                if published >= cutoff:
+                    self._read_post(account, post, published)
         fetched = {post["id"] for post in posts}  # a post no longer fetched is never read again
         state.unreadable = {post_id: runs for post_id, runs in state.unreadable.items() if post_id in fetched}
 

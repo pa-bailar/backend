@@ -390,6 +390,48 @@ def test_a_batch_waiting_when_the_runs_time_is_up_waits_for_the_next_run(batches
     assert stats.by_account["academia"].pending == 4  # p1, p2 in the batch; the tutorial and p3 after it
 
 
+class BreaksOnTriage(BatchingExtractor):
+    """An unexpected error (not one of Gemini's) on one post's triage, every run."""
+
+    def triage(self, account, post, published, images, rules=""):
+        if post["id"] == "p3":
+            raise ValueError("unexpected")
+        return super().triage(account, post, published, images, rules)
+
+
+def test_an_unexpected_error_on_a_later_post_still_reads_the_posts_waiting_before_it(monkeypatch):
+    """One by one, p1 and p2 are stored before p3 breaks. Batched, they waited for p3 and were lost with the account's
+    turn, on every run while p3 broke (the bug hunt of 9 Oct 2026). The error still counts, and the run goes on."""
+    monkeypatch.setattr(config, "EXTRACTION_BATCH_POSTS", 3)
+    posts = [post("p1", days_ago=3), post("p2", days_ago=2), post("p3", days_ago=1)]
+    analyses = {pid: event_post(pid, title=f"Social {pid}", start_time=f"2{pid[1]}:00") for pid in ("p1", "p2")}
+    instagram = FakeInstagram({"academia": posts, "otra": [post("o1")]})
+    extractor = BreaksOnTriage(analyses | {"o1": event_post("o1", title="Otro")})
+    stats = run(instagram, extractor)
+    assert extractor.batches == [["p1", "p2"]]
+    assert {"p1", "p2", "o1"} <= set(storage.load_processed_posts()) and "p3" not in storage.load_processed_posts()
+    assert stats.by_account["academia"].errors == 1 and stats.batched_posts == 2
+
+
+def test_a_key_that_doesnt_work_ends_the_run_without_reading_the_waiting_posts(monkeypatch):
+    """Every request would fail: the run ends loudly, and the posts waiting in the batch, never recorded, are read
+    next run."""
+    monkeypatch.setattr(config, "EXTRACTION_BATCH_POSTS", 3)
+    posts = [post("p1", days_ago=3), post("p2", days_ago=2), post("p3", days_ago=1)]
+    extractor = BatchingExtractor({pid: event_post(pid) for pid in ("p1", "p2")})
+    triage = extractor.triage
+
+    def bad_key_on_p3(account, post, *args, **kwargs):
+        if post["id"] == "p3":
+            raise gemini.GeminiKeyError("API key not valid")
+        return triage(account, post, *args, **kwargs)
+
+    extractor.triage = bad_key_on_p3
+    with pytest.raises(SystemExit):
+        run(FakeInstagram({"academia": posts, "otra": []}), extractor)
+    assert extractor.batches == [] and not {"p1", "p2"} & set(storage.load_processed_posts())
+
+
 def test_batches_never_mix_accounts(batches_of_two):
     instagram = FakeInstagram({"academia": [post("a1")], "otra": [post("o1")]})
     analyses = {"a1": event_post("a1", title="Uno"), "o1": event_post("o1", title="Dos")}

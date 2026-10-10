@@ -852,7 +852,9 @@ flowchart TD
     refused it or cut it off (a refusal records only the post that's refused alone, not its batch), an unreadable
     answer, or no quota (nothing was spent, and alone each post may still reach the last resort, which a batch never
     does). Each post's record names the model that read the batch and whether it's provisional, as for one post;
-    the day's quota counts one request per batch.
+    the day's quota counts one request per batch. An unexpected error on a later post of the account (which ends
+    its turn) still reads the posts waiting in the batch first (`Batches._account_batch`), as one by one they'd
+    have been stored before it: a post that breaks on every run can't keep the ones before it unread.
   - **Measured on the test set** (`admin bakeoff --gold --batch N`, ADMIN.md; Flash-Lite, so Flash's quota stays
     for the sweeps; `gemini-3.1-flash-lite`, two takes of each, 9 Oct 2026): every one of the 60 events found in
   every take, one post a request or two or three; the fields read right within the takes' own spread (one post a

@@ -12,11 +12,13 @@ recorded as rejected alone, not with its batch.
 """
 
 import logging
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import datetime
 
 from .. import config
 from ..batching import BatchItem, BatchReading
-from ..gemini import QuotaExhaustedError
+from ..gemini import GeminiKeyError, QuotaExhaustedError
 from ..instagram import Post
 from .base import SweepBase
 from .common import RETRYABLE_ERRORS
@@ -40,6 +42,23 @@ class Batches(SweepBase):
     @staticmethod
     def _batching() -> bool:
         return config.EXTRACTION_BATCH_POSTS > 1
+
+    @contextmanager
+    def _account_batch(self, account: str) -> Iterator[None]:
+        """Around an account's posts: its batch starts empty, and the posts still waiting in it are read at the end,
+        also when an unexpected error stops the account's posts (the error then goes on to the run's handling,
+        Sweep._contained). One by one, the posts before the error were stored; without this, a post that breaks every
+        run kept the posts waiting before it from ever being read (the bug hunt of 9 Oct 2026). Not after a key that
+        doesn't work: the run ends, and the waiting posts, never recorded, are read next run."""
+        self._batch = []
+        try:
+            yield
+        except GeminiKeyError:
+            raise
+        except Exception:
+            self._read_batch(account)
+            raise
+        self._read_batch(account)
 
     def _queue_extraction(self, account: str, item: BatchItem) -> None:
         """Add a post to the account's batch, reading the batch first if the post's images wouldn't fit, and after
