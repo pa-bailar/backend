@@ -66,16 +66,24 @@ INSTAGRAM_COST_WINDOW = 5
 # Each account is read about once a day (pipeline.Sweep._due_accounts): a sweep reads the accounts whose turn
 # has come, those that waited longest first, and stops at its share (a third of the accounts plus a margin, for the
 # three daily sweeps) or Instagram's limit; whoever it didn't reach is first next time. Quiet accounts (no post in
-# QUIET_AFTER_DAYS) and unproductive ones (UNPRODUCTIVE_AFTER_POSTS of their posts on record, PROCESSED_RETENTION_DAYS,
-# and none an event) take their turn every other day, dormant ones (no post in DORMANT_AFTER_DAYS) once a week: each
-# read is an Instagram call that rarely finds anything new, and each costs ~1.3% of the app's hourly allowance whatever
-# it asks for (measured 8 Oct 2026; 128 accounts then: the owner chose these two tiers over a third sweep, then added
-# one on 9 Oct when Meta slowed down). A bit under 24 h, so the same sweep the next day finds the account due (one read
+# QUIET_AFTER_DAYS), occasional ones (below) and unproductive ones (UNPRODUCTIVE_AFTER_POSTS of their posts on record,
+# PROCESSED_RETENTION_DAYS, and none an event) take their turn every other day, dormant ones (no post in
+# DORMANT_AFTER_DAYS) once a week: each read is an Instagram call that rarely finds anything new, and each costs ~1.3%
+# of the app's hourly allowance whatever it asks for (measured 8 Oct 2026; 128 accounts then: the owner chose the
+# quiet and unproductive tiers over a third sweep, then added one on 9 Oct when Meta slowed down, and the occasional
+# tier that evening). A bit under 24 h, so the same sweep the next day finds the account due (one read
 # at 6:30 is due at 2:30: the 3:00 sweep takes it if it has room, and the 6:30 one reads the rest), and over 18 h (3:00
 # to 21:00), so no sweep of the same day reads it again.
 SWEEP_EVERY_HOURS = 20
 QUIET_SWEEP_EVERY_HOURS = 44
 QUIET_AFTER_DAYS = 30  # 45 until 8 Oct 2026
+# Occasional accounts (the owner, 9 Oct 2026, to save Instagram reads without missing events): last post 8 to 29 days
+# ago, every other day too, unless something of theirs waits for their next read (pipeline.sweep.hours_overdue,
+# busy_accounts): an event on the site that hasn't ended, a post for Flash, an unreadable post, their first sweep.
+# Posted within the week: daily. Replayed on the sweeps of 3–9 Oct: 16 of 134 accounts in it, ~8 fewer reads a day
+# (7%), and not one event post read later. Over the lookback (DEFAULT_LOOKBACK_DAYS), so none of their posts is
+# still re-read when the tier starts; 44 h between reads is well inside it, so no new post is missed.
+OCCASIONAL_AFTER_DAYS = 8
 UNPRODUCTIVE_AFTER_POSTS = 10
 DORMANT_SWEEP_EVERY_HOURS = 164  # a bit under a week
 DORMANT_AFTER_DAYS = 180

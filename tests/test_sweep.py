@@ -13,8 +13,10 @@ from pa_bailar.external import ExternalReport
 from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError, UnreadableAnswerError
 from pa_bailar.ids import new_event_id
 from pa_bailar.instagram import APP_HEADER, CallReading, InstagramError
-from pa_bailar.models import PostAnalysis, ProcessedPost, Triage, had_events
-from pa_bailar.pipeline import Sweep, unproductive_accounts
+from pa_bailar.models import AccountState, PostAnalysis, ProcessedPost, Triage, had_events
+from pa_bailar.pipeline import Sweep, overdue_by_account, unproductive_accounts
+from pa_bailar.pipeline.sweep import hours_overdue
+from pa_bailar.text import parse_hhmm
 from tests.factories import EVENT_DATE, event_id, extracted, make_image, media, stored
 
 FLYER_URL = "https://cdn.example/flyer.jpg"
@@ -834,6 +836,104 @@ def test_dormant_accounts_take_their_turn_once_a_week():
     dormant = config.DORMANT_AFTER_DAYS + 5
     assert turn({"academia": swept(100, latest_post_days_ago=dormant), "otra": swept(3)}) == []  # 4 days: not yet
     assert turn({"academia": swept(170, latest_post_days_ago=dormant), "otra": swept(3)}) == ["academia"]
+
+
+# ---------- the occasional tier: accounts that post now and then (the owner, 9 Oct 2026) ----------
+
+
+@pytest.mark.parametrize(
+    ("silent_days", "every"),
+    [
+        (config.OCCASIONAL_AFTER_DAYS - 1, config.SWEEP_EVERY_HOURS),  # posted within the week: daily
+        (config.OCCASIONAL_AFTER_DAYS, config.QUIET_SWEEP_EVERY_HOURS),
+        (config.QUIET_AFTER_DAYS - 1, config.QUIET_SWEEP_EVERY_HOURS),
+        (config.QUIET_AFTER_DAYS, config.QUIET_SWEEP_EVERY_HOURS),
+        (config.DORMANT_AFTER_DAYS - 1, config.QUIET_SWEEP_EVERY_HOURS),
+        (config.DORMANT_AFTER_DAYS, config.DORMANT_SWEEP_EVERY_HOURS),
+    ],
+)
+def test_each_tier_starts_on_its_day(silent_days, every):
+    """Hours between turns by how long ago the account last posted: daily, every other day from the occasional tier
+    on (quiet keeps the same pace), once a week when dormant."""
+    state = AccountState.model_validate(swept(0, latest_post_days_ago=silent_days))
+    assert hours_overdue(state, config.now_bogota()) == pytest.approx(-every, abs=0.05)
+
+
+def test_accounts_that_post_now_and_then_take_their_turn_every_other_day():
+    week, occasional = config.OCCASIONAL_AFTER_DAYS - 1, config.OCCASIONAL_AFTER_DAYS
+    states = {"academia": swept(30, latest_post_days_ago=week), "otra": swept(30, latest_post_days_ago=occasional)}
+    assert turn(states) == ["academia"]  # otra: 30 h, not its turn yet
+    assert turn({"academia": swept(3), "otra": swept(50, latest_post_days_ago=occasional)}) == ["otra"]
+
+
+def occasional(**changes) -> AccountState:
+    """An account whose last post is OCCASIONAL_AFTER_DAYS old, read 30 hours ago: due if daily, not if every other
+    day."""
+    return AccountState.model_validate(swept(30, latest_post_days_ago=config.OCCASIONAL_AFTER_DAYS) | changes)
+
+
+def is_due(state: AccountState, posts=(), events=()) -> bool:
+    now = config.now_bogota()
+    return overdue_by_account(["academia"], {"academia": state}, posts, events, now)["academia"] >= 0
+
+
+def record_of(account: str = "academia", days_ago: float = 1, **fields) -> ProcessedPost:
+    when = config.now_bogota() - timedelta(days=days_ago)
+    return ProcessedPost(
+        account=account, permalink="x", processed_at=when.isoformat(timespec="seconds"), is_event_post=True,
+        reason="", model="m", **fields,
+    )  # fmt: skip
+
+
+def test_an_occasional_account_with_nothing_waiting_waits_its_two_days():
+    assert not is_due(occasional())
+
+
+@pytest.mark.parametrize(
+    ("dates", "kept_daily"),
+    [
+        ({"date": EVENT_DATE}, True),
+        ({"date": days_ago_date(0)}, True),  # today, even once it started: a change or a cancellation still counts
+        ({"date": days_ago_date(3), "end_date": days_ago_date(-1)}, True),  # over several days, still going on
+        ({"date": days_ago_date(1)}, False),  # over
+    ],
+)
+def test_an_occasional_account_with_an_event_on_the_site_stays_daily(dates, kept_daily):
+    assert is_due(occasional(), events=[stored(account="academia", **dates)]) is kept_daily
+
+
+def test_an_event_its_post_joined_keeps_an_occasional_account_daily():
+    """A collaboration: the event is another account's, one of its posts was merged into it."""
+    event = stored("otra-social", account="otra")
+    assert not is_due(occasional(), events=[event])
+    assert is_due(occasional(), posts=[record_of(event_ids=["otra-social"], outcome="merged")], events=[event])
+
+
+def test_a_post_waiting_for_flash_keeps_an_occasional_account_daily_while_a_sweep_can_reread_it():
+    """Flash re-reads a lighter model's reading only when a sweep reads the account, and only within the lookback."""
+    assert is_due(occasional(), posts=[record_of(provisional=True, days_ago=2)])
+    assert not is_due(occasional(), posts=[record_of(provisional=True, days_ago=config.DEFAULT_LOOKBACK_DAYS + 1)])
+    assert not is_due(occasional(), posts=[record_of(provisional=False, days_ago=2)])
+
+
+def test_an_unreadable_post_or_a_first_sweep_keeps_an_occasional_account_daily():
+    assert is_due(occasional(unreadable={"p1": 1}))
+    assert is_due(occasional(backfill_done=False))
+
+
+def test_an_occasional_account_with_an_upcoming_event_is_read_daily_by_the_sweep():
+    storage.save_events([stored(account="academia")])  # EVENT_DATE: a week ahead
+    silent = config.OCCASIONAL_AFTER_DAYS + 2
+    states = {"academia": swept(30, latest_post_days_ago=silent), "otra": swept(30, latest_post_days_ago=silent)}
+    assert turn(states) == ["academia"]
+
+
+def test_an_every_other_day_account_is_read_well_within_the_lookback():
+    """New posts are never lost: at an every-other-day account's next turn, even a sweep late (the longest gap between
+    two scheduled sweeps), every post since its last read is still inside the lookback a sweep reads."""
+    starts = sorted(parse_hhmm(clock).hour + parse_hhmm(clock).minute / 60 for clock in config.SWEEP_TIMES)
+    longest_gap = max(later - earlier for earlier, later in zip(starts, [*starts[1:], starts[0] + 24], strict=True))
+    assert config.QUIET_SWEEP_EVERY_HOURS + 2 * longest_gap < config.DEFAULT_LOOKBACK_DAYS * 24
 
 
 def test_the_status_pages_waiting_accounts_are_the_ones_the_sweep_finds_late(monkeypatch, tmp_path):

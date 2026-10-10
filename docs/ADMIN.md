@@ -268,7 +268,7 @@ The checks, in the order a post goes through the sweep:
    shown on both profiles, and the checks follow the author. Is that account swept? If it is, one Instagram
    call finds the post among the account's latest 50, and its date says why:
    - **posted after the account was last read:** its next turn takes it (most accounts are read once a day,
-     quiet ones less often; Agregar publishes it now);
+     quiet and occasional ones less often; Agregar publishes it now);
    - **the account was added recently** and hasn't been swept yet;
    - **older than 7 days:** the sweeps only check recent posts;
    - **the last sweep that tried the account couldn't read it**, or **the last sweep is waiting** for

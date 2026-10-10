@@ -222,8 +222,8 @@ def _explain_unseen(
         result.verdict = "La cuenta se agregó hace poco y todavía no se ha barrido: entra en el próximo barrido."
     elif read_at and published > datetime.fromisoformat(read_at):
         result.verdict = (
-            "Se publicó después de la última lectura de la cuenta: entra en su próximo turno (casi todas las cuentas "
-            "se leen una vez al día). Agregarla la publica ya."
+            "Se publicó después de la última lectura de la cuenta: entra en su próximo turno (la mayoría de las "
+            "cuentas se leen una vez al día; las que publican poco, cada dos días o menos). Agregarla la publica ya."
         )
     elif (
         first_seen

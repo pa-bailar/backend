@@ -25,7 +25,7 @@ from . import config, discovery, links, storage, sweep_state
 from .changes import FIELD_NAMES
 from .external import usage_day, usage_reset
 from .gemini import daily_budget, quota_day, quota_reset
-from .models import AccountState, GeminiUsage, StoredEvent, had_events
+from .models import AccountState, GeminiUsage, ProcessedPost, StoredEvent
 from .pipeline import overdue_by_account
 from .text import WEEKDAYS, clock, parse_hhmm, sessions_label
 
@@ -278,14 +278,11 @@ def collect(
     }
     processed = read(config.PROCESSED_POSTS_FILE.name, {})
     followed = storage.read_accounts()
-    posts = (
-        (record.get("account", ""), had_events(record.get("outcome"), bool(record.get("is_event_post"))))
-        for record in processed.values()
-    )
-    overdue = overdue_by_account(followed, states, posts, now)
+    events = storage.load_events() if config.EVENTS_FILE.exists() else None
+    posts = [ProcessedPost.model_validate(record) for record in processed.values()]
+    overdue = overdue_by_account(followed, states, posts, events or [], now)
     sweep_gap = 24 / max(1, len(config.SWEEP_TIMES))  # hours between sweeps, on average
 
-    events = storage.load_events() if config.EVENTS_FILE.exists() else None
     # Upcoming until its last day: an event over several days is on the site while it goes on.
     upcoming = [event for event in events or [] if (event.last_day or "") >= today]
     discovered = discovery.load_cache(config.PRIVATE_DIR / "discovery.json")
