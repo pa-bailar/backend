@@ -1,7 +1,7 @@
 """Batched extraction (the owner, 9 Oct 2026): several posts of one account in one request, each post's answer checked,
 and every post the answer leaves out read again alone. Off by default (config.EXTRACTION_BATCH_POSTS = 1)."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from google.genai import types
@@ -19,8 +19,8 @@ from pa_bailar.batching import (
     split_answer,
 )
 from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError, UnreadableAnswerError
-from pa_bailar.models import BatchAnalysis, BatchPostAnalysis, PostAnalysis
-from tests.factories import extracted, make_image, stored
+from pa_bailar.models import BatchAnalysis, BatchPostAnalysis, PostAnalysis, Triage
+from tests.factories import event_id, extracted, make_image, stored
 from tests.test_sweep import (
     FakeExtractor,
     FakeInstagram,
@@ -123,6 +123,15 @@ def test_a_post_the_shared_answer_finds_no_event_in_is_confirmed_alone():
     assert list(analyses) == [0] and left_out == {1: NO_EVENT}
 
 
+def test_a_shared_no_that_lists_events_is_a_no_confirmed_alone():
+    """is_event_post false with events listed: the sweep stores none of them (_store_analysis) and records the post as
+    no event, for good. So it's a "no" like any other, confirmed alone (the bug hunt of 9 Oct 2026)."""
+    said_no = answer(("A", [0]), ("B", [1]))
+    said_no.posts[1].is_event_post = False
+    analyses, left_out = split_answer(said_no, [1, 1])
+    assert list(analyses) == [0] and left_out == {1: NO_EVENT}
+
+
 def test_an_answer_for_a_post_the_request_doesnt_hold_leaves_every_post_out():
     analyses, left_out = split_answer(answer(("A", [0]), ("B", [1]), ("D", [])), [1, 1])
     assert analyses == {} and left_out == {0: STRAY_ANSWER, 1: STRAY_ANSWER}
@@ -202,6 +211,26 @@ def test_a_batch_with_flash_out_is_read_by_the_provisional_models_and_marked_so(
     assert (reading.model, reading.provisional) == (provisional, True)
 
 
+def test_a_shared_no_listing_events_is_read_alone_through_the_sweep(extractor, monkeypatch):
+    """End to end, the real extractor (a fake Gemini): the shared answer says post B isn't an event post but lists an
+    event; read alone, B's event is found and published, never recorded as "not an event" from the shared answer."""
+    monkeypatch.setattr(config, "EXTRACTION_BATCH_POSTS", 2)
+    flash = config.EXTRACTION_MODELS[0]
+    said_no = answer(("A", [0]), ("B", [1]))
+    said_no.posts[1].is_event_post = False
+    extractor.pool._client.models.answers = {
+        config.TRIAGE_MODELS[0]: [Triage(is_event_post=True, reason="t")] * 2,
+        flash: [said_no, PostAnalysis(is_event_post=True, reason="alone", events=[extracted(title="Evento B0")])],
+    }
+    instagram = FakeInstagram({"academia": [post("p1", days_ago=3), post("p2", days_ago=2)], "otra": []})
+    stats = run(instagram, extractor)
+    records = storage.load_processed_posts()
+    assert extractor.pool._client.models.calls.count(flash) == 2  # the shared request, then B alone
+    assert (records["p2"].outcome, records["p2"].reason) == ("event", "alone")
+    assert sorted(event["title"] for event in read(config.EVENTS_FILE)) == ["Evento A0", "Evento B0"]
+    assert (stats.batched_posts, stats.batch_rereads) == (1, 1)
+
+
 def test_a_batch_never_reaches_the_last_resort(extractor):
     for model in (*config.EXTRACTION_MODELS, *config.PROVISIONAL_MODELS):
         extractor.pool._exhaust(model)
@@ -217,13 +246,15 @@ def test_a_batch_never_reaches_the_last_resort(extractor):
 
 
 class BatchingExtractor(FakeExtractor):
-    """FakeExtractor that also reads batches: per post id its prepared answer, unless the post is in `left_out` (the
-    answer leaves it out, with why) or the whole batch fails (`batch_error`)."""
+    """FakeExtractor that also reads batches: per post id its prepared answer (`shared`'s when it has one: what the
+    post gets in a shared answer, else the same as alone), unless the post is in `left_out` (the answer leaves it out,
+    with why) or the whole batch fails (`batch_error`)."""
 
-    def __init__(self, analyses, left_out=None, batch_error=None, **options):
+    def __init__(self, analyses, left_out=None, batch_error=None, shared=None, **options):
         super().__init__(analyses, **options)
         self.left_out = left_out or {}
         self.batch_error = batch_error
+        self.shared = shared or {}
         self.batches: list[list[str]] = []
         self.batch_rules: list[list[str]] = []
 
@@ -235,7 +266,8 @@ class BatchingExtractor(FakeExtractor):
             raise QuotaExhaustedError("no quota")
         if self.batch_error:
             raise self.batch_error
-        analyses = {index: self.analyses[pid] for index, pid in enumerate(ids) if pid not in self.left_out}
+        answers = {index: self.shared.get(pid, self.analyses[pid]) for index, pid in enumerate(ids)}
+        analyses = {index: answer for index, answer in answers.items() if ids[index] not in self.left_out}
         left = {index: self.left_out[pid] for index, pid in enumerate(ids) if pid in self.left_out}
         model, provisional = ("fake-flash", False) if self.flash_available else ("fake-lite", True)
         return BatchReading(analyses, left, model, provisional)
@@ -249,8 +281,13 @@ def batches_of_two(monkeypatch):
 def three_posts(**options) -> tuple[FakeInstagram, BatchingExtractor]:
     posts = [post("p1", days_ago=3), post("p2", days_ago=2), post("tutorial", days_ago=1.5), post("p3", days_ago=1)]
     instagram = FakeInstagram({"academia": posts, "otra": []})
-    analyses = {f"p{n}": event_post(f"p{n}", title=f"Social {n}", start_time=f"2{n}:00") for n in (1, 2, 3)}
+    analyses = {f"p{n}": event_post(f"p{n}", title=f"Social {n}", date=day(n)) for n in (1, 2, 3)}
     return instagram, BatchingExtractor(analyses, not_events={"tutorial"}, **options)
+
+
+def day(n: int) -> str:
+    """A day of its own for each post's event (on one day, a later post's is read again alone: repeats_earlier)."""
+    return (config.now_bogota().date() + timedelta(days=7 + n)).isoformat()
 
 
 def test_switch_off_reads_one_post_a_request_as_before():
@@ -321,6 +358,24 @@ def test_a_batch_out_of_quota_leaves_its_posts_pending(batches_of_two):
     records = storage.load_processed_posts()
     assert "p1" not in records and "p2" not in records  # read next run
     assert stats.pending >= 2 and stats.by_account["academia"].pending >= 2
+    # Sent back alone, but never read: pending, not "read again alone" (the bug hunt of 9 Oct 2026 found them in both).
+    assert stats.batch_rereads == 0
+
+
+def test_only_the_posts_read_again_alone_and_recorded_count_as_rereads(batches_of_two):
+    """A failed batch whose first post is read alone and whose second then finds no quota: one re-read, one pending."""
+    instagram, extractor = three_posts(batch_error=ExtractionError("busy"))
+    extract = extractor.extract
+
+    def first_then_out(account, post, *args, **kwargs):
+        analysis = extract(account, post, *args, **kwargs)
+        extractor.out_of_quota = True
+        return analysis
+
+    extractor.extract = first_then_out
+    stats = run(instagram, extractor)
+    assert extractor.extracted_posts == ["p1"]
+    assert stats.batch_rereads == 1 and stats.by_account["academia"].pending >= 1
 
 
 def test_a_batch_waiting_when_the_runs_time_is_up_waits_for_the_next_run(batches_of_two, monkeypatch):
@@ -338,6 +393,135 @@ def test_a_batch_waiting_when_the_runs_time_is_up_waits_for_the_next_run(batches
     assert extractor.batches == [] and extractor.extracted_posts == []
     assert not {"p1", "p2", "p3"} & set(storage.load_processed_posts())
     assert stats.by_account["academia"].pending == 4  # p1, p2 in the batch; the tutorial and p3 after it
+
+
+# ---------- a flyer and its reminder in one batch (the bug hunt of 9 Oct 2026) ----------
+# One by one, the reminder is read with the flyer's event known, and Gemini links them (same_as) where the rules can't.
+# In a shared request neither is stored yet: the reminder is read again alone, with the flyer's event known.
+
+
+def flyer_and_reminder(reminder_alone, reminder_shared, flyer=None) -> tuple[FakeInstagram, BatchingExtractor]:
+    """The flyer (3 days ago) and its reminder video (1 day ago) of one account: the reminder's reading alone (with the
+    flyer's event known) and in a shared request (never linked)."""
+    instagram = FakeInstagram({"academia": [post("video", "VIDEO", days_ago=1), post("flyer", days_ago=3)], "otra": []})
+    flyer = flyer or event_post("flyer", title="Social", start_time="20:00")
+    extractor = BatchingExtractor({"flyer": flyer, "video": reminder_alone}, shared={"video": reminder_shared})
+    return instagram, extractor
+
+
+@pytest.mark.parametrize(
+    ("flyer", "reminder"),
+    [
+        (("Social", "20:00"), ("Ven a bailar", None)),  # tests/test_sweep.py's flyer and video, one by one one event
+        (("Social de salsa", "20:00"), ("Social de salsa este sábado", "21:00")),  # the doors' time and the show's
+    ],
+)
+def test_a_flyer_and_its_reminder_in_one_batch_are_one_event_as_one_by_one(batches_of_two, flyer, reminder):
+    title, time = flyer
+    reminder_title, reminder_time = reminder
+    instagram, extractor = flyer_and_reminder(
+        event_post("video", title=reminder_title, start_time=reminder_time, same_as=event_id(title)),
+        event_post("video", title=reminder_title, start_time=reminder_time),
+        flyer=event_post("flyer", title=title, start_time=time),
+    )
+    stats = run(instagram, extractor)
+    events = read(config.EVENTS_FILE)
+    assert len(events) == 1 and [media["post_id"] for media in events[0]["media"]] == ["flyer", "video"]
+    assert (events[0]["id"], events[0]["title"]) == (event_id(title), title)
+    assert extractor.batches == [["flyer", "video"]] and extractor.extracted_posts == ["video"]
+    assert extractor.known_seen["video"] == [event_id(title)]  # read again alone, with the flyer's event known
+    assert (stats.batch_requests, stats.batched_posts, stats.batch_rereads) == (1, 1, 1)
+    assert (stats.events_new, stats.events_merged) == (1, 1)
+
+
+def test_two_different_events_of_a_day_stay_two(batches_of_two):
+    """Bachatamanía, 17 Oct: a 19:00 competition and a 20:30 social, in two posts. Read again alone, Gemini doesn't link
+    them, and they stay two events, as one by one."""
+    competition = event_post("flyer", title="Bachatamanía Master League", start_time="19:00", event_type="competition")
+    social = event_post("video", title="Bachatamanía", start_time="20:30")
+    instagram, extractor = flyer_and_reminder(social, social, flyer=competition)
+    stats = run(instagram, extractor)
+    assert sorted(event["title"] for event in read(config.EVENTS_FILE)) == [
+        "Bachatamanía",
+        "Bachatamanía Master League",
+    ]
+    assert extractor.extracted_posts == ["video"] and stats.batch_rereads == 1
+
+
+def test_a_reminder_the_rules_merge_costs_no_request_more(batches_of_two):
+    """The same start time: the rules merge it into the flyer's event (merging.looks_like_same_event), as one by one."""
+    reminder = event_post("video", title="Ven a bailar", start_time="20:00")
+    instagram, extractor = flyer_and_reminder(reminder, reminder)
+    stats = run(instagram, extractor)
+    assert len(read(config.EVENTS_FILE)) == 1
+    assert extractor.extracted_posts == [] and (stats.batched_posts, stats.batch_rereads) == (2, 0)
+
+
+def test_an_event_on_another_day_costs_no_request_more(batches_of_two):
+    reminder = extracted(title="Otra cosa", date=(config.now_bogota().date() + timedelta(days=9)).isoformat())
+    other_day = PostAnalysis(is_event_post=True, reason="", events=[reminder])
+    instagram, extractor = flyer_and_reminder(other_day, other_day)
+    stats = run(instagram, extractor)
+    assert len(read(config.EVENTS_FILE)) == 2
+    assert extractor.extracted_posts == [] and (stats.batched_posts, stats.batch_rereads) == (2, 0)
+
+
+def test_an_event_stored_before_the_batch_is_linked_in_the_shared_request_itself(batches_of_two):
+    """An event stored before the batch is among its request's known events: the shared answers can name it (same_as),
+    as one by one, so posts on its day aren't read again alone."""
+    instagram = FakeInstagram({"academia": [post("flyer", days_ago=3)], "otra": []})
+    first = BatchingExtractor({"flyer": event_post("flyer", title="Social", start_time="20:00")})
+    run(instagram, first)  # the flyer, stored on an earlier run
+    instagram.posts_by_account["academia"] += [post("video", "VIDEO", days_ago=2), post("story", days_ago=1)]
+    linked = event_post("video", title="Ven a bailar", same_as=event_id("Social"))
+    extractor = BatchingExtractor({"flyer": first.analyses["flyer"], "video": linked, "story": linked})
+    stats = run(instagram, extractor)
+    events = read(config.EVENTS_FILE)
+    assert len(events) == 1 and sorted(media["post_id"] for media in events[0]["media"]) == ["flyer", "story", "video"]
+    assert extractor.batches == [["video", "story"]] and extractor.extracted_posts == []
+    assert (stats.batched_posts, stats.batch_rereads) == (2, 0)
+
+
+class BreaksOnTriage(BatchingExtractor):
+    """An unexpected error (not one of Gemini's) on one post's triage, every run."""
+
+    def triage(self, account, post, published, images, rules=""):
+        if post["id"] == "p3":
+            raise ValueError("unexpected")
+        return super().triage(account, post, published, images, rules)
+
+
+def test_an_unexpected_error_on_a_later_post_still_reads_the_posts_waiting_before_it(monkeypatch):
+    """One by one, p1 and p2 are stored before p3 breaks. Batched, they waited for p3 and were lost with the account's
+    turn, on every run while p3 broke (the bug hunt of 9 Oct 2026). The error still counts, and the run goes on."""
+    monkeypatch.setattr(config, "EXTRACTION_BATCH_POSTS", 3)
+    posts = [post("p1", days_ago=3), post("p2", days_ago=2), post("p3", days_ago=1)]
+    analyses = {pid: event_post(pid, title=f"Social {pid}", date=day(int(pid[1]))) for pid in ("p1", "p2")}
+    instagram = FakeInstagram({"academia": posts, "otra": [post("o1")]})
+    extractor = BreaksOnTriage(analyses | {"o1": event_post("o1", title="Otro")})
+    stats = run(instagram, extractor)
+    assert extractor.batches == [["p1", "p2"]]
+    assert {"p1", "p2", "o1"} <= set(storage.load_processed_posts()) and "p3" not in storage.load_processed_posts()
+    assert stats.by_account["academia"].errors == 1 and stats.batched_posts == 2
+
+
+def test_a_key_that_doesnt_work_ends_the_run_without_reading_the_waiting_posts(monkeypatch):
+    """Every request would fail: the run ends loudly, and the posts waiting in the batch, never recorded, are read
+    next run."""
+    monkeypatch.setattr(config, "EXTRACTION_BATCH_POSTS", 3)
+    posts = [post("p1", days_ago=3), post("p2", days_ago=2), post("p3", days_ago=1)]
+    extractor = BatchingExtractor({pid: event_post(pid) for pid in ("p1", "p2")})
+    triage = extractor.triage
+
+    def bad_key_on_p3(account, post, *args, **kwargs):
+        if post["id"] == "p3":
+            raise gemini.GeminiKeyError("API key not valid")
+        return triage(account, post, *args, **kwargs)
+
+    extractor.triage = bad_key_on_p3
+    with pytest.raises(SystemExit):
+        run(FakeInstagram({"academia": posts, "otra": []}), extractor)
+    assert extractor.batches == [] and not {"p1", "p2"} & set(storage.load_processed_posts())
 
 
 def test_batches_never_mix_accounts(batches_of_two):

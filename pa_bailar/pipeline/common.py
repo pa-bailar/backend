@@ -101,7 +101,8 @@ class RunStats:
     upgrade_changes: dict[str, int] = field(default_factory=dict)  # a dict: asdict() would mangle a Counter
     reanalyzed: int = 0  # posts analyzed again because their caption was edited
     # Batched extraction (config.EXTRACTION_BATCH_POSTS, pipeline/batches.py): the shared requests sent, the posts
-    # stored from them, and the posts read again alone (left out of a batch's answer, or the batch failed).
+    # stored from them, and the posts read again alone (left out of a batch's answer, or the batch failed) and recorded:
+    # one that couldn't be read then (no quota or time left, an error) is counted as pending, not here.
     batch_requests: int = 0
     batched_posts: int = 0
     batch_rereads: int = 0

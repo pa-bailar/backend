@@ -154,9 +154,11 @@ def _batch_posts(value: str | None) -> int:
 # Batched extraction (the owner, 9 Oct 2026): Flash's requests per day (20 per model) are the binding limit, not its
 # tokens (250,000 a minute, barely used), and each post that announces events takes one. With this over 1, the posts of
 # one account that the triage passed in a run are read up to this many per request (pipeline/batches.py, batching.py):
-# each post's answer is checked, and any post the answer misses, mixes up with another or can't be read is read again
-# alone, never dropped. 1 (the default) is off: one request per post, as before. A repository variable on CI
-# (GEMINI_BATCH_POSTS). Measured on the test set with Flash-Lite before switching it on (docs/ARCHITECTURE.md, 7.2).
+# each post's answer is checked, and any post the answer misses, mixes up with another, finds no event in or can't be
+# read is read again alone, never dropped; so is a later post with an event on a day an earlier post of the batch
+# announced that the rules wouldn't merge (a flyer's reminder: one by one, Gemini links them; batching.repeats_earlier).
+# 1 (the default) is off: one request per post, as before. A repository variable on CI (GEMINI_BATCH_POSTS). Measured
+# on the test set with Flash-Lite before switching it on (docs/ARCHITECTURE.md, 7.2).
 MAX_EXTRACTION_BATCH_POSTS = 3
 EXTRACTION_BATCH_POSTS = _batch_posts(os.environ.get("GEMINI_BATCH_POSTS"))
 # A batch's images in all (each post's own: MAX_IMAGES_PER_POST): a post that would take a batch past this goes in the
