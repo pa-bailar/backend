@@ -136,7 +136,9 @@ Settings → Secrets and variables → Actions:
   App's private key), and optionally `HEALTHCHECK_URL`, `GROQ_API_KEY` and `OPENROUTER_API_KEY` (the last
   resort when Gemini runs out: without them it's never used).
 - Variables: `APP_ID` (the pa-bailar-bot App's id), and optionally `GEMINI_LITE_ONLY` (`1`: Flash-Lite also
-  extracts, as final results, for when Flash isn't available to the key).
+  extracts, as final results, for when Flash isn't available to the key) and `GEMINI_BATCH_POSTS` (`2` or `3`: an
+  account's posts read that many per extraction request, to stretch Flash's quota; unset or `1`: one each, the
+  default; docs/ARCHITECTURE.md, section 7.2).
 
 ### What starts the sweep
 

@@ -269,6 +269,7 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 | `GROQ_API_KEY` | Secret (optional) | GitHub Actions secret, local `.env` | Sweep step, `admin bakeoff` | Groq's key: the first of the last resort (section 3.10). Unset: Groq is never used |
 | `OPENROUTER_API_KEY` | Secret (optional) | GitHub Actions secret, local `.env` | Sweep step, `admin bakeoff` | OpenRouter's key: the last resort after Groq (section 3.10). Unset: OpenRouter is never used |
 | `GEMINI_LITE_ONLY` | Variable | GitHub Actions variable (optional) | Sweep step | `1`: Flash-Lite also extracts, as final results (`config.LITE_ONLY`). For when Flash isn't available to the key; unset otherwise |
+| `GEMINI_BATCH_POSTS` | Variable | GitHub Actions variable (optional) | Sweep step | `2` or `3`: an account's posts read that many per extraction request (`config.EXTRACTION_BATCH_POSTS`, section 7.2); unset or `1`: one each (the default) |
 | `HEALTHCHECK_URL` | Secret | GitHub Actions secret | "Report to the health check" step | The check's ping URL. Optional: without it the step does nothing |
 | `GITHUB_TOKEN` | Automatic | Created by GitHub per run | daily-sweep: the `request` job (reads the admin issue, answers it if adding can't start), `story-images` (answers if the screenshots can't be downloaded), the open-PR check (reads the public site), the state save, the account commit (`main`), the health issue, the answer on the admin issue. admin: labels and answers the issue, commits an added account, starts the sweep | daily-sweep: `contents: write` and `issues: write` (`request` and `story-images`: `contents: read` and `issues: write`). admin: `contents: write`, `issues: write`, `actions: write`. Only handed to the steps that need it |
 | GitHub's identity token (OIDC) | Automatic | Minted per job by GitHub, only in daily-sweep's `story-images` and `story-cleanup` jobs (`id-token: write`) | Downloading and deleting story screenshots on the admin page's Worker | Short-lived, audience `pa-bailar-admin`; the Worker checks GitHub's signature, the repository, `main` and the workflow. Nothing to store or rotate |
@@ -625,6 +626,10 @@ Triage exists to save the scarce Flash quota (20 a day per model). Most posts ar
 512-pixel image plus the caption are enough to tell. When unsure, the triage prompt answers "yes": a
 false "no" loses the event for good, while a false "yes" only costs one Flash call.
 
+**Batched extraction** (off by default, `GEMINI_BATCH_POSTS`; section 7.2): the extraction step can read several of
+one account's posts in one request. The posts wait in the account's batch after their triage and are each stored as
+above; any post the shared answer leaves out, mixes up or finds no event in is read again alone.
+
 ### 6.3 Storing what Gemini found
 
 1. **Normalize** (`normalize.py`):
@@ -825,6 +830,37 @@ flowchart TD
   budget still follow, then upgrades while Flash answers. On 7 Oct 2026 at 21:09 the 34 queued upgrades were given
   up at once, with 21 of the run's 30 minutes left; 40 of the 85 upcoming events had only a lighter reading. Out of
   quota, it doesn't wait; busy again after the wait, the rest waits for a later run.
+- **Batched extraction (off by default; the owner, 9 Oct 2026):** Flash's requests per day are the binding limit,
+  not its tokens (250,000 a minute, barely used), and each post that announces events takes one. With
+  `GEMINI_BATCH_POSTS` (a repository variable; `config.EXTRACTION_BATCH_POSTS`) at 2 or 3, the posts of one account
+  that need an extraction in a run (the triage passed them, or an edited post that had events) wait after their
+  triage and are read that many per request (`pipeline/batches.py`, `batching.py`, `EventExtractor.extract_batch`),
+  each with its own context (account, dates, caption, the account's rules) and its own images, labeled by letter and
+  numbered across the request ("Image 2 (post B)"); the answer (`BatchAnalysis`) gives each post its own events. A
+  batch is read when it's full, when the next post's images would take it past `EXTRACTION_BATCH_MAX_IMAGES` (10:
+  a long carousel's answer could be cut off), and at the end of the account's posts; a post alone goes the one-post
+  way, and batches never mix accounts. Unset or 1, the sweep reads one post a request, as before, and the one-post
+  prompt is word for word the same (the batched prompt reuses its parts).
+  - **Safeguards: a post is never dropped.** Each post's part of the answer is checked (`batching.split_answer`) and
+    a post is read again alone, through the one-post path with its own fallbacks and errors, when the answer has no
+    entry for it or two, when one of its events cites an image of another post (a mix-up), or when it finds no event
+    in it (a "no" is final: on the test set the only two events batching lost were such "no"s). An answer for a post
+    the request doesn't hold sends every post back alone. So does a request that fails: no model could answer, Gemini
+    refused it or cut it off (a refusal records only the post that's refused alone, not its batch), an unreadable
+    answer, or no quota (nothing was spent, and alone each post may still reach the last resort, which a batch never
+    does). Each post's record names the model that read the batch and whether it's provisional, as for one post;
+    the day's quota counts one request per batch.
+  - **Measured on the test set** (`admin bakeoff --gold --batch N`, ADMIN.md; Flash-Lite, so Flash's quota stays
+    for the sweeps; `gemini-3.1-flash-lite`, two takes of each, 9 Oct 2026): every one of the 60 events found in
+  every take, one post a request or two or three; the fields read right within the takes' own spread (one post a
+  request 94.5–97.5%, two 95–98%, three 97–97.5%: the swing is one 12-night grid's venue, read as the account's
+  name in some takes of every mode); and 22–23 requests for the 40 posts at two a request, 18–20 at three. Before
+  a shared "no" was confirmed alone, the first take at two lost 2 events, both such "no"s. Each run records the shared requests, the posts stored from them and the posts read
+    again alone (`batch_requests`, `batched_posts`, `batch_rereads` in `run_history.json`, and the run's summary).
+    On the 9 days of records then (298 extractions in 138 account-runs, 88 of them a single post; about a quarter of
+    the posts the triage passes have no event, and those would be read again alone), two a request would have taken
+    about 19% fewer extraction requests and three about 30% (18% and 26% leaving out new accounts' first sweeps): the
+    saving comes from the accounts with several posts in a run.
 - **Each upgrade measures the lighter read** (`Sweep._audit_upgrade`): an event only lighter models had read is
   compared before and after Flash's reading, field by field (date, end date, start time, title and venue folded,
   type, styles), and the run records what changed (`upgrade_changes` in `run_history.json`). `admin status` and
@@ -1398,7 +1434,8 @@ guide.
   Flash-Lite and each of them on recent posts Flash read and scores their events against Flash's, field by
   field, spending requests from the sweeps' daily quotas. On your computer only. ADMIN.md, "Re-checking the
   last resort's models". `--gold` scores any model against the test set in `gold/` instead: 40 posts checked by
-  hand against their flyers, the measure for changes to the reading (7 Oct 2026).
+  hand against their flyers, the measure for changes to the reading (7 Oct 2026); `--gold --batch N` reads it one
+  post a request and N a request, side by side (section 7.2).
 
 ---
 
@@ -1472,7 +1509,7 @@ section 5, "Whose turn it is"):
 | Gemini Flash-Lite (two models) | 500 / day each (996 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
-| Gemini Flash (three for extraction, one older for provisional reads) | 20 / day each (54 usable for extraction, 18 more provisional; 3.7 Flash left the pool on 9 Oct 2026: deprecated, answered by 3.8) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read provisionally (by the older Flash or Flash-Lite) | The binding limit, but it loses no events: the overflow is read provisionally and shown. The three sweeps share one quota day (midnight Pacific: 2:00 Bogotá, 3:00 in the Pacific's winter), 3:00 first, so a sweep leaves each later one an equal share (`flash_reserve`: the 3:00 one keeps two thirds of each model's 18, the 6:30 one a third; 18 of the 54 per sweep, and what one leaves unused passes on to the next), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end |
+| Gemini Flash (three for extraction, one older for provisional reads) | 20 / day each (54 usable for extraction, 18 more provisional; 3.7 Flash left the pool on 9 Oct 2026: deprecated, answered by 3.8) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read provisionally (by the older Flash or Flash-Lite) | The binding limit, but it loses no events: the overflow is read provisionally and shown. The three sweeps share one quota day (midnight Pacific: 2:00 Bogotá, 3:00 in the Pacific's winter), 3:00 first, so a sweep leaves each later one an equal share (`flash_reserve`: the 3:00 one keeps two thirds of each model's 18, the 6:30 one a third; 18 of the 54 per sweep, and what one leaves unused passes on to the next), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026). Older provisional posts drop out of the line once they leave the lookback, so the backlog doesn't grow without end. Batched extraction (`GEMINI_BATCH_POSTS`, off by default; section 7.2) reads an account's posts two or three per request: on the records of 9 Oct 2026 about 19% (two) or 30% (three) fewer extraction requests, the posts confirmed alone included |
 | GitHub Actions minutes (backend, public since 6 Oct 2026) | Unlimited | 15–30 min (measured 6 Oct 2026: Gemini's pacing and busy retries, Instagram; no longer waiting for the data PR, #124) | ~50–75 (three runs) | Free. Before (private: 2,000 a month), about 1,100–1,500 a month went to the sweeps, plus ci on pull requests |
 | GitHub Actions minutes (public site repository) | Unlimited | ci + deploy, ~2 min | | |
 | cron-job.org | Unlimited jobs | 1 call | 2 | |
@@ -1569,7 +1606,7 @@ flowchart LR
 | Module | Responsibility |
 |---|---|
 | `config.py` | Paths, secrets from the environment, quotas, windows, retention, sweep times, Bogotá's time zone |
-| `models.py` | Pydantic models: what Gemini returns (`Triage`, `PostAnalysis`, `ExtractedEvent`, `StoryAnalysis`, `AccountClassification`) and what is stored (`StoredEvent`, `EventMedia`, `Session`, `ProcessedPost`, `AccountState`), with a workshop series' rules (`series_problems`). The source of truth for the data contract |
+| `models.py` | Pydantic models: what Gemini returns (`Triage`, `PostAnalysis`, `BatchAnalysis`, `ExtractedEvent`, `StoryAnalysis`, `AccountClassification`) and what is stored (`StoredEvent`, `EventMedia`, `Session`, `ProcessedPost`, `AccountState`), with a workshop series' rules (`series_problems`). The source of truth for the data contract |
 | `instagram.py` | Graph API client: token check, posts, profiles, images, error classification, app usage (and each call's time and usage per header, `last_call`) |
 | `instagram_usage.py` | What each account read costs Instagram's hourly quota, the forecast that stops the sweep before 98% (`ReadCosts`), and the run's reads in short (`ReadsSummary`) |
 | `public_post.py` | One post from its public embed page, for the admin tools when the API can't give it (section 3.7) |
@@ -1577,9 +1614,10 @@ flowchart LR
 | `prompts.py` | The triage and extraction prompts, and the story prompt |
 | `stories.py` | Stories from screenshots: their id and perceptual hash, when a screenshot was taken, dates (and a workshop series' sessions) worked out from what's printed, the flyer's crop, the account's name |
 | `account_options.py` | What an `accounts.txt` line says besides the name: `bar` (only special nights) and `solo:<styles>` (the caption filter's words, `FOCUS_KEYWORDS`, from `normalize.TEXT_STYLE_WORDS` plus looser ones), parsed strictly (a typo fails) |
-| `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback and the last resort (extraction only), and no request after the run's time budget |
+| `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback and the last resort (extraction only), and no request after the run's time budget; a batch of posts in one request (`extract_batch`) |
+| `batching.py` | Batched extraction (section 7.2): the request for several posts, each labeled with its own context and images (`batch_contents`), and each post's answer checked apart (`split_answer`) |
 | `external.py` | `ExternalTier`: the last resort on OpenAI-compatible chat APIs (Groq, OpenRouter): order, budgets, Groq's token pacing, per-run quarantine, JSON checked against the schemas |
-| `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; the test set (`gold/`, `--gold`, `--ocr`); OpenRouter's free vision models |
+| `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; the test set (`gold/`, `--gold`, `--ocr`, `--batch`: one post a request against several); OpenRouter's free vision models |
 | `ocr.py` | A flyer's text by OCR (RapidOCR, on the CPU), in rows as printed; optional (`rapidocr` isn't in `requirements.txt` yet): the input of the checks, and of `bakeoff --ocr` |
 | `checks.py` | Rules (no AI) that flag a reading for a second look, worked out from the post's day: a coming date and no event, a time not read, a range or a list of dates not covered, three or more start times for one event (not a social's opening classes), a weekday's day ("sábado 10", "SÁB 10 OCT") or a relative day ("este sábado", "hoy jueves") with no event, an event before the post. It reads the Spanish flyers use (the audit of 7 Oct 2026): hours in words ("8 de la noche"), "1ro de noviembre", dates with their year, ranges and lists in their other spellings; not "MAR 13" as March, a "fiesta de cierre" as a deadline, nor "antes de las 10 pm" as a start. Measured on the test set (0 false flags) and on the site's posts; not yet called by the sweep |
 | `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions; prices in another currency never shown as free |
@@ -1589,6 +1627,7 @@ flowchart LR
 | `pipeline/common.py` | Run statistics (`RunStats`, with the run's changes), the clients' protocols, `AddPostError`, retryable errors, flyers and media records |
 | `pipeline/base.py` | `SweepBase`: the state (events, analyzed posts, hidden events, accounts), storing one analyzed post (only upcoming events in Bogotá; a cancelled post's events taken down), one identity per post |
 | `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; `overdue_by_account` (each account's turn, for the sweep and the status page; its tiers: `hours_overdue`, `unproductive_accounts`, `busy_accounts`) |
+| `pipeline/batches.py` | `Batches`, mixed into `Sweep`: an account's posts waiting for a shared extraction request, read and stored each as its own, and any post left out read again alone (section 7.2) |
 | `pipeline/manual_post.py`, `story_admin.py`, `hiding.py` | The admin tools, mixed into `Sweep`: add a post (`add_post`), add a story (`add_story`), hide a story or an event (`hide_story`, `hide_event`) |
 | `clips.py` | Videos' preview clips: download, cut 6 silent seconds with ffmpeg |
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, the archive of past events, `accounts.txt` |

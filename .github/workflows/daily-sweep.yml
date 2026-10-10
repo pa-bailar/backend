@@ -317,6 +317,9 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_LITE_ONLY: ${{ vars.GEMINI_LITE_ONLY }} # "1": Flash-Lite extracts too (config.LITE_ONLY)
+          # "2" or "3": an account's posts read that many per extraction request; unset or "1": one each
+          # (config.EXTRACTION_BATCH_POSTS)
+          GEMINI_BATCH_POSTS: ${{ vars.GEMINI_BATCH_POSTS }}
           # Optional: the last resort when Gemini runs out, Groq then OpenRouter (config.EXTERNAL_PROVIDERS; unset:
           # that provider is never used)
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}

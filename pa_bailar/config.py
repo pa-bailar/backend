@@ -139,6 +139,26 @@ EXTRACTION_MODELS = LITE_MODELS if LITE_ONLY else FLASH_MODELS
 # weren't compared with this generation's yet: a 6 Oct bake-off met Google's overload), then Flash-Lite.
 PROVISIONAL_MODELS: tuple[str, ...] = () if LITE_ONLY else ("gemini-3-flash-preview", *LITE_MODELS)
 DAILY_BUDGET_MARGIN = 2  # requests kept unused per model, for manual runs and retries
+
+
+def _batch_posts(value: str | None) -> int:
+    """GEMINI_BATCH_POSTS as a number of posts per request, from 1 (off) to MAX_EXTRACTION_BATCH_POSTS; anything else
+    is 1, so a typo can't make the sweep send a dozen posts in one request."""
+    text = (value or "").strip()
+    return min(int(text), MAX_EXTRACTION_BATCH_POSTS) if text.isdigit() and int(text) > 0 else 1
+
+
+# Batched extraction (the owner, 9 Oct 2026): Flash's requests per day (20 per model) are the binding limit, not its
+# tokens (250,000 a minute, barely used), and each post that announces events takes one. With this over 1, the posts of
+# one account that the triage passed in a run are read up to this many per request (pipeline/batches.py, batching.py):
+# each post's answer is checked, and any post the answer misses, mixes up with another or can't be read is read again
+# alone, never dropped. 1 (the default) is off: one request per post, as before. A repository variable on CI
+# (GEMINI_BATCH_POSTS). Measured on the test set with Flash-Lite before switching it on (docs/ARCHITECTURE.md, 7.2).
+MAX_EXTRACTION_BATCH_POSTS = 3
+EXTRACTION_BATCH_POSTS = _batch_posts(os.environ.get("GEMINI_BATCH_POSTS"))
+# A batch's images in all (each post's own: MAX_IMAGES_PER_POST): a post that would take a batch past this goes in the
+# next one, so a long carousel isn't read in the same answer as others (a long answer is cut off: MAX_TOKENS).
+EXTRACTION_BATCH_MAX_IMAGES = 10
 # A post no model gives valid JSON for (gemini.UnreadableAnswerError) is retried on this many runs, then recorded as
 # rejected: each run spends Flash's small quota on it.
 UNREADABLE_RUNS = 3

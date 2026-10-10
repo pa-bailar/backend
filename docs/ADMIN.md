@@ -226,6 +226,46 @@ a second look) is measured on it before it ships. `--gold --ocr` adds each flyer
 (`pa_bailar/ocr.py`; needs `pip install rapidocr onnxruntime`), and `--gold --thinking low` (or `minimal`, `medium`,
 `high`) sets Gemini's thinking level; each variant is cached apart (`<model>+ocr`, `<model>+think-low`).
 
+**One post a request against several: `--gold --batch N`.** Batched extraction (docs/ARCHITECTURE.md, section 7.2;
+`GEMINI_BATCH_POSTS`) is measured here before it's switched on. Each model reads the test set one post a request (the
+usual run, cached as always) and N posts a request (`<model>+batch2`), and the two are scored side by side, with the
+requests each took:
+
+```bash
+.venv\Scripts\python -m pa_bailar admin bakeoff --gold --models gemini-3.1-flash-lite --batch 2
+.venv\Scripts\python -m pa_bailar admin bakeoff --gold --models gemini-3.1-flash-lite --batch 2 --take 2  # again
+```
+
+- The sweep batches one account's posts, but the test set has only four accounts with two posts: those are read
+  together, and the rest with posts of other accounts, in the file's order (`bakeoff.gold_batches`). A batch of
+  different accounts is the harder case (each post carries its own account, dates and rules), and the score shows
+  both kinds apart, each beside the one-post reading of the same posts.
+- As in the sweep, each post's part of the answer is checked (`batching.split_answer`), and a post left out (no
+  answer, two, an event citing another post's image), or every post of a request that failed, is read again alone.
+  The requests line counts them: `requests: 22 for 40 posts (20 shared, 2 read alone; …why)`.
+- `--take 2` (3…) runs the same reading again, cached apart (`+take2`): two takes of the same reading differ, so a
+  difference between one post a request and several counts only past that. `--batch` goes without `--ocr`.
+- The score line adds `F1` (events found against missed and extra: 1.000 finds every event and adds none) and the
+  fields read right of those compared, over every event found.
+
+What it showed (9 Oct 2026, `gemini-3.1-flash-lite`, two takes of each; the test set's 60 events, plus one optional):
+
+| Reading | Requests for 40 posts | Events found (of 60) | Fields right |
+|---|---|---|---|
+| One post a request | 40, 40 | 60, 60 | 97.5%, 94.5% |
+| Two a request, before a shared "no" was confirmed alone | 21 | 58 | 95.6% |
+| **Two a request** | **23, 22** | **60, 60** | **95.0%, 98.2%** |
+| **Three a request** | **20, 18** | **60, 60** | **97.0%, 97.5%** |
+
+Batches of one account's posts (8 posts) and of different accounts' (32) scored alike. The fields' swing, in every
+mode, is mostly one post: a venue's month as a grid (12 nights), whose venue some takes read as the account's name.
+The two events lost before were shared "no"s (a bar's special night read beside another account's workshops, an
+academy's closing show): a post the shared answer finds no event in is now read again alone, which costs the extra
+requests above (2 to 5 a run of the test set, whose posts all have events; on the sweeps' records about a quarter
+of the posts the triage passes turn out to have none, so the sweep would save about 19% of its extraction requests at
+two a request and 30% at three: docs/ARCHITECTURE.md, section 7.2). Flash wasn't measured (its quota is the
+sweeps').
+
 What it showed (7 Oct 2026, Flash-Lite; the test reads each post with its account's rules from `accounts.txt`, as
 the sweep does):
 

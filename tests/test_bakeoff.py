@@ -401,3 +401,166 @@ def test_the_ocr_variant_says_what_it_needs_without_the_engine(monkeypatch):
     said: list[str] = []
     bakeoff.run_gold(["gemini-3.5-flash-lite"], with_ocr=True, say=said.append)
     assert said and "pip install rapidocr onnxruntime" in said[0]
+
+
+# ---------- batched extraction on the test set (--batch) ----------
+
+
+def gold_item(post_id: str, account: str, title: str = "Social") -> dict:
+    expected = {"id": f"{post_id}-e", "title": title, "date": "2026-11-13", "event_type": "social"}
+    return {
+        "post_id": post_id,
+        "account": account,
+        "caption": f"{title} el 13 de noviembre",
+        "flyer": f"flyers/{post_id}-0.webp",
+        "published": "2026-10-01T12:00:00+0000",
+        "processed_at": "2026-10-01T10:00:00-05:00",
+        "events": [expected],
+    }
+
+
+def test_the_test_set_is_batched_by_account_first_then_across_accounts():
+    posts = [gold_item("a1", "a"), gold_item("b1", "b"), gold_item("a2", "a"), gold_item("c1", "c")]
+    posts += [gold_item("d1", "d"), gold_item("a3", "a")]
+    batches = [[item["post_id"] for item in batch] for batch in bakeoff.gold_batches(posts, 2)]
+    assert batches == [["a1", "a2"], ["a3", "b1"], ["c1", "d1"]]
+    batches = [[item["post_id"] for item in batch] for batch in bakeoff.gold_batches(posts, 3)]
+    assert batches == [["a1", "a2", "a3"], ["b1", "c1", "d1"]]
+    real = bakeoff.load_gold()
+    for size in (2, 3):  # every post of the real test set exactly once
+        ids = [item["post_id"] for batch in bakeoff.gold_batches(real, size) for item in batch]
+        assert sorted(ids) == sorted(item["post_id"] for item in real)
+
+
+class FakeAsker:
+    """Answers one post with its expected title, and a batch per `batch_answer` (letters and image indexes)."""
+
+    def __init__(self, posts: list[dict], batch_answer=None, batch_error: Exception | None = None):
+        self.titles = {item["caption"]: item["events"][0]["title"] for item in posts}
+        self.batch_answer = batch_answer
+        self.batch_error = batch_error
+        self.asked: list[str] = []
+
+    def __call__(self, model, contents):
+        self.asked.append("one")
+        title = next(t for caption, t in self.titles.items() if caption in contents[-1])
+        return PostAnalysis(is_event_post=True, reason="ok", events=[extracted_event(title)])
+
+    def read(self, model, contents, schema):
+        self.asked.append("batch")
+        if self.batch_error:
+            raise self.batch_error
+        return self.batch_answer.pop(0) if isinstance(self.batch_answer, list) else self.batch_answer
+
+
+def extracted_event(title: str):
+    from tests.factories import extracted
+
+    return extracted(title=title, date="2026-11-13", event_type="social")
+
+
+def batch_of(*posts: tuple[str, str, int | None]):
+    from pa_bailar.models import BatchAnalysis, BatchPostAnalysis
+
+    return BatchAnalysis(
+        posts=[
+            BatchPostAnalysis(
+                post=letter,
+                is_event_post=True,
+                reason="ok",
+                events=[extracted_event(title).model_copy(update={"image_index": index})],
+            )
+            for letter, title, index in posts
+        ]
+    )
+
+
+def with_flyers(tmp_path, posts):
+    (tmp_path / "flyers").mkdir(exist_ok=True)
+    for item in posts:
+        (tmp_path / item["flyer"]).write_bytes(make_image())
+
+
+def test_a_batched_run_reads_two_posts_a_request_and_a_post_left_out_alone(tmp_path):
+    posts = [gold_item("a1", "a", "Uno"), gold_item("a2", "a", "Dos"), gold_item("b1", "b", "Tres")]
+    with_flyers(tmp_path, posts)
+    asker = FakeAsker(posts, batch_answer=batch_of(("A", "Uno", 0), ("B", "Dos", 0)))  # B cites A's image
+    bakeoff.run_batched("m", posts, asker, tmp_path, 2, cache_dir=tmp_path, say=lambda text: None)
+    assert asker.asked == ["batch", "one", "one"]  # a2 read again alone; b1 alone in its batch
+    cache = bakeoff.load_cache(bakeoff.cache_file("m+batch2", tmp_path))
+    assert cache["a1"]["batch"] == ["a1", "a2"] and "alone" not in cache["a1"]
+    assert cache["a2"]["alone"] == "un evento cita una imagen de otra publicación"
+    assert cache["a2"]["answer"]["events"][0]["title"] == "Dos"
+    assert bakeoff.requests_used(posts, cache) == (3, 1, 2)
+    result = bakeoff.score_gold(posts, cache)
+    assert (result.found, result.missed, result.extra) == (3, 0, 0)
+
+    bakeoff.run_batched("m", posts, asker, tmp_path, 2, cache_dir=tmp_path, say=lambda text: None)
+    assert len(asker.asked) == 3  # answered with the same requests: nothing asked again
+    assert bakeoff.stale_batched(posts, 2, cache, tmp_path) == 0
+
+
+def test_a_batched_request_that_fails_reads_each_post_alone(tmp_path):
+    posts = [gold_item("a1", "a", "Uno"), gold_item("a2", "a", "Dos")]
+    with_flyers(tmp_path, posts)
+    asker = FakeAsker(posts, batch_error=bakeoff.ExtractionError("busy"))
+    bakeoff.run_batched("m", posts, asker, tmp_path, 2, cache_dir=tmp_path, say=lambda text: None)
+    cache = bakeoff.load_cache(bakeoff.cache_file("m+batch2", tmp_path))
+    assert asker.asked == ["batch", "one", "one"]
+    assert all(cache[pid]["alone"].startswith("falló") and "answer" in cache[pid] for pid in ("a1", "a2"))
+    assert bakeoff.requests_used(posts, cache) == (3, 1, 2)  # the failed request counts too
+
+
+def test_the_batched_score_sets_the_two_readings_side_by_side_per_kind_of_batch(tmp_path):
+    posts = [gold_item("a1", "a", "Uno"), gold_item("a2", "a", "Dos"), gold_item("b1", "b", "Tres")]
+    posts.append(gold_item("c1", "c", "Cuatro"))
+    with_flyers(tmp_path, posts)
+    single = {
+        item["post_id"]: {
+            "answer": {"events": [extracted_event(item["events"][0]["title"]).model_dump()]},
+            "seconds": 1,
+        }
+        for item in posts
+    }
+    answers = [batch_of(("A", "Uno", 0), ("B", "Dos", 1)), batch_of(("A", "Tres", 0), ("B", "Cuatro", 1))]
+    asker = FakeAsker(posts, batch_answer=answers)
+    bakeoff.run_batched("m", posts, asker, tmp_path, 2, cache_dir=tmp_path, say=lambda text: None)
+    batched = bakeoff.load_cache(bakeoff.cache_file("m+batch2", tmp_path))
+    text = bakeoff.batch_score_text("m+batch2", posts, 2, single, batched)
+    assert "F1 1.000" in text and "requests: 2 for 4 posts (2 shared, 0 read alone)" in text
+    assert "one account (2 posts), one post a request: found 2" in text
+    assert "different accounts (2 posts), 2 a request: found 2" in text
+
+
+def test_batch_and_take_go_with_the_test_set(capsys, monkeypatch):
+    from pa_bailar.commands import admin
+
+    for options in (["--batch", "2"], ["--take", "2"]):
+        with pytest.raises(SystemExit):
+            admin.main(["bakeoff", *options])
+        assert "go with --gold" in capsys.readouterr().err
+    monkeypatch.setattr(admin.sweep_state, "refresh", lambda: True)
+    ran: list[dict] = []
+    monkeypatch.setattr(bakeoff, "run_gold", lambda models, **options: ran.append(options))
+    admin.main(["bakeoff", "--gold", "--batch", "2", "--take", "2", "--score"])
+    assert ran[0]["batch"] == 2 and ran[0]["take"] == 2
+
+
+def test_a_shared_no_event_is_confirmed_alone_in_the_run_and_in_answers_cached_before(tmp_path):
+    """9 Oct 2026: the two events batching lost on the test set were shared "no"s; a "no" is now confirmed alone, and
+    answers cached before that check get it on the next run (one request each, nothing else asked again)."""
+    import json
+
+    posts = [gold_item("a1", "a", "Uno"), gold_item("a2", "a", "Dos")]
+    with_flyers(tmp_path, posts)
+    asker = FakeAsker(posts, batch_answer=[batch_of(("A", "Uno", 0))])  # nothing for B
+    bakeoff.run_batched("m", posts, asker, tmp_path, 2, cache_dir=tmp_path, say=lambda text: None)
+    cache = bakeoff.load_cache(bakeoff.cache_file("m+batch2", tmp_path))
+    assert asker.asked == ["batch", "one"] and cache["a2"]["alone"].startswith("sin respuesta")
+
+    cache["a2"] = {**cache["a1"], "answer": {**cache["a1"]["answer"], "events": []}}  # a "no" cached before the check
+    bakeoff.cache_file("m+batch2", tmp_path).write_text(json.dumps(cache), encoding="utf-8")
+    bakeoff.run_batched("m", posts, asker, tmp_path, 2, cache_dir=tmp_path, say=lambda text: None)
+    cache = bakeoff.load_cache(bakeoff.cache_file("m+batch2", tmp_path))
+    assert asker.asked == ["batch", "one", "one"]
+    assert cache["a2"]["alone"].startswith("sin eventos") and cache["a2"]["answer"]["events"][0]["title"] == "Dos"

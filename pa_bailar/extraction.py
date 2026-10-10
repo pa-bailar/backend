@@ -11,6 +11,8 @@ are always provisional. If none can answer either, Gemini's error stands: the po
 the extraction: a Flash failure that isn't its quota (busy, a rejected request) never reaches it, and the triage
 never does (with Flash-Lite out, the sweep sends the post straight to the extraction when Flash is out too: see
 pipeline/sweep.py).
+Batched (config.EXTRACTION_BATCH_POSTS over 1; off by default): several posts of one account in one extraction
+request (`extract_batch`, batching.py), each post's answer checked apart; the sweep reads alone any post left out.
 A story (screenshots shared to the admin page, stories.py) skips the triage: one extraction request for all
 its screenshots (`extract_story`), with Flash-Lite's fallback but not the last resort (a story is never read
 again, so a last-resort reading would stay).
@@ -29,10 +31,11 @@ from PIL import Image
 from pydantic import BaseModel
 
 from . import config
+from .batching import BatchItem, BatchReading, batch_contents, split_answer
 from .external import ExternalReport, ExternalTier
 from .gemini import ExtractionError, ModelPool, OutOfTimeError, QuotaExhaustedError, UnreadableAnswerError
 from .instagram import Post
-from .models import PostAnalysis, StoredEvent, StoryAnalysis, Triage
+from .models import BatchAnalysis, PostAnalysis, StoredEvent, StoryAnalysis, Triage
 from .prompts import EXTRACTION_PROMPT, STORY_PROMPT, TRIAGE_PROMPT
 
 log = logging.getLogger(__name__)
@@ -152,6 +155,18 @@ class EventExtractor:
             contents += [f"Image {index}:", types.Part.from_bytes(data=image, mime_type="image/jpeg")]
         contents.append(prompt)
         return self._extract(contents, PostAnalysis, allow_provisional)
+
+    def extract_batch(self, account: str, items: list[BatchItem], known_events: list[StoredEvent]) -> BatchReading:
+        """Several posts of one account in one request (batching.py, config.EXTRACTION_BATCH_POSTS): each post's
+        answer, checked apart, and the posts left out with why (the sweep reads those alone). One request for all of
+        them, counted once in the day's quota. Flash, else the provisional models as for one post, never the last
+        resort: a post left out is read alone, and that read may reach it. Raises like `extract` when no model answers
+        or Gemini refuses the request (the sweep then reads each post alone)."""
+        posts = [(_format_context(account, item.post, item.published, item.rules), item.images) for item in items]
+        contents = batch_contents(posts, _known_list(known_events))
+        answer, model, provisional = self._extract(contents, BatchAnalysis, allow_provisional=True, last_resort=False)
+        analyses, left_out = split_answer(answer, [len(item.images) for item in items])
+        return BatchReading(analyses, left_out, model, provisional)
 
     def extract_story(
         self,

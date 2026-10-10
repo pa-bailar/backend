@@ -90,6 +90,11 @@ class RunRecord(BaseModel):
     instagram_reads: ReadsSummary | None = None  # Meta's time and the quota's share per read (instagram_usage.py)
     instagram_stop: StopReason | None = None  # why it stopped reading early: our forecast or ceiling, or Meta's limit
     upgrade_changes: dict[str, int] = {}  # what Flash changed in lighter readings (RunStats.upgrade_changes)
+    # Batched extraction (config.EXTRACTION_BATCH_POSTS): shared requests answered, posts stored from them, posts read
+    # again alone (RunStats.batch_requests…): what batching saved, and how often its safeguards stepped in.
+    batch_requests: int = 0
+    batched_posts: int = 0
+    batch_rereads: int = 0
     warnings: list[str] = []  # keys of the warnings found (Finding.key)
     # What happened to which event (changes.py), the most telling first: the admin page's history. None in records
     # from before it was kept, and in those older than config.CHANGES_KEPT_RUNS (their counts stay).
@@ -142,6 +147,9 @@ def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) 
         instagram_reads=stats.instagram_reads,
         instagram_stop=stats.instagram_stop,
         upgrade_changes=dict(stats.upgrade_changes),
+        batch_requests=stats.batch_requests,
+        batched_posts=stats.batched_posts,
+        batch_rereads=stats.batch_rereads,
         changes=changes,
         changes_left_out=left_out,
         change_counts=counts(stats.changes.values()),

@@ -8,6 +8,7 @@ Usage (from the repository root):
     .venv\\Scripts\\python -m pa_bailar admin inbox             answer an admin issue (the admin workflow)
     .venv\\Scripts\\python -m pa_bailar admin bakeoff           the last resort's models against Flash (spends requests)
     .venv\\Scripts\\python -m pa_bailar admin bakeoff --gold    a model against the test set, gold/ (spends requests)
+    .venv\\Scripts\\python -m pa_bailar admin bakeoff --gold --batch 2    and 2 posts a request, side by side
 Adding a post is `python -m pa_bailar sweep --post <link>`, and a story `sweep --story <ids>` (`--hide-story` takes
 one off the site, `--hide-event <id>` any event): they need Gemini or write the site's data, so the sweep workflow
 does them.
@@ -168,9 +169,20 @@ def main(argv: list[str] | None = None) -> None:
     bake_parser.add_argument(
         "--thinking", choices=["minimal", "low", "medium", "high"], help="with --gold: Gemini's thinking level"
     )
+    bake_parser.add_argument(
+        "--batch",
+        type=int,
+        metavar="N",
+        help="with --gold: also N posts a request (batched extraction, config.EXTRACTION_BATCH_POSTS), side by side",
+    )
+    bake_parser.add_argument(
+        "--take", type=int, default=1, metavar="K", help="with --gold: another take of the same reading, cached apart"
+    )
     args = parser.parse_args(argv)
-    if args.tool == "bakeoff" and (args.ocr or args.thinking) and not args.gold:
-        bake_parser.error("--ocr and --thinking go with --gold (the test set)")
+    if args.tool == "bakeoff" and (args.ocr or args.thinking or args.batch or args.take > 1) and not args.gold:
+        bake_parser.error("--ocr, --thinking, --batch and --take go with --gold (the test set)")
+    if args.tool == "bakeoff" and args.batch and args.ocr:
+        bake_parser.error("--batch reads without the OCR text: leave --ocr out")
     _utf8_stdout()
     if not sweep_state.refresh():
         print("(No se pudo traer el estado más reciente: se usa la última copia.)", file=sys.stderr)
@@ -190,7 +202,14 @@ def main(argv: list[str] | None = None) -> None:
             bakeoff.discover()
         elif args.gold:
             models = args.models or list(bakeoff.GOLD_MODELS)
-            bakeoff.run_gold(models, score_only=args.score, with_ocr=args.ocr, thinking=args.thinking)
+            bakeoff.run_gold(
+                models,
+                score_only=args.score,
+                with_ocr=args.ocr,
+                thinking=args.thinking,
+                batch=args.batch,
+                take=args.take,
+            )
         else:
             models = args.models or list(bakeoff.DEFAULT_MODELS)
             bakeoff.run(args.posts, models, repick=args.repick, score_only=args.score)
