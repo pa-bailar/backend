@@ -63,5 +63,5 @@ def test_cron_job_org_starts_every_sweep_and_github_schedules_none():
     here while the repository was private, and it starts late or drops runs). A `schedule:` trigger next to a
     cron-job.org job would run that sweep twice."""
     assert "schedule:" not in SWEEP
-    assert set(config.SWEEP_TRIGGERS.values()) == {"cron-job.org"}
+    assert config.SWEEP_TRIGGER == "cron-job.org"
     assert config.SWEEP_TIMES == ("03:00", "06:30", "21:00")

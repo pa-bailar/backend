@@ -395,7 +395,7 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
                 "warning",
                 f"missed-sweep:{clock}",
                 f"No sweep ran at {clock} (Bogotá) on the last {MISSED_DAYS} days: has "
-                f"{config.SWEEP_TRIGGERS.get(clock, 'its trigger')} stopped starting it? "
+                f"{config.SWEEP_TRIGGER} stopped starting it? "
                 "Start it by hand meanwhile (Run workflow); docs/ARCHITECTURE.md, section 15.",
             )
         )
