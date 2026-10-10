@@ -1690,5 +1690,143 @@
     "changes": [],
     "changes_left_out": 0,
     "change_counts": {}
+  },
+  {
+    "finished_at": "2026-10-10T06:51:47-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/38048618678",
+    "accounts": 25,
+    "failed_accounts": [
+      "bailabo_studio"
+    ],
+    "read_accounts": [
+      "acaparchamos",
+      "aseismanos",
+      "bailabo_studio",
+      "bembeacademiadebaile",
+      "bogotadanceclub.academy",
+      "callejonsalsa",
+      "chanchanlatino",
+      "danceholicproject",
+      "discojaguar.bta",
+      "el_bochinche_cafe_",
+      "esferalatinaoficial",
+      "foururbandanc",
+      "ikubambayadanza",
+      "ladiezluxury_outlet",
+      "lamecanica_original",
+      "madyumdance",
+      "mambolei_",
+      "mundanobaroficial",
+      "quemaquequema",
+      "restaurantecasadecitas",
+      "ritmomoderno",
+      "rpdancestudio",
+      "salsalatina.villaluz",
+      "sonorasocialclub_",
+      "tributo.salsayjazz"
+    ],
+    "skipped_accounts": [
+      "bureodancestudio",
+      "ludancestudios",
+      "ritmosacademiadebaile",
+      "tubailecom",
+      "studiolatindance",
+      "academia_cowork",
+      "alpasojam",
+      "imperiolatino",
+      "angie__cuesta",
+      "davidylauradancers"
+    ],
+    "posts_analyzed": 30,
+    "events_new": 4,
+    "events_merged": 1,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 4,
+    "rate_limited": true,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 16,
+      "gemini-3.8-flash": 12,
+      "gemini-3.6-flash": 7,
+      "gemini-3-flash-preview": 5
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 95,
+    "instagram_usage_detail": {
+      "call_count": 9,
+      "total_cputime": 0,
+      "total_time": 95
+    },
+    "instagram_reads": {
+      "accounts": 25,
+      "mean_seconds": 4.75,
+      "median_seconds": 4.1,
+      "max_seconds": 10.16,
+      "mean_cost": 3.96,
+      "max_cost": 9,
+      "max_cost_account": "madyumdance",
+      "headers": {
+        "X-App-Usage": 25
+      },
+      "expected_cost": 9
+    },
+    "instagram_stop": "forecast",
+    "upgrade_changes": {},
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "salsa-en-familia-11-oct",
+        "title": "Salsa en Familia",
+        "account": "tributo.salsayjazz",
+        "date": "2026-10-11",
+        "detail": null
+      },
+      {
+        "kind": "provisional",
+        "id": "audiciones-esfera-latina-bachata-iniciacion-8-nov",
+        "title": "Audiciones Esfera Latina - Bachata Iniciación",
+        "account": "esferalatinaoficial",
+        "date": "2026-11-08",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "audiciones-esfera-latina-salsa-8-nov",
+        "title": "Audiciones Esfera Latina - Salsa",
+        "account": "esferalatinaoficial",
+        "date": "2026-11-08",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "audiciones-esfera-latina-ladies-salsa-y-bachata-8-nov",
+        "title": "Audiciones Esfera Latina - Ladies Salsa y Bachata",
+        "account": "esferalatinaoficial",
+        "date": "2026-11-08",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "merged",
+        "id": "sin-salsa-no-hay-paraiso-10-oct",
+        "title": "Sin Salsa No Hay Paraíso",
+        "account": "ladiezluxury_outlet",
+        "date": "2026-10-10",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 1,
+      "provisional": 3,
+      "merged": 1
+    }
   }
 ]
