@@ -10,6 +10,7 @@ from typing import Any, NamedTuple, cast
 
 from .. import config, links, public_post, storage
 from ..account_options import AccountOptions
+from ..changes import changed_fields, fields_label
 from ..extraction import EventExtractor
 from ..ids import new_event_id
 from ..instagram import InstagramClient, Post
@@ -198,6 +199,15 @@ def _fit(event: StoredEvent, candidate: ExtractedEvent) -> _Fit:
     )
 
 
+class _Before(NamedTuple):
+    """What there was before a post was stored, for the run's changes (SweepBase._note_changes): the events it
+    announced, as they were, and the ids stored and hidden by hand."""
+
+    events: dict[str, StoredEvent]
+    stored_ids: set[str]
+    hidden_ids: set[str]
+
+
 def _best_fit(candidate: ExtractedEvent, events: list[StoredEvent]) -> _Fit:
     """How well the closest of these events fits the reading."""
     return max((_fit(event, candidate) for event in events), default=_Fit(False, False, False, False))
@@ -218,6 +228,7 @@ class SweepBase:
         self.instagram = instagram or InstagramClient.from_env()
         self.extractor = extractor or EventExtractor(config.require_env("GEMINI_API_KEY"))
         self.hidden = storage.load_hidden_events()
+        self.stats = RunStats()  # before the duplicates are merged: the run notes them (changes.py)
         # An event hidden by hand stays off the site, even if the data PR of the run that hid it wasn't merged.
         stored = storage.load_events()
         self.options = storage.read_account_options()
@@ -230,7 +241,6 @@ class SweepBase:
             storage.save_events(self.events)
         self.by_hand = False  # adding a post or story by hand: it may publish again what was hidden
         self.accounts = storage.load_account_state()
-        self.stats = RunStats()
         self.started = time.monotonic()
         self.time_up_logged = False
         self.rate_limited = False  # Meta is throttling the app: the remaining accounts wait for the next run
@@ -406,6 +416,9 @@ class SweepBase:
         # only this post announced give their ids back, so a re-extraction keeps the events' URLs.
         reusable = [event for event in self.events if {media.post_id for media in event.media} == {post["id"]}]
         announced = {event.id for event in self.events if any(media.post_id == post["id"] for media in event.media)}
+        # As they were, for the run's changes (_note_changes).
+        before = {event.id: event for event in self.events if event.id in announced}
+        stored_ids, hidden_ids = {event.id for event in self.events}, set(self.hidden)
         self.events = detach_post(self.events, post["id"])
         cancelled = not publishable and bool(announced) and _says_cancelled(post, analysis)
 
@@ -434,7 +447,59 @@ class SweepBase:
         self._record_processed(account, post, analysis.is_event_post, analysis.reason, model, provisional)
         self._set_outcome(post, *outcome)
         self._save()
+        self._note_changes(
+            account,
+            post,
+            results,
+            _Before(before, stored_ids, hidden_ids),
+            provisional=provisional and post["media_type"] != "STORY",  # no sweep reads a story again
+            upgrade=not count_as_new,
+            cancelled=cancelled,
+        )
         return True
+
+    def _note_changes(
+        self,
+        account: str,
+        post: Post,
+        results: list[tuple[str, bool]],
+        before: _Before,
+        provisional: bool,
+        upgrade: bool,
+        cancelled: bool,
+    ) -> None:
+        """What storing this post did to each event, for the run's history (changes.py): new or provisional, merged
+        into an event already on the site, published again after being hidden, read again (corrected or updated, or
+        nothing changed), or gone (cancelled, or a new reading no longer announces it)."""
+        events = {event.id: event for event in self.events}
+        why = "Flash" if upgrade else "releído a mano" if self.by_hand else "publicación editada"
+        for event_id, merged in results:
+            event = events[event_id]
+            if event_id in before.events:
+                fields = changed_fields(before.events[event_id], event)
+                if not fields:
+                    self.stats.note("reread", event, "Flash confirmó la lectura" if upgrade else f"{why}, sin cambios")
+                elif upgrade:
+                    self.stats.note("corrected", event, f"Flash {fields_label(fields)}")
+                else:
+                    self.stats.note("updated", event, f"{why}: {fields_label(fields)}")
+            elif event_id in before.hidden_ids:
+                self.stats.note("restored", event, "oculto antes, publicado de nuevo a mano")
+            elif merged and event_id in before.stored_ids:
+                source = "una historia" if post["media_type"] == "STORY" else "otra publicación"
+                self.stats.note("merged", event, source if account == event.account else f"{source} de @{account}")
+            elif provisional:
+                self.stats.note("provisional", event, "leído por un modelo más liviano: Flash lo relee después")
+            else:
+                self.stats.note("new", event)
+        for event_id, event in before.events.items():
+            if event_id in events:
+                continue  # still on the site: other posts announce it (or it was flagged: _take_down_cancelled)
+            if cancelled:
+                self.stats.note("cancelled", event, "la publicación dice que se canceló o se aplazó")
+            else:
+                gone = "Flash no lo encontró al releer" if upgrade else f"{why}: ya no lo anuncia"
+                self.stats.note("dropped", event, gone)
 
     def _take_down_cancelled(self, account: str, event_ids: set[str]) -> None:
         """A post that announced these events now says they're cancelled or postponed (its caption edited to
@@ -457,6 +522,7 @@ class SweepBase:
                 doubt = f"@{account} lo anunció cancelado o aplazado: revisar"
                 flagged = event.model_copy(update={"confidence": "low", "doubts": [*event.doubts, doubt]})
                 self.events[self.events.index(event)] = flagged
+                self.stats.note("flagged", flagged, f"@{account} lo anunció cancelado o aplazado: revisar")
                 log.info("     @%s says it's cancelled, flagged for review: %s %s", account, _days(event), event.title)
 
     def _discard_reasons(self, account: str, post_id: str, event: ExtractedEvent) -> list[str]:
@@ -532,6 +598,7 @@ class SweepBase:
         hidden = self._hidden_match(account, candidate, post["id"])
         if hidden and not self.by_hand:
             log.info("     hidden by hand, left off the site: %s %s", _days(hidden.event), hidden.event.title)
+            self.stats.note("kept_hidden", hidden.event, "oculto a mano: no se volvió a publicar")
             return None
         if hidden:  # added by hand: published again (with its old id, when it's stored as new)
             del self.hidden[hidden.event.id]
@@ -614,9 +681,11 @@ class SweepBase:
     def _merge_duplicates(self) -> None:
         """Stored events the rules now say are one (merging.merge_duplicates), merged on load; the posts that
         became the dropped one now point at the one kept, and the processed records are saved with them."""
+        titles = {event.id: event.title for event in self.events}
         self.events, pairs = merge_duplicates(self.events)
         if not pairs:
             return
+        kept_events = {event.id: event for event in self.events}
         renamed = dict((dropped, kept) for kept, dropped in pairs)
         for record in self.processed.values():
             if any(event_id in renamed for event_id in record.event_ids):
@@ -624,6 +693,8 @@ class SweepBase:
         storage.save_processed_posts(self.processed)
         for kept, dropped in pairs:
             log.info("Duplicate events merged: %s into %s", dropped, kept)
+            if kept in kept_events:  # a dropped one may have been kept before (three of one event)
+                self.stats.note("duplicate", kept_events[kept], f"unido con «{titles[dropped]}», el mismo evento")
 
     def _save(self) -> None:
         """Save after every post so progress survives an interrupted run."""

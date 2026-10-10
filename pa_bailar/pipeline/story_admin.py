@@ -2,7 +2,7 @@
 neither Gemini nor Instagram (dates, crops, ids, the account's name) is in stories.py."""
 
 import logging
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import cast
 
@@ -194,7 +194,7 @@ class StoryAdmin(SweepBase):
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
         self.stats.gemini_requests = self.extractor.requests_this_run()
         storage.save_account_state(self.accounts)
-        storage.save_meta(asdict(self.stats))
+        storage.save_meta(self.stats.for_meta())
         answer = self._story_answer(story_id, taken, taken_source)
         answer.account_source, answer.account_checked, answer.account_added = source, checked, added
         answer.provisional, answer.date_notes, answer.past = provisional, date_notes, past

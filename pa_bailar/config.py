@@ -39,6 +39,8 @@ GEMINI_USAGE_FILE = STATE_DIR / "gemini_usage.json"
 RUN_HISTORY_FILE = STATE_DIR / "run_history.json"  # each sweep in short, for the health checks (health.py)
 # Events taken off the site by hand ("Ocultar", Sweep.hide_event): never published again from the same posts.
 HIDDEN_EVENTS_FILE = STATE_DIR / "hidden_events.json"
+# The admin requests that changed events (Agregar, a story, Ocultar), for the admin page's history (changes.py).
+ADMIN_RUNS_FILE = STATE_DIR / "admin_runs.json"
 
 # ---------- Instagram (Meta Graph API) ----------
 GRAPH_API_URL = "https://graph.facebook.com/v26.0"
@@ -273,6 +275,15 @@ EVENT_RETENTION_DAYS = 60
 # Records of analyzed posts are forgotten after this many days. Must exceed BACKFILL_DAYS and the lookback:
 # older posts are never fetched again, so forgetting them can't cause a second analysis.
 PROCESSED_RETENTION_DAYS = 45
+
+# ---------- The admin page's history (changes.py) ----------
+# What happened to which event in a run (added, merged, corrected, cancelled...), kept with the run for the admin page's
+# "Historial": at most this many per run, the most telling first (changes.KIND_ORDER); the rest are only counted.
+RUN_CHANGES_KEPT = 80
+# Kept for the latest runs only (a week of sweeps): older records keep their counts, so run_history.json stays small.
+CHANGES_KEPT_RUNS = 14
+# The admin requests' runs kept (state/admin_runs.json).
+ADMIN_RUNS_KEPT = 20
 
 BOGOTA_TZ = ZoneInfo("America/Bogota")
 

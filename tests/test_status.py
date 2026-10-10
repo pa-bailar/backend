@@ -129,11 +129,11 @@ def test_what_flash_changed_in_lighter_reads_is_summed_and_said():
 
 
 def test_every_field_an_upgrade_compares_has_its_name_for_the_owner():
-    """_FIELD_NAMES says the audited fields (sweep.AUDITED_FIELDS) in Spanish: a field audited without a name here
+    """FIELD_NAMES says the audited fields (changes.AUDITED_FIELDS) in Spanish: a field audited without a name here
     would be counted on every run and never shown."""
-    from pa_bailar.pipeline.sweep import AUDITED_FIELDS
+    from pa_bailar.changes import AUDITED_FIELDS, FIELD_NAMES
 
-    assert set(status._FIELD_NAMES) == set(AUDITED_FIELDS)
+    assert set(FIELD_NAMES) == set(AUDITED_FIELDS)
 
 
 def test_accounts_past_their_turn_by_more_than_a_sweep_are_waiting():

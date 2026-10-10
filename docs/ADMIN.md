@@ -62,11 +62,23 @@ address follows the tab you pick. On a keyboard, ← and → (or Home, End) move
   sent (or one you tapped) for 15 minutes; if it's still running then, it says so: tap it again later.
   Each button sends one request per tap. It stays in Herramientas: it's where the requests' answers show.
 
-**Estadísticas:** the sweeps (✅ or ⚠️, with links to the runs), Gemini usage per model and when it resets,
+**Estadísticas:** the sweeps (✅ or ⚠️, with links to the runs), the history (below), Gemini usage per model and when it resets,
 the last resort's use (Groq, OpenRouter: a card only on a day Gemini ran out), Instagram (whether the token works,
 and the last sweep's highest reading of its quota), accounts (those still in their first sweep or waiting past their
 turn) and events, with what Flash changed when it re-read lighter models' readings. It's the latest `status.json`, as of the last sweep. When it can't be read
 (none saved yet, GitHub failing, offline), a note takes its place and Herramientas still works.
+
+**Historial** (under Barridos, collapsed until tapped): what the latest 10 runs did to which event, so a count
+like "3 nuevos" says which. One row per run, newest first: what ran ("Barrido de la mañana", "de la noche", "Barrido
+extra" for one started by hand or at another time, or the request: "Agregar publicación", "Volver a leer",
+"Agregar historia", "Ocultar evento", "Ocultar historia"), when, and a summary ("1 cancelado · 2 nuevos · 1
+corregido"). Tapping a row (the newest is open) lists its events: a colored label for what happened (Nuevo,
+Provisional, Unido, Corregido, Actualizado, Releído, Quitado, Cancelado, Revisar, Oculto, Sigue oculto,
+Restaurado, Duplicado, Archivado), the title (linked to its page while it's on the site), @cuenta, the event's day
+and a short note ("Flash cambió la hora y el lugar", "otra publicación de @x"), then "ver en GitHub". A request that
+couldn't run says why. Runs from before 9 Oct 2026 show their counts, "sin detalle". At most 80 events per run are
+listed, the most telling first ("Y N más, solo contados"). The kinds and how they're recorded: ARCHITECTURE.md
+section 10.3. Native `<details>`: no script, keyboard and screen-reader friendly.
 
 Each request is an issue in this repository (label `admin`), answered by the `admin` workflow: the page
 opens it and shows the answer when it arrives.
@@ -397,7 +409,7 @@ flowchart LR
 - **Files:**
   - `admin-web/wrangler.jsonc`: the Worker's settings. Its `name` must match the Worker's name in Cloudflare.
   - `admin-web/public/`: the page, with no data in it: `index.html`, `app.js`, `admin.css`, `render.js` (turns
-    data into escaped HTML), `tabs.js` (the tabs) and `patterns.js` (the shapes a request may take, which
+    data into escaped HTML: the new series, the history, Bogotá times), `tabs.js` (the tabs) and `patterns.js` (the shapes a request may take, which
     `src/index.js` imports too). What makes it installable: `manifest.webmanifest` (name, colors, icons in
     `icons/`) with a `share_target`: Android posts what's shared (a link's text, up to 4 images) to `/share`.
     `sw.js`, the page's service worker, answers that in the browser: it keeps shared images in Cache Storage

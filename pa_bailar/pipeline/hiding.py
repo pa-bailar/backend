@@ -2,7 +2,7 @@
 "Ocultar historia" and "Ocultar")."""
 
 import logging
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 
 from .. import config, storage, stories
 from ..merging import detach_post
@@ -48,14 +48,15 @@ class Hiding(SweepBase):
         record.outcome = "hidden"
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
         self._save()
-        storage.save_meta(asdict(self.stats))
+        removed = [event for event in affected if event.id not in remaining]
+        kept = [event for event in self.events if event.id in {e.id for e in affected}]
+        for event in removed:
+            self.stats.note("hidden", event, "se ocultó la historia que lo anunciaba")
+        for event in kept:
+            self.stats.note("updated", event, "se quitó una historia oculta: otras publicaciones lo anuncian")
+        storage.save_meta(self.stats.for_meta())
         log.info("   %s hidden: %s event(s) affected", story_id, len(affected))
-        return HiddenStory(
-            story_id,
-            record.account,
-            removed=[event for event in affected if event.id not in remaining],
-            kept=[event for event in self.events if event.id in {e.id for e in affected}],
-        )
+        return HiddenStory(story_id, record.account, removed=removed, kept=kept)
 
     def hide_event(self, event_id: str) -> HiddenFromSite:
         """Take any event off the site by hand ("Ocultar", e.g. a new workshop series that isn't right), whatever
@@ -79,6 +80,7 @@ class Hiding(SweepBase):
                 record.outcome, record.provisional = "hidden", False  # no upgrade for nothing
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
         self._save()
-        storage.save_meta(asdict(self.stats))
+        self.stats.note("hidden", event, "oculto a mano: los barridos no lo vuelven a publicar")
+        storage.save_meta(self.stats.for_meta())
         log.info("   %s hidden by hand: %s", event_id, event.title)
         return HiddenFromSite(event)

@@ -2,14 +2,15 @@
 images into flyers and media records."""
 
 import hashlib
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import date, datetime
-from typing import Protocol
+from typing import Any, Protocol
 
 import httpx
 from google.genai import errors as genai_errors
 
 from .. import clips, config, storage
+from ..changes import ChangeKind, EventChange, change, noted
 from ..external import ExternalReport
 from ..gemini import ExtractionError, quota_reset
 from ..instagram import Post, download_image, image_urls, slide_count, video_url
@@ -108,6 +109,18 @@ class RunStats:
     instagram_usage: int = 0  # the highest share of Instagram's quota used during the run (0-100)
     instagram_usage_detail: dict[str, int] = field(default_factory=dict)  # its measures (instagram.USAGE_MEASURES)
     by_account: dict[str, AccountStats] = field(default_factory=dict)
+    # What happened to which event, one change per event by id (changes.py): the admin page's history. Not in meta.json.
+    changes: dict[str, EventChange] = field(default_factory=dict)
+
+    def note(self, kind: ChangeKind, event: StoredEvent, detail: str | None = None) -> None:
+        """Note what happened to an event this run (changes.noted: one per event)."""
+        noted(self.changes, change(kind, event, detail))
+
+    def for_meta(self) -> dict[str, Any]:
+        """The run's statistics for the site's meta.json (storage.save_meta): without the changes, the admin page's."""
+        stats = asdict(self)
+        del stats["changes"]
+        return stats
 
     def account(self, name: str) -> AccountStats:
         return self.by_account.setdefault(name, AccountStats())

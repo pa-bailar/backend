@@ -20,6 +20,7 @@ def isolated_files(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "EXTERNAL_USAGE_FILE", tmp_path / "state" / "external_usage.json")
     monkeypatch.setattr(config, "RUN_HISTORY_FILE", tmp_path / "state" / "run_history.json")
     monkeypatch.setattr(config, "HIDDEN_EVENTS_FILE", tmp_path / "state" / "hidden_events.json")
+    monkeypatch.setattr(config, "ADMIN_RUNS_FILE", tmp_path / "state" / "admin_runs.json")
     monkeypatch.setattr(config, "ACCOUNTS_FILE", tmp_path / "accounts.txt")
     for provider in config.EXTERNAL_PROVIDERS:  # keys from a local .env: no test may reach Groq or OpenRouter
         monkeypatch.delenv(provider.key_env, raising=False)
