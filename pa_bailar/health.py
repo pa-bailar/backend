@@ -91,7 +91,7 @@ class RunRecord(BaseModel):
     instagram_stop: StopReason | None = None  # why it stopped reading early: our forecast or ceiling, or Meta's limit
     upgrade_changes: dict[str, int] = {}  # what Flash changed in lighter readings (RunStats.upgrade_changes)
     # Batched extraction (config.EXTRACTION_BATCH_POSTS): shared requests answered, posts stored from them, posts read
-    # again alone (RunStats.batch_requests…): what batching saved, and how often its safeguards stepped in.
+    # again alone and recorded (RunStats.batch_requests…): what batching saved, and how often its safeguards stepped in.
     batch_requests: int = 0
     batched_posts: int = 0
     batch_rereads: int = 0

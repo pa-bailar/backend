@@ -858,9 +858,12 @@ flowchart TD
   every take, one post a request or two or three; the fields read right within the takes' own spread (one post a
   request 94.5–97.5%, two 95–98%, three 97–97.5%: the swing is one 12-night grid's venue, read as the account's
   name in some takes of every mode); and 22–23 requests for the 40 posts at two a request, 18–20 at three. Before
-  a shared "no" was confirmed alone, the first take at two lost 2 events, both such "no"s. Each run records the shared requests, the posts stored from them and the posts read
-    again alone (`batch_requests`, `batched_posts`, `batch_rereads` in `run_history.json`, and the run's summary).
-    On the 9 days of records then (298 extractions in 138 account-runs, 88 of them a single post; about a quarter of
+  a shared "no" was confirmed alone, the first take at two lost 2 events, both such "no"s.
+  - **The counters** (`run_history.json`, and the run's summary): `batch_requests`, the shared requests answered;
+    `batched_posts`, the posts stored from them; `batch_rereads`, the posts of a batch read again alone and recorded
+    (stored, or recorded as refused). A post sent back alone that couldn't be read then (no quota or time left, an
+    error) isn't in `batch_rereads`: it's counted as pending, and read next run.
+  - **What it would save.** On the 9 days of records then (298 extractions in 138 account-runs, 88 of them a single post; about a quarter of
     the posts the triage passes have no event, and those would be read again alone), two a request would have taken
     about 19% fewer extraction requests and three about 30% (18% and 26% leaving out new accounts' first sweeps): the
     saving comes from the accounts with several posts in a run.

@@ -69,8 +69,9 @@ class Batches(SweepBase):
             if reading is None or analysis is None:
                 if reading is not None:
                     log.info("     %s read again alone: %s", item.post["permalink"], reading.left_out[index])
-                self.stats.batch_rereads += 1
                 stored = self._extract_and_store(account, *self._one(item))
+                if stored:  # read and recorded; one that waits (no quota, time, an error) is counted as pending
+                    self.stats.batch_rereads += 1
             else:
                 log.info("   %s (one request with %d posts)", item.post["permalink"], len(items))
                 self.stats.batched_posts += 1

@@ -353,6 +353,24 @@ def test_a_batch_out_of_quota_leaves_its_posts_pending(batches_of_two):
     records = storage.load_processed_posts()
     assert "p1" not in records and "p2" not in records  # read next run
     assert stats.pending >= 2 and stats.by_account["academia"].pending >= 2
+    # Sent back alone, but never read: pending, not "read again alone" (the bug hunt of 9 Oct 2026 found them in both).
+    assert stats.batch_rereads == 0
+
+
+def test_only_the_posts_read_again_alone_and_recorded_count_as_rereads(batches_of_two):
+    """A failed batch whose first post is read alone and whose second then finds no quota: one re-read, one pending."""
+    instagram, extractor = three_posts(batch_error=ExtractionError("busy"))
+    extract = extractor.extract
+
+    def first_then_out(account, post, *args, **kwargs):
+        analysis = extract(account, post, *args, **kwargs)
+        extractor.out_of_quota = True
+        return analysis
+
+    extractor.extract = first_then_out
+    stats = run(instagram, extractor)
+    assert extractor.extracted_posts == ["p1"]
+    assert stats.batch_rereads == 1 and stats.by_account["academia"].pending >= 1
 
 
 def test_a_batch_waiting_when_the_runs_time_is_up_waits_for_the_next_run(batches_of_two, monkeypatch):
