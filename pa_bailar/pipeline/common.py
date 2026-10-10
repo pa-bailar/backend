@@ -10,6 +10,7 @@ import httpx
 from google.genai import errors as genai_errors
 
 from .. import clips, config, storage
+from ..batching import BatchItem, BatchReading
 from ..changes import ChangeKind, EventChange, change, noted
 from ..external import ExternalReport
 from ..gemini import ExtractionError, quota_reset
@@ -62,6 +63,7 @@ class Extractor(Protocol):
         allow_provisional: bool = ...,
         rules: str = ...,
     ) -> tuple[PostAnalysis, str, bool]: ...
+    def extract_batch(self, account: str, items: list[BatchItem], known_events: list[StoredEvent]) -> BatchReading: ...
     def extract_story(
         self,
         images: list[bytes],
@@ -98,6 +100,11 @@ class RunStats:
     # "compared" events, "dropped" ones, and per field how many Flash changed (date, start_time, title…).
     upgrade_changes: dict[str, int] = field(default_factory=dict)  # a dict: asdict() would mangle a Counter
     reanalyzed: int = 0  # posts analyzed again because their caption was edited
+    # Batched extraction (config.EXTRACTION_BATCH_POSTS, pipeline/batches.py): the shared requests sent, the posts
+    # stored from them, and the posts read again alone (left out of a batch's answer, or the batch failed).
+    batch_requests: int = 0
+    batched_posts: int = 0
+    batch_rereads: int = 0
     pending: int = 0
     errors: int = 0
     events_expired: int = 0  # ended more than EVENT_RETENTION_DAYS ago

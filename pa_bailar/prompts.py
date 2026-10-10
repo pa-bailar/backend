@@ -129,32 +129,25 @@ all ended before today is false (posts can be weeks old). A workshop series with
 event, not regular classes. When unsure, answer true: a later step checks the details, but a post wrongly
 answered false is lost."""
 
-EXTRACTION_PROMPT = f"""You catalog dance events in Bogotá, Colombia, from Instagram posts.
-
-{_POST_CONTEXT}
-
-The images (flyer, carousel slides or a video preview frame) are attached and numbered from 0.
-For each event, set image_index to the image that actually shows that event. Do not point to a
-generic cover slide when another slide shows the event itself.
-Several events may share the same image when that image announces all of them (e.g. a monthly schedule).
-
+# The extraction's parts, shared by the one-post prompt and the batched one (BATCH_EXTRACTION_PROMPT).
+_KNOWN_EVENTS = """\
 KNOWN EVENTS already announced by this account in earlier posts (id | date, or first → last day, and a workshop
 series' sessions | start time | title):
-{{known_events}}
+{known_events}
 Academies often announce the same event several times: a flyer, then a video, a reminder or a second
 flyer. If an event in this post is one of the known events (same occasion, even if the title or wording
 differs, e.g. "este sábado" vs the date), set same_as to that event's id and still fill in every detail
 you can see. A post presenting a teacher, an artist or one night of a congress or festival announces that
 same congress or festival: one event with its dates, linked by same_as when it's known. Otherwise set same_as
 to null. Link only a post that announces the event itself, on its date: never link (same_as) a post that only
-mentions it in passing (a song release, a profile) or that gives it another date.
+mentions it in passing (a song release, a profile) or that gives it another date."""
 
-{_EVENT_DEFINITION}
+_WHAT_AND_HOW = f"""{_EVENT_DEFINITION}
 (Mark is_recurring=true for any regular or weekly event you include.)
 
-{_TYPES_AND_STYLES}
+{_TYPES_AND_STYLES}"""
 
-Rules:
+_EXTRACTION_RULES = """Rules:
 - A post can contain several events (e.g. a monthly schedule): return each one separately. A flyer listing
   different events is one event per occasion: classes or workshops at different times, each with its own
   teacher or style ("3:00 pm Reguetón · María", "4:00 pm Sabroseo · Blado"), are one event each, even under one
@@ -197,6 +190,52 @@ Rules:
   something (e.g. the date from "este sábado"); low when the date itself is uncertain or contradictory.
   The website asks visitors to confirm in the post when it's low.
 - doubts: only important gaps or assumptions, one short phrase each (e.g. "sin precio")."""
+
+EXTRACTION_PROMPT = f"""You catalog dance events in Bogotá, Colombia, from Instagram posts.
+
+{_POST_CONTEXT}
+
+The images (flyer, carousel slides or a video preview frame) are attached and numbered from 0.
+For each event, set image_index to the image that actually shows that event. Do not point to a
+generic cover slide when another slide shows the event itself.
+Several events may share the same image when that image announces all of them (e.g. a monthly schedule).
+
+{_KNOWN_EVENTS}
+
+{_WHAT_AND_HOW}
+
+{_EXTRACTION_RULES}"""
+
+# Batched extraction (batching.py, config.EXTRACTION_BATCH_POSTS; the owner, 9 Oct 2026): several posts in one request,
+# to stretch Flash's 20 requests a day per model. Each post comes as BATCH_POST, then its images, labeled with its
+# letter; the instructions follow them all. The extraction's own parts are the one-post prompt's, word for word.
+BATCH_POST = f"""POST {{letter}} (its images: {{images}})
+
+{_POST_CONTEXT}"""
+
+BATCH_EXTRACTION_PROMPT = f"""You catalog dance events in Bogotá, Colombia, from Instagram posts.
+
+This request holds {{count}} separate Instagram posts ({{letters}}), each above with its own account, dates, caption
+and images. Read each post on its own, as if it were the only one: its events come from its own caption and its
+own images only. Posts of one request may announce the same event (a flyer and its reminder): give each post every
+event it announces itself, in full, even when another post of this request announces it too. Never give a post an
+event, or a detail (a date, a time, a price, a venue), that only another post shows.
+
+The images (flyers, carousel slides or video preview frames) are numbered across the whole request from 0, each
+labeled with its post ("Image 2 (post B)"). For each event, set image_index to the number of the image of ITS OWN
+post that actually shows that event, never an image of another post. Do not point to a generic cover slide when
+another slide shows the event itself. Several events of one post may share the same image when that image
+announces all of them (e.g. a monthly schedule).
+
+{_KNOWN_EVENTS}
+same_as only ever names one of these known events, never another post of this request.
+
+{_WHAT_AND_HOW}
+
+{_EXTRACTION_RULES}
+
+Answer with one entry in posts for every post of this request ({{letters}}), in that order: post is its letter,
+with that post's own is_event_post, reason and events (an empty list when it announces none)."""
 
 # An image's OCR text (ocr.py), right after the image: rows keep together what's printed together, which a lighter
 # model loses on a grid (a calendar cell's act given to every night). Being measured on the test set (gold/).

@@ -213,6 +213,21 @@ class PostAnalysis(BaseModel):
     events: list[ExtractedEvent]
 
 
+class BatchPostAnalysis(BaseModel):
+    """One post's answer in a batched extraction (batching.py): its letter, then the same fields as PostAnalysis."""
+
+    post: str = Field(description="The post's letter in this request (A, B, C…)")
+    is_event_post: bool = Field(description="True if this post announces at least one upcoming one-time event")
+    reason: str = Field(description="One short sentence explaining the decision for this post, in Spanish")
+    events: list[ExtractedEvent] = Field(description="This post's own events only")
+
+
+class BatchAnalysis(BaseModel):
+    """A batched extraction's answer: one entry per post of the request, checked in code (batching.split_answer)."""
+
+    posts: list[BatchPostAnalysis]
+
+
 # ---------- Stored data ----------
 
 

@@ -47,6 +47,12 @@ def summary_markdown(stats: RunStats) -> str:
         for provider in config.EXTERNAL_PROVIDERS
         if (requests := stats.gemini_requests.get(provider.name))
     ]
+    batched = (  # batched extraction (config.EXTRACTION_BATCH_POSTS), when it read anything
+        f"{stats.batched_posts} read in {stats.batch_requests} shared requests, "
+        f"{stats.batch_rereads} read again alone · "
+        if stats.batch_requests or stats.batch_rereads
+        else ""
+    )
     return "\n".join(
         [
             "## Daily sweep",
@@ -54,7 +60,7 @@ def summary_markdown(stats: RunStats) -> str:
             f"{stats.posts_analyzed} posts analyzed ({stats.posts_triaged_out} ruled out by triage) · "
             f"{stats.events_new} new events · {stats.events_merged} merged into existing events · "
             f"{stats.events_discarded} discarded (recurring, undated, past or outside Bogotá) · "
-            f"{stats.provisional} provisional · "
+            f"{stats.provisional} provisional · {batched}"
             f"{stats.upgraded} upgraded · {stats.reanalyzed} re-analyzed (edited captions) · "
             f"{stats.pending} pending for next run · {stats.errors} errors · "
             f"{stats.events_expired} past events and {stats.flyers_removed} flyers cleaned up",

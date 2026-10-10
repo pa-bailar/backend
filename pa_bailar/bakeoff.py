@@ -37,12 +37,14 @@ from typing import Any
 import httpx
 from google.genai import types
 from PIL import Image
+from pydantic import BaseModel
 
 from . import config, ocr, storage, sweep_state
 from .account_options import AccountOptions
+from .batching import batch_contents, split_answer
 from .external import ExternalTier, SkippedError, recorded_name
 from .gemini import ExtractionError, ModelPool, QuotaExhaustedError
-from .models import PostAnalysis
+from .models import BatchAnalysis, PostAnalysis
 from .prompts import EXTRACTION_PROMPT, OCR_NOTE, account_rules
 from .text import fold, folded_words
 
@@ -117,46 +119,78 @@ def _rules(account: str) -> str:
     return account_rules(options.bar, options.focus)
 
 
+def _context(item: Item) -> dict[str, str]:
+    """The post's context as the sweep formats it (extraction._format_context), on the day Flash read it."""
+    published = datetime.fromisoformat(item["published"].replace("+0000", "+00:00"))
+    today = datetime.fromisoformat(item["processed_at"]).astimezone(config.BOGOTA_TZ)
+    return {
+        "account": item["account"],
+        "published": published.astimezone(config.BOGOTA_TZ).strftime("%Y-%m-%d %A"),
+        "today": today.strftime("%Y-%m-%d %A"),
+        "caption": item["caption"] or "(sin texto)",
+        "account_rules": _rules(item["account"]),
+    }
+
+
+def _flyer(item: Item, data_dir: Path) -> bytes:
+    """The post's stored flyer as a JPEG, as the sweep sends images. Raises OSError when it can't be read."""
+    buffer = io.BytesIO()
+    Image.open(data_dir / item["flyer"]).convert("RGB").save(buffer, "JPEG", quality=JPEG_QUALITY)
+    return buffer.getvalue()
+
+
 def contents_for(item: Item, data_dir: Path, with_ocr: bool = False) -> list[types.PartUnionDict]:
     """What the sweep sends for an extraction, as on the day Flash read the post: its flyer, then the prompt.
     `with_ocr`: the flyer's OCR text right after it (prompts.OCR_NOTE), the change being measured."""
-    published = datetime.fromisoformat(item["published"].replace("+0000", "+00:00"))
-    today = datetime.fromisoformat(item["processed_at"]).astimezone(config.BOGOTA_TZ)
-    prompt = EXTRACTION_PROMPT.format(
-        account=item["account"],
-        published=published.astimezone(config.BOGOTA_TZ).strftime("%Y-%m-%d %A"),
-        today=today.strftime("%Y-%m-%d %A"),
-        caption=item["caption"] or "(sin texto)",
-        account_rules=_rules(item["account"]),
-        known_events="(none)",
-    )
-    buffer = io.BytesIO()
-    Image.open(data_dir / item["flyer"]).convert("RGB").save(buffer, "JPEG", quality=JPEG_QUALITY)
-    image = buffer.getvalue()
+    prompt = EXTRACTION_PROMPT.format(**_context(item), known_events="(none)")
+    image = _flyer(item, data_dir)
     contents: list[types.PartUnionDict] = ["Image 0:", types.Part.from_bytes(data=image, mime_type="image/jpeg")]
     if with_ocr:
         contents.append(OCR_NOTE.format(index=0, rows="\n".join(ocr.rows(image)) or "(no text found)"))
     return [*contents, prompt]
 
 
+def batch_contents_for(items: list[Item], data_dir: Path) -> list[types.PartUnionDict]:
+    """What the sweep sends for a batched extraction of these posts (batching.batch_contents), each with its own
+    context and flyer, as on the day it was read."""
+    return batch_contents([(_context(item), [_flyer(item, data_dir)]) for item in items], "")
+
+
+class Asker:
+    """Reads with a Gemini model (config.MODEL_LIMITS) or a "<provider>:<model>" one, each client made when first
+    needed (Gemini's key too; the providers' keys come from the environment), one Gemini pool for every request of
+    the run, one post or a batch, so the day's usage is counted once. `thinking`: a Gemini model's thinking level, the
+    model's default otherwise (as the sweep's extraction)."""
+
+    def __init__(
+        self,
+        gemini_key: Callable[[], str],
+        external: ExternalTier | None = None,
+        thinking: types.ThinkingLevel | None = None,
+    ):
+        self._gemini_key = gemini_key
+        self._gemini: ModelPool | None = None
+        self._external = external
+        self._thinking = thinking
+
+    def __call__(self, model: str, contents: list[types.PartUnionDict]) -> PostAnalysis:
+        """One post's reading."""
+        return self.read(model, contents, PostAnalysis)
+
+    def read[T: BaseModel](self, model: str, contents: list[types.PartUnionDict], schema: type[T]) -> T:
+        if model in config.MODEL_LIMITS:
+            self._gemini = self._gemini or ModelPool(self._gemini_key())
+            return self._gemini.generate((model,), contents, schema, thinking=self._thinking)[0]
+        provider, _, name = model.partition(":")
+        self._external = self._external or ExternalTier()
+        return self._external.generate_with(provider, name, contents, schema)[0]
+
+
 def asker(
     gemini_key: Callable[[], str], external: ExternalTier | None = None, thinking: types.ThinkingLevel | None = None
-) -> Ask:
-    """Reads with a Gemini model (config.MODEL_LIMITS) or a "<provider>:<model>" one, each client made when first
-    needed (Gemini's key too; the providers' keys come from the environment). `thinking`: a Gemini model's thinking
-    level, the model's default otherwise (as the sweep's extraction)."""
-    gemini: ModelPool | None = None
-
-    def ask(model: str, contents: list[types.PartUnionDict]) -> PostAnalysis:
-        nonlocal gemini, external
-        if model in config.MODEL_LIMITS:
-            gemini = gemini or ModelPool(gemini_key())
-            return gemini.generate((model,), contents, PostAnalysis, thinking=thinking)[0]
-        provider, _, name = model.partition(":")
-        external = external or ExternalTier()
-        return external.generate_with(provider, name, contents, PostAnalysis)[0]
-
-    return ask
+) -> Asker:
+    """An Asker: called with a model and a post's contents, its reading (Ask)."""
+    return Asker(gemini_key, external, thinking)
 
 
 def cache_file(model: str, cache_dir: Path = CACHE_DIR) -> Path:
@@ -287,6 +321,17 @@ class Score:
     def average_seconds(self) -> float:
         return sum(self.seconds) / len(self.seconds) if self.seconds else 0.0
 
+    @property
+    def f1(self) -> float:
+        """Events found against missed and extra in one number: 1.0 finds every event and adds none."""
+        total = 2 * self.found + self.missed + self.extra
+        return 2 * self.found / total if total else 0.0
+
+    @property
+    def fields_right(self) -> tuple[int, int]:
+        """The fields read right, of those compared, over every event found."""
+        return sum(same for same, _ in self.fields.values()), sum(compared for _, compared in self.fields.values())
+
 
 def score(picks: list[Item], cache: dict[str, Any]) -> Score:
     """A model's cached answers against Flash's events, over every picked post."""
@@ -319,9 +364,11 @@ def score(picks: list[Item], cache: dict[str, Any]) -> Score:
 def score_text(model: str, result: Score, notes: int = 12) -> str:
     """One model's score for people: the totals, each field's agreement and the first differences."""
     fields = " · ".join(f"{name} {same}/{compared}" for name, (same, compared) in result.fields.items())
+    right, compared = result.fields_right
     lines = [
         f"== {model}: found {result.found}, missed {result.missed}, extra {result.extra}, "
-        f"errors {result.errors}, avg {result.average_seconds:.0f} s",
+        f"errors {result.errors}, F1 {result.f1:.3f}, fields right {right}/{compared}, "
+        f"avg {result.average_seconds:.0f} s",
         f"   {fields or '(nothing to compare)'}",
         *(f"   - {note[:170]}" for note in result.notes[:notes]),
     ]
@@ -428,18 +475,25 @@ def run_gold(
     score_only: bool = False,
     with_ocr: bool = False,
     thinking: str | None = None,
+    batch: int | None = None,
+    take: int = 1,
     say: Callable[[str], None] = print,
 ) -> None:
     """`admin bakeoff --gold`: each model on the test set's posts it hasn't answered (unless `score_only`), scored
     against the truth; `--ocr`, with the flyer's OCR text; `--thinking`, at that thinking level (each variant cached
-    apart: "<model>+ocr", "<model>+think-low"). A Flash model takes 20 a day: the rest waits in the cache for the
-    next day."""
+    apart: "<model>+ocr", "<model>+think-low"). `--batch N`: each model one post a request and N posts a request
+    (batching.py, as the sweep does with config.EXTRACTION_BATCH_POSTS), scored side by side; `--take K`: another take
+    of the same reading, cached apart ("+take2"), to measure how much two runs differ. A Flash model takes 20 a day:
+    the rest waits in the cache for the next day."""
     if with_ocr and not ocr.available():
         say("--ocr needs the OCR engine, not in requirements.txt: pip install rapidocr onnxruntime")
         return
     posts = load_gold()
     say(f"{len(posts)} posts checked by hand ({GOLD_DIR}); answers cached in {GOLD_CACHE_DIR}")
-    suffix = ("+ocr" if with_ocr else "") + (f"+think-{thinking}" if thinking else "")
+    level_suffix = f"+think-{thinking}" if thinking else ""
+    take_suffix = f"+take{take}" if take > 1 else ""
+    suffix = ("+ocr" if with_ocr else "") + level_suffix + take_suffix
+    batched = f"{level_suffix}+batch{batch}{take_suffix}" if batch and batch > 1 else None
     if not score_only:
         level = types.ThinkingLevel[thinking.upper()] if thinking else None
         ask = asker(lambda: config.require_env("GEMINI_API_KEY"), thinking=level)
@@ -448,11 +502,162 @@ def run_gold(
             run_model(
                 model, posts, ask, GOLD_DIR, cache_dir=GOLD_CACHE_DIR, say=say, with_ocr=with_ocr, label=model + suffix
             )
+            if batch and batched:
+                say(f"\n{model}{batched}:")
+                run_batched(model, posts, ask, GOLD_DIR, batch, GOLD_CACHE_DIR, say, label=model + batched)
     for model in models:
         label = model + suffix
         cache = load_cache(cache_file(label, GOLD_CACHE_DIR))
         say("\n" + score_text(label, score_gold(posts, cache), notes=40))
         _say_stale(stale_answers(posts, cache, GOLD_DIR, with_ocr), say)
+        if batch and batched:
+            batched_cache = load_cache(cache_file(model + batched, GOLD_CACHE_DIR))
+            say("\n" + batch_score_text(model + batched, posts, batch, cache, batched_cache))
+            _say_stale(stale_batched(posts, batch, batched_cache, GOLD_DIR), say)
+
+
+# ---------- 5. batched extraction on the test set (batching.py, config.EXTRACTION_BATCH_POSTS) ----------
+# The same posts read N to a request, scored against the truth beside the one-post reading. The sweep batches one
+# account's posts, but the test set has only four accounts with two posts: those are batched together, and the rest
+# with posts of other accounts, in the file's order (harder than the sweep's batches: each post carries its own
+# account, dates and rules). The two kinds are scored apart too. As in the sweep, a post the shared answer leaves out
+# (batching.split_answer), or every post of a request that failed, is read again alone, and counted.
+
+
+def gold_batches(posts: list[Item], size: int) -> list[list[Item]]:
+    """The test set in batches of `size`: each account's posts together first, then the rest `size` at a time in the
+    file's order (posts of different accounts). A post left alone is read alone, as the sweep reads it."""
+    by_account: dict[str, list[Item]] = {}
+    for post in posts:
+        by_account.setdefault(post["account"], []).append(post)
+    batches: list[list[Item]] = []
+    rest: list[Item] = []
+    for items in by_account.values():
+        for start in range(0, len(items), size):
+            chunk = items[start : start + size]
+            if len(chunk) > 1:
+                batches.append(chunk)
+            else:
+                rest += chunk
+    return batches + [rest[start : start + size] for start in range(0, len(rest), size)]
+
+
+def _read_alone(model: str, item: Item, ask: Ask, data_dir: Path) -> dict[str, Any]:
+    """One post read alone (a batch's fallback, or a post alone in its batch): its answer or error, for the cache.
+    No quota left raises QuotaExhaustedError: the rest waits."""
+    started = time.monotonic()
+    try:
+        answer = ask(model, contents_for(item, data_dir))
+    except QuotaExhaustedError:
+        raise
+    except (ExtractionError, OSError) as error:
+        return {"error": str(error)[:300]}
+    return {"answer": answer.model_dump(mode="json"), "seconds": round(time.monotonic() - started, 1)}
+
+
+def run_batched(
+    model: str,
+    posts: list[Item],
+    ask: Asker,
+    data_dir: Path,
+    size: int,
+    cache_dir: Path = GOLD_CACHE_DIR,
+    say: Callable[[str], None] = print,
+    label: str | None = None,
+) -> None:
+    """One model on the test set, `size` posts a request (gold_batches), each batch not answered yet with today's
+    request: each post's answer checked as the sweep checks it, and a post left out read again alone. Each post's
+    cache entry names its batch (`batch`), the shared request (`request`) and, when it was read alone, why (`alone`)."""
+    path = cache_file(label or f"{model}+batch{size}", cache_dir)
+    cache = load_cache(path)
+    for batch in gold_batches(posts, size):
+        ids = [item["post_id"] for item in batch]
+        try:
+            contents = batch_contents_for(batch, data_dir) if len(batch) > 1 else contents_for(batch[0], data_dir)
+        except OSError as error:
+            say(f"  {'+'.join(ids)}: error: {str(error)[:120]}")
+            continue
+        request = request_fingerprint(contents)
+        if all("answer" in cache.get(i, {}) and cache[i].get("request") == request for i in ids):
+            continue
+        started = time.monotonic()
+        try:
+            if len(batch) == 1:
+                cache[ids[0]] = {"request": request, "batch": ids, **_read_alone(model, batch[0], ask, data_dir)}
+                say(f"  {ids[0]}: alone")
+            else:
+                try:
+                    answer = ask.read(model, contents, BatchAnalysis)
+                    analyses, left_out = split_answer(answer, [1] * len(batch))
+                except QuotaExhaustedError:
+                    raise
+                except (ExtractionError, OSError) as error:
+                    analyses, left_out = {}, dict.fromkeys(range(len(batch)), f"falló: {str(error)[:200]}")
+                seconds = round(time.monotonic() - started, 1)
+                for index, item in enumerate(batch):
+                    entry: dict[str, Any] = {"request": request, "batch": ids}
+                    if index in analyses:
+                        entry |= {"answer": analyses[index].model_dump(mode="json"), "seconds": seconds}
+                    else:
+                        entry |= {"alone": left_out[index], **_read_alone(model, item, ask, data_dir)}
+                    cache[item["post_id"]] = entry
+                alone = "".join(f", {ids[index]} read alone ({why})" for index, why in left_out.items())
+                say(f"  {'+'.join(ids)}: {len(analyses)} of {len(batch)} from one request ({seconds} s){alone}")
+        except QuotaExhaustedError as error:
+            say(f"  no quota left today: {error}. The rest waits for another day.")
+            break
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+def requests_used(posts: list[Item], cache: dict[str, Any]) -> tuple[int, int, int]:
+    """The requests a batched run of these posts took: (in all, shared ones, posts read alone)."""
+    entries = [cache[post["post_id"]] for post in posts if post["post_id"] in cache]
+    shared = {tuple(entry["batch"]) for entry in entries if len(entry.get("batch", [])) > 1}
+    alone = sum(1 for entry in entries if "alone" in entry or len(entry.get("batch", [])) == 1)
+    return len(shared) + alone, len(shared), alone
+
+
+def batch_score_text(label: str, posts: list[Item], size: int, single: dict[str, Any], batched: dict[str, Any]) -> str:
+    """The batched reading's score, its requests against one a post, and both readings on each kind of batch: posts
+    of one account together (as the sweep batches them) and of different accounts."""
+    in_all, shared, alone = requests_used(posts, batched)
+    why = [entry["alone"] for entry in batched.values() if "alone" in entry]
+    lines = [
+        score_text(label, score_gold(posts, batched), notes=40),
+        f"   requests: {in_all} for {len(posts)} posts ({shared} shared, {alone} read alone"
+        + (f"; left out of an answer: {', '.join(sorted(set(why)))}" if why else "")
+        + ")",
+    ]
+    batches = [batch for batch in gold_batches(posts, size) if len(batch) > 1]
+    for kind, same in (("one account", True), ("different accounts", False)):
+        subset = [item for batch in batches if (len({i["account"] for i in batch}) == 1) == same for item in batch]
+        if subset:
+            for name, cache in (("one post a request", single), (f"{size} a request", batched)):
+                result = score_gold(subset, cache)
+                right, compared = result.fields_right
+                lines.append(
+                    f"   {kind} ({len(subset)} posts), {name}: found {result.found}, missed {result.missed}, "
+                    f"extra {result.extra}, F1 {result.f1:.3f}, fields right {right}/{compared}"
+                )
+    return "\n".join(lines)
+
+
+def stale_batched(posts: list[Item], size: int, cache: dict[str, Any], data_dir: Path) -> int:
+    """How many posts' cached batched answers were read with another request than today's (stale_answers' kind)."""
+    stale = 0
+    for batch in gold_batches(posts, size):
+        try:
+            contents = batch_contents_for(batch, data_dir) if len(batch) > 1 else contents_for(batch[0], data_dir)
+        except OSError:
+            continue
+        request = request_fingerprint(contents)
+        stale += sum(
+            1
+            for item in batch
+            if "answer" in cache.get(item["post_id"], {}) and cache[item["post_id"]].get("request") != request
+        )
+    return stale
 
 
 def _say_stale(count: int, say: Callable[[str], None]) -> None:

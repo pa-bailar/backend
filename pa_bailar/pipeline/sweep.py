@@ -10,6 +10,7 @@ from datetime import UTC, date, datetime, timedelta
 
 from .. import config, links, storage
 from ..account_options import AccountOptions, mentions_focus
+from ..batching import BatchItem
 from ..changes import AUDITED_FIELDS, reading
 from ..external import is_external
 from ..gemini import (
@@ -24,6 +25,7 @@ from ..instagram import InstagramError, Post, is_rate_limited, published_at, sli
 from ..models import AccountState, ProcessedPost, StoredEvent, had_events
 from ..text import parse_hhmm
 from . import common
+from .batches import Batches
 from .common import RETRYABLE_ERRORS, RunStats, caption_hash, clip_for, flyer_slide
 from .hiding import Hiding
 from .manual_post import ManualPosts
@@ -153,7 +155,7 @@ def _bad_key(error: GeminiKeyError) -> SystemExit:
     )
 
 
-class Sweep(ManualPosts, StoryAdmin, Hiding):
+class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
     """The sweep (`run`) and the admin tools' operations (`add_post`, `add_story`, `hide_story`, `hide_event`), over
     one shared state (SweepBase)."""
 
@@ -170,6 +172,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         self._share_flash()
         self._to_upgrade: list[tuple[str, Post, datetime]] = []
         self._waited_for_flash = False  # once a run (_wait_for_flash)
+        self._batch = []  # posts waiting for a shared extraction request (batches.py)
         due = self._due_accounts()
         self.stats.due_accounts = due
         share = self._share_per_run()
@@ -407,10 +410,12 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         window = timedelta(days=config.BACKFILL_DAYS) if backfill else self.lookback
         cutoff = datetime.now(UTC) - window
         # Oldest first, so a flyer is usually stored before the video or reminder that follows it.
+        self._batch = []
         for post in sorted(posts, key=lambda p: p["timestamp"]):
             published = published_at(post)
             if published >= cutoff:
                 self._read_post(account, post, published)
+        self._read_batch(account)  # the posts still waiting for a shared request (batches.py), before the turn's end
         fetched = {post["id"] for post in posts}  # a post no longer fetched is never read again
         state.unreadable = {post_id: runs for post_id, runs in state.unreadable.items() if post_id in fetched}
 
@@ -447,7 +452,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         post_hash = caption_hash(post)
         if record is None:
             log.info("   %s %-14s %s", f"{published:%Y-%m-%d}", post["media_type"], post["permalink"])
-            if self._out_of_time() or not self._analyze_new_post(account, post, published):
+            if self._out_of_time() or self._analyze_new_post(account, post, published) is False:
                 self.stats.count(account, "pending")
         elif record.caption_hash is None:
             record.caption_hash = post_hash  # analyzed before captions were fingerprinted
@@ -461,16 +466,18 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
             # events off the site if it no longer announces them ("CANCELADO"). Others go through the
             # filter as usual (Flash-Lite), keeping Flash's small quota for events.
             announced = had_events(record.outcome, record.is_event_post)
-            if self._analyze_new_post(account, post, published, triage=not announced):
+            read = self._analyze_new_post(account, post, published, triage=not announced, reread=True)
+            if read:
                 self.stats.reanalyzed += 1
-            else:  # no quota or time left, or an error: the account stays due, so the edit ("CANCELADO") is read soon
+            elif read is False:  # no quota or time left, or an error: the account stays due, so the edit is read soon
                 self.stats.count(account, "pending")
         elif self._filtered_before(account, post, record):
             log.info("   %s now names the account's styles, analyzing %s", f"{published:%Y-%m-%d}", post["permalink"])
-            if self._out_of_time() or not self._analyze_new_post(account, post, published):
-                self.stats.count(account, "pending")
-            else:
+            read = False if self._out_of_time() else self._analyze_new_post(account, post, published, reread=True)
+            if read:
                 self.stats.reanalyzed += 1
+            elif read is False:  # None: waiting in the batch, counted when it's read (batches.py)
+                self.stats.count(account, "pending")
         elif record.provisional:
             self._to_upgrade.append((account, post, published))  # re-read after every account, by urgency
 
@@ -515,9 +522,12 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
 
     # ---------- per post ----------
 
-    def _analyze_new_post(self, account: str, post: Post, published: datetime, triage: bool = True) -> bool:
+    def _analyze_new_post(
+        self, account: str, post: Post, published: datetime, triage: bool = True, reread: bool = False
+    ) -> bool | None:
         """Triage, then extract if it's an event (`triage=False`: extract directly). False when the post must be
-        retried next run."""
+        retried next run. With batched extraction on (batches.py), a post to extract waits in the account's batch:
+        None, and it's counted (pending, or re-analyzed when it was read before: `reread`) once the batch is read."""
         # A post that had events (triage=False) is read again whatever its caption says now ("CANCELADO").
         if triage and self._outside_focus(account, post):
             return True
@@ -549,6 +559,10 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         if verdict is not None and not verdict.is_event_post:
             self._record_not_event(account, post, verdict.reason, triage_model or "-")
             return True
+        if self._batching():
+            rules = self._rules(account, post["id"])
+            self._queue_extraction(account, BatchItem(post, published, images, rules=rules, reread=reread))
+            return None
         return self._extract_and_store(account, post, published, images)
 
     def _extract_and_store(self, account: str, post: Post, published: datetime, images: list[bytes]) -> bool:
