@@ -53,6 +53,9 @@ KIND_ORDER: tuple[ChangeKind, ...] = (
     "archived",
 )
 
+# Changes of where an event stands (off the site, back on it): the latest of these always shows (changes.noted).
+STANDING: frozenset[ChangeKind] = frozenset({"cancelled", "dropped", "hidden", "restored", "archived"})
+
 # What a re-read compares between two readings of an event (Flash's against a lighter model's: Sweep._audit_upgrade;
 # any re-read: SweepBase._note_changes), and how the owner reads each.
 AUDITED_FIELDS = ("date", "end_date", "start_time", "title", "venue", "event_type", "styles")
@@ -118,6 +121,16 @@ def noted(changes: dict[str, EventChange], new: EventChange) -> None:
             return
         if new.kind in ("corrected", "updated", "reread"):  # read again in the same run (Flash): new, as read now
             new = new.model_copy(update={"kind": "new"})
+    elif (
+        first is not None
+        and new.kind not in STANDING
+        and new.kind != first.kind
+        and KIND_ORDER.index(first.kind) < KIND_ORDER.index(new.kind)
+    ):
+        # A less telling note doesn't hide a more telling one of the same run: a flag stays through a correction, a
+        # correction through a re-read (the bug-squash pass of 9 Oct 2026: an event's second provisional post, re-read
+        # after the first, turned "corrected" into "reread").
+        return
     changes[new.id] = new
 
 

@@ -71,18 +71,21 @@ INSTAGRAM_COST_WINDOW = 5
 # DORMANT_AFTER_DAYS) once a week: each read is an Instagram call that rarely finds anything new, and each costs ~1.3%
 # of the app's hourly allowance whatever it asks for (measured 8 Oct 2026; 128 accounts then: the owner chose the
 # quiet and unproductive tiers over a third sweep, then added one on 9 Oct when Meta slowed down, and the occasional
-# tier that evening). A bit under 24 h, so the same sweep the next day finds the account due (one read
-# at 6:30 is due at 2:30: the 3:00 sweep takes it if it has room, and the 6:30 one reads the rest), and over 18 h (3:00
-# to 21:00), so no sweep of the same day reads it again.
-SWEEP_EVERY_HOURS = 20
-QUIET_SWEEP_EVERY_HOURS = 44
+# tier that evening). 22 h: an account keeps its sweep, the same one the next day finds it due (a 6:30 read is due
+# at 4:30, past the 3:00 sweep: 20.5 h; 2 h of slack for a late start or a long run), and no sweep of the same day reads
+# it again. At 20 h (until 9 Oct 2026) a 6:30 read was due at 2:30, so the 3:00 sweep took the 6:30 sweep's accounts for
+# good, and an account the 21:00 sweep missed once stayed in the morning: the evening sweep, the one that catches the
+# day's posts before that night's events, lost its accounts (the bug-squash pass of 9 Oct 2026). Every other day:
+# 46 h, the same sweep two days later.
+SWEEP_EVERY_HOURS = 22
+QUIET_SWEEP_EVERY_HOURS = 46
 QUIET_AFTER_DAYS = 30  # 45 until 8 Oct 2026
 # Occasional accounts (the owner, 9 Oct 2026, to save Instagram reads without missing events): last post 8 to 29 days
 # ago, every other day too, unless something of theirs waits for their next read (pipeline.sweep.hours_overdue,
 # busy_accounts): an event on the site that hasn't ended, a post for Flash, an unreadable post, their first sweep.
 # Posted within the week: daily. Replayed on the sweeps of 3–9 Oct: 16 of 134 accounts in it, ~8 fewer reads a day
 # (7%), and not one event post read later. Over the lookback (DEFAULT_LOOKBACK_DAYS), so none of their posts is
-# still re-read when the tier starts; 44 h between reads is well inside it, so no new post is missed.
+# still re-read when the tier starts; 46 h between reads is well inside it, so no new post is missed.
 OCCASIONAL_AFTER_DAYS = 8
 UNPRODUCTIVE_AFTER_POSTS = 10
 DORMANT_SWEEP_EVERY_HOURS = 164  # a bit under a week
@@ -117,7 +120,6 @@ class ModelLimit:
 MODEL_LIMITS = {
     "gemini-3.8-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3.6-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
-    "gemini-3.5-flash": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3-flash-preview": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3.5-flash-lite": ModelLimit(requests_per_minute=15, requests_per_day=500),
     "gemini-3.1-flash-lite": ModelLimit(requests_per_minute=15, requests_per_day=500),
@@ -129,11 +131,12 @@ LITE_ONLY = os.environ.get("GEMINI_LITE_ONLY", "").strip() == "1"
 # the binding limit while 3.7 and 3.6 Flash and a second Flash-Lite sat unused). Roles:
 LITE_MODELS = ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite")
 TRIAGE_MODELS = LITE_MODELS  # cheap yes/no: does the post announce an event?
-# Full details, best quality: Flash of this generation (60 a day; the bake-off's baseline). Lite-only mode:
+# Full details, best quality: Flash of this generation (40 a day; the bake-off's baseline). Lite-only mode:
 # Flash-Lite, as final results.
 # Not gemini-3.7-flash: deprecated on 9 Oct 2026, its calls are answered by 3.8 Flash (checked: response model_version),
 # so in the pool it only spent 3.8's quota under another name, and its own budget of 20 was never real.
-FLASH_MODELS = ("gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash")
+# Nor gemini-3.5-flash: deprecated on 9 Oct 2026 the same way, answered by 3.6 Flash (checked: model_version).
+FLASH_MODELS = ("gemini-3.8-flash", "gemini-3.6-flash")
 EXTRACTION_MODELS = LITE_MODELS if LITE_ONLY else FLASH_MODELS
 # When those are out: saved, then upgraded on a later run (none in lite-only mode). An older Flash first (its reads
 # weren't compared with this generation's yet: a 6 Oct bake-off met Google's overload), then Flash-Lite.
@@ -298,9 +301,10 @@ SWEEP_TIMES_SINCE = {"03:00": "2026-10-10"}
 # Flash's few daily requests are shared by every sweep of a Gemini quota day (midnight to midnight Pacific: the 3:00,
 # 6:30 and 21:00 sweeps fall in one). A sweep leaves the later ones of that day an equal share each (flash_reserve in
 # pipeline/sweep.py): before, the morning's (academies, few posts) could take them all and the evening's (the busy
-# organizers and bars) got none (the owner, 6 Oct 2026). A scheduled sweep starting within this margin is the current
-# run (a late start), not a later one.
-LATER_SWEEP_MARGIN_MINUTES = 60
+# organizers and bars) got none (the owner, 6 Oct 2026). A scheduled sweep starting within this margin of a run is
+# that run (it started a little early), not a later one. 60 until 9 Oct 2026: a run by hand at 20:05 took the 21:00
+# sweep's whole share (the bug-squash pass).
+LATER_SWEEP_MARGIN_MINUTES = 30
 # A newly added account is swept more deeply until all of these posts have been analyzed
 # (it can take a few runs if the daily Gemini budget runs out); then it joins the regular sweep.
 BACKFILL_POSTS = 30

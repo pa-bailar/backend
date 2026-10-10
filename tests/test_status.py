@@ -244,3 +244,39 @@ def test_one_day_reads_with_its_weekday():
     from pa_bailar.text import day_label
 
     assert day_label("2026-10-10") == "sábado 10 oct 2026"
+
+
+# The bug-squash pass of 9 Oct 2026.
+
+
+def test_the_history_links_only_events_still_on_the_site():
+    new = {"kind": "new", "id": "gone-11-oct", "title": "Gone", "account": "academia", "date": "2026-10-11"}
+    runs = [{"finished_at": "2026-10-09T06:49:00-05:00", "changes": [new], "change_counts": {"new": 1}}]
+    assert status.history_of(runs, [], live=set())[0]["changes"][0]["url"] is None
+    assert status.history_of(runs, [], live={"gone-11-oct"})[0]["changes"][0]["url"].endswith("/evento/gone-11-oct/")
+
+
+def test_records_the_backend_does_not_write_do_not_break_the_history():
+    runs = [{"finished_at": "2026-10-09T06:49:00", "changes": [{"kind": "new", "title": "A"}]}]  # no offset, no id
+    admin = [{"finished_at": "2026-10-09T10:00:00-05:00"}]  # no action
+    items = status.history_of(runs, admin)
+    assert [item["kind"] for item in items] == ["request", "sweep"] and items[1]["changes"] == []
+
+
+def test_the_instagram_card_describes_the_last_run_that_read_accounts():
+    reads = {
+        "accounts": 30,
+        "mean_seconds": 1.5,
+        "median_seconds": 1.4,
+        "max_seconds": 3.0,
+        "mean_cost": 1.2,
+        "max_cost": 2,
+        "max_cost_account": "a",
+        "headers": {"X-App-Usage": 30},
+        "expected_cost": 2,
+    }
+    history = [
+        {"finished_at": "2026-10-10T03:20:00-05:00", "instagram_usage": 40, "instagram_reads": reads},
+        {"finished_at": "2026-10-10T06:41:00-05:00", "instagram_usage": 1, "instagram_reads": None},  # none due
+    ]
+    assert status._instagram_quota(history)["finished_at"].startswith("2026-10-10T03:20")

@@ -6,10 +6,11 @@ import json
 import pytest
 
 from pa_bailar import changes, config, health, status, storage
-from pa_bailar.changes import EventChange
+from pa_bailar.changes import EventChange, noted
 from pa_bailar.commands import sweep as sweep_command
 from pa_bailar.models import PostAnalysis
 from pa_bailar.pipeline import RunStats, Sweep
+from pa_bailar.pipeline.base import CANCEL_FLAG
 from tests.factories import EVENT_DATE, event_id, make_image, media, stored
 from tests.test_hide_event import sweep_with
 from tests.test_sweep import CANCELLED, FakeExtractor, FakeInstagram, cancel, days_ago_date, event_post, post, run
@@ -325,3 +326,51 @@ def test_the_status_carries_the_history_and_the_recent_sweeps_without_their_list
     result = status.collect(instagram=None, read=lambda name, default: files.get(name, default))
     assert [entry["kind"] for entry in result["history"]] == ["story", "sweep"]
     assert "changes" not in result["sweeps"]["recent"][0]
+
+
+# The bug-squash pass of 9 Oct 2026.
+
+
+def test_a_less_telling_later_note_never_hides_a_more_telling_one():
+    notes: dict[str, EventChange] = {}
+    base = {"id": "x", "title": "X", "account": "academia"}
+    for kind in ("flagged", "merged", "corrected", "reread"):
+        noted(notes, EventChange(kind=kind, **base))
+    assert notes["x"].kind == "flagged"
+    notes = {}
+    noted(notes, EventChange(kind="corrected", detail="Flash cambió la hora", **base))
+    noted(notes, EventChange(kind="reread", detail="Flash confirmó la lectura", **base))
+    assert notes["x"].kind == "corrected"
+    noted(notes, EventChange(kind="hidden", **base))
+    noted(notes, EventChange(kind="restored", **base))  # where it stands: the latest shows
+    assert notes["x"].kind == "restored"
+
+
+def test_two_provisional_posts_corrected_then_confirmed_show_the_correction():
+    instagram = FakeInstagram({"academia": [post("flyer", days_ago=3), post("reel", "VIDEO", days_ago=2)], "otra": []})
+    run(
+        instagram,
+        FakeExtractor(
+            {p: event_post(p, title="Acere", start_time="18:00") for p in ("flyer", "reel")}, flash_available=False
+        ),
+    )
+    stats = run(
+        instagram, FakeExtractor({p: event_post(p, title="Acere", start_time="23:00") for p in ("flyer", "reel")})
+    )
+    assert [kind for kind, _, _ in kinds(stats)] == ["corrected"]
+
+
+def test_a_cancellation_flag_survives_flash_reading_the_remaining_post_again():
+    """Another account's "cancelled" post flags the event; Flash then re-read its own (provisional) post in the same
+    run and rebuilt it without the flag: off the history and off the health report's events to review."""
+    details = {"title": "Social Timbera", "venue": "Casa Latina", "start_time": "21:00"}
+    own, shared = post("own", days_ago=3), post("shared", days_ago=2)
+    analyses = {"own": event_post("own", **details), "shared": event_post("shared", **details)}
+    run(FakeInstagram({"academia": [own], "otra": [shared]}), FakeExtractor(analyses, flash_available=False))
+    stats = run(
+        FakeInstagram({"academia": [own], "otra": [cancel(shared)]}),
+        FakeExtractor({"own": event_post("own", **details), "shared": CANCELLED}),
+    )
+    (event,) = storage.load_events()
+    assert event.confidence == "low" and any(doubt.endswith(CANCEL_FLAG) for doubt in event.doubts)
+    assert [kind for kind, _, _ in kinds(stats)] == ["flagged"]

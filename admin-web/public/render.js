@@ -189,10 +189,12 @@ function changeItem(item) {
 function historyRun(run, open, now) {
   const summary = run.error ? "No se pudo" : changesSummary(run.counts);
   let body;
-  if (run.error) body = `<p class="small warn">⚠️ ${escapeHtml(run.error)}</p>`;
-  else if (!Array.isArray(run.changes)) body = `<p class="small muted">Sin detalle: es de antes del historial.</p>`;
-  else if (!run.changes.length) body = `<p class="small muted">Ningún evento cambió.</p>`;
+  // A failed request says why, and still lists what it changed before failing (stored duplicates merged on load).
+  const error = run.error ? `<p class="small warn">⚠️ ${escapeHtml(String(run.error).replaceAll("`", ""))}</p>` : "";
+  if (!Array.isArray(run.changes)) body = run.error ? "" : `<p class="small muted">Sin detalle: es de antes del historial.</p>`;
+  else if (!run.changes.length) body = run.error ? "" : `<p class="small muted">Ningún evento cambió.</p>`;
   else body = `<ul class="changes">${run.changes.map(changeItem).join("")}</ul>`;
+  body = error + body;
   const leftOut = Number(run.left_out) > 0 ? `<p class="small muted">Y ${escapeHtml(run.left_out)} más, solo contados.</p>` : "";
   // What a request was about: a post's link; an event's or a story's id only when no change already names it.
   const target = safeLink(run.target);

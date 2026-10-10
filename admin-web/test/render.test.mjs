@@ -146,6 +146,10 @@ describe("the history card", () => {
     const html = historyCard([failed], NOW);
     assert.match(html, /Ocultar evento[\s\S]*class="run__counts warn">No se pudo[\s\S]*⚠️ No encontré el evento/);
     assert.match(html, /<code>no-existe<\/code>/);
+    // It still lists what it changed before failing (duplicates merged on load), and its error reads without markdown.
+    const withChange = { ...failed, error: "No encontré `no-existe`", changes: [{ kind: "duplicate", id: "a-11-oct", title: "A", account: "x", url: null }] };
+    const both = historyCard([withChange], NOW);
+    assert.match(both, /No encontré no-existe[\s\S]*Duplicado/);
   });
 
   it("names the admin requests and links a post's request to the post", () => {

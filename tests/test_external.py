@@ -69,7 +69,7 @@ def fixed_models(monkeypatch):
     )
     monkeypatch.setattr(config, "EXTERNAL_PROVIDERS", (groq, pinned))
     monkeypatch.setattr(config, "TRIAGE_MODELS", ("gemini-3.5-flash-lite",))
-    monkeypatch.setattr(config, "EXTRACTION_MODELS", ("gemini-3.8-flash", "gemini-3.5-flash"))
+    monkeypatch.setattr(config, "EXTRACTION_MODELS", ("gemini-3.8-flash", "gemini-3.6-flash"))
     monkeypatch.setattr(config, "PROVISIONAL_MODELS", ("gemini-3.5-flash-lite",))
 
 
@@ -366,7 +366,7 @@ def extractor(gemini_answers: dict[str, list], api: FakeAPI, keys=BOTH_KEYS) -> 
 
 
 def flash_out() -> dict[str, list]:
-    return {"gemini-3.8-flash": [QUOTA], "gemini-3.5-flash": [QUOTA]}
+    return {"gemini-3.8-flash": [QUOTA], "gemini-3.6-flash": [QUOTA]}
 
 
 def test_flash_out_then_lite_then_the_last_resort_all_provisional(sleeps):
@@ -426,7 +426,7 @@ def test_only_flash_out_of_quota_reaches_the_last_resort(sleeps, flash_error):
     api = FakeAPI({GROQ: [ANALYSIS]})
     failing = [flash_error] * gemini.ATTEMPTS_PER_MODEL
     out = extractor(
-        {"gemini-3.8-flash": list(failing), "gemini-3.5-flash": list(failing), "gemini-3.5-flash-lite": [QUOTA]}, api
+        {"gemini-3.8-flash": list(failing), "gemini-3.6-flash": list(failing), "gemini-3.5-flash-lite": [QUOTA]}, api
     )
     with pytest.raises(gemini.QuotaExhaustedError):  # Flash-Lite out: the post waits for Gemini, as before
         out.extract("academia", POST, PUBLISHED, [make_image()], [])
