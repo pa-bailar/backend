@@ -133,6 +133,10 @@ def test_cache_round_trip(tmp_path):
         ("20:30", True),
         ("21:46", False),
         ("15:00", False),
+        ("01:59", False),  # the 3:00 sweep (9 Oct 2026): an hour before it…
+        ("02:01", True),
+        ("03:44", True),  # …to 45 minutes after
+        ("03:46", False),
     ],
 )
 def test_discovery_keeps_clear_of_the_daily_sweep(time, quiet):

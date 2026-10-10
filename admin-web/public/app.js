@@ -92,6 +92,22 @@ function externalCard(external) {
 // Meta's measures, as the owner reads them (status.py _MEASURE_NAMES).
 const MEASURES = { call_count: "llamadas", total_cputime: "CPU", total_time: "tiempo" };
 
+/** 1.5 → "1,5", 2 → "2" (status.py _decimal). */
+const decimal = (number) => String(Math.round(number * 10) / 10).replace(".", ",");
+
+/** The last sweep's reads in short: how fast Meta answered, and what a read cost (status.py reads_line). */
+function readsLine(reads) {
+  if (!reads) return "";
+  let text = `${reads.accounts} ${reads.accounts === 1 ? "cuenta leída" : "cuentas leídas"}, ${decimal(reads.median_seconds)} s cada una (mediana; la más lenta ${decimal(reads.max_seconds)} s)`;
+  if (reads.mean_cost != null) {
+    text += `, ${decimal(reads.mean_cost)}% de la cuota cada una`;
+    if (reads.max_cost_account) text += ` (la más cara ${reads.max_cost}%, @${reads.max_cost_account})`;
+  }
+  const headers = Object.keys(reads.headers ?? {}).sort();
+  if (headers.length) text += `, por ${headers.join(" y ")}`;
+  return `<p class="small muted">${escapeHtml(text)}.</p>`;
+}
+
 /** The token (does it work) and the last sweep's highest reading of the quota: the token check's own reading is
  * another counter (1% after a sweep stopped at 90%, 7 Oct 2026), so the quota is the sweep's (status.py). */
 function instagramCard(instagram, quota) {
@@ -107,16 +123,18 @@ function instagramCard(instagram, quota) {
       .sort((a, b) => b[1] - a[1])
       .map(([key, value]) => `${MEASURES[key] ?? key} ${value}%`)
       .join(", ");
-    const mark = quota.usage >= quota.stop_at ? `<span class="warn">⚠️</span> ` : "";
-    // Stopped below our limit: Meta's own rate-limit error (status.py quota_line).
+    // Stopped by its forecast (the next account would pass the ceiling) or by Meta's own rate-limit error (status.py
+    // quota_line).
+    const ours = quota.stop === "forecast" || quota.stop === "ceiling";
+    const mark = quota.stopped ? `<span class="warn">⚠️</span> ` : "";
     const after = !quota.stopped
-      ? ` El barrido se detiene en ${escapeHtml(quota.stop_at)}%.`
-      : quota.usage >= quota.stop_at
-        ? " Se detuvo ahí: las cuentas que faltaron van primero en el siguiente."
+      ? ` El barrido se detiene antes de que la siguiente cuenta la pase de ${escapeHtml(quota.stop_at)}%.`
+      : ours
+        ? ` Se detuvo ahí, antes de que la siguiente cuenta la pasara de ${escapeHtml(quota.stop_at)}%: las que faltaron van primero en el siguiente.`
         : " Meta lo frenó antes, con su propio límite: las cuentas que faltaron van primero en el siguiente.";
     usage = `<p>${mark}Cuota de Instagram en el último barrido (${escapeHtml(when(quota.finished_at))}): ${escapeHtml(quota.usage)}%${
       measures ? ` (${escapeHtml(measures)})` : ""
-    }.${after}</p>`;
+    }.${after}</p>${readsLine(quota.reads)}`;
   }
   return `<section class="card"><h2>Instagram</h2>${token}${usage}</section>`;
 }

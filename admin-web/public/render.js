@@ -137,7 +137,8 @@ const REQUESTS = {
 };
 
 /**
- * What ran: "Barrido de la mañana" (the 6:30 sweep), "Barrido de la noche" (21:00), "Barrido extra" (by hand),
+ * What ran: "Barrido de la madrugada" (the 3:00 sweep), "Barrido de la mañana" (6:30), "Barrido de la noche" (21:00),
+ * "Barrido extra" (by hand),
  * or the admin request ("Agregar publicación"…).
  * @param {HistoryRun} run
  */
@@ -145,6 +146,7 @@ export function runLabel(run) {
   if (run.kind !== "sweep") return Object.hasOwn(REQUESTS, run.kind) ? REQUESTS[run.kind] : "Pedido";
   const hour = Number(String(run.slot ?? "").split(":")[0]);
   if (!run.slot || Number.isNaN(hour)) return "Barrido extra";
+  if (hour < 5) return "Barrido de la madrugada";
   return hour < 12 ? "Barrido de la mañana" : hour < 18 ? "Barrido de la tarde" : "Barrido de la noche";
 }
 

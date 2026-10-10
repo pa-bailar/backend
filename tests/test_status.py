@@ -21,9 +21,10 @@ def isolated(isolated_files, monkeypatch):
 @pytest.mark.parametrize(
     ("now", "expected"),
     [
-        (NOW, ["2026-10-02T21:00", "2026-10-03T06:30"]),
-        (datetime(2026, 10, 3, 6, 30, tzinfo=config.BOGOTA_TZ), ["2026-10-03T21:00", "2026-10-04T06:30"]),
+        (NOW, ["2026-10-02T21:00", "2026-10-03T03:00"]),
+        (datetime(2026, 10, 3, 6, 30, tzinfo=config.BOGOTA_TZ), ["2026-10-03T21:00", "2026-10-04T03:00"]),
         (datetime(2026, 10, 3, 6, 0, tzinfo=config.BOGOTA_TZ), ["2026-10-03T06:30", "2026-10-03T21:00"]),
+        (datetime(2026, 10, 3, 2, 0, tzinfo=config.BOGOTA_TZ), ["2026-10-03T03:00", "2026-10-03T06:30"]),
     ],
 )
 def test_next_sweeps_follow_the_schedule(now, expected):
@@ -94,23 +95,59 @@ def test_the_text_says_it_in_spanish():
     )
     assert f"{latest} · [ver](https://example/run)" in text
     assert "- ✅ hoy 9:12 a. m.: 2 nuevos, 1 unidos" in text
-    assert "Próximos: hoy 9:00 p. m. y mañana 6:30 a. m." in text
+    assert "Próximos: hoy 9:00 p. m. y mañana 3:00 a. m." in text
     assert "| `gemini-3.8-flash` | extraction | 18 (agotado) | 18 |" in text
     assert "La cuota se reinicia mañana 2:00 a. m." in text
     # The quota is the last sweep's highest reading, with Meta's measures, not the token check's (another counter).
     assert "- Token: funciona." in text
     quota = "Cuota de Instagram en el último barrido (hoy 9:12 p. m.): 90% (CPU 90%, tiempo 77%, llamadas 31%)."
-    assert f"- {quota} Se detuvo ahí: las cuentas que faltaron van primero en el siguiente." in text
+    # A record from before 9 Oct 2026 (no `instagram_stop`): stopped at the flat 90%.
+    assert f"- {quota} Se detuvo ahí, antes de que la siguiente cuenta la pasara de 98%" in text
     assert "1 en su primer barrido (más profundo): @nueva" in text
 
 
 def test_a_sweep_meta_stopped_below_our_limit_doesnt_say_it_stopped_there():
     """The bug hunt of 7 Oct 2026: Meta's rate-limit error stops a sweep too, at any reading."""
-    quota = {"usage": 45, "detail": {"call_count": 45}, "stopped": True, "finished_at": NOW.isoformat(), "stop_at": 90}
+    quota = {
+        "usage": 45,
+        "detail": {"call_count": 45},
+        "stopped": True,
+        "stop": "meta",
+        "finished_at": NOW.isoformat(),
+        "stop_at": 98,
+    }
     text = status.quota_line(quota, NOW)
     assert "45% (llamadas 45%). Meta lo frenó antes, con su propio límite" in text
     assert "Se detuvo ahí" not in text
-    assert "Se detuvo ahí" in status.quota_line({**quota, "usage": 91}, NOW)
+    assert "Se detuvo ahí" in status.quota_line({**quota, "usage": 95, "stop": "forecast"}, NOW)
+    running = status.quota_line({**quota, "stopped": False, "stop": None}, NOW)
+    assert "El barrido se detiene antes de que la siguiente cuenta la pase de 98%." in running
+
+
+def test_the_last_sweeps_reads_are_said_with_metas_time_and_their_cost():
+    run = {
+        "finished_at": "2026-10-02T06:52:00-05:00",
+        "instagram_usage": 95,
+        "rate_limited": True,
+        "instagram_stop": "forecast",
+        "instagram_reads": {
+            "accounts": 28,
+            "mean_seconds": 4.6,
+            "median_seconds": 4.3,
+            "max_seconds": 9.3,
+            "mean_cost": 3.4,
+            "max_cost": 6,
+            "max_cost_account": "salsa.club",
+            "headers": {"X-App-Usage": 28},
+            "expected_cost": 5,
+        },
+    }
+    result = status.collect(now=NOW, instagram=None, read=lambda name, default: [run] if "history" in name else default)
+    assert result["instagram_quota"]["stop"] == "forecast" and result["instagram_quota"]["stop_at"] == 98
+    text = status.markdown(result)
+    assert "Se detuvo ahí, antes de que la siguiente cuenta la pasara de 98%" in text
+    reads = "28 cuentas leídas, 4,3 s cada una (mediana; la más lenta 9,3 s), 3,4% de la cuota cada una (la más cara 6%"
+    assert reads + ", @salsa.club), por X-App-Usage." in text
 
 
 def test_what_flash_changed_in_lighter_reads_is_summed_and_said():

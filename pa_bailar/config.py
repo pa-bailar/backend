@@ -50,17 +50,29 @@ ADMIN_POST_SEARCH = 50
 SITE_URL = "https://pa-bailar.github.io"  # the public site, for links to events in the admin tools' answers
 # The admin page (admin-web/): "Ocultar"'s answer links to it with a post filled in, to publish it again in one tap.
 ADMIN_URL = "https://pa-bailar-admin.jzamorac-9.workers.dev"
-# Instagram's quota for our app, as a share used (0-100, from its usage headers): the sweep stops reading
-# accounts at this level instead of running into the limit, and discover pauses earlier (its own setting).
-INSTAGRAM_USAGE_STOP = 90
+# Instagram's quota for our app, as a share used (0-100, from its usage headers, over a rolling hour; at 100 every
+# call fails until the hour rolls on). The sweep stops before a read that would take it past the ceiling: the share
+# now plus the next read's expected cost (instagram_usage.ReadCosts), never starting one at the ceiling or above. Until
+# 9 Oct 2026 it stopped flat at 90%: that morning Meta took three times its usual time per read (a median 4.3 s,
+# against 1.6 s), the sweep reached 90% after 28 accounts and 23 waited; on a normal day the forecast lets a few more
+# in. discover pauses earlier (its own setting).
+INSTAGRAM_USAGE_CEILING = 98
+# The expected cost of a read: the highest of this run's last few (each read's share before and after it, in the same
+# header), and this before the run has measured one (a slow day's cost, so the first read never overshoots). Meta's
+# cost of a read is its processing time ("total_time"): ~1.3% normally (8 Oct 2026), about three times that on the slow
+# morning of 9 Oct.
+INSTAGRAM_READ_COST = 4
+INSTAGRAM_COST_WINDOW = 5
 # Each account is read about once a day (pipeline.Sweep._due_accounts): a sweep reads the accounts whose turn
-# has come, those that waited longest first, and stops at its share (half the accounts plus a margin, for the
-# two daily sweeps) or Instagram's limit; whoever it didn't reach is first next time. Quiet accounts (no post in
+# has come, those that waited longest first, and stops at its share (a third of the accounts plus a margin, for the
+# three daily sweeps) or Instagram's limit; whoever it didn't reach is first next time. Quiet accounts (no post in
 # QUIET_AFTER_DAYS) and unproductive ones (UNPRODUCTIVE_AFTER_POSTS of their posts on record, PROCESSED_RETENTION_DAYS,
 # and none an event) take their turn every other day, dormant ones (no post in DORMANT_AFTER_DAYS) once a week: each
 # read is an Instagram call that rarely finds anything new, and each costs ~1.3% of the app's hourly allowance whatever
-# it asks for (measured 8 Oct 2026; 128 accounts then: the owner chose these two tiers over a third sweep). A bit under
-# 24 h, so the same sweep the next day finds the account due.
+# it asks for (measured 8 Oct 2026; 128 accounts then: the owner chose these two tiers over a third sweep, then added
+# one on 9 Oct when Meta slowed down). A bit under 24 h, so the same sweep the next day finds the account due (one read
+# at 6:30 is due at 2:30: the 3:00 sweep takes it if it has room, and the 6:30 one reads the rest), and over 18 h (3:00
+# to 21:00), so no sweep of the same day reads it again.
 SWEEP_EVERY_HOURS = 20
 QUIET_SWEEP_EVERY_HOURS = 44
 QUIET_AFTER_DAYS = 30  # 45 until 8 Oct 2026
@@ -235,15 +247,25 @@ DEFAULT_LOOKBACK_DAYS = 7
 # The most a run may look back (--days, the workflow's `days` input): anyone able to start the workflow
 # can't make one run spend the day's quotas on old posts. New accounts get BACKFILL_DAYS on their own.
 MAX_LOOKBACK_DAYS = 30
-# When cron-job.org starts the daily sweep (Bogotá time, README "What starts the sweep"): its jobs must match. Other
-# jobs that use the Instagram app's hourly quota (discover) keep clear of these times so the sweep finds it free. The
-# morning one was 09:00 until 7 Oct 2026: Google's Flash refused 97% of weekday 9:00 requests as busy (the owner). None
-# between ~1:00 and 3:30: a run there could fall in either Gemini quota day.
-SWEEP_TIMES = ("06:30", "21:00")
-# Flash's few daily requests are shared by every sweep of a Gemini quota day (midnight to midnight Pacific: the 6:30 and
-# 21:00 sweeps fall in one). A sweep leaves the later ones of that day their share: before, the morning's (academies,
-# few posts) could take them all and the evening's (the busy organizers and bars) got none (the owner, 6 Oct 2026). A
-# scheduled sweep starting within this margin is the current run (a late start), not a later one.
+# When the daily sweep starts (Bogotá time, README "What starts the sweep"): 3:00 by GitHub's own schedule
+# (daily-sweep.yml's cron, 08:00 UTC), 6:30 and 21:00 by cron-job.org; each must match. Other jobs that use the
+# Instagram app's hourly quota (discover) keep clear of these times so the sweep finds it free. The morning one was
+# 09:00 until 7 Oct 2026: Google's Flash refused 97% of weekday 9:00 requests as busy (the owner). The 3:00 one was
+# added on 9 Oct 2026 (the owner): Meta took three times its usual time per read that morning, so the 6:30 sweep reached
+# Instagram's hourly limit with 23 accounts left; a third sweep reads a third of the accounts each, and at 3:00 Meta and
+# Google are quiet. It's the first of the Gemini quota day, which starts at midnight Pacific: 2:00 Bogotá, or 3:00 sharp
+# in the Pacific's winter (November to March), when GitHub's start (never early, often late) still falls in the new day.
+SWEEP_TRIGGERS = {
+    "03:00": "GitHub's schedule (daily-sweep.yml's cron)",  # tests/test_workflows.py checks the cron matches
+    "06:30": "cron-job.org",
+    "21:00": "cron-job.org",
+}
+SWEEP_TIMES = tuple(SWEEP_TRIGGERS)
+# Flash's few daily requests are shared by every sweep of a Gemini quota day (midnight to midnight Pacific: the 3:00,
+# 6:30 and 21:00 sweeps fall in one). A sweep leaves the later ones of that day an equal share each (flash_reserve in
+# pipeline/sweep.py): before, the morning's (academies, few posts) could take them all and the evening's (the busy
+# organizers and bars) got none (the owner, 6 Oct 2026). A scheduled sweep starting within this margin is the current
+# run (a late start), not a later one.
 LATER_SWEEP_MARGIN_MINUTES = 60
 # A newly added account is swept more deeply until all of these posts have been analyzed
 # (it can take a few runs if the daily Gemini budget runs out); then it joins the regular sweep.

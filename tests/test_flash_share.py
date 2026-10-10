@@ -7,7 +7,7 @@ import pytest
 
 from pa_bailar import config, gemini
 from pa_bailar.gemini import QuotaExhaustedError
-from pa_bailar.pipeline.sweep import later_sweeps_in_quota_day, upgrade_urgency
+from pa_bailar.pipeline.sweep import flash_reserve, later_sweeps_in_quota_day, upgrade_urgency
 from tests.factories import stored
 from tests.test_sweep import (
     FakeExtractor,
@@ -31,11 +31,52 @@ def bogota(day: int, hour: int, minute: int = 0) -> datetime:
         (bogota(6, 6, 0), 1),  # started a bit early: it's still the 6:30 one, not a later one
         (bogota(6, 13), 1),  # a manual run at midday leaves the evening its share
         (bogota(6, 21, 5), 0),  # the evening sweep: the next one (6:30) is the next Pacific day
-        (bogota(6, 2), 2),  # past Pacific midnight (2:00 Bogotá): both of today's sweeps are to come
+        (bogota(6, 2), 2),  # past Pacific midnight (2:00 Bogotá): the 3:00 sweep (early), then 6:30 and 21:00
+        (bogota(6, 3, 10), 2),  # the 3:00 sweep, first of the quota day
+        (bogota(6, 1, 30), 0),  # before Pacific midnight: the quota day of yesterday's sweeps, all done
     ],
 )
 def test_the_later_sweeps_of_the_quota_day(now, later):
     assert later_sweeps_in_quota_day(now.astimezone(UTC)) == later
+
+
+@pytest.mark.parametrize(
+    ("now", "reserve"),
+    [
+        (bogota(10, 3, 10), 2 / 3),  # the first sweep of the quota day leaves the 6:30 and 21:00 ones a third each
+        (bogota(10, 6, 40), 1 / 3),  # the 6:30 one leaves the evening's third
+        (bogota(10, 21, 5), 0),  # the evening's is the last: what's left is its own
+        (bogota(10, 13), 1 / 3),  # a manual run at midday leaves the evening its third
+        # The Pacific's winter (from 1 Nov): the quota day starts at 3:00 Bogotá sharp, and GitHub's 3:00 start, never
+        # early, is in it; a run just before is still in the day before, whose sweeps are all done.
+        (datetime(2026, 11, 15, 3, 5, tzinfo=config.BOGOTA_TZ), 2 / 3),
+        (datetime(2026, 11, 15, 2, 50, tzinfo=config.BOGOTA_TZ), 0),
+    ],
+)
+def test_each_sweep_leaves_the_later_ones_an_equal_share_of_flash(now, reserve):
+    assert flash_reserve(now.astimezone(UTC)) == pytest.approx(reserve)
+
+
+def test_three_sweeps_split_flash_in_thirds_and_pass_on_what_they_leave(tmp_path, monkeypatch):
+    """Each Flash model's daily budget (18 usable of 20) split by the three sweeps' reserves: 6 each at most, 18 of
+    the three models' 54 per sweep; what one leaves unused, the next can take."""
+    monkeypatch.setattr(config, "GEMINI_USAGE_FILE", tmp_path / "usage.json")
+    model = config.FLASH_MODELS[0]
+
+    def spend(used: int, reserve: float) -> int:
+        """How many requests a sweep with this reserve can make after `used`."""
+        pool = gemini.ModelPool("unused-key", client=object())
+        pool._used[model] = used
+        pool.reserve((model,), reserve)
+        made = 0
+        while pool.has_budget(model):
+            pool._used[model] += 1
+            made += 1
+        return made
+
+    assert gemini.daily_budget(model) == 18
+    assert (spend(0, 2 / 3), spend(6, 1 / 3), spend(12, 0)) == (6, 6, 6)
+    assert spend(2, 1 / 3) == 10  # the 3:00 sweep used 2: the 6:30 one may take its other 4 too
 
 
 def test_a_reserve_leaves_part_of_a_models_budget_for_later_runs(tmp_path, monkeypatch):
@@ -106,7 +147,7 @@ def test_the_last_flash_request_goes_to_the_soonest_event_not_the_first_account(
 
 
 def test_a_sweep_leaves_the_later_sweeps_their_share_of_flash(monkeypatch):
-    monkeypatch.setattr("pa_bailar.pipeline.sweep.later_sweeps_in_quota_day", lambda now: 1)
+    monkeypatch.setattr("pa_bailar.pipeline.sweep.later_sweeps_in_quota_day", lambda now: 2)
     extractor = FakeExtractor({})
     run(FakeInstagram({"academia": [], "otra": []}), extractor)
-    assert extractor.flash_reserved == 0.5
+    assert extractor.flash_reserved == pytest.approx(2 / 3)  # the first of the quota day's three sweeps

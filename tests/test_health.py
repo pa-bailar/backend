@@ -1,9 +1,10 @@
 """Sweep health checks: rules over the run and the runs before it."""
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
-from pa_bailar import health
+from pa_bailar import config, health
 from pa_bailar.health import RunRecord
+from pa_bailar.instagram_usage import ReadsSummary
 from pa_bailar.pipeline import AccountStats, RunStats
 from tests.factories import media, stored
 
@@ -203,3 +204,41 @@ def test_two_events_of_an_account_that_day_sharing_a_title_word_are_listed_for_r
     review = health.events_to_review([a, b, other], date.today())
     assert [event.id for event in review] == ["orquesta-x", "candombe-noche"]
     assert "Noche con Candombé" in health.report_markdown([], review)
+
+
+def runs_at(*moments: str) -> list[RunRecord]:
+    """Runs finishing at these moments of October 2026 ("09T06:45")."""
+    return [record(finished_at=f"2026-10-{moment}:00-05:00") for moment in moments]
+
+
+AT_6_50 = datetime(2026, 10, 10, 6, 50, tzinfo=config.BOGOTA_TZ)
+
+
+def test_a_scheduled_sweep_that_stopped_coming_is_a_warning():
+    """GitHub's schedule never fired here while the repository was private: the 3:00 sweep (9 Oct 2026) missing two
+    days in a row is reported, which healthchecks.io can't tell while the other two still run."""
+    every_sweep = runs_at("08T03:40", "08T06:50", "08T21:20", "09T03:35", "09T06:45", "09T21:15", "10T06:50")
+    assert health.missed_sweeps(every_sweep, AT_6_50) == []
+    without_3 = [run for run in every_sweep if "T03" not in run.finished_at]
+    assert health.missed_sweeps(without_3, AT_6_50) == ["03:00"]
+    assert levels(check(without_3[-1], without_3[:-1])) == {"missed-sweep:03:00": "warning"}
+    one_day = runs_at("08T06:50", "08T21:20", "09T06:45", "09T21:15", "10T03:30", "10T06:50")
+    assert health.missed_sweeps(one_day, AT_6_50) == []  # missed once only (the first night, say)
+
+
+def test_a_run_the_quota_stopped_says_why_and_how_its_reads_went():
+    reads = ReadsSummary(
+        accounts=28, mean_seconds=4.6, median_seconds=4.3, max_seconds=9.3, mean_cost=3.4, max_cost=6,
+        max_cost_account="salsa.club",
+    )  # fmt: skip
+    stopped = record(rate_limited=True, instagram_stop="forecast", instagram_reads=reads, skipped_accounts=["a", "b"])
+    (finding,) = check(stopped)
+    why = "the next read would have passed 98%; Meta took a median 4.3 s a read, 3.4% of the quota each"
+    assert why in finding.text
+    assert "2 accounts wait" in finding.text
+    (finding,) = check(record(rate_limited=True, instagram_stop="meta"))
+    assert "(Meta's own rate limit)" in finding.text
+
+
+def test_a_sweep_the_history_doesnt_reach_isnt_judged():
+    assert health.missed_sweeps(runs_at("10T03:20", "10T06:50"), AT_6_50) == []

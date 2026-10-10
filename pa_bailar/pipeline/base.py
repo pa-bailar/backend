@@ -14,6 +14,7 @@ from ..changes import changed_fields, fields_label
 from ..extraction import EventExtractor
 from ..ids import new_event_id
 from ..instagram import InstagramClient, Post
+from ..instagram_usage import ReadCosts
 from ..merging import (
     already_stored,
     detach_post,
@@ -244,6 +245,7 @@ class SweepBase:
         self.started = time.monotonic()
         self.time_up_logged = False
         self.rate_limited = False  # Meta is throttling the app: the remaining accounts wait for the next run
+        self.read_costs = ReadCosts()  # each account read's cost, and the forecast that stops the sweep
 
     def _safeguarded(self, account: str, post: Post, event: ExtractedEvent, several: bool) -> ExtractedEvent:
         """An event that came back without styles gets the ones its title or caption names, else its account's usual

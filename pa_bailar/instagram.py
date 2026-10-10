@@ -2,6 +2,8 @@
 
 import json
 import re
+import time
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, NotRequired, TypedDict, cast
 
@@ -58,27 +60,63 @@ class InstagramError(RuntimeError):
 
 # What Meta's usage headers measure, each as a share (0-100) of what the app may use: calls, CPU time, total time.
 USAGE_MEASURES = ("call_count", "total_cputime", "total_time")
+# Meta's two usage headers, by the names the run's records give them.
+APP_HEADER = "X-App-Usage"
+BUSINESS_HEADER = "X-Business-Use-Case-Usage"
+
+
+def _measures(readings: list[dict[str, Any]]) -> dict[str, int]:
+    detail: dict[str, int] = {}
+    for reading in readings:
+        for key in USAGE_MEASURES:
+            if key in reading:
+                detail[key] = max(detail.get(key, 0), int(reading[key]))
+    return detail
+
+
+def usage_by_header(app_header: str | None, business_header: str | None) -> dict[str, dict[str, int]]:
+    """Each header's measures (its highest share used, in percent, per measure), apart: Meta has used each, and a
+    run's cost per read is only measured within one of them. A header that's missing or odd is left out:
+    - X-App-Usage: {"call_count": 28, "total_time": 25, "total_cputime": 25} (Business Discovery's on 8 Oct 2026);
+    - X-Business-Use-Case-Usage: {"<id>": [{"type": "instagram", "call_count": 1, "total_cputime": 1, "total_time": 1,
+      "estimated_time_to_regain_access": 0}]} (what Meta used on 3 Oct 2026)."""
+    usage: dict[str, dict[str, int]] = {}
+    for name, header in ((APP_HEADER, app_header), (BUSINESS_HEADER, business_header)):
+        if not header:
+            continue
+        try:
+            parsed = json.loads(header)
+            readings = [parsed] if name == APP_HEADER else [entry for entries in parsed.values() for entry in entries]
+            if detail := _measures(readings):
+                usage[name] = detail
+        except (ValueError, TypeError, AttributeError, KeyError):
+            continue
+    return usage
 
 
 def usage_measures(app_header: str | None, business_header: str | None) -> dict[str, int]:
-    """Each measure's highest share used, in percent, of what Meta reports; empty for no header or an odd one:
-    - X-App-Usage: {"call_count": 28, "total_time": 25, "total_cputime": 25} (Business Discovery's on 8 Oct 2026);
-    - X-Business-Use-Case-Usage: {"<id>": [{"type": "instagram", "call_count": 1, "total_cputime": 1, "total_time": 1,
-      "estimated_time_to_regain_access": 0}]} (what Meta used on 3 Oct 2026: it has used each)."""
-    readings: list[dict[str, Any]] = []
-    try:
-        if app_header:
-            readings.append(json.loads(app_header))
-        if business_header:
-            readings += [entry for entries in json.loads(business_header).values() for entry in entries]
-        detail: dict[str, int] = {}
-        for reading in readings:
-            for key in USAGE_MEASURES:
-                if key in reading:
-                    detail[key] = max(detail.get(key, 0), int(reading[key]))
-    except (ValueError, TypeError, AttributeError, KeyError):
-        return {}
-    return detail
+    """Each measure's highest share used, in percent, of what both headers report (usage_by_header); empty for no
+    header or odd ones."""
+    return _measures(list(usage_by_header(app_header, business_header).values()))
+
+
+@dataclass(frozen=True)
+class CallReading:
+    """One Graph API call: how long Meta took to answer (seconds, the request's whole round trip) and the usage its
+    answer reported, per header (usage_by_header; empty when it reported none)."""
+
+    seconds: float
+    usage: dict[str, dict[str, int]]
+
+    @property
+    def header(self) -> str | None:
+        """The header with the highest share: the one the sweep's stop reads."""
+        return max(self.usage, key=lambda name: max(self.usage[name].values()), default=None)
+
+    @property
+    def percent(self) -> int | None:
+        """The highest share used of any measure in any header; None when the answer reported none."""
+        return max(self.usage[self.header].values()) if self.header else None
 
 
 class InstagramClient:
@@ -91,8 +129,12 @@ class InstagramClient:
         # The highest reading so far (a run's peak), and each of its measures: which one Meta's limit binds on.
         self.peak_usage_percent = 0
         self.peak_usage_detail: dict[str, int] = {}
+        # The latest call that got an answer: Meta's time and the usage after it, per header (the sweep's
+        # per-read record and its forecast of the next read's cost: instagram_usage.py).
+        self.last_call: CallReading | None = None
 
     def _get(self, fields: str) -> dict[str, Any]:
+        started = time.monotonic()
         try:
             response = requests.get(
                 f"{config.GRAPH_API_URL}/{self._ig_user_id}",
@@ -104,7 +146,10 @@ class InstagramClient:
             # Network failure or a non-JSON answer (e.g. an HTML 5xx page): one account fails, not the run.
             # The token is in the URL, and connection errors quote the URL: never let it reach logs or answers.
             raise InstagramError(f"request failed: {redact(str(error))}") from error
-        self._read_usage(response.headers.get("x-app-usage"), response.headers.get("x-business-use-case-usage"))
+        app_header = response.headers.get("x-app-usage")
+        business_header = response.headers.get("x-business-use-case-usage")
+        self.last_call = CallReading(time.monotonic() - started, usage_by_header(app_header, business_header))
+        self._read_usage(app_header, business_header)
         if "error" in data:
             payload = data["error"]
             raise InstagramError(payload.get("message", "unknown error"), code=payload.get("code"))
