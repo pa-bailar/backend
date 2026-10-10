@@ -272,6 +272,18 @@ def had_events(outcome: PostOutcome | None, is_event_post: bool) -> bool:
     return outcome in ("event", "merged") or (outcome is None and is_event_post)
 
 
+class PrefilterRecord(BaseModel):
+    """What the pre-filter said of a post (prefilter.Verdict) and what Gemini said: its verdict is checked against
+    Gemini's before it may skip posts (docs/ARCHITECTURE.md, section 6.2)."""
+
+    verdict: Literal["skip", "read"]
+    reason: str
+    text_silent: bool = False  # its caption named nothing of an event: the verdict rests on its images
+    # Gemini called it an event post (its triage, or the extraction when there was none); None: Gemini didn't read it
+    # (the pre-filter skipped it, mode "on").
+    gemini_event: bool | None = None
+
+
 class ProcessedPost(BaseModel):
     """One record of state/processed_posts.json, keyed by post id."""
 
@@ -298,6 +310,9 @@ class ProcessedPost(BaseModel):
     # Added by hand (Agregar, Volver a leer, a story's screenshots): later reads of it (an upgrade, an edited caption)
     # skip the account's extra rules and style filter too (account_options), as the first one did.
     by_hand: bool = False
+    # The pre-filter's verdict on it (prefilter.py; None: not judged, e.g. before it existed or read by hand). In
+    # shadow mode it's only recorded, next to what Gemini said (`is_event_post`, `reason`).
+    prefilter: PrefilterRecord | None = None
 
 
 # ---------- Stories: screenshots shared to the admin page (stories.py) ----------

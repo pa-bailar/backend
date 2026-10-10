@@ -72,6 +72,12 @@ class Extractor(Protocol):
     ) -> tuple[StoryAnalysis, str, bool]: ...
 
 
+# What RunStats.prefilter counts: posts the pre-filter judged; those it would skip (shadow mode) or skipped (on); those
+# whose caption named nothing of an event (the verdict rested on the images), and of those, the ones Gemini called event
+# posts (an event all in the image); and its disagreements with Gemini: it said skip, Gemini said event.
+PREFILTER_COUNTS = ("judged", "would_skip", "skipped", "text_silent", "text_silent_events", "disagreements")
+
+
 @dataclass
 class AccountStats:
     posts_analyzed: int = 0
@@ -97,6 +103,10 @@ class RunStats:
     # Flash's reading against a lighter model's, on events only lighter models had read (Sweep._audit_upgrade):
     # "compared" events, "dropped" ones, and per field how many Flash changed (date, start_time, title…).
     upgrade_changes: dict[str, int] = field(default_factory=dict)  # a dict: asdict() would mangle a Counter
+    # The pre-filter (prefilter.py) on the posts it judged this run (PREFILTER_COUNTS), and the links of those it would
+    # skip that Gemini called event posts: that must stay none before it's switched on (Sweep._note_prefilter).
+    prefilter: dict[str, int] = field(default_factory=dict)
+    prefilter_disagreements: list[str] = field(default_factory=list)
     reanalyzed: int = 0  # posts analyzed again because their caption was edited
     pending: int = 0
     errors: int = 0

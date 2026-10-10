@@ -92,6 +92,33 @@ export function shortDate(day) {
 }
 
 /**
+ * The pre-filter's verdicts against Gemini's, summed over the recorded sweeps (status.json `prefilter`:
+ * pa_bailar/status.py prefilter_line says the same). Its disagreements (posts it would skip that Gemini called
+ * events) are linked and marked: they must stay none before it's switched on. Empty until a sweep judged a post.
+ * @param {{ mode: string, since: string, runs: number, judged: number, would_skip: number, skipped: number,
+ *   text_silent: number, text_silent_events: number, disagreements: number, disagreement_posts: string[] }
+ *   | null | undefined} found
+ * @param {Date} [now]
+ */
+export function prefilterLine(found, now = new Date()) {
+  if (!found?.judged) return "";
+  const mode = { shadow: "en sombra", on: "activo", off: "apagado" }[found.mode] ?? found.mode;
+  const verb = found.mode === "on" ? "saltó" : "saltaría";
+  const text =
+    `Pre-filtro (${mode}, desde ${when(found.since, now)}, ${found.runs} barridos): de ${found.judged} publicaciones ` +
+    `${verb} ${found.skipped + found.would_skip}; Gemini vio evento en ${found.disagreements} de ellas`;
+  const links = (found.disagreement_posts ?? [])
+    .filter((link) => /^https?:\/\//.test(link))
+    .map((link) => `<a href="${escapeHtml(link)}" target="_blank" rel="noopener">publicación</a>`);
+  const silent = found.text_silent_events
+    ? `: Gemini vio evento en ${found.text_silent_events} (estaba en la imagen)`
+    : "";
+  const rest = `. ${found.text_silent} sin señales en el texto${silent}.`;
+  if (!found.disagreements) return `<p class="small">${escapeHtml(text + rest)}</p>`;
+  return `<p class="small"><span class="warn">⚠️</span> ${escapeHtml(text)}${links.length ? ` (${links.join(", ")})` : ""}${escapeHtml(rest)}</p>`;
+}
+
+/**
  * One change in a run, as status.json's `history` lists it (pa_bailar/status.py history_of, changes.py).
  * @typedef {{ kind: string, id: string, title: string, account: string, date?: string | null,
  *   detail?: string | null, url?: string | null }} Change

@@ -31,6 +31,24 @@ from pa_bailar.pipeline import AddPostError, RunStats, Sweep
 log = logging.getLogger(__name__)
 
 
+def prefilter_lines(stats: RunStats) -> list[str]:
+    """The pre-filter's lines on the run page (prefilter.py; none when it judged nothing): what it would skip (shadow)
+    or skipped, and the posts it would skip that Gemini called events, which must stay none to switch it on."""
+    counts = stats.prefilter
+    if not counts.get("judged"):
+        return []
+    if config.PREFILTER_MODE == "on":
+        skipped = f"{counts.get('skipped', 0)} skipped"
+    else:
+        skipped = f"{counts.get('would_skip', 0)} would be skipped"
+    line = (
+        f"Pre-filter ({config.PREFILTER_MODE}): {counts['judged']} posts judged, {skipped}, "
+        f"{counts.get('disagreements', 0)} of them event posts for Gemini · {counts.get('text_silent', 0)} with a "
+        f"caption that names nothing of an event, {counts.get('text_silent_events', 0)} of those event posts"
+    )
+    return [line, *(f"- ⚠️ would skip {link}" for link in stats.prefilter_disagreements), ""]
+
+
 def summary_markdown(stats: RunStats) -> str:
     """Markdown tables shown on the GitHub Actions run page."""
     account_rows = [
@@ -59,6 +77,7 @@ def summary_markdown(stats: RunStats) -> str:
             f"{stats.pending} pending for next run · {stats.errors} errors · "
             f"{stats.events_expired} past events and {stats.flyers_removed} flyers cleaned up",
             "",
+            *prefilter_lines(stats),
             "| Account | Posts analyzed | New events | Merged | Pending | Errors |",
             "|---|---|---|---|---|---|",
             *account_rows,

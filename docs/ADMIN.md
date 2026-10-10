@@ -66,7 +66,7 @@ address follows the tab you pick. On a keyboard, ← and → (or Home, End) move
 the last resort's use (Groq, OpenRouter: a card only on a day Gemini ran out), Instagram (whether the token works,
 the last sweep's highest reading of its quota, whether it stopped itself before the next read passed 98% or Meta
 stopped it, and its reads in short: Meta's seconds a read and what a read cost), accounts (those still in their first sweep or waiting past their
-turn) and events, with what Flash changed when it re-read lighter models' readings. It's the latest `status.json`, as of the last sweep. When it can't be read
+turn) and events, with what Flash changed when it re-read lighter models' readings and the pre-filter's verdicts against Gemini's (its disagreements marked and linked: ARCHITECTURE section 6.2). It's the latest `status.json`, as of the last sweep. When it can't be read
 (none saved yet, GitHub failing, offline), a note takes its place and Herramientas still works.
 
 **Historial** (under Barridos, collapsed until tapped): what the latest 10 runs did to which event, so a count

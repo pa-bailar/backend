@@ -3,7 +3,16 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { changesSummary, escapeHtml, historyCard, runLabel, seriesCard, shortDate, when } from "../public/render.js";
+import {
+  changesSummary,
+  escapeHtml,
+  historyCard,
+  prefilterLine,
+  runLabel,
+  seriesCard,
+  shortDate,
+  when,
+} from "../public/render.js";
 
 const SERIES = {
   id: "programa-intensivo-8-nov",
@@ -218,5 +227,40 @@ describe("the history card", () => {
     assert.equal(shortDate("pronto"), "pronto");
     assert.equal(when("2026-10-09T02:30:00Z", NOW), "ayer 9:30 p. m."); // UTC, before Bogotá's midnight
     assert.equal(when("2026-10-04T09:00:00-05:00", NOW), "domingo 4/10, 9:00 a. m.");
+  });
+});
+
+describe("the pre-filter's line", () => {
+  const SHADOW = {
+    mode: "shadow",
+    since: "2026-10-08T21:12:00-05:00",
+    runs: 3,
+    judged: 120,
+    would_skip: 4,
+    skipped: 0,
+    text_silent: 9,
+    text_silent_events: 2,
+    disagreements: 0,
+    disagreement_posts: [],
+  };
+
+  it("says what it would skip and how often Gemini disagreed", () => {
+    const html = prefilterLine(SHADOW, NOW);
+    assert.match(html, /Pre-filtro \(en sombra, desde ayer 9:12 p\. m\., 3 barridos\): de 120 publicaciones saltaría 4/);
+    assert.match(html, /Gemini vio evento en 0 de ellas\. 9 sin señales en el texto: Gemini vio evento en 2 \(estaba en la imagen\)/);
+    assert.doesNotMatch(html, /⚠️/);
+  });
+
+  it("marks disagreements and links their posts, only http(s)", () => {
+    const posts = ["https://www.instagram.com/p/x/", "javascript:alert(1)"];
+    const html = prefilterLine({ ...SHADOW, disagreements: 2, disagreement_posts: posts }, NOW);
+    assert.match(html, /⚠️/);
+    assert.match(html, /<a href="https:\/\/www\.instagram\.com\/p\/x\/"[^>]*>publicación<\/a>/);
+    assert.doesNotMatch(html, /javascript:/);
+  });
+
+  it("is empty before a sweep judged a post", () => {
+    assert.equal(prefilterLine(null, NOW), "");
+    assert.equal(prefilterLine({ ...SHADOW, judged: 0 }, NOW), "");
   });
 });

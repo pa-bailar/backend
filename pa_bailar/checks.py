@@ -204,6 +204,19 @@ def times(text: str) -> set[str]:
     return clock_times(text)[1]
 
 
+def names_a_date(text: str) -> bool:
+    """Whether a text names a day of the calendar, past or coming: "11 de octubre", "11/10", "del 13 al 16 de
+    noviembre", "3, 10 y 17 de octubre", "sábado 10", "este sábado", "este finde" (the pre-filter, prefilter.py)."""
+    folded = _lines(text)
+    patterns = (_DATE, _RANGE, _LIST, _WEEKDAY_DAY, _RELATIVE)
+    return any(pattern.search(folded) for pattern in patterns)
+
+
+def names_a_price(text: str) -> bool:
+    """Whether a text names a price or a sale: "$70.000", "30k", "20 mil", "cover", "preventa" (prefilter.py)."""
+    return bool(_PRICE.search(_lines(text)))
+
+
 def _slots(clock: set[str]) -> set[str]:
     """Times on a 12-hour dial: "8:30" in the flyer's OCR and "8:30 pm" in the caption are one time."""
     return {f"{int(value[:2]) % 12:02d}{value[2:]}" for value in clock}

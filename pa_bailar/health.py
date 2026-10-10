@@ -90,6 +90,8 @@ class RunRecord(BaseModel):
     instagram_reads: ReadsSummary | None = None  # Meta's time and the quota's share per read (instagram_usage.py)
     instagram_stop: StopReason | None = None  # why it stopped reading early: our forecast or ceiling, or Meta's limit
     upgrade_changes: dict[str, int] = {}  # what Flash changed in lighter readings (RunStats.upgrade_changes)
+    prefilter: dict[str, int] = {}  # the pre-filter's counts (RunStats.prefilter, common.PREFILTER_COUNTS)
+    prefilter_disagreements: list[str] = []  # posts it would skip that Gemini called events: their links
     warnings: list[str] = []  # keys of the warnings found (Finding.key)
     # What happened to which event (changes.py), the most telling first: the admin page's history. None in records
     # from before it was kept, and in those older than config.CHANGES_KEPT_RUNS (their counts stay).
@@ -142,6 +144,8 @@ def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) 
         instagram_reads=stats.instagram_reads,
         instagram_stop=stats.instagram_stop,
         upgrade_changes=dict(stats.upgrade_changes),
+        prefilter=dict(stats.prefilter),
+        prefilter_disagreements=list(stats.prefilter_disagreements),
         changes=changes,
         changes_left_out=left_out,
         change_counts=counts(stats.changes.values()),

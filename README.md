@@ -21,6 +21,7 @@ pa_bailar/            the collector (one Python package; every module in docs/AR
   external.py         the last resort when Gemini runs out (Groq, OpenRouter)
   bakeoff.py          measures models: the last resort's against Flash, any model against the test set (gold/)
   checks.py, ocr.py   rules (no AI) that flag a reading for a second look, and a flyer's OCR text (not in the sweep yet)
+  prefilter.py        a rule (no AI) that tells posts obviously announcing no event before the triage (shadow mode)
   account_options.py  what an accounts.txt line says besides the name (`bar`, `solo:<styles>`)
   merging.py, ids.py, normalize.py, clips.py, storage.py, media_store.py, models.py, config.py
   health.py, status.py, why.py, inbox.py, links.py, patterns.py, sweep_state.py, discovery.py, text.py, logs.py

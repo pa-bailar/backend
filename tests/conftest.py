@@ -2,7 +2,7 @@
 
 import pytest
 
-from pa_bailar import config
+from pa_bailar import config, prefilter
 
 
 @pytest.fixture(autouse=True)
@@ -24,4 +24,7 @@ def isolated_files(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "ACCOUNTS_FILE", tmp_path / "accounts.txt")
     for provider in config.EXTERNAL_PROVIDERS:  # keys from a local .env: no test may reach Groq or OpenRouter
         monkeypatch.delenv(provider.key_env, raising=False)
+    # The pre-filter's OCR: none, as on CI (rapidocr isn't in requirements.txt), whatever this computer has installed;
+    # tests of the pre-filter pass their own image text.
+    monkeypatch.setattr(prefilter, "image_text", lambda image: None)
     return tmp_path

@@ -3,7 +3,9 @@
 Per account:
   - A new account gets a deeper first sweep (its last BACKFILL_POSTS posts from the last BACKFILL_DAYS
     days); once all of them are analyzed it joins the regular sweep (last DEFAULT_LOOKBACK_DAYS days).
-  - Each new post is triaged by the light model; only posts that announce events are extracted by Flash.
+  - Each new post is triaged by the light model; only posts that announce events are extracted by Flash. Before the
+    triage the pre-filter (prefilter.py, a rule) judges it too; in shadow mode (config.PREFILTER_MODE) its verdict is
+    only recorded next to Gemini's (RunStats.prefilter).
   - Posts extracted provisionally (by a lighter model: Flash was out of quota or busy) are re-extracted with Flash
     when there's budget, after every account and the soonest events first; a Flash paused as busy is waited for
     once a run, time allowing, and what Flash changed in the lighter readings is counted (RunStats.upgrade_changes).

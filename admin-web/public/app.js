@@ -6,7 +6,7 @@
 // picked here go to "Agregar desde una historia".
 
 import { HIDE_STORY_COMMAND, MAX_SCREENSHOTS, NOTES_MAX, POST_LINK_IN_TEXT, STORY_LINK_IN_TEXT } from "./patterns.js";
-import { escapeHtml, historyCard, seriesCard, when } from "./render.js";
+import { escapeHtml, historyCard, prefilterLine, seriesCard, when } from "./render.js";
 import { initialTab, TAB_KEY, tabAfterKey, tabFromHash, tabsHtml } from "./tabs.js";
 
 const main = document.getElementById("main");
@@ -183,7 +183,7 @@ function accountsCard(status) {
     : "";
   return `<section class="card"><h2>Cuentas y eventos</h2>
     <div class="facts">${facts.map(([number, label]) => `<div class="fact"><b>${escapeHtml(number)}</b>${escapeHtml(label)}</div>`).join("")}</div>
-    ${lighterReads(status.lighter_reads)}${firstSweep}${late}</section>`;
+    ${lighterReads(status.lighter_reads)}${prefilterLine(status.prefilter)}${firstSweep}${late}</section>`;
 }
 
 // ---------- the tools: requests to the admin inbox (issues the admin workflow answers) ----------

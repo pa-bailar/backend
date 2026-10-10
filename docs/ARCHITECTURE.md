@@ -552,9 +552,12 @@ flowchart TD
     T -->|yes| PEND["Pending: next run"]
     T -->|no| IMG["Download images<br/>(photo, carousel slides, video frame)"]
     RE --> IMG2["Download images"] -->|"it had events: no triage, the<br/>extraction decides again and takes<br/>its old events off if they are gone"| EX
-    IMG2 -->|"it had none"| TR
+    IMG2 -->|"it had none"| PF
     IMG -->|fails| PEND
-    IMG --> TR["Triage: Flash-Lite<br/>caption + first image (512 px)"]
+    IMG --> PF{"Pre-filter (no AI): caption and<br/>images' OCR text say nothing<br/>of an event?"}
+    PF -->|"yes, mode on"| REC
+    PF -->|"no; or shadow mode:<br/>its verdict is only recorded"| TR
+    TR["Triage: Flash-Lite<br/>caption + first image (512 px)"]
     TR -->|"not an event"| REC["Record as analyzed"]
     TR -->|"Flash-Lite out of<br/>today's quota"| TLR{"Flash out<br/>of quota too?"}
     TLR -->|"no: keep Flash for<br/>screened posts"| PEND
@@ -612,6 +615,52 @@ last resort's "no" is provisional, and its upgrade goes through Flash-Lite's tri
 Triage exists to save the scarce Flash quota (20 a day per model). Most posts aren't events, and a
 512-pixel image plus the caption are enough to tell. When unsure, the triage prompt answers "yes": a
 false "no" loses the event for good, while a false "yes" only costs one Flash call.
+
+**The pre-filter** (`pa_bailar/prefilter.py`, the owner, 9 Oct 2026): a rule, no AI, that would save the triage's
+request on posts that obviously announce no event, without ever missing one. It judges every post the triage would
+read (not one that had events and is read again, nor one added by hand), after the style filter and the images'
+download. A post is "obviously not an event" only when all of this holds:
+- its caption names nothing an announcement names (`prefilter.signal`): no date, weekday (also "sáb", "vie"), month,
+  relative day ("hoy", "mañana", "este finde", "nos vemos el 18"), time ("8pm", "20:00") or price ("$30k",
+  "30.000", "20 mil", "cover", `text.PRICE_WORDS`): the rule checks' patterns (`checks.names_a_date`,
+  `checks.times`, `checks.names_a_price`); no event word (social, taller, clase, fiesta, rumba, concierto, congreso,
+  festival, noche, milonga, práctica, cupos, inscripciones, entrada, gratis…), invitation ("te esperamos", "vente",
+  "no te lo pierdas"), venue or address ("📍", "Cra 7 #45", "sede"), link, phone or "DM"; nor those words inside a
+  hashtag ("#socialdesalsa"). The lists are its own, broad on purpose: a word too many costs one triage request, a
+  word missing could lose an event;
+- and its images say nothing either: a flyer may carry everything while the caption says "🔥". Only their OCR text
+  (`ocr.py`) rules them out: each image read, none with a signal, a digit or more than `PREFILTER_MAX_IMAGE_LETTERS`
+  (12) letters (a flyer always has text; a photo of dancers, a watermark or a reel's subtitle, "Hola amigos", at
+  most; a handwritten flyer OCR read only as "Previa | 19 … ESPACIO 64" has digits). More images than
+  `PREFILTER_MAX_IMAGES` (4), or no OCR, and the post is read.
+
+**Shadow mode first** (`config.PREFILTER_MODE`: `"shadow"`, the default; `"on"`; `"off"`). In shadow nothing is
+skipped: the verdict goes in the post's record (`processed_posts.json`, `prefilter`: `verdict` "skip" or "read",
+its `reason`, `text_silent` when the caption named nothing, and `gemini_event`: whether Gemini called it an event
+post, its triage's "yes" or, without a triage, the extraction's), and each run counts them (`RunStats.prefilter`, the
+run's record in `run_history.json`, the run page, `admin status` and PB Admin's "Cuentas y eventos"): posts judged,
+those it would skip, captions with nothing of an event and how many of those Gemini called events (an event all in
+the image), and its **disagreements**: posts it would skip that Gemini called events, listed by link. With `"on"`,
+a post it would skip is recorded as no event (reason "pre-filtro: …", model `prefilter`) with no triage. **To switch
+it on:** a week of shadow data (about 20 sweeps) with 0 disagreements and a share of skips worth it, then
+`PREFILTER_MODE = "on"` in `config.py`.
+
+**Without OCR in the sweep it skips nothing.** `rapidocr` isn't in `requirements.txt` (its models, ~31 MB, download
+from modelscope.cn on first use, and it brings onnxruntime, OpenCV and numpy), so in the sweep every image is
+unchecked and every post read; the shadow data then measures the caption alone: how often a caption naming nothing
+of an event hid an event in its image.
+
+Replayed on 9 Oct 2026, with OCR on the owner's computer:
+- **event posts** (186 with a caption: the site's history and the test set): none would be skipped. Two captions named
+  nothing of an event ("Salsa es lo que vine para el bailador…", an empty one), each with a flyer whose OCR text did
+  ("orquesta", "cupos"): a caption-only rule would have lost both. And 16 of the 232 event images on hand pass
+  the image check (selfie reels, photos: no digit, at most a short subtitle): those events were all in their
+  captions, so neither check is enough alone;
+- **posts the triage called no event** (a sample of 94 of state's records, read from their public pages): 71
+  captions named something of an event (recaps, regular nights, classes: the triage's to judge), 23 named nothing,
+  and 4 of those had images without text: **4 of 94 (about 4%) would be skipped**, none without OCR.
+So it would save few requests, as expected from a rule that must never lose an event; OCR in the sweep is the owner's
+call (its download and the run's time against ~4% of the triage's "no" posts).
 
 ### 6.3 Storing what Gemini found
 
@@ -699,6 +748,9 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 | Provisional extraction | `gemini-3-flash-preview`, then Flash-Lite | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
 | Story (admin tools) | Extraction's models, then the provisional ones when Flash is out (kept as it is) | Up to 4 screenshots of one story (numbered), when the screenshot was taken, the admin's notes and account, the account's known events | `StoryAnalysis`: the header's account, a reshared post's author, mentions, location sticker, the story's age, a `content_box` per screenshot, `events[]` (`StoryEvent`: dates as printed, a series' sessions too (`StorySession`), worked out in code by `stories.resolve_date`) | Model default |
 | Discovery | Flash-Lite (`LITE_MODELS`, the triage's) | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, whether it announces one-time events, reason | Model default |
+
+Before the triage, a rule with no request judges the post too: the pre-filter (section 6.2), in shadow mode (its
+verdict recorded next to the triage's, nothing skipped) until a week of data shows it never skips an event post.
 
 Notes on the prompts and parameters:
 - **The prompts** are in `pa_bailar/prompts.py`, and the JSON schemas are the Pydantic models in
@@ -1094,7 +1146,7 @@ memory between runs; the site never sees it.
 
 | File | Content | Why it matters |
 |---|---|---|
-| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha`, `fuera de Bogotá`, `ya pasó` or `cancelado`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined, and `by_hand` for a post added by hand (section 6.1). Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
+| `processed_posts.json` | Every analyzed post: account, link, when, event or not, reason, model, `provisional`, caption hash, and its `outcome` (`event`, `merged`, `discarded` with a `detail` such as `recurrente`, `sin fecha`, `fuera de Bogotá`, `ya pasó` or `cancelado`, `not_event`, `rejected`, `hidden` for a story, or a post whose events were all hidden, taken off the site by hand) with the `event_ids` it became or joined, `by_hand` for a post added by hand (section 6.1), and the pre-filter's verdict next to Gemini's (`prefilter`, section 6.2). Stories added by hand are here too, under `story-<hash>`, with the perceptual hashes of their screenshots (`image_hashes`) | Posts are never sent to Gemini twice. Edited captions and provisional posts are spotted here. Records older than 45 days are forgotten, which is safe: older posts are never fetched again |
 | `accounts.json` | Per account: when first seen, `backfill_done`, `last_swept_at`, `latest_post`, and `unreadable` (post id → runs on which no model gave valid JSON for it, section 7.2) | Whether the account still gets the deeper first sweep, and when its next turn is |
 | `gemini_usage.json` | Today's quota day (Pacific), requests per model, and the models not available to the key today (`models.GeminiUsage`) | The day's runs share the daily budgets |
 | `external_usage.json` | The last resort's day (UTC) and, per provider, requests, tokens and the answers per model | The day's runs share Groq's and OpenRouter's budgets (section 7.3) |
@@ -1567,7 +1619,8 @@ flowchart LR
 | `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback and the last resort (extraction only), and no request after the run's time budget |
 | `external.py` | `ExternalTier`: the last resort on OpenAI-compatible chat APIs (Groq, OpenRouter): order, budgets, Groq's token pacing, per-run quarantine, JSON checked against the schemas |
 | `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; the test set (`gold/`, `--gold`, `--ocr`); OpenRouter's free vision models |
-| `ocr.py` | A flyer's text by OCR (RapidOCR, on the CPU), in rows as printed; optional (`rapidocr` isn't in `requirements.txt` yet): the input of the checks, and of `bakeoff --ocr` |
+| `ocr.py` | A flyer's text by OCR (RapidOCR, on the CPU), in rows as printed; optional (`rapidocr` isn't in `requirements.txt` yet): the input of the checks, of the pre-filter's image check, and of `bakeoff --ocr` |
+| `prefilter.py` | The pre-filter (section 6.2): a rule, no AI, that tells posts obviously announcing no event (nothing of one in the caption, no text on the images by OCR) before the triage; in shadow mode (`config.PREFILTER_MODE`) only recorded next to Gemini's verdict |
 | `checks.py` | Rules (no AI) that flag a reading for a second look, worked out from the post's day: a coming date and no event, a time not read, a range or a list of dates not covered, three or more start times for one event (not a social's opening classes), a weekday's day ("sábado 10", "SÁB 10 OCT") or a relative day ("este sábado", "hoy jueves") with no event, an event before the post. It reads the Spanish flyers use (the audit of 7 Oct 2026): hours in words ("8 de la noche"), "1ro de noviembre", dates with their year, ranges and lists in their other spellings; not "MAR 13" as March, a "fiesta de cierre" as a deadline, nor "antes de las 10 pm" as a start. Measured on the test set (0 false flags) and on the site's posts; not yet called by the sweep |
 | `normalize.py` | Cleans Gemini's output into the formats the site relies on; a workshop series' days and times follow its sessions; prices in another currency never shown as free |
 | `merging.py` | Matches an extracted event to a stored one and merges posts into one event |

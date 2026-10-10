@@ -7,6 +7,7 @@ import os
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
+from typing import Literal
 from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
@@ -83,6 +84,17 @@ EXTRA_ACCOUNTS_PER_RUN = 5  # over each sweep's share, so a few late accounts st
 MAX_IMAGES_PER_POST = 10  # monthly schedules often show an event on slide 5 or later; still one request
 OCR_MIN_SCORE = 0.6  # pieces of text read with less confidence are left out (stray marks on a photo; ocr.py)
 OCR_ROW_OVERLAP = 0.6  # pieces this close (in line heights) to a row's first piece share its row (ocr.group_rows)
+# The pre-filter (prefilter.py): a rule, no AI, that tells posts that obviously announce no event before the triage.
+# "shadow" (the owner, 9 Oct 2026): it judges every post the triage reads and its verdict is recorded next to Gemini's,
+# nothing skipped; "on": the posts it would skip get no triage; "off": not run. Switched on only after a week of shadow
+# data where it would have skipped no post Gemini called an event (docs/ARCHITECTURE.md, section 6.2).
+PREFILTER_MODE: Literal["off", "shadow", "on"] = "shadow"
+# A post's images are ruled out only by their OCR text (a flyer may carry everything): a post with more images than
+# this, or an image with a digit or more letters than that, is read whatever its caption says. Measured on 9 Oct 2026
+# on the 232 event images on hand: a handwritten flyer OCR read only as "Previa | 19 … ESPACIO 64" (23 letters, but
+# digits); the 16 that pass are photos and selfie reels whose caption says it all ("Hola amigos": 10 letters).
+PREFILTER_MAX_IMAGES = 4
+PREFILTER_MAX_IMAGE_LETTERS = 12
 # Videos' preview clips (clips.py): when an event's image comes from a video (a reel, or a carousel's video slide),
 # a short silent clip of it plays on the site. Made with ffmpeg (on GitHub's runners; locally FFMPEG or the PATH);
 # without ffmpeg there are just no clips.

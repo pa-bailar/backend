@@ -8,7 +8,7 @@ from collections.abc import Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from datetime import UTC, date, datetime, timedelta
 
-from .. import config, links, storage
+from .. import config, links, prefilter, storage
 from ..account_options import AccountOptions, mentions_focus
 from ..changes import AUDITED_FIELDS, reading
 from ..external import is_external
@@ -21,7 +21,7 @@ from ..gemini import (
     quota_date,
 )
 from ..instagram import InstagramError, Post, is_rate_limited, published_at, slide_count
-from ..models import AccountState, ProcessedPost, StoredEvent, had_events
+from ..models import AccountState, PrefilterRecord, ProcessedPost, StoredEvent, Triage, had_events
 from ..text import parse_hhmm
 from . import common
 from .common import RETRYABLE_ERRORS, RunStats, caption_hash, clip_for, flyer_slide
@@ -34,6 +34,9 @@ log = logging.getLogger(__name__)
 # How the style filter's reason ends (accounts.txt `solo:`): a post recorded with it is filtered again, with the day's
 # words, whenever it comes back in the window (_filtered_before).
 _OUTSIDE_FOCUS = "(la cuenta es solo para esos estilos)"
+# A post the pre-filter skipped (config.PREFILTER_MODE "on"): its record's reason starts with this, its model is this.
+PREFILTER_REASON = "pre-filtro"
+PREFILTER_MODEL = "prefilter"
 
 
 def hours_overdue(state: AccountState | None, now: datetime, unproductive: bool = False) -> float:
@@ -111,6 +114,14 @@ def upgrade_urgency(event_ids: list[str], events: dict[str, StoredEvent], today:
         if (event := events.get(event_id)) and event.date and (event.last_day or event.date) >= today
     ]
     return (0, min(upcoming)) if upcoming else (1, "")
+
+
+def _gemini_word(verdict: Triage | None, record: ProcessedPost) -> bool | None:
+    """Whether Gemini called an extracted post an event post: its triage's "yes" (the extraction may still find no
+    event in it), else, without a triage, the extraction's; None when Gemini rejected the post."""
+    if verdict is not None:
+        return verdict.is_event_post
+    return None if record.outcome == "rejected" else record.is_event_post
 
 
 def _bad_key(error: GeminiKeyError) -> SystemExit:
@@ -499,28 +510,84 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         except OSError as error:
             return self._retry_later(account, f"could not download images: {error}")
 
+        judged = self._prefilter(post, images) if triage else None
+        if judged and judged.skip and config.PREFILTER_MODE == "on":
+            self._record_not_event(account, post, f"{PREFILTER_REASON}: {judged.reason}", PREFILTER_MODEL)
+            self._note_prefilter(post, judged, gemini_event=None)
+            return True
+
         verdict, triage_model = None, None
         if triage:
-            try:
-                verdict, triage_model = self.extractor.triage(
-                    account, post, published, images, rules=self._rules(account, post["id"])
-                )
-            except QuotaExhaustedError as error:
-                if isinstance(error, OutOfTimeError) or self.extractor.can_extract_with_flash():
-                    # Flash-Lite out of today's quota: wait for it rather than spend Flash's small one on every post.
-                    log.info("     waits for the next run (triage): %s", error)
-                    return False
-                # Flash is out too, so the extraction is the last resort's: it decides alone. Never a last-resort
-                # triage: its "no" would be final, and Groq's tokens a minute don't fit a triage and an extraction.
-                log.info("     Flash-Lite and Flash out of quota: extracting directly (the last resort)")
-            except RETRYABLE_ERRORS as error:
-                # Triage unavailable: let the extraction decide on its own.
-                log.info("     triage unavailable (%s), extracting directly", error)
+            screened = self._triage(account, post, published, images)
+            if screened is None:
+                return False
+            verdict, triage_model = screened
 
         if verdict is not None and not verdict.is_event_post:
             self._record_not_event(account, post, verdict.reason, triage_model or "-")
+            self._note_prefilter(post, judged, gemini_event=False)
             return True
-        return self._extract_and_store(account, post, published, images)
+        stored = self._extract_and_store(account, post, published, images)
+        if stored and judged and (record := self.processed.get(post["id"])):
+            self._note_prefilter(post, judged, gemini_event=_gemini_word(verdict, record))
+        return stored
+
+    def _triage(
+        self, account: str, post: Post, published: datetime, images: list[bytes]
+    ) -> tuple[Triage | None, str | None] | None:
+        """The triage's verdict and model; (None, None) when the extraction must decide alone (the triage failed, or
+        Flash-Lite and Flash are both out of quota); None when the post must wait for the next run."""
+        try:
+            return self.extractor.triage(account, post, published, images, rules=self._rules(account, post["id"]))
+        except QuotaExhaustedError as error:
+            if isinstance(error, OutOfTimeError) or self.extractor.can_extract_with_flash():
+                # Flash-Lite out of today's quota: wait for it rather than spend Flash's small one on every post.
+                log.info("     waits for the next run (triage): %s", error)
+                return None
+            # Flash is out too, so the extraction is the last resort's: it decides alone. Never a last-resort
+            # triage: its "no" would be final, and Groq's tokens a minute don't fit a triage and an extraction.
+            log.info("     Flash-Lite and Flash out of quota: extracting directly (the last resort)")
+        except RETRYABLE_ERRORS as error:
+            # Triage unavailable: let the extraction decide on its own.
+            log.info("     triage unavailable (%s), extracting directly", error)
+        return None, None
+
+    def _prefilter(self, post: Post, images: list[bytes]) -> prefilter.Verdict | None:
+        """The pre-filter's verdict on a post the triage would read (config.PREFILTER_MODE); None when it's off, and
+        for a post added by hand (whoever added it wants it read)."""
+        if config.PREFILTER_MODE == "off" or self._by_hand(post["id"]):
+            return None
+        return prefilter.judge(post.get("caption"), images)
+
+    def _note_prefilter(self, post: Post, judged: prefilter.Verdict | None, gemini_event: bool | None) -> None:
+        """Record the pre-filter's verdict in the post's record, next to Gemini's (`gemini_event`: whether Gemini
+        called it an event post; None when Gemini didn't read it), and count it in the run's statistics. A post it
+        would skip that Gemini called an event is a disagreement: logged, with its link, for the owner to look at."""
+        record = self.processed.get(post["id"])
+        if judged is None or record is None:
+            return
+        record.prefilter = PrefilterRecord(
+            verdict="skip" if judged.skip else "read",
+            reason=judged.reason,
+            text_silent=judged.text_silent,
+            gemini_event=gemini_event,
+        )
+        counted = ["judged"]
+        if judged.skip:
+            counted.append("skipped" if config.PREFILTER_MODE == "on" else "would_skip")
+        if judged.text_silent:
+            counted += ["text_silent", *(["text_silent_events"] if gemini_event else [])]
+        if judged.skip and gemini_event:
+            counted.append("disagreements")
+            self.stats.prefilter_disagreements.append(post["permalink"])
+            log.warning("     the pre-filter would skip it, but Gemini says it announces an event: %s", judged.reason)
+        elif judged.skip:
+            log.info(
+                "     pre-filter: %s (%s)", "skipped" if config.PREFILTER_MODE == "on" else "would skip", judged.reason
+            )
+        for key in counted:
+            self.stats.prefilter[key] = self.stats.prefilter.get(key, 0) + 1
+        storage.save_processed_posts(self.processed)
 
     def _extract_and_store(self, account: str, post: Post, published: datetime, images: list[bytes]) -> bool:
         """Extract a post's events and store them. False when it must be retried next run."""

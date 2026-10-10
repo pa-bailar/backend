@@ -7,6 +7,7 @@ Plain reading of what the sweeps record (no AI, no Gemini requests):
   - Instagram: whether the token works (one call, optional), and the last sweep's highest reading of its quota
     (run_history.json: the token check's own reading is another counter);
   - what Flash changed when it re-read events only lighter models had read, over the recorded runs (run_history.json);
+  - the pre-filter's verdicts against Gemini's, over the recorded runs (run_history.json; prefilter.py);
   - the history: what the latest sweeps and admin requests did to which event (run_history.json, admin_runs.json:
     changes.py);
   - accounts followed, those still in their first, deeper sweep (accounts.txt, accounts.json);
@@ -27,6 +28,7 @@ from .external import usage_day, usage_reset
 from .gemini import daily_budget, quota_day, quota_reset
 from .models import AccountState, GeminiUsage, StoredEvent, had_events
 from .pipeline import overdue_by_account
+from .pipeline.common import PREFILTER_COUNTS
 from .text import WEEKDAYS, clock, parse_hhmm, sessions_label
 
 RECENT_RUNS = 5
@@ -155,6 +157,43 @@ def _lighter_reads(history: list[dict[str, Any]]) -> dict[str, int] | None:
     for run in history:
         total.update(run.get("upgrade_changes") or {})
     return dict(total) if total.get("compared") else None
+
+
+def _prefilter(history: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """The pre-filter's counts summed over the recorded runs that judged posts (common.PREFILTER_COUNTS), since when,
+    and the links of the posts it would skip that Gemini called events (its disagreements); None until a run judged
+    one. In shadow mode, what decides whether it may be switched on (docs/ARCHITECTURE.md, section 6.2)."""
+    runs = [run for run in history if (run.get("prefilter") or {}).get("judged")]
+    if not runs:
+        return None
+    total: Counter[str] = Counter()
+    for run in runs:
+        total.update(run["prefilter"])
+    return {
+        "mode": config.PREFILTER_MODE,
+        "since": runs[0]["finished_at"],
+        "runs": len(runs),
+        **{key: total.get(key, 0) for key in PREFILTER_COUNTS},
+        "disagreement_posts": [link for run in runs for link in run.get("prefilter_disagreements") or []],
+    }
+
+
+def prefilter_line(found: dict[str, Any], now: datetime) -> str:
+    """ "Pre-filtro (en sombra, desde ayer 9:12 p. m., 3 barridos): de 180 publicaciones saltaría 4; Gemini vio evento
+    en 0 de ellas. 12 sin señales en el texto: Gemini vio evento en 3 (estaba en la imagen)." """
+    mode = {"shadow": "en sombra", "on": "activo", "off": "apagado"}[found["mode"]]
+    skipped = found["skipped"] + found["would_skip"]
+    verb = "saltaría" if found["mode"] != "on" else "saltó"
+    text = (
+        f"Pre-filtro ({mode}, desde {moment_label(found['since'], now)}, {found['runs']} barridos): de "
+        f"{found['judged']} publicaciones {verb} {skipped}; Gemini vio evento en {found['disagreements']} de ellas"
+    )
+    if found["disagreements"]:
+        text = "⚠️ " + text + " (" + ", ".join(found["disagreement_posts"]) + ")"
+    text += f". {found['text_silent']} sin señales en el texto"
+    if found["text_silent_events"]:
+        text += f": Gemini vio evento en {found['text_silent_events']} (estaba en la imagen)"
+    return text + "."
 
 
 def lighter_reads_line(changes: dict[str, int]) -> str:
@@ -317,6 +356,7 @@ def collect(
         "instagram": instagram() if instagram else None,
         "instagram_quota": _instagram_quota(history),
         "lighter_reads": _lighter_reads(history),
+        "prefilter": _prefilter(history),
         "accounts": {
             "followed": len(followed),
             "first_sweep_pending": [
@@ -470,6 +510,8 @@ def markdown(status: dict[str, Any]) -> str:
         )
     if lighter := status.get("lighter_reads"):
         lines.append(f"- {lighter_reads_line(lighter)}")
+    if found := status.get("prefilter"):
+        lines.append(f"- {prefilter_line(found, now)}")
     if status["events"] is not None:
         events = status["events"]
         low = f", {events['low_confidence']} con datos dudosos" if events["low_confidence"] else ""
