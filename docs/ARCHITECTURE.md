@@ -1180,7 +1180,7 @@ per run, the most telling kinds first (`changes.KIND_ORDER`), the rest only coun
 
 `admin status` gathers both files as `history` (`status.history_of`): the latest 10 runs, newest first, each with
 its `kind` (`sweep`, or the request: `post`, `post_again`, `story`, `hide_event`, `hide_story`), `slot` (the
-scheduled sweep it was, `06:30` or `21:00`, when it ended within 90 minutes of that time; none: an extra one),
+scheduled sweep it was, `03:00`, `06:30` or `21:00`, when it ended within 90 minutes of that time; none: an extra one),
 `finished_at`, `run_url`, `target`, `error`, `counts`, `left_out` and `changes` (each with its `url` on the site;
 `null` for a run recorded before 9 Oct 2026: its `events_new` and `events_merged` stand in as counts). Example:
 

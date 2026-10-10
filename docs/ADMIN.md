@@ -70,7 +70,7 @@ turn) and events, with what Flash changed when it re-read lighter models' readin
 (none saved yet, GitHub failing, offline), a note takes its place and Herramientas still works.
 
 **Historial** (under Barridos, collapsed until tapped): what the latest 10 runs did to which event, so a count
-like "3 nuevos" says which. One row per run, newest first: what ran ("Barrido de la mañana", "de la noche", "Barrido
+like "3 nuevos" says which. One row per run, newest first: what ran ("Barrido de la madrugada" at 3:00, "de la mañana", "de la noche", "Barrido
 extra" for one started by hand or at another time, or the request: "Agregar publicación", "Volver a leer",
 "Agregar historia", "Ocultar evento", "Ocultar historia"), when, and a summary ("1 cancelado · 2 nuevos · 1
 corregido"). Tapping a row (the newest is open) lists its events: a colored label for what happened (Nuevo,
