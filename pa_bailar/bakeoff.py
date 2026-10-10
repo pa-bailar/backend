@@ -565,7 +565,7 @@ def _confirm_no_events(
     no event in the shared answer are read alone now, as the sweep would. False when no quota is left."""
     for item in batch if len(batch) > 1 else []:
         entry = cache[item["post_id"]]
-        if "alone" in entry or entry["answer"]["events"]:
+        if "alone" in entry or (entry["answer"]["events"] and entry["answer"]["is_event_post"]):
             continue
         try:
             alone = _read_alone(model, item, ask, data_dir)

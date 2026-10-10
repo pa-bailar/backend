@@ -19,7 +19,7 @@ from pa_bailar.batching import (
     split_answer,
 )
 from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError, UnreadableAnswerError
-from pa_bailar.models import BatchAnalysis, BatchPostAnalysis, PostAnalysis
+from pa_bailar.models import BatchAnalysis, BatchPostAnalysis, PostAnalysis, Triage
 from tests.factories import extracted, make_image, stored
 from tests.test_sweep import (
     FakeExtractor,
@@ -123,6 +123,15 @@ def test_a_post_the_shared_answer_finds_no_event_in_is_confirmed_alone():
     assert list(analyses) == [0] and left_out == {1: NO_EVENT}
 
 
+def test_a_shared_no_that_lists_events_is_a_no_confirmed_alone():
+    """is_event_post false with events listed: the sweep stores none of them (_store_analysis) and records the post as
+    no event, for good. So it's a "no" like any other, confirmed alone (the bug hunt of 9 Oct 2026)."""
+    said_no = answer(("A", [0]), ("B", [1]))
+    said_no.posts[1].is_event_post = False
+    analyses, left_out = split_answer(said_no, [1, 1])
+    assert list(analyses) == [0] and left_out == {1: NO_EVENT}
+
+
 def test_an_answer_for_a_post_the_request_doesnt_hold_leaves_every_post_out():
     analyses, left_out = split_answer(answer(("A", [0]), ("B", [1]), ("D", [])), [1, 1])
     assert analyses == {} and left_out == {0: STRAY_ANSWER, 1: STRAY_ANSWER}
@@ -202,6 +211,26 @@ def test_a_batch_with_flash_out_is_read_by_the_provisional_models_and_marked_so(
     assert (reading.model, reading.provisional) == (provisional, True)
 
 
+def test_a_shared_no_listing_events_is_read_alone_through_the_sweep(extractor, monkeypatch):
+    """End to end, the real extractor (a fake Gemini): the shared answer says post B isn't an event post but lists an
+    event; read alone, B's event is found and published, never recorded as "not an event" from the shared answer."""
+    monkeypatch.setattr(config, "EXTRACTION_BATCH_POSTS", 2)
+    flash = config.EXTRACTION_MODELS[0]
+    said_no = answer(("A", [0]), ("B", [1]))
+    said_no.posts[1].is_event_post = False
+    extractor.pool._client.models.answers = {
+        config.TRIAGE_MODELS[0]: [Triage(is_event_post=True, reason="t")] * 2,
+        flash: [said_no, PostAnalysis(is_event_post=True, reason="alone", events=[extracted(title="Evento B0")])],
+    }
+    instagram = FakeInstagram({"academia": [post("p1", days_ago=3), post("p2", days_ago=2)], "otra": []})
+    stats = run(instagram, extractor)
+    records = storage.load_processed_posts()
+    assert extractor.pool._client.models.calls.count(flash) == 2  # the shared request, then B alone
+    assert (records["p2"].outcome, records["p2"].reason) == ("event", "alone")
+    assert sorted(event["title"] for event in read(config.EVENTS_FILE)) == ["Evento A0", "Evento B0"]
+    assert (stats.batched_posts, stats.batch_rereads) == (1, 1)
+
+
 def test_a_batch_never_reaches_the_last_resort(extractor):
     for model in (*config.EXTRACTION_MODELS, *config.PROVISIONAL_MODELS):
         extractor.pool._exhaust(model)
@@ -217,13 +246,15 @@ def test_a_batch_never_reaches_the_last_resort(extractor):
 
 
 class BatchingExtractor(FakeExtractor):
-    """FakeExtractor that also reads batches: per post id its prepared answer, unless the post is in `left_out` (the
-    answer leaves it out, with why) or the whole batch fails (`batch_error`)."""
+    """FakeExtractor that also reads batches: per post id its prepared answer (`shared`'s when it has one: what the
+    post gets in a shared answer, else the same as alone), unless the post is in `left_out` (the answer leaves it out,
+    with why) or the whole batch fails (`batch_error`)."""
 
-    def __init__(self, analyses, left_out=None, batch_error=None, **options):
+    def __init__(self, analyses, left_out=None, batch_error=None, shared=None, **options):
         super().__init__(analyses, **options)
         self.left_out = left_out or {}
         self.batch_error = batch_error
+        self.shared = shared or {}
         self.batches: list[list[str]] = []
         self.batch_rules: list[list[str]] = []
 
@@ -235,7 +266,8 @@ class BatchingExtractor(FakeExtractor):
             raise QuotaExhaustedError("no quota")
         if self.batch_error:
             raise self.batch_error
-        analyses = {index: self.analyses[pid] for index, pid in enumerate(ids) if pid not in self.left_out}
+        answers = {index: self.shared.get(pid, self.analyses[pid]) for index, pid in enumerate(ids)}
+        analyses = {index: answer for index, answer in answers.items() if ids[index] not in self.left_out}
         left = {index: self.left_out[pid] for index, pid in enumerate(ids) if pid in self.left_out}
         model, provisional = ("fake-flash", False) if self.flash_available else ("fake-lite", True)
         return BatchReading(analyses, left, model, provisional)

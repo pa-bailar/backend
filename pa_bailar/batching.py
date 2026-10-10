@@ -10,9 +10,9 @@ shares (bakeoff.py):
   and labeled with the post ("Image 2 (post B)"); then the instructions (prompts.BATCH_EXTRACTION_PROMPT).
 - `split_answer`: each post's answer as the one-post extraction would give it (a PostAnalysis, its images numbered
   from 0 again), or why it can't be trusted: no answer for it, two answers, an event citing an image that isn't its
-  post's own, or no event at all (a "no" is final, so it's confirmed alone). An answer for a post the request
-  doesn't hold makes the whole answer untrustworthy. The sweep reads each post left out again alone: a batch never
-  loses a post.
+  post's own, or no event (none listed, or is_event_post false: a "no" is final, so it's confirmed alone). An
+  answer for a post the request doesn't hold makes the whole answer untrustworthy. The sweep reads each post left
+  out again alone: a batch never loses a post.
 """
 
 from dataclasses import dataclass
@@ -34,7 +34,8 @@ STRAY_ANSWER = "respuesta para una publicación que no está en la solicitud"
 # A post the triage passed and the shared answer finds no event in: a "no" is final (the post is never read again unless
 # its caption changes), so it's confirmed alone. On the test set (9 Oct 2026, Flash-Lite, two a request), the only two
 # events lost by batching were such "no"s: a bar's special night read beside another account's workshops, and an
-# academy's closing show; each post read alone found its event.
+# academy's closing show; each post read alone found its event. An answer that says it isn't an event post
+# (is_event_post false) is such a "no" even when it lists events: the sweep stores none of them (_store_analysis).
 NO_EVENT = "sin eventos en la respuesta compartida: se confirma sola"
 
 
@@ -99,7 +100,8 @@ def batch_contents(posts: list[tuple[dict[str, str], list[bytes]]], known_events
 
 def split_answer(answer: BatchAnalysis, image_counts: list[int]) -> tuple[dict[int, PostAnalysis], dict[int, str]]:
     """Each post's answer, as a one-post extraction's (its own images numbered from 0), by its place in the batch; and
-    the posts left out, with why: no answer, two answers, no event (confirmed alone: NO_EVENT), or an event citing an
+    the posts left out, with why: no answer, two answers, no event (none listed, or is_event_post false: confirmed
+    alone, NO_EVENT), or an event citing an
     image that isn't its post's (a mix-up). Each is read again alone. An answer for a letter the request doesn't hold
     leaves every post out: the model lost track of which post is which."""
     count = len(image_counts)
@@ -122,7 +124,7 @@ def split_answer(answer: BatchAnalysis, image_counts: list[int]) -> tuple[dict[i
             continue
         own = ranges[index]
         events = answers[0].events
-        if not events:
+        if not events or not answers[0].is_event_post:  # a "no" listing events is a "no" all the same (stored so)
             left_out[index] = NO_EVENT
             continue
         if any(event.image_index is not None and event.image_index not in own for event in events):

@@ -846,8 +846,9 @@ flowchart TD
   - **Safeguards: a post is never dropped.** Each post's part of the answer is checked (`batching.split_answer`) and
     a post is read again alone, through the one-post path with its own fallbacks and errors, when the answer has no
     entry for it or two, when one of its events cites an image of another post (a mix-up), or when it finds no event
-    in it (a "no" is final: on the test set the only two events batching lost were such "no"s). An answer for a post
-    the request doesn't hold sends every post back alone. So does a request that fails: no model could answer, Gemini
+    in it (a "no" is final: on the test set the only two events batching lost were such "no"s); a part that says the
+    post isn't an event post is such a "no" even when it lists events (stored, it would publish none). An answer for
+    a post the request doesn't hold sends every post back alone. So does a request that fails: no model could answer, Gemini
     refused it or cut it off (a refusal records only the post that's refused alone, not its batch), an unreadable
     answer, or no quota (nothing was spent, and alone each post may still reach the last resort, which a batch never
     does). Each post's record names the model that read the batch and whether it's provisional, as for one post;
