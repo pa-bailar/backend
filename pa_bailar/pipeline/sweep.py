@@ -6,11 +6,11 @@ import time
 from collections import Counter
 from collections.abc import Iterable, Iterator, Mapping
 from contextlib import contextmanager
-from dataclasses import asdict
 from datetime import UTC, date, datetime, timedelta
 
 from .. import config, links, storage
 from ..account_options import AccountOptions, mentions_focus
+from ..changes import AUDITED_FIELDS, reading
 from ..external import is_external
 from ..gemini import (
     GeminiKeyError,
@@ -22,7 +22,7 @@ from ..gemini import (
 )
 from ..instagram import InstagramError, Post, is_rate_limited, published_at, slide_count
 from ..models import AccountState, ProcessedPost, StoredEvent, had_events
-from ..text import fold, parse_hhmm
+from ..text import parse_hhmm
 from . import common
 from .common import RETRYABLE_ERRORS, RunStats, caption_hash, clip_for, flyer_slide
 from .hiding import Hiding
@@ -30,23 +30,6 @@ from .manual_post import ManualPosts
 from .story_admin import StoryAdmin
 
 log = logging.getLogger(__name__)
-
-# What an upgrade compares between a lighter model's reading of an event and Flash's (Sweep._audit_upgrade).
-AUDITED_FIELDS = ("date", "end_date", "start_time", "title", "venue", "event_type", "styles")
-
-
-def _reading(event: StoredEvent) -> dict[str, object]:
-    """An event's audited fields, as compared: titles and venues folded (accents and case aren't a misreading)."""
-    return {
-        "date": event.date,
-        "end_date": event.end_date,
-        "start_time": event.start_time,
-        "title": fold(event.title),
-        "venue": fold(event.venue or ""),
-        "event_type": event.event_type,
-        "styles": sorted(event.styles),
-    }
-
 
 # How the style filter's reason ends (accounts.txt `solo:`): a post recorded with it is filtered again, with the day's
 # words, whenever it comes back in the window (_filtered_before).
@@ -173,7 +156,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         self._record_instagram_usage()
         self.stats.out_of_time = self.time_up_logged
         storage.save_account_state(self.accounts)
-        storage.save_meta(asdict(self.stats))
+        storage.save_meta(self.stats.for_meta())
         return self.stats
 
     def _share_flash(self) -> None:
@@ -245,7 +228,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         """The events this post announced that only lighter models read, as read: what Flash's reading is compared
         with. An event another post had Flash read already isn't: Flash's reading may not replace it there."""
         return {
-            event.id: _reading(event)
+            event.id: reading(event)
             for event in self.events
             if any(media.post_id == post_id for media in event.media) and self._only_lighter_reads(event)
         }
@@ -256,7 +239,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         2026: is it more robust now?). An event Flash's reading didn't keep counts as "dropped"."""
         if not before:
             return
-        after = {event.id: _reading(event) for event in self.events if event.id in before}
+        after = {event.id: reading(event) for event in self.events if event.id in before}
         found = {"compared": len(before), "dropped": len(before) - len(after)}
         changed: set[str] = set()
         for event_id, fields in after.items():
@@ -315,6 +298,8 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         kept = [event for event in self.events if not event.last_day or event.last_day >= oldest_date]
         expired = [event for event in self.events if event not in kept]
         self.stats.events_expired = storage.archive_events(expired) if expired else 0
+        for event in expired:
+            self.stats.note("archived", event, f"terminó hace más de {config.EVENT_RETENTION_DAYS} días")
         self.events = kept
         past = [key for key, item in self.hidden.items() if (item.event.last_day or "") < oldest_date]
         for key in past:  # long past: no post of it will be read again

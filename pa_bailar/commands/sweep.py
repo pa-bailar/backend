@@ -18,7 +18,7 @@ import logging
 import os
 from pathlib import Path
 
-from pa_bailar import config, health, links, storage, stories
+from pa_bailar import changes, config, health, links, storage, stories
 from pa_bailar.commands.answers import (
     added_post_markdown,
     added_story_markdown,
@@ -119,26 +119,38 @@ def lookback_days(value: str) -> int:
     return days
 
 
+def record_request(
+    action: changes.AdminAction, target: str | None, sweep: Sweep | None, error: AddPostError | None = None
+) -> None:
+    """An admin request's run for the admin page's history (changes.py): what it did to which event, or why it
+    couldn't. After the request saved its state, like the sweep's run record."""
+    done = sweep.stats.changes.values() if sweep else []
+    changes.record_admin_run(action, target, done, run_url(), str(error) if error else None)
+
+
 def add_post(link: str, account: str | None, again: bool = False) -> None:
     """`sweep --post`: publish one post by hand (`--again`: read it again even if it hasn't changed). The answer
     goes to ADMIN_REPORT_FILE (the workflow comments it on the admin issue) and the log; a failure to add it
     isn't a failed run (the answer says why)."""
+    sweep, failure = None, None
     try:
-        added = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS).add_post(link, account, again=again)
-        report = added_post_markdown(added)
+        sweep = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS)
+        report = added_post_markdown(sweep.add_post(link, account, again=again))
     except AddPostError as error:
-        report = f"❌ {error}\n"
-    logging.info("\n%s", report)
-    if report_file := os.environ.get("ADMIN_REPORT_FILE"):
-        Path(report_file).write_text(report, encoding="utf-8")
+        report, failure = f"❌ {error}\n", error
+    record_request("post_again" if again else "post", link, sweep, failure)
+    _write_report(report)
 
 
 def hide_event(event_id: str) -> None:
     """`sweep --hide-event`: take an event off the site by hand ("Ocultar")."""
+    sweep, failure = None, None
     try:
-        report = hidden_event_markdown(Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS).hide_event(event_id))
+        sweep = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS)
+        report = hidden_event_markdown(sweep.hide_event(event_id))
     except AddPostError as error:
-        report = f"❌ {error}\n"
+        report, failure = f"❌ {error}\n", error
+    record_request("hide_event", event_id, sweep, failure)
     _write_report(report)
 
 
@@ -169,13 +181,15 @@ def load_screenshots(ids: list[str], folder: Path) -> list[stories.Screenshot]:
 def add_story(ids: list[str], folder: Path, account: str | None, notes: str | None) -> None:
     """`sweep --story`: publish a story's events from its screenshots. The answer goes to ADMIN_REPORT_FILE, and
     `story_done=true` to the workflow when the screenshots aren't needed any more (it then deletes them)."""
-    done = False
+    done, story_id = False, None
+    sweep, failure = None, None
     try:
         sweep = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS)
         added = sweep.add_story(load_screenshots(ids, folder), account, notes)
-        report, done = added_story_markdown(added), added.done
+        report, done, story_id = added_story_markdown(added), added.done, added.story_id
     except AddPostError as error:
-        report = f"❌ {error}\n"
+        report, failure = f"❌ {error}\n", error
+    record_request("story", story_id, sweep, failure)
     _write_report(report)
     if output := os.environ.get("GITHUB_OUTPUT"):
         with Path(output).open("a", encoding="utf-8") as file:
@@ -184,10 +198,13 @@ def add_story(ids: list[str], folder: Path, account: str | None, notes: str | No
 
 def hide_story(story_id: str) -> None:
     """`sweep --hide-story`: take a story added by hand off the site."""
+    sweep, failure = None, None
     try:
-        report = hidden_story_markdown(Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS).hide_story(story_id))
+        sweep = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS)
+        report = hidden_story_markdown(sweep.hide_story(story_id))
     except AddPostError as error:
-        report = f"❌ {error}\n"
+        report, failure = f"❌ {error}\n", error
+    record_request("hide_story", story_id, sweep, failure)
     _write_report(report)
 
 

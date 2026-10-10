@@ -24,6 +24,7 @@ from typing import Literal
 from pydantic import BaseModel, TypeAdapter
 
 from . import config, storage
+from .changes import EventChange, bounded, counts
 from .merging import title_words
 from .models import StoredEvent
 from .normalize import MULTI_DOUBT
@@ -81,6 +82,11 @@ class RunRecord(BaseModel):
     instagram_usage_detail: dict[str, int] = {}  # its measures: call_count, total_cputime, total_time
     upgrade_changes: dict[str, int] = {}  # what Flash changed in lighter readings (RunStats.upgrade_changes)
     warnings: list[str] = []  # keys of the warnings found (Finding.key)
+    # What happened to which event (changes.py), the most telling first: the admin page's history. None in records
+    # from before it was kept, and in those older than config.CHANGES_KEPT_RUNS (their counts stay).
+    changes: list[EventChange] | None = None
+    changes_left_out: int = 0  # beyond config.RUN_CHANGES_KEPT: only counted
+    change_counts: dict[str, int] = {}  # how many of each kind, all of them (changes.counts)
 
 
 _history_adapter = TypeAdapter(list[RunRecord])
@@ -91,11 +97,17 @@ def load_history() -> list[RunRecord]:
 
 
 def save_history(history: list[RunRecord]) -> None:
-    storage.write_json(config.RUN_HISTORY_FILE, _history_adapter.dump_python(history[-HISTORY_RUNS:], mode="json"))
+    """The latest HISTORY_RUNS runs; the changes' lists only for the latest config.CHANGES_KEPT_RUNS (the history
+    shows the latest few), so the file stays small."""
+    kept = history[-HISTORY_RUNS:]
+    older = len(kept) - config.CHANGES_KEPT_RUNS
+    kept = [run.model_copy(update={"changes": None}) if i < older else run for i, run in enumerate(kept)]
+    storage.write_json(config.RUN_HISTORY_FILE, _history_adapter.dump_python(kept, mode="json"))
 
 
 def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) -> RunRecord:
     failed = [account for account, s in stats.by_account.items() if s.fetch_failed]
+    changes, left_out = bounded(stats.changes.values())
     return RunRecord(
         finished_at=config.now_bogota().isoformat(timespec="seconds"),
         run_url=run_url,
@@ -119,6 +131,9 @@ def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) 
         instagram_usage=stats.instagram_usage,
         instagram_usage_detail=stats.instagram_usage_detail,
         upgrade_changes=dict(stats.upgrade_changes),
+        changes=changes,
+        changes_left_out=left_out,
+        change_counts=counts(stats.changes.values()),
     )
 
 

@@ -1,7 +1,7 @@
 """Adding one post by hand (`sweep --post`, the admin tools' Agregar and Volver a leer)."""
 
 import logging
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 
 from .. import config, links, public_post, storage
@@ -104,7 +104,7 @@ class ManualPosts(SweepBase):
             self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
             self.stats.gemini_requests = self.extractor.requests_this_run()
         storage.save_account_state(self.accounts)
-        storage.save_meta(asdict(self.stats))
+        storage.save_meta(self.stats.for_meta())
 
         record = self.processed[post["id"]]
         events = [event for event in self.events if event.id in record.event_ids]

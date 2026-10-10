@@ -7,6 +7,8 @@ Plain reading of what the sweeps record (no AI, no Gemini requests):
   - Instagram: whether the token works (one call, optional), and the last sweep's highest reading of its quota
     (run_history.json: the token check's own reading is another counter);
   - what Flash changed when it re-read events only lighter models had read, over the recorded runs (run_history.json);
+  - the history: what the latest sweeps and admin requests did to which event (run_history.json, admin_runs.json:
+    changes.py);
   - accounts followed, those still in their first, deeper sweep (accounts.txt, accounts.json);
   - analyzed posts, provisional ones waiting for Flash, upcoming events (processed_posts.json, events.json);
   - new workshop series to look at, each with a one-tap "Ocultar" (new_series);
@@ -20,6 +22,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from . import config, discovery, links, storage, sweep_state
+from .changes import FIELD_NAMES
 from .external import usage_day, usage_reset
 from .gemini import daily_budget, quota_day, quota_reset
 from .models import AccountState, GeminiUsage, StoredEvent, had_events
@@ -27,6 +30,10 @@ from .pipeline import overdue_by_account
 from .text import WEEKDAYS, clock, parse_hhmm, sessions_label
 
 RECENT_RUNS = 5
+HISTORY_ITEMS = 10  # runs in the history (status["history"]): sweeps and admin requests, newest first
+# A sweep that ends within this long after one of config.SWEEP_TIMES is that scheduled one (it can wait for a data PR
+# or a request before it, then runs up to config.MAX_RUN_MINUTES); else it's an extra one, started by hand.
+SCHEDULED_SWEEP_MINUTES = 90
 
 
 def next_sweeps(now: datetime, count: int = 2) -> list[datetime]:
@@ -40,6 +47,45 @@ def next_sweeps(now: datetime, count: int = 2) -> list[datetime]:
                 upcoming.append(moment)
         day += timedelta(days=1)
     return upcoming
+
+
+def sweep_slot(finished_at: str) -> str | None:
+    """The scheduled sweep (config.SWEEP_TIMES: "06:30", "21:00") a run that ended then was, or None (an extra one)."""
+    moment = datetime.fromisoformat(finished_at).astimezone(config.BOGOTA_TZ)
+    for hhmm in config.SWEEP_TIMES:
+        start = datetime.combine(moment.date(), parse_hhmm(hhmm), config.BOGOTA_TZ)
+        if timedelta(0) <= moment - start <= timedelta(minutes=SCHEDULED_SWEEP_MINUTES):
+            return hhmm
+    return None
+
+
+def _history_item(run: dict[str, Any], kind: str) -> dict[str, Any]:
+    """One run in the history: what kind (a sweep, which one, or an admin request), when, and what it did to which
+    event. `changes` is None for a run recorded before they were kept: its counts only ("sin detalle")."""
+    changes = run.get("changes")
+    counted = run.get("change_counts") or {}
+    if changes is None and not counted:  # a sweep recorded before the changes were: its own counts
+        counted = {name: run[key] for name, key in (("new", "events_new"), ("merged", "events_merged")) if run.get(key)}
+    return {
+        "kind": kind,
+        "slot": sweep_slot(run["finished_at"]) if kind == "sweep" else None,
+        "finished_at": run["finished_at"],
+        "run_url": run.get("run_url"),
+        "target": run.get("target"),
+        "error": run.get("error"),
+        "changes": None if changes is None else [{**item, "url": links.event_url(item["id"])} for item in changes],
+        "left_out": run.get("changes_left_out", 0),
+        "counts": counted,
+    }
+
+
+def history_of(runs: list[dict[str, Any]], admin_runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The admin page's "Historial": the latest sweeps (run_history.json) and admin requests (admin_runs.json),
+    newest first, each with what it did to which event (changes.py)."""
+    items = [_history_item(run, "sweep") for run in runs[-HISTORY_ITEMS:]]
+    items += [_history_item(run, run["action"]) for run in admin_runs[-HISTORY_ITEMS:]]
+    items.sort(key=lambda item: datetime.fromisoformat(item["finished_at"]), reverse=True)
+    return items[:HISTORY_ITEMS]
 
 
 def _role(model: str) -> str:
@@ -102,22 +148,10 @@ def _lighter_reads(history: list[dict[str, Any]]) -> dict[str, int] | None:
     return dict(total) if total.get("compared") else None
 
 
-# The audited fields, as the owner reads them (sweep.AUDITED_FIELDS).
-_FIELD_NAMES = {
-    "date": "la fecha",
-    "end_date": "el último día",
-    "start_time": "la hora",
-    "title": "el título",
-    "venue": "el lugar",
-    "event_type": "el tipo",
-    "styles": "los ritmos",
-}
-
-
 def lighter_reads_line(changes: dict[str, int]) -> str:
     """ "Flash releyó 12 eventos que solo había leído un modelo más liviano: cambió la hora en 2, los ritmos en 3." """
     compared = changes["compared"]
-    parts = [f"{name} en {changes[key]}" for key, name in _FIELD_NAMES.items() if changes.get(key)]
+    parts = [f"{name} en {changes[key]}" for key, name in FIELD_NAMES.items() if changes.get(key)]
     if changes.get("dropped"):
         parts.append(f"no mantuvo {changes['dropped']}")
     found = ": " + ", ".join(parts) if parts else ": no cambió nada"
@@ -200,6 +234,7 @@ def collect(
     today = now.date().isoformat()
 
     history = read(config.RUN_HISTORY_FILE.name, [])
+    admin_runs = read(config.ADMIN_RUNS_FILE.name, [])
     used = GeminiUsage.model_validate(read(config.GEMINI_USAGE_FILE.name, {})).on(quota_day()).requests
     external = read(config.EXTERNAL_USAGE_FILE.name, {})
     external_used = external.get("providers", {}) if external.get("day") == usage_day(now) else {}
@@ -223,7 +258,8 @@ def collect(
     return {
         "generated_at": now.isoformat(timespec="seconds"),
         "sweeps": {
-            "recent": history[-RECENT_RUNS:][::-1],  # newest first
+            # Newest first, without their changes: the history has them.
+            "recent": [{k: v for k, v in run.items() if k != "changes"} for run in history[-RECENT_RUNS:][::-1]],
             "next": [moment.isoformat(timespec="minutes") for moment in next_sweeps(now)],
         },
         "gemini": {
@@ -266,6 +302,7 @@ def collect(
             "low_confidence": sum(1 for event in upcoming if event.confidence == "low"),
         },
         "new_series": new_series(events or [], processed, now),
+        "history": history_of(history, admin_runs),
         "discovery": None
         if not discovered
         else {
