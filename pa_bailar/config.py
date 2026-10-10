@@ -247,16 +247,18 @@ DEFAULT_LOOKBACK_DAYS = 7
 # The most a run may look back (--days, the workflow's `days` input): anyone able to start the workflow
 # can't make one run spend the day's quotas on old posts. New accounts get BACKFILL_DAYS on their own.
 MAX_LOOKBACK_DAYS = 30
-# When the daily sweep starts (Bogotá time, README "What starts the sweep"): 3:00 by GitHub's own schedule
-# (daily-sweep.yml's cron, 08:00 UTC), 6:30 and 21:00 by cron-job.org; each must match. Other jobs that use the
+# When the daily sweep starts (Bogotá time, README "What starts the sweep"): all three by cron-job.org, one job each;
+# each must match (GitHub's own schedule isn't used: it never fired here while the repository was private, and it
+# starts late or drops runs; the owner, 9 Oct 2026). Other jobs that use the
 # Instagram app's hourly quota (discover) keep clear of these times so the sweep finds it free. The morning one was
 # 09:00 until 7 Oct 2026: Google's Flash refused 97% of weekday 9:00 requests as busy (the owner). The 3:00 one was
 # added on 9 Oct 2026 (the owner): Meta took three times its usual time per read that morning, so the 6:30 sweep reached
 # Instagram's hourly limit with 23 accounts left; a third sweep reads a third of the accounts each, and at 3:00 Meta and
 # Google are quiet. It's the first of the Gemini quota day, which starts at midnight Pacific: 2:00 Bogotá, or 3:00 sharp
-# in the Pacific's winter (November to March), when GitHub's start (never early, often late) still falls in the new day.
+# in the Pacific's winter (November to March), when cron-job.org's call (on the minute) and the job's start (seconds to
+# minutes after it) still fall in the new day.
 SWEEP_TRIGGERS = {
-    "03:00": "GitHub's schedule (daily-sweep.yml's cron)",  # tests/test_workflows.py checks the cron matches
+    "03:00": "cron-job.org",
     "06:30": "cron-job.org",
     "21:00": "cron-job.org",
 }

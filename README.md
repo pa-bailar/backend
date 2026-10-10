@@ -125,7 +125,7 @@ Everything runs on GitHub Actions:
 | `ci` | Every pull request (required by a ruleset on `main`: no path filter, or a PR it skips could never merge), and Mondays on `main` (to keep the pip cache warm) | Lint, format check, types (mypy), tests and the admin page's Worker tests. Not again on `main` after a merge: the PR already ran it (Actions minutes). |
 | `media` | Pull requests that change `media/` (not `media/site-checks/` nor its Markdown) | Type-checks the video toolkit and runs its Node tests (`media-ci.yml`; its own workflow, so it doesn't start, and bill a minute, when `media/` is untouched). |
 | `admin` | A new issue or comment from `jzamora5` (the admin page opens such issues) | The admin inbox (only issues labelled `admin`, or texts with a request): answers with a comment (check a post, add an account, the status); adding a post (or reading one again) or a story, and hiding a story or an event, start `daily-sweep` for that one request. See [docs/ADMIN.md](docs/ADMIN.md) |
-| `daily-sweep` | Every day at 3:00 AM (GitHub's own schedule), 6:30 AM and 9:00 PM Bogotá (started by cron-job.org), below; or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (most once a day, quiet ones less often; about a third per sweep), writing into a checkout of the site repository. New and changed images go straight to the images repository (`pa-bailar/media`); if events changed (or the archive of past ones), it opens a `data` PR in the site repository as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is then saved to the `sweep-state` branch (if the data PR couldn't be opened, the run's posts stay unread for the next run, and `site/data` is kept as the run's artifact). With `post_url` (from `admin`), it adds that one post instead (with `again`, even if it was read before and hasn't changed) and answers on the admin issue; with `story` or `hide`, it adds a story or takes a story or an event off the site. |
+| `daily-sweep` | Every day at 3:00 AM, 6:30 AM and 9:00 PM Bogotá (started by cron-job.org), below; or *Run workflow* | Instagram → Gemini for the accounts whose turn it is (most once a day, quiet ones less often; about a third per sweep), writing into a checkout of the site repository. New and changed images go straight to the images repository (`pa-bailar/media`); if events changed (or the archive of past ones), it opens a `data` PR in the site repository as the **pa-bailar-bot** GitHub App; its `ci` runs and it merges itself, which deploys the site. Otherwise republishes the site with the check time. The sweep state is then saved to the `sweep-state` branch (if the data PR couldn't be opened, the run's posts stay unread for the next run, and `site/data` is kept as the run's artifact). With `post_url` (from `admin`), it adds that one post instead (with `again`, even if it was read before and hasn't changed) and answers on the admin issue; with `story` or `hide`, it adds a story or takes a story or an event off the site. |
 
 `main` is **protected** (`protect-main`, since the repository went public on 6 Oct 2026): changes only through
 squash-merged pull requests that pass `ci`, force pushes and deletion blocked, no bypass. The site repository's
@@ -143,17 +143,17 @@ Settings → Secrets and variables → Actions:
 Three runs a day, at the times in `config.SWEEP_TIMES` (each sweep leaves the day's later ones their share of
 Flash, and discover keeps clear of them):
 
-- **3:00 AM: GitHub's own schedule**, the `schedule:` trigger in `daily-sweep.yml` (`cron: "0 8 * * *"`, 08:00
-  UTC; Bogotá is UTC−5 all year, and a test checks the two agree). Added on 9 Oct 2026 (the owner): that morning
-  Meta took three times its usual time per account read, so the 6:30 sweep reached Instagram's hourly limit with 23
-  accounts left; with a third sweep each reads a third of the accounts, and at 3:00 Meta and Google are quiet. It
-  needs nothing in cron-job.org. GitHub's schedule never fired here while the repository was private (until 6 Oct
-  2026: a known, undocumented problem of new private repositories); it starts late at times (never early), and
-  GitHub turns a public repository's schedules off after 60 days without activity. If it stops, a health warning
-  says so ("No sweep ran at 03:00 on the last 2 days", below): then add a third cron-job.org job like the others.
-- **6:30 AM and 9:00 PM: cron-job.org** (free). The morning one was at 9:00 until 7 Oct 2026: Google's Flash
-  refused 97% of weekday 9:00 requests as busy (Europe's afternoon and the US morning).
-- **The cron-job.org jobs:** `pa-bailar sweep 6:30` and `pa-bailar sweep 21:00`, in the America/Bogota time zone.
+- **All three: cron-job.org** (free), one job each. GitHub's own `schedule` isn't used: it never fired here while
+  the repository was private (until 6 Oct 2026: a known, undocumented problem of new private repositories), and it
+  starts late or drops runs (the owner, 9 Oct 2026).
+- **3:00 AM**, added on 9 Oct 2026 (the owner): that morning Meta took three times its usual time per account read,
+  so the 6:30 sweep reached Instagram's hourly limit with 23 accounts left; with a third sweep each reads a third of
+  the accounts, and at 3:00 Meta and Google are quiet. If a job stops (an expired token, a paused job), a health
+  warning says so ("No sweep ran at 03:00 on the last 2 days", below).
+- **6:30 AM and 9:00 PM.** The morning one was at 9:00 until 7 Oct 2026: Google's Flash refused 97% of weekday 9:00
+  requests as busy (Europe's afternoon and the US morning).
+- **The cron-job.org jobs:** `pa-bailar sweep 3:00`, `pa-bailar sweep 6:30` and `pa-bailar sweep 21:00`, in the
+  America/Bogota time zone, all the same but for the time.
 - **What each job does:** it calls GitHub's API to run the workflow, the same as pressing *Run workflow*:
   - `POST https://api.github.com/repos/pa-bailar/backend/actions/workflows/daily-sweep.yml/dispatches`
   - body `{"ref":"main"}`
@@ -165,10 +165,10 @@ Flash, and discover keeps clear of them):
 - **When it fails:**
   - cron-job.org emails if a call fails, for example a `401` once the token expires.
   - healthchecks.io emails if no run arrives.
-  - When the token expires, create a new one the same way and replace it in both jobs.
-- **One trigger per time.** Don't give GitHub's schedule the 6:30 or 21:00 runs while cron-job.org has them
-  (or the 3:00 one a cron-job.org job): every such run would happen twice. They would never overlap (the `data`
-  concurrency group queues them), but the second one would spend Instagram quota for nothing.
+  - When the token expires, create a new one the same way and replace it in all three jobs.
+- **One trigger per time.** Don't add a `schedule:` to the workflow for a time cron-job.org has: that run would
+  happen twice. They would never overlap (the `data` concurrency group queues them), but the second one would spend
+  Instagram quota for nothing.
 
 ## Monitoring the sweeps
 

@@ -215,8 +215,8 @@ AT_6_50 = datetime(2026, 10, 10, 6, 50, tzinfo=config.BOGOTA_TZ)
 
 
 def test_a_scheduled_sweep_that_stopped_coming_is_a_warning():
-    """GitHub's schedule never fired here while the repository was private: the 3:00 sweep (9 Oct 2026) missing two
-    days in a row is reported, which healthchecks.io can't tell while the other two still run."""
+    """A cron-job.org job can stop (an expired token, a paused job): the 3:00 sweep (9 Oct 2026) missing two days in a
+    row is reported, which healthchecks.io can't tell while the other two still run."""
     every_sweep = runs_at("08T03:40", "08T06:50", "08T21:20", "09T03:35", "09T06:45", "09T21:15", "10T06:50")
     assert health.missed_sweeps(every_sweep, AT_6_50) == []
     without_3 = [run for run in every_sweep if "T03" not in run.finished_at]

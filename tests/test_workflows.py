@@ -58,10 +58,10 @@ def test_the_sweep_job_has_room_for_its_longest_run():
     assert int(job_limit.group(1)) >= longest, f"the job's {job_limit.group(1)} minutes < the longest run's {longest}"
 
 
-def test_githubs_schedule_starts_the_sweeps_config_says_it_does():
-    """The 3:00 sweep (9 Oct 2026) is started by GitHub's own schedule, in UTC: its cron must be config's time in
-    Bogotá (UTC-5 all year), or the Flash share and the missed-sweep check would plan for a sweep that never comes."""
-    crons = re.findall(r'^    - cron: "(\d+) (\d+) \* \* \*"', SWEEP, re.MULTILINE)
-    scheduled = sorted(f"{(int(hour) - 5) % 24:02d}:{int(minute):02d}" for minute, hour in crons)
-    by_github = sorted(clock for clock, trigger in config.SWEEP_TRIGGERS.items() if trigger.startswith("GitHub"))
-    assert scheduled == by_github == ["03:00"]
+def test_cron_job_org_starts_every_sweep_and_github_schedules_none():
+    """Every sweep, 3:00 included, is started by cron-job.org (the owner, 9 Oct 2026: GitHub's own schedule never fired
+    here while the repository was private, and it starts late or drops runs). A `schedule:` trigger next to a
+    cron-job.org job would run that sweep twice."""
+    assert "schedule:" not in SWEEP
+    assert set(config.SWEEP_TRIGGERS.values()) == {"cron-job.org"}
+    assert config.SWEEP_TIMES == ("03:00", "06:30", "21:00")

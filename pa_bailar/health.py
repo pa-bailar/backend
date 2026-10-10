@@ -40,10 +40,9 @@ STUCK_RUNS = 4  # pending posts not going down over this many runs: the backlog 
 QUIET_RUNS = 7 * RUNS_PER_DAY  # a week of runs...
 QUIET_MIN_POSTS = 10  # ...analyzing at least this many posts without finding a single event
 INACTIVE_DAYS = 45  # an account without posts for this long may be abandoned
-# A scheduled sweep (config.SWEEP_TIMES) finishes within this long of its time: GitHub's schedule starts the 3:00 one
-# late, often by minutes and sometimes by an hour, and a run takes up to ~45 minutes. None finished in this window on
-# MISSED_DAYS days in a row: its trigger stopped (GitHub's schedule never fired here while the repository was private;
-# cron-job.org could stop too), which healthchecks.io's ping can't tell when the other sweeps still run.
+# A scheduled sweep (config.SWEEP_TIMES) finishes within this long of its time: a run can wait for one before it, and
+# takes up to ~45 minutes. None finished in this window on MISSED_DAYS days in a row: its cron-job.org job stopped (an
+# expired token, a job paused), which healthchecks.io's ping can't tell when the other sweeps still run.
 SWEEP_WINDOW_HOURS = 3
 MISSED_DAYS = 2
 # Doubts about the date (folded text): the costliest mistake. Its words, a month or a year guessed ("mes deducido"),
