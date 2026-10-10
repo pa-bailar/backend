@@ -11,7 +11,7 @@ from datetime import UTC, date, datetime, timedelta
 from .. import config, links, storage
 from ..account_options import AccountOptions, mentions_focus
 from ..batching import BatchItem
-from ..changes import AUDITED_FIELDS, reading
+from ..changes import changed_fields
 from ..external import is_external
 from ..gemini import (
     GeminiKeyError,
@@ -122,8 +122,8 @@ def sweeps_in_quota_day(now: datetime) -> list[datetime]:
 
 
 def later_sweeps_in_quota_day(now: datetime) -> int:
-    """How many scheduled sweeps still start in `now`'s Gemini quota day, past the margin that makes a sweep starting
-    late this run."""
+    """How many scheduled sweeps still start in `now`'s Gemini quota day, past config.LATER_SWEEP_MARGIN_MINUTES (one
+    starting within it is this run, started a little early)."""
     soonest = now + timedelta(minutes=config.LATER_SWEEP_MARGIN_MINUTES)
     return sum(1 for starts in sweeps_in_quota_day(now) if starts > soonest)
 
@@ -208,7 +208,7 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         return self.stats
 
     def _share_flash(self) -> None:
-        """Leave the later sweeps of this Gemini quota day their share of Flash (config.LATER_SWEEP_MARGIN_MINUTES)."""
+        """Leave the later sweeps of this Gemini quota day their share of Flash (flash_reserve)."""
         now = datetime.now(UTC)
         if share := flash_reserve(now):
             self.extractor.reserve_flash(share)
@@ -272,29 +272,28 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             log.exception("   unexpected error with %s, continuing", what)
             self.stats.count(account, "errors")
 
-    def _lighter_readings(self, post_id: str) -> dict[str, dict[str, object]]:
+    def _lighter_readings(self, post_id: str) -> dict[str, StoredEvent]:
         """The events this post announced that only lighter models read, as read: what Flash's reading is compared
         with. An event another post had Flash read already isn't: Flash's reading may not replace it there."""
         return {
-            event.id: reading(event)
+            event.id: event
             for event in self.events
             if any(media.post_id == post_id for media in event.media) and self._only_lighter_reads(event)
         }
 
-    def _audit_upgrade(self, before: dict[str, dict[str, object]]) -> None:
-        """What Flash changed in a lighter model's reading of these events, counted per field in the run's record
-        (upgrade_changes): how the backup reads hold up on new posts, not only on the test set (the owner, 7 Oct
-        2026: is it more robust now?). An event Flash's reading didn't keep counts as "dropped"."""
+    def _audit_upgrade(self, before: dict[str, StoredEvent]) -> None:
+        """What Flash changed in a lighter model's reading of these events (changes.changed_fields), counted per field
+        in the run's record (upgrade_changes): how the backup reads hold up on new posts, not only on the test set (the
+        owner, 7 Oct 2026: is it more robust now?). An event Flash's reading didn't keep counts as "dropped"."""
         if not before:
             return
-        after = {event.id: reading(event) for event in self.events if event.id in before}
+        after = [event for event in self.events if event.id in before]
         found = {"compared": len(before), "dropped": len(before) - len(after)}
         changed: set[str] = set()
-        for event_id, fields in after.items():
-            for name in AUDITED_FIELDS:
-                if fields[name] != before[event_id][name]:
-                    found[name] = found.get(name, 0) + 1
-                    changed.add(name)
+        for event in after:
+            for name in changed_fields(before[event.id], event):
+                found[name] = found.get(name, 0) + 1
+                changed.add(name)
         changes = self.stats.upgrade_changes
         for key, count in found.items():
             changes[key] = changes.get(key, 0) + count

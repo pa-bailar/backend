@@ -95,7 +95,8 @@ export function shortDate(day) {
  * One change in a run, as status.json's `history` lists it (pa_bailar/status.py history_of, changes.py).
  * @typedef {{ kind: string, id: string, title: string, account: string, date?: string | null,
  *   detail?: string | null, url?: string | null }} Change
- * One run in the history: a sweep (its `slot`, "06:30" or "21:00", or none: an extra one) or an admin request.
+ * One run in the history: a sweep (its `slot`, "03:00", "06:30" or "21:00", or none: an extra one) or an admin
+ * request.
  * `changes` is null for a run recorded before they were kept ("sin detalle").
  * @typedef {{ kind: string, slot?: string | null, finished_at: string, run_url?: string | null,
  *   target?: string | null, error?: string | null, changes?: Change[] | null, left_out?: number,
@@ -138,8 +139,7 @@ const REQUESTS = {
 
 /**
  * What ran: "Barrido de la madrugada" (the 3:00 sweep), "Barrido de la mañana" (6:30), "Barrido de la noche" (21:00),
- * "Barrido extra" (by hand),
- * or the admin request ("Agregar publicación"…).
+ * "Barrido extra" (by hand), or the admin request ("Agregar publicación"…).
  * @param {HistoryRun} run
  */
 export function runLabel(run) {

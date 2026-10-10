@@ -945,14 +945,14 @@ def test_the_status_pages_waiting_accounts_are_the_ones_the_sweep_finds_late(mon
     monkeypatch.setattr(config, "PRIVATE_DIR", tmp_path / "private")  # no discovery results
     quiet, dormant = config.QUIET_AFTER_DAYS + 5, config.DORMANT_AFTER_DAYS + 5
     states = {
-        "diaria": swept(40),  # 20 h late
+        "diaria": swept(40),  # 18 h late
         "al_dia": swept(3),
         "quieta": swept(40, latest_post_days_ago=quiet),  # every other day: not yet
-        "quieta_tarde": swept(60, latest_post_days_ago=quiet),  # 16 h late
+        "quieta_tarde": swept(60, latest_post_days_ago=quiet),  # 14 h late
         "dormida": swept(100, latest_post_days_ago=dormant),  # once a week: not yet
         "dormida_tarde": swept(180, latest_post_days_ago=dormant),  # 16 h late
         "sin_eventos": swept(40),  # every other day: not yet
-        "sin_eventos_tarde": swept(60),  # 16 h late
+        "sin_eventos_tarde": swept(60),  # 14 h late
     }
     storage.save_processed_posts(posts_without_events("sin_eventos") | posts_without_events("sin_eventos_tarde"))
     accounts = "\n".join(states)
@@ -1472,7 +1472,7 @@ def test_an_unreadable_upgrade_keeps_the_provisional_reading_after_a_few_runs():
 @pytest.mark.parametrize("why", ["no quota", "no time"])
 def test_an_edited_caption_that_cant_be_read_now_keeps_the_account_due(monkeypatch, why):
     """Review finding: a "CANCELADO" edit that couldn't be read (no quota, no time) wasn't pending, so the account
-    was marked read and the edit waited a whole turn (20 h, or days for a quiet account)."""
+    was marked read and the edit waited a whole turn (about a day, or days for a quiet account)."""
     first = post("p1")
     run(FakeInstagram({"academia": [first], "otra": []}), FakeExtractor({"p1": event_post("p1")}))
     states = read(config.ACCOUNT_STATE_FILE)

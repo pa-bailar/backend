@@ -16,6 +16,7 @@ import argparse
 import json
 import logging
 import os
+from collections.abc import Callable
 from pathlib import Path
 
 from pa_bailar import changes, config, health, links, storage, stories
@@ -134,30 +135,33 @@ def record_request(
     changes.record_admin_run(action, target, done, run_url(), str(error) if error else None)
 
 
+def _answer_request(action: changes.AdminAction, target: str, answer: Callable[[Sweep], str]) -> None:
+    """Run an admin request on the sweep's state (`answer`: the operation, as its answer), record it for the history
+    and write the answer; one that can't be done (AddPostError) answers why."""
+    sweep, failure = None, None
+    try:
+        sweep = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS)
+        report = answer(sweep)
+    except AddPostError as error:
+        report, failure = f"❌ {error}\n", error
+    record_request(action, target, sweep, failure)
+    _write_report(report)
+
+
 def add_post(link: str, account: str | None, again: bool = False) -> None:
     """`sweep --post`: publish one post by hand (`--again`: read it again even if it hasn't changed). The answer
     goes to ADMIN_REPORT_FILE (the workflow comments it on the admin issue) and the log; a failure to add it
     isn't a failed run (the answer says why)."""
-    sweep, failure = None, None
-    try:
-        sweep = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS)
-        report = added_post_markdown(sweep.add_post(link, account, again=again))
-    except AddPostError as error:
-        report, failure = f"❌ {error}\n", error
-    record_request("post_again" if again else "post", link, sweep, failure)
-    _write_report(report)
+    _answer_request(
+        "post_again" if again else "post",
+        link,
+        lambda sweep: added_post_markdown(sweep.add_post(link, account, again=again)),
+    )
 
 
 def hide_event(event_id: str) -> None:
     """`sweep --hide-event`: take an event off the site by hand ("Ocultar")."""
-    sweep, failure = None, None
-    try:
-        sweep = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS)
-        report = hidden_event_markdown(sweep.hide_event(event_id))
-    except AddPostError as error:
-        report, failure = f"❌ {error}\n", error
-    record_request("hide_event", event_id, sweep, failure)
-    _write_report(report)
+    _answer_request("hide_event", event_id, lambda sweep: hidden_event_markdown(sweep.hide_event(event_id)))
 
 
 def _write_report(report: str) -> None:
@@ -204,14 +208,7 @@ def add_story(ids: list[str], folder: Path, account: str | None, notes: str | No
 
 def hide_story(story_id: str) -> None:
     """`sweep --hide-story`: take a story added by hand off the site."""
-    sweep, failure = None, None
-    try:
-        sweep = Sweep(lookback_days=config.DEFAULT_LOOKBACK_DAYS)
-        report = hidden_story_markdown(sweep.hide_story(story_id))
-    except AddPostError as error:
-        report, failure = f"❌ {error}\n", error
-    record_request("hide_story", story_id, sweep, failure)
-    _write_report(report)
+    _answer_request("hide_story", story_id, lambda sweep: hidden_story_markdown(sweep.hide_story(story_id)))
 
 
 def is_broken(stats: RunStats) -> bool:

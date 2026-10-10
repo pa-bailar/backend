@@ -347,7 +347,7 @@ def collect(
         },
         "posts": {
             "recorded": len(processed),
-            "provisional": sum(1 for record in processed.values() if record.get("provisional")),
+            "provisional": sum(1 for record in posts if record.provisional),
         },
         "events": None
         if events is None

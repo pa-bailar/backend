@@ -180,9 +180,9 @@ Every service the system depends on. All of them are on free plans.
 
 | | |
 |---|---|
-| **What for** | Starting the sweep at fixed times: **6:30 AM and 9:00 PM, Bogotá time** (`config.SWEEP_TIMES` and `SWEEP_TRIGGERS`, which they must match). Until 7 Oct 2026 the morning run was at 9:00, where Google's Flash refused 97% of weekday requests as busy (the owner moved it, from the logs of 29 runs) |
+| **What for** | Starting the sweep at fixed times: **3:00 AM, 6:30 AM and 9:00 PM, Bogotá time** (`config.SWEEP_TIMES`, which they must match; `SWEEP_TRIGGER` names cron-job.org in the health warning). Until 7 Oct 2026 the morning run was at 9:00, where Google's Flash refused 97% of weekday requests as busy (the owner moved it, from the logs of 29 runs) |
 | **The 3:00 AM sweep** | Added on 9 Oct 2026 (the owner): a third cron-job.org job, `pa-bailar sweep 3:00`, like the other two. GitHub's own `schedule` isn't used: it never fired here while the repository was private (until 6 Oct 2026, a known, undocumented problem of new private repositories), and it starts late or drops runs. If a job stops, the health warning "No sweep ran at 03:00" says so (section 11.1). **One trigger per time:** a time started twice would run twice (queued by the `data` concurrency group, the second spending Instagram quota for nothing) |
-| **The two jobs** | `pa-bailar sweep 6:30` and `pa-bailar sweep 21:00`, time zone America/Bogota |
+| **The three jobs** | `pa-bailar sweep 3:00`, `pa-bailar sweep 6:30` and `pa-bailar sweep 21:00`, time zone America/Bogota |
 | **The request** | `POST https://api.github.com/repos/pa-bailar/backend/actions/workflows/daily-sweep.yml/dispatches`, with body `{"ref":"main"}` and headers `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json` and `Authorization: Bearer <token>`. GitHub answers `204 No Content` |
 | **Token** | A **fine-grained personal access token**, owned by the `pa-bailar` organization, limited to this repository and to **Actions: read and write**. It can start and cancel runs; it can't read the code or the secrets. Stored only in cron-job.org |
 | **Cost** | Free |
@@ -392,11 +392,10 @@ issue (step 16) still report it.
 Other workflow settings:
 - **`concurrency: data`** (`cancel-in-progress: false`): two sweeps never run at the same time. A new one
   waits, and if several are started meanwhile, only the newest waits (the others show as "cancelled").
-- **Triggers:** `workflow_dispatch` (cron-job.org at 6:30 and 21:00, the `admin` workflow, *Run workflow*) and
-  `schedule` for the 3:00 sweep (section 3.4); no push trigger. A scheduled run has no inputs, so every `inputs.*`
-  is empty (GitHub's expressions treat that as `''`): the `request` job is skipped, `LOOKBACK_DAYS` is 7, no
-  `--all`, no admin answer, and it reports to healthchecks.io like any regular sweep. It runs the default branch's
-  workflow.
+- **Triggers:** `workflow_dispatch` only (cron-job.org at 3:00, 6:30 and 21:00, the `admin` workflow, *Run
+  workflow*; section 3.4); no `schedule`, no push trigger. cron-job.org's call passes no inputs, so each takes its
+  default (`days` 7, the rest empty or false): the `request` job is skipped, `LOOKBACK_DAYS` is 7, no `--all`, no
+  admin answer, and it reports to healthchecks.io like any regular sweep. It runs the default branch's workflow.
 - **Single-post mode** (`post_url`, started by the `admin` workflow): `sweep --post` adds one post by hand (with `again`, "Volver a leer", even if it was read before and hasn't
   changed), then the same state save and data PR. It isn't recorded in the run history, opens no health issue
   and doesn't ping healthchecks.io.
@@ -715,7 +714,7 @@ above; any post the shared answer leaves out, mixes up or finds no event in is r
 | Step | Model(s) | Input | Output (schema) | Thinking |
 |---|---|---|---|---|
 | Triage | Flash-Lite (`LITE_MODELS`) | Caption, account, publication date, today's date, first image as a 512 px JPEG | `Triage`: `is_event_post`, `reason` | Low |
-| Extraction | Flash: `gemini-3.8-flash`, `3.7`, `3.6`, then `3.5` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day and a series' sessions, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `sessions`, `image_index`, `same_as` and `in_bogota`, the last three never stored) | Model default |
+| Extraction | Flash: `gemini-3.8-flash`, then `3.6` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day and a series' sessions, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `sessions`, `image_index`, `same_as` and `in_bogota`, the last three never stored) | Model default |
 | Provisional extraction | `gemini-3-flash-preview`, then Flash-Lite | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
 | Story (admin tools) | Extraction's models, then the provisional ones when Flash is out (kept as it is) | Up to 4 screenshots of one story (numbered), when the screenshot was taken, the admin's notes and account, the account's known events | `StoryAnalysis`: the header's account, a reshared post's author, mentions, location sticker, the story's age, a `content_box` per screenshot, `events[]` (`StoryEvent`: dates as printed, a series' sessions too (`StorySession`), worked out in code by `stories.resolve_date`) | Model default |
 | Discovery | Flash-Lite (`LITE_MODELS`, the triage's) | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, whether it announces one-time events, reason | Model default |
@@ -1274,7 +1273,7 @@ They run after every sweep. No AI, no quota.
 |---|---|---|
 | `@account` couldn't be read | Notice, then **warning** after 3 failed tries in a row | Renamed, private or no longer a business account? Each account is read on its turn (about once a day, quiet ones less often), so runs that didn't try it (`RunRecord.read_accounts`) don't break the streak |
 | Instagram's hourly quota stopped the run early | Notice, then **warning** after 3 runs in a row | The notice says why (the forecast passing 98%, or Meta's own limit) and how the reads went (Meta's median seconds, the cost of a read). Too many accounts for the app's quota, Meta slow, or discovery or tests using it? |
-| No sweep at a scheduled time | **Warning** (`missed-sweep:<time>`) | No run finished within 3 hours of a time in `SWEEP_TIMES` on each of the last 2 days (`missed_sweeps`; times the history doesn't reach aren't judged, nor a time before its first day, `SWEEP_TIMES_SINCE`): its cron-job.org job stopped (`SWEEP_TRIGGERS`). healthchecks.io can't tell a missed 3:00 run (section 3.5) |
+| No sweep at a scheduled time | **Warning** (`missed-sweep:<time>`) | No run finished within 3 hours of a time in `SWEEP_TIMES` on each of the last 2 days (`missed_sweeps`; times the history doesn't reach aren't judged, nor a time before its first day, `SWEEP_TIMES_SINCE`): its cron-job.org job stopped (`SWEEP_TRIGGER`). healthchecks.io can't tell a missed 3:00 run (section 3.5) |
 | The run used its whole time budget | Notice, then **warning** after 3 runs in a row | Is the backlog too big? |
 | Posts failed | Notice, then **warning** after 3 runs in a row | Gemini rejections, image downloads, unexpected errors. Posts waiting for quota aren't failures |
 | A Gemini model the key can't use | Notice, then **warning** after 3 runs in a row (every run of the day reports it: asked again after midnight Pacific) | Google may have dropped it: the next model of the same role reads meanwhile, so take it out of `config.py`'s lists; only with every Flash of the extraction gone, `GEMINI_LITE_ONLY=1` (Flash-Lite as final results) |

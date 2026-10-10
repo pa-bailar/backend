@@ -311,6 +311,19 @@ def missed_sweeps(runs: list[RunRecord], now: datetime) -> list[str]:
     return missed
 
 
+def _missed_sweep_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
+    """A warning for each scheduled time no sweep came at lately (missed_sweeps), judged as of this run's end."""
+    return [
+        Finding(
+            "warning",
+            f"missed-sweep:{clock}",
+            f"No sweep ran at {clock} (Bogotá) on the last {MISSED_DAYS} days: has {config.SWEEP_TRIGGER} stopped "
+            "starting it? Start it by hand meanwhile (Run workflow); docs/ARCHITECTURE.md, section 15.",
+        )
+        for clock in missed_sweeps(runs, datetime.fromisoformat(run.finished_at))
+    ]
+
+
 def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date) -> list[Finding]:
     """What this run (with the ones before it) says needs a look. Warnings first."""
     runs = [*history, run]
@@ -388,17 +401,7 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
         )
 
     findings += _model_findings(runs, run)
-
-    for clock in missed_sweeps(runs, datetime.fromisoformat(run.finished_at)):
-        findings.append(
-            Finding(
-                "warning",
-                f"missed-sweep:{clock}",
-                f"No sweep ran at {clock} (Bogotá) on the last {MISSED_DAYS} days: has "
-                f"{config.SWEEP_TRIGGERS.get(clock, 'its trigger')} stopped starting it? "
-                "Start it by hand meanwhile (Run workflow); docs/ARCHITECTURE.md, section 15.",
-            )
-        )
+    findings += _missed_sweep_findings(runs, run)
 
     for account, s in stats.by_account.items():
         if s.fetch_failed:
