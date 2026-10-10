@@ -36,15 +36,19 @@ log = logging.getLogger(__name__)
 _OUTSIDE_FOCUS = "(la cuenta es solo para esos estilos)"
 
 
-def hours_overdue(state: AccountState | None, now: datetime, unproductive: bool = False) -> float:
+def hours_overdue(state: AccountState | None, now: datetime, unproductive: bool = False, busy: bool = False) -> float:
     """How long past its turn an account is (negative: not its turn yet). Never read: always due. `unproductive`: its
-    posts never become events (unproductive_accounts), so it takes its turn every other day, as a quiet one."""
+    posts never become events (unproductive_accounts), so it takes its turn every other day, as a quiet one. An
+    occasional one (its last post OCCASIONAL_AFTER_DAYS ago) too, unless something of it waits for its next read: an
+    upcoming event or a post for Flash (`busy`: busy_accounts), a post no model could read yet, its first sweep."""
     if state is None or state.last_swept_at is None:
         return float("inf")
     silent = (now.date() - date.fromisoformat(state.latest_post)).days if state.latest_post else 0
+    waits = busy or bool(state.unreadable) or not state.backfill_done
+    occasional = silent >= config.OCCASIONAL_AFTER_DAYS and not waits
     if silent >= config.DORMANT_AFTER_DAYS:
         every = config.DORMANT_SWEEP_EVERY_HOURS
-    elif silent >= config.QUIET_AFTER_DAYS or unproductive:
+    elif silent >= config.QUIET_AFTER_DAYS or unproductive or occasional:
         every = config.QUIET_SWEEP_EVERY_HOURS
     else:
         every = config.SWEEP_EVERY_HOURS
@@ -64,14 +68,42 @@ def unproductive_accounts(posts: Iterable[tuple[str, bool]]) -> set[str]:
     return {account for account, count in read.items() if count >= config.UNPRODUCTIVE_AFTER_POSTS} - productive
 
 
+def busy_accounts(posts: Iterable[ProcessedPost], events: Iterable[StoredEvent], now: datetime) -> set[str]:
+    """The accounts the occasional tier never slows down (the owner, 9 Oct 2026): those with an event on the site that
+    hasn't ended (its own, or one a post of theirs joined), whose changes or cancellation must show within a day, and
+    those with a post read by a lighter model that a sweep would still re-read with Flash (only a read of the account
+    does). A post is re-read only within the lookback, and it was published before it was first read: one read
+    longer ago than that is out of reach, and waits for nothing (a first, deeper sweep's old posts)."""
+    today = now.date().isoformat()
+    upcoming = {event.id: event.account for event in events if (event.last_day or "") >= today}
+    reachable = now - timedelta(days=config.DEFAULT_LOOKBACK_DAYS)
+    busy = set(upcoming.values())
+    for record in posts:
+        waiting = record.provisional and datetime.fromisoformat(record.processed_at) >= reachable
+        if waiting or any(event_id in upcoming for event_id in record.event_ids):
+            busy.add(record.account)
+    return busy
+
+
 def overdue_by_account(
-    accounts: Iterable[str], states: Mapping[str, AccountState], posts: Iterable[tuple[str, bool]], now: datetime
+    accounts: Iterable[str],
+    states: Mapping[str, AccountState],
+    posts: Iterable[ProcessedPost],
+    events: Iterable[StoredEvent],
+    now: datetime,
 ) -> dict[str, float]:
-    """How long past its turn each account is (hours_overdue), its tier read from its state and from the posts read
-    (each its account and whether it had events: unproductive_accounts). The sweep's order and the status page's
-    waiting accounts both count turns with it, so a tier counts the same in both."""
-    unproductive = unproductive_accounts(posts)
-    return {account: hours_overdue(states.get(account), now, account in unproductive) for account in accounts}
+    """How long past its turn each account is (hours_overdue), its tier read from its state, from the posts read
+    (unproductive_accounts, busy_accounts) and from the events on the site (busy_accounts). The sweep's order and the
+    status page's waiting accounts both count turns with it, so a tier counts the same in both."""
+    posts = list(posts)
+    unproductive = unproductive_accounts(
+        (record.account, had_events(record.outcome, record.is_event_post)) for record in posts
+    )
+    busy = busy_accounts(posts, events, now)
+    return {
+        account: hours_overdue(states.get(account), now, account in unproductive, account in busy)
+        for account in accounts
+    }
 
 
 def sweeps_in_quota_day(now: datetime) -> list[datetime]:
@@ -317,10 +349,7 @@ class Sweep(ManualPosts, StoryAdmin, Hiding):
         new account's first, deeper sweep can take days of quota), and within each, those that waited longest
         first. So an account a sweep didn't reach (its share, Instagram's limit) is first next time."""
         followed = storage.read_accounts()
-        posts = (
-            (record.account, had_events(record.outcome, record.is_event_post)) for record in self.processed.values()
-        )
-        overdue = overdue_by_account(followed, self.accounts, posts, config.now_bogota())
+        overdue = overdue_by_account(followed, self.accounts, self.processed.values(), self.events, config.now_bogota())
         due = followed if self.all_accounts else [account for account in followed if overdue[account] >= 0]
 
         def is_new(account: str) -> bool:

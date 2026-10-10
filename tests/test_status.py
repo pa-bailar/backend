@@ -36,6 +36,18 @@ def test_the_quota_resets_at_midnight_pacific_in_bogota_time():
     assert status.quota_reset(NOW).isoformat(timespec="minutes") == "2026-10-03T02:00-05:00"
 
 
+def record(account: str = "academia", **fields) -> dict:
+    """A processed_posts.json record as the sweep writes it."""
+    return {
+        "account": account,
+        "permalink": "https://www.instagram.com/p/x/",
+        "processed_at": NOW.isoformat(),
+        "is_event_post": False,
+        "reason": "",
+        "model": "m",
+    } | fields
+
+
 def fake_state():
     files = {
         "run_history.json": [
@@ -54,7 +66,7 @@ def fake_state():
         ],
         "gemini_usage.json": {"day": quota_day(), "requests": {"gemini-3.5-flash-lite": 120, "gemini-3.8-flash": 18}},
         "accounts.json": {"academia": {"first_seen": "2026-09-01", "backfill_done": True}},
-        "processed_posts.json": {"p1": {"provisional": True}, "p2": {"provisional": False}},
+        "processed_posts.json": {"p1": record(provisional=True), "p2": record(provisional=False)},
     }
     return lambda name, default: files.get(name, default)
 
@@ -191,12 +203,12 @@ def test_an_account_whose_posts_never_become_events_isnt_waiting_on_its_every_ot
     """Its turn is every other day, as the sweep counts it (pipeline.unproductive_accounts, the owner, 8 Oct 2026)."""
     read_36_hours_ago = (NOW - timedelta(hours=36)).isoformat()  # daily: 16 h late; every other day: not yet
     states = {"academia": {"first_seen": "2026-09-01", "backfill_done": True, "last_swept_at": read_36_hours_ago}}
-    record = {"account": "academia", "is_event_post": False, "outcome": "not_event"}
-    processed = {f"p{n}": record for n in range(config.UNPRODUCTIVE_AFTER_POSTS)}
+    not_event = record(outcome="not_event")
+    processed = {f"p{n}": not_event for n in range(config.UNPRODUCTIVE_AFTER_POSTS)}
     files = {"accounts.json": states, "processed_posts.json": processed}
     result = status.collect(now=NOW, instagram=None, read=lambda name, default: files.get(name, default))
     assert result["accounts"]["waiting"] == []
-    files["processed_posts.json"] = {**processed, "p0": {**record, "outcome": "event"}}  # one event: daily again
+    files["processed_posts.json"] = {**processed, "p0": not_event | {"outcome": "event"}}  # one event: daily again
     result = status.collect(now=NOW, instagram=None, read=lambda name, default: files.get(name, default))
     assert result["accounts"]["waiting"] == ["academia"]
 
