@@ -40,8 +40,7 @@ Pa' Bailar has no server. Everything runs on free services:
 ```mermaid
 flowchart LR
     subgraph Outside["Outside services"]
-        CJ["cron-job.org<br/>6:30 AM and 9:00 PM Bogotá"]
-        GS["GitHub's schedule<br/>3:00 AM Bogotá"]
+        CJ["cron-job.org<br/>3:00 AM, 6:30 AM and 9:00 PM Bogotá"]
         IG["Instagram Graph API<br/>(Meta, Business Discovery)"]
         GM["Gemini API<br/>(Google AI Studio)"]
         HC["healthchecks.io"]
@@ -66,7 +65,6 @@ flowchart LR
     VIS(("Visitors"))
 
     CJ -- "POST workflow dispatch<br/>(fine-grained token)" --> WF
-    GS -- "schedule (cron 0 8 * * *)" --> WF
     WF -- "1 call per account" --> IG
     WF -- "triage + extraction" --> GM
     WF <-- "read / write state" --> SS
@@ -85,9 +83,8 @@ flowchart LR
 
 In words:
 
-1. **Three sweeps a day** (3:00, 6:30 and 21:00 Bogotá): **cron-job.org** calls GitHub's API at 6:30 and 21:00
-   to start the `daily-sweep` workflow (the same as pressing *Run workflow*), and **GitHub's own schedule** starts
-   it at 3:00 (section 3.4).
+1. **Three sweeps a day** (3:00, 6:30 and 21:00 Bogotá): **cron-job.org** calls GitHub's API at each time to start
+   the `daily-sweep` workflow (the same as pressing *Run workflow*; section 3.4).
 2. **The sweep** reads the recent posts of every followed academy from **Instagram**. It asks **Gemini**
    which posts announce one-time events, and to extract their details. It saves the events into a checkout
    of the site repository, and pushes a copy of each flyer (and of each video's clip) to the images
@@ -184,7 +181,7 @@ Every service the system depends on. All of them are on free plans.
 | | |
 |---|---|
 | **What for** | Starting the sweep at fixed times: **6:30 AM and 9:00 PM, Bogotá time** (`config.SWEEP_TIMES` and `SWEEP_TRIGGERS`, which they must match). Until 7 Oct 2026 the morning run was at 9:00, where Google's Flash refused 97% of weekday requests as busy (the owner moved it, from the logs of 29 runs) |
-| **The 3:00 AM sweep: GitHub's own `schedule`** | Added on 9 Oct 2026 (the owner): `daily-sweep.yml`'s `schedule:` trigger, `cron: "0 8 * * *"` (08:00 UTC = 3:00 Bogotá, UTC−5 all year; `tests/test_workflows.py` checks it matches `SWEEP_TRIGGERS`), so it needs no cron-job.org job. GitHub's schedule never fired here while the repository was private (until 6 Oct 2026, a known, undocumented problem of new private repositories); community reports describe runs delayed (never early) or dropped, and a public repository's schedules are turned off after 60 days without activity. A scheduled run has no inputs: a regular sweep. If it stops firing, the health warning "No sweep ran at 03:00" says so (section 11.1): then add a third cron-job.org job like the others. **One trigger per time:** a time started by both would run twice (queued by the `data` concurrency group, the second spending Instagram quota for nothing) |
+| **The 3:00 AM sweep** | Added on 9 Oct 2026 (the owner): a third cron-job.org job, `pa-bailar sweep 3:00`, like the other two. GitHub's own `schedule` isn't used: it never fired here while the repository was private (until 6 Oct 2026, a known, undocumented problem of new private repositories), and it starts late or drops runs. If a job stops, the health warning "No sweep ran at 03:00" says so (section 11.1). **One trigger per time:** a time started twice would run twice (queued by the `data` concurrency group, the second spending Instagram quota for nothing) |
 | **The two jobs** | `pa-bailar sweep 6:30` and `pa-bailar sweep 21:00`, time zone America/Bogota |
 | **The request** | `POST https://api.github.com/repos/pa-bailar/backend/actions/workflows/daily-sweep.yml/dispatches`, with body `{"ref":"main"}` and headers `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json` and `Authorization: Bearer <token>`. GitHub answers `204 No Content` |
 | **Token** | A **fine-grained personal access token**, owned by the `pa-bailar` organization, limited to this repository and to **Actions: read and write**. It can start and cancel runs; it can't read the code or the secrets. Stored only in cron-job.org |
@@ -290,7 +287,7 @@ are in `accounts.txt`.
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CJ as cron-job.org (or GitHub's schedule at 3:00)
+    participant CJ as cron-job.org
     participant GH as GitHub API
     participant R as Actions runner (backend)
     participant IG as Instagram Graph API
@@ -1226,7 +1223,7 @@ They run after every sweep. No AI, no quota.
 |---|---|---|
 | `@account` couldn't be read | Notice, then **warning** after 3 failed tries in a row | Renamed, private or no longer a business account? Each account is read on its turn (about once a day, quiet ones less often), so runs that didn't try it (`RunRecord.read_accounts`) don't break the streak |
 | Instagram's hourly quota stopped the run early | Notice, then **warning** after 3 runs in a row | The notice says why (the forecast passing 98%, or Meta's own limit) and how the reads went (Meta's median seconds, the cost of a read). Too many accounts for the app's quota, Meta slow, or discovery or tests using it? |
-| No sweep at a scheduled time | **Warning** (`missed-sweep:<time>`) | No run finished within 3 hours of a time in `SWEEP_TIMES` on each of the last 2 days (`missed_sweeps`; times the history doesn't reach aren't judged): its trigger stopped (`SWEEP_TRIGGERS`: GitHub's schedule for 3:00, cron-job.org for the others). healthchecks.io can't tell a missed 3:00 run (section 3.5) |
+| No sweep at a scheduled time | **Warning** (`missed-sweep:<time>`) | No run finished within 3 hours of a time in `SWEEP_TIMES` on each of the last 2 days (`missed_sweeps`; times the history doesn't reach aren't judged): its cron-job.org job stopped (`SWEEP_TRIGGERS`). healthchecks.io can't tell a missed 3:00 run (section 3.5) |
 | The run used its whole time budget | Notice, then **warning** after 3 runs in a row | Is the backlog too big? |
 | Posts failed | Notice, then **warning** after 3 runs in a row | Gemini rejections, image downloads, unexpected errors. Posts waiting for quota aren't failures |
 | A Gemini model the key can't use | Notice, then **warning** after 3 runs in a row (every run of the day reports it: asked again after midnight Pacific) | Google may have dropped it: the next model of the same role reads meanwhile, so take it out of `config.py`'s lists; only with every Flash of the extraction gone, `GEMINI_LITE_ONLY=1` (Flash-Lite as final results) |
@@ -1489,7 +1486,7 @@ spent only on the few that announce events.
 | cron-job.org email "execution failed", with HTTP `401` | The fine-grained token expired or was revoked | Create a new one (resource owner `pa-bailar`, repository `backend`, Actions read/write) and replace it in both cron jobs |
 | cron-job.org email with HTTP `404` | Workflow file renamed, or the token can't see the repository | Fix the URL or the token's repository access |
 | healthchecks.io "DOWN", **no ping** | No run started: cron-job.org disabled, or GitHub accepted the call but never ran it | Check cron-job.org's history and the Actions page. Start a run with *Run workflow* |
-| Warning: no sweep at 03:00 on the last 2 days | GitHub's schedule stopped firing (or never did: it didn't while the repository was private), or GitHub turned it off after 60 days without activity | Check the Actions page for `schedule` runs and that the workflow is enabled. Meanwhile the 6:30 sweep reads what the 3:00 one would have. If it keeps missing, add a cron-job.org job `pa-bailar sweep 3:00` like the other two (section 3.4) |
+| Warning: no sweep at a scheduled time on the last 2 days | Its cron-job.org job stopped: an expired token (cron-job.org emails a `401`), or the job paused | Check the job's history in cron-job.org; replace the token in all three jobs if it expired (section 3.4). Meanwhile the next sweep reads what the missed one would have |
 | Warning: no sweep at 06:30 or 21:00 on the last 2 days | The cron-job.org job was disabled or its token expired | cron-job.org's history; see the rows above |
 | healthchecks.io "DOWN", **failure ping** | The run failed: open the run log linked in the ping body | See the next rows |
 | "Instagram token invalid" | The Page token was revoked (for example, a Facebook password change) | Section 12.2: `refresh-token`, then update the `META_ACCESS_TOKEN` secret |
