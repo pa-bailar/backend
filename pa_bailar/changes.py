@@ -85,7 +85,7 @@ def change(kind: ChangeKind, event: StoredEvent, detail: str | None = None) -> E
     return EventChange(kind=kind, id=event.id, title=event.title, account=event.account, date=event.date, detail=detail)
 
 
-def reading(event: EventDetails) -> dict[str, object]:
+def _reading(event: EventDetails) -> dict[str, object]:
     """An event's audited fields, as compared: titles and venues folded (accents and case aren't a misreading)."""
     return {
         "date": event.date,
@@ -100,7 +100,7 @@ def reading(event: EventDetails) -> dict[str, object]:
 
 def changed_fields(before: EventDetails, after: EventDetails) -> list[str]:
     """The audited fields that differ between two readings of an event."""
-    old, new = reading(before), reading(after)
+    old, new = _reading(before), _reading(after)
     return [name for name in AUDITED_FIELDS if old[name] != new[name]]
 
 
