@@ -410,7 +410,7 @@ Other workflow settings:
 ### Whose turn it is: most accounts once a day
 
 Instagram's quota for us is small (Meta's hourly limit per app, which grows with the app's users: one, section
-14), so each account is read at most **once a day** (quiet ones less often), about a third of them in each of
+14), so each account is read at most **once a day** (quiet, occasional, unproductive and dormant ones less often), about a third of them in each of
 the three sweeps (`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_overdue`):
 
 - **Each account's turn:** 20 hours after a sweep last read it (`SWEEP_EVERY_HOURS`: the same sweep the next
@@ -423,6 +423,18 @@ the three sweeps (`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_o
   priority, never dropped: each read is an Instagram call that rarely finds anything new, and costs ~1.3% of the
   app's hourly allowance (section 14). The owner chose these tiers over a third sweep, at 128 accounts (8 Oct 2026), then added the third sweep too (9 Oct, below). An account silent for over a year is better
   commented out in `accounts.txt`, with a note. `accounts.json` keeps `last_swept_at` and `latest_post` (its day in Bogotá).
+- **Occasional accounts** (the owner, 9 Oct 2026: fewer Instagram reads without missing events): an account whose
+  last post is 8 to 29 days old (`OCCASIONAL_AFTER_DAYS`) also takes its turn every 44 hours, unless something of it
+  waits for its next read, which keeps it daily (`hours_overdue`, `pipeline.busy_accounts`): an event on the site
+  that hasn't ended (its own, or one a post of its joined: a change or a cancellation must show within a day), a
+  post read by a lighter model that a sweep can still re-read with Flash (first read within the lookback: only a
+  read of the account re-reads it), a post no model could read yet (`unreadable`), or its first sweep. Posted within
+  the week: daily. The tier starts past the 7-day lookback, so none of its posts is still re-read; and 44 hours
+  between reads (plus a sweep late) is well inside it, so a new post is always read, at worst about a day later than
+  daily (two 10-post reads a day apart cover far more than such an account posts). Replayed on the real state of the
+  sweeps of 3–9 Oct (8 Oct site data): 16 of 134 accounts in it on 9 Oct (12 more kept daily by the safeguards),
+  about 8 fewer reads a day (7%), and not one of the 55 event posts published in those days read later. Without the
+  safeguards it saved 13%, but 5 event posts came 9 to 34 hours later (none after its event had started).
 - **Order:** due accounts in their regular sweep before new ones (a new account's first, deeper sweep can
   take days of quota); within each, those that waited longest first.
 - **A sweep's share:** a third of the accounts plus 5 (`EXTRA_ACCOUNTS_PER_RUN`; half until 9 Oct 2026), and it
@@ -1451,11 +1463,12 @@ model of a role having its limits).
 ## 14. Quotas and capacity
 
 With **128 followed accounts** (8 October 2026, `accounts.txt`) and three runs a day (3:00, 6:30 and 21:00 since
-9 Oct 2026; each account read about once a day, quiet ones less often: section 5, "Whose turn it is"):
+9 Oct 2026; each account read about once a day, quiet, occasional, unproductive and dormant ones less often:
+section 5, "Whose turn it is"):
 
 | Resource | Limit | Use per run | Use per day | Headroom |
 |---|---|---|---|---|
-| Instagram calls (Business Discovery: Meta's platform limit, per app, rolling 1 hour; `x-app-usage`) | Grows with the app's users (one); what runs out is `total_time`, Meta's processing time: ~1–1.3% per account read, whatever the fields or posts asked (measured 8 Oct 2026), so about 75 reads an hour up to 98%; three times that when Meta is slow (9 Oct 2026), about 24 | At most 48 (a third of the accounts, plus up to 5 late ones); about 36 at 128 accounts with the tiers | About 107 at 128 accounts (91 daily, 30 every other day, 7 weekly) | The sweep stops before a read would pass 98% (`INSTAGRAM_USAGE_CEILING`, section 8) and the accounts not reached go first next run; the hour starts over by the next sweep (3.5 hours or more apart). Three sweeps hold their shares, about 144 daily reads, at the usual cost; about 70 on a slow day (the rest wait a sweep). `discover` keeps clear of sweep times |
+| Instagram calls (Business Discovery: Meta's platform limit, per app, rolling 1 hour; `x-app-usage`) | Grows with the app's users (one); what runs out is `total_time`, Meta's processing time: ~1–1.3% per account read, whatever the fields or posts asked (measured 8 Oct 2026), so about 75 reads an hour up to 98%; three times that when Meta is slow (9 Oct 2026), about 24 | At most 48 (a third of the accounts, plus up to 5 late ones); about 33 at 134 accounts with the tiers | About 100 at 134 accounts (9 Oct 2026: 75 daily, 47 every other day, 12 weekly); 108 before the occasional tier | The sweep stops before a read would pass 98% (`INSTAGRAM_USAGE_CEILING`, section 8) and the accounts not reached go first next run; the hour starts over by the next sweep (3.5 hours or more apart). Three sweeps hold their shares, about 144 daily reads, at the usual cost; about 70 on a slow day (the rest wait a sweep). `discover` keeps clear of sweep times |
 | Gemini Flash-Lite (two models) | 500 / day each (996 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
@@ -1575,7 +1588,7 @@ flowchart LR
 | `pipeline/` | `Sweep`, one class built from a module per part (the package re-exports the public names): |
 | `pipeline/common.py` | Run statistics (`RunStats`, with the run's changes), the clients' protocols, `AddPostError`, retryable errors, flyers and media records |
 | `pipeline/base.py` | `SweepBase`: the state (events, analyzed posts, hidden events, accounts), storing one analyzed post (only upcoming events in Bogotá; a cancelled post's events taken down), one identity per post |
-| `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; `overdue_by_account` (each account's turn, for the sweep and the status page) |
+| `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; `overdue_by_account` (each account's turn, for the sweep and the status page; its tiers: `hours_overdue`, `unproductive_accounts`, `busy_accounts`) |
 | `pipeline/manual_post.py`, `story_admin.py`, `hiding.py` | The admin tools, mixed into `Sweep`: add a post (`add_post`), add a story (`add_story`), hide a story or an event (`hide_story`, `hide_event`) |
 | `clips.py` | Videos' preview clips: download, cut 6 silent seconds with ffmpeg |
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, the archive of past events, `accounts.txt` |
