@@ -376,17 +376,12 @@ class SweepBase:
 
     # ---------- storing one analyzed post ----------
 
-    def _store_analysis(
-        self,
-        account: str,
-        post: Post,
-        images: list[bytes],
-        analysis: PostAnalysis,
-        model: str,
-        provisional: bool,
-        count_as_new: bool = True,
-    ) -> bool:
-        """Store the post's events. False when it must be retried next run (a flyer couldn't be saved)."""
+    def _publishable(
+        self, account: str, post: Post, analysis: PostAnalysis, light: bool
+    ) -> tuple[list[ExtractedEvent], set[str]]:
+        """The reading's events through the safeguards (normalize, the city, styles and type; a doubt on each of
+        several read by a lighter model, `light`): those that can be published, and why the others can't (for the
+        post's record)."""
         # A bar's events are at the bar (a Bogotá venue): its captions name where guests and styles come from.
         checked = (
             analysis.events
@@ -398,16 +393,30 @@ class SweepBase:
             self._typed(account, post, self._safeguarded(account, post, normalize_event(event), several))
             for event in checked
         ]
-        light = provisional or config.LITE_ONLY  # read by a lighter model (Flash-Lite, the last resort)
         if several and light:
             cleaned = [_with_doubt(event, MULTI_DOUBT) for event in cleaned]
         publishable: list[ExtractedEvent] = []
-        reasons: set[str] = set()  # why the others weren't published, for the post's record
+        reasons: set[str] = set()
         for event in cleaned if analysis.is_event_post else []:
             why = self._discard_reasons(account, post["id"], event)
             reasons.update(why)
             if not why:
                 publishable.append(event)
+        return publishable, reasons
+
+    def _store_analysis(
+        self,
+        account: str,
+        post: Post,
+        images: list[bytes],
+        analysis: PostAnalysis,
+        model: str,
+        provisional: bool,
+        count_as_new: bool = True,
+    ) -> bool:
+        """Store the post's events. False when it must be retried next run (a flyer couldn't be saved)."""
+        light = provisional or config.LITE_ONLY  # read by a lighter model (Flash-Lite, the last resort)
+        publishable, reasons = self._publishable(account, post, analysis, light)
         try:
             flyers = common.save_flyers(post["id"], publishable, images)  # through the module: tests replace it
         except OSError as error:
