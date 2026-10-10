@@ -630,7 +630,9 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 
 **Batched extraction** (off by default, `GEMINI_BATCH_POSTS`; section 7.2): the extraction step can read several of
 one account's posts in one request. The posts wait in the account's batch after their triage and are each stored as
-above; any post the shared answer leaves out, mixes up or finds no event in is read again alone.
+above; any post the shared answer leaves out, mixes up or finds no event in is read again alone, and so is a later
+post with an event on the day of an event an earlier post of the batch announced, which the rules wouldn't merge
+(a flyer and its reminder: read alone, Gemini can link them).
 
 ### 6.3 Storing what Gemini found
 
@@ -855,6 +857,20 @@ flowchart TD
     the day's quota counts one request per batch. An unexpected error on a later post of the account (which ends
     its turn) still reads the posts waiting in the batch first (`Batches._account_batch`), as one by one they'd
     have been stored before it: a post that breaks on every run can't keep the ones before it unread.
+  - **A flyer and its reminder in one batch** (the bug hunt of 9 Oct 2026). One by one, the reminder is read with
+    the flyer's event among the known events, and Gemini links them (`same_as`) where the rules can't (section 9:
+    "Ven a bailar" with no time, or the doors' 20:00 against the show's 21:00). In a shared request neither is stored
+    yet, and the batched prompt keeps `same_as` to the known events: the two readings made two events on the site,
+    and nothing merged them later. So, after storing each post of a batch, a later post with an event that falls on
+    the day of an event an earlier post of the batch announced (one the request didn't know), and that the rules
+    wouldn't merge into a stored event, is read again alone, with that event known (`batching.repeats_earlier`; its
+    shared answer is not used). It costs one request more, only then; two different events of a day (a 19:00
+    competition and a 20:30 social) stay two, as one by one. On the test set's grouping it never fires (its four
+    accounts with two posts announce no event on one day); on the events on the site on 9 Oct 2026, 32 of the 41
+    pairs of one account's posts published within a day of each other announce one event together: the re-read
+    fires on those the rules don't merge (a reminder with the same start time, or the same title, merges without
+    it), so the real saving is below the estimate further down until runs with batching on measure it
+    (`batch_rereads`).
   - **Measured on the test set** (`admin bakeoff --gold --batch N`, ADMIN.md; Flash-Lite, so Flash's quota stays
     for the sweeps; `gemini-3.1-flash-lite`, two takes of each, 9 Oct 2026): every one of the 60 events found in
   every take, one post a request or two or three; the fields read right within the takes' own spread (one post a
@@ -863,7 +879,8 @@ flowchart TD
   a shared "no" was confirmed alone, the first take at two lost 2 events, both such "no"s.
   - **The counters** (`run_history.json`, and the run's summary): `batch_requests`, the shared requests answered;
     `batched_posts`, the posts stored from them; `batch_rereads`, the posts of a batch read again alone and recorded
-    (stored, or recorded as refused). A post sent back alone that couldn't be read then (no quota or time left, an
+    (stored, or recorded as refused), whatever the reason (left out, a "no", a failed request, a reminder on an
+    earlier post's day: the log names it), each a request of its own. A post sent back alone that couldn't be read then (no quota or time left, an
     error) isn't in `batch_rereads`: it's counted as pending, and read next run.
   - **What it would save.** On the 9 days of records then (298 extractions in 138 account-runs, 88 of them a single post; about a quarter of
     the posts the triage passes have no event, and those would be read again alone), two a request would have taken
@@ -1623,7 +1640,7 @@ flowchart LR
 | `stories.py` | Stories from screenshots: their id and perceptual hash, when a screenshot was taken, dates (and a workshop series' sessions) worked out from what's printed, the flyer's crop, the account's name |
 | `account_options.py` | What an `accounts.txt` line says besides the name: `bar` (only special nights) and `solo:<styles>` (the caption filter's words, `FOCUS_KEYWORDS`, from `normalize.TEXT_STYLE_WORDS` plus looser ones), parsed strictly (a typo fails) |
 | `extraction.py` | `EventExtractor`: triage, then extraction, with the provisional fallback and the last resort (extraction only), and no request after the run's time budget; a batch of posts in one request (`extract_batch`) |
-| `batching.py` | Batched extraction (section 7.2): the request for several posts, each labeled with its own context and images (`batch_contents`), and each post's answer checked apart (`split_answer`) |
+| `batching.py` | Batched extraction (section 7.2): the request for several posts, each labeled with its own context and images (`batch_contents`), each post's answer checked apart (`split_answer`), and whether a later post of a batch may repeat an earlier one's event (`repeats_earlier`) |
 | `external.py` | `ExternalTier`: the last resort on OpenAI-compatible chat APIs (Groq, OpenRouter): order, budgets, Groq's token pacing, per-run quarantine, JSON checked against the schemas |
 | `bakeoff.py` | `admin bakeoff`: picks posts Flash read, runs other models on them, scores them field by field; the test set (`gold/`, `--gold`, `--ocr`, `--batch`: one post a request against several); OpenRouter's free vision models |
 | `ocr.py` | A flyer's text by OCR (RapidOCR, on the CPU), in rows as printed; optional (`rapidocr` isn't in `requirements.txt` yet): the input of the checks, and of `bakeoff --ocr` |
@@ -1635,7 +1652,7 @@ flowchart LR
 | `pipeline/common.py` | Run statistics (`RunStats`, with the run's changes), the clients' protocols, `AddPostError`, retryable errors, flyers and media records |
 | `pipeline/base.py` | `SweepBase`: the state (events, analyzed posts, hidden events, accounts), storing one analyzed post (only upcoming events in Bogotá; a cancelled post's events taken down), one identity per post |
 | `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; `overdue_by_account` (each account's turn, for the sweep and the status page; its tiers: `hours_overdue`, `unproductive_accounts`, `busy_accounts`) |
-| `pipeline/batches.py` | `Batches`, mixed into `Sweep`: an account's posts waiting for a shared extraction request, read and stored each as its own, and any post left out read again alone (section 7.2) |
+| `pipeline/batches.py` | `Batches`, mixed into `Sweep`: an account's posts waiting for a shared extraction request, read and stored each as its own, and any post left out, or on an earlier post's day, read again alone (section 7.2) |
 | `pipeline/manual_post.py`, `story_admin.py`, `hiding.py` | The admin tools, mixed into `Sweep`: add a post (`add_post`), add a story (`add_story`), hide a story or an event (`hide_story`, `hide_event`) |
 | `clips.py` | Videos' preview clips: download, cut 6 silent seconds with ffmpeg |
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, the archive of past events, `accounts.txt` |

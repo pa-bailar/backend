@@ -21,7 +21,9 @@ from datetime import datetime
 from google.genai import types
 
 from .instagram import Post
-from .models import BatchAnalysis, PostAnalysis
+from .merging import find_existing, share_a_day
+from .models import BatchAnalysis, PostAnalysis, StoredEvent
+from .normalize import normalize_event
 from .prompts import BATCH_EXTRACTION_PROMPT, BATCH_POST
 
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -37,6 +39,9 @@ STRAY_ANSWER = "respuesta para una publicación que no está en la solicitud"
 # academy's closing show; each post read alone found its event. An answer that says it isn't an event post
 # (is_event_post false) is such a "no" even when it lists events: the sweep stores none of them (_store_analysis).
 NO_EVENT = "sin eventos en la respuesta compartida: se confirma sola"
+# A later post of a batch with an event on a day an earlier post of the batch announced, that the rules wouldn't merge
+# (repeats_earlier): read again alone, with the earlier post's events known, so Gemini can say it's the same (same_as).
+SAME_DAY = "un evento cae el día de uno de otra publicación de la solicitud: se relee sola, con ese evento conocido"
 
 
 @dataclass(frozen=True)
@@ -138,3 +143,22 @@ def split_answer(answer: BatchAnalysis, image_counts: list[int]) -> tuple[dict[i
         ]
         analyses[index] = answers[0].model_copy(update={"events": local})
     return analyses, left_out
+
+
+def repeats_earlier(
+    analysis: PostAnalysis, earlier: list[StoredEvent], events: list[StoredEvent], account: str, post_id: str
+) -> bool:
+    """Whether a post's answer from a shared request may announce again an event an earlier post of the batch announced
+    (`earlier`: stored since, so the request couldn't list it as known): one of its events falls on a day of one of
+    them, and the rules wouldn't merge it into a stored event (merging.find_existing). Read one by one, the later post
+    is asked with the earlier one's events known, and Gemini links a reminder to its flyer (same_as) when the rules
+    can't ("Ven a bailar" without a time, the doors' time against the show's); in a shared request it can't, and the
+    two readings made two events on the site (the bug hunt of 9 Oct 2026). So such a post is read again alone
+    (SAME_DAY): one request more, only then; two different events of a day stay two, as one by one."""
+    for event in analysis.events:
+        candidate = normalize_event(event)
+        if any(share_a_day(stored, candidate) for stored in earlier) and not find_existing(
+            events, account, candidate, post_id
+        ):
+            return True
+    return False

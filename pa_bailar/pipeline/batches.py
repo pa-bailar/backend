@@ -8,7 +8,9 @@ and whether it's provisional. The safeguards: a post the answer leaves out (no a
 another post's image: batching.split_answer), and every post of a batch no model could read now, that Gemini refused
 or that ran out of quota, is read again alone through the one-post path (`_extract_and_store`), with its own
 fallbacks (the provisional models, the last resort) and its own errors: never dropped, and a post Gemini refuses is
-recorded as rejected alone, not with its batch.
+recorded as rejected alone, not with its batch. And a later post whose event falls on a day an earlier post of the
+batch announced, which the rules wouldn't merge, is read again alone too, with that event known
+(batching.repeats_earlier): one by one, Gemini links a reminder to its flyer, which a shared request can't.
 """
 
 import logging
@@ -17,9 +19,10 @@ from contextlib import contextmanager
 from datetime import datetime
 
 from .. import config
-from ..batching import BatchItem, BatchReading
+from ..batching import SAME_DAY, BatchItem, BatchReading, repeats_earlier
 from ..gemini import GeminiKeyError, QuotaExhaustedError
 from ..instagram import Post
+from ..models import StoredEvent
 from .base import SweepBase
 from .common import RETRYABLE_ERRORS
 
@@ -82,12 +85,22 @@ class Batches(SweepBase):
             for _ in items:
                 self.stats.count(account, "pending")
             return
-        reading = self._shared_reading(account, items)
+        known = self._known_events(account, min(item.published for item in items))
+        reading = self._shared_reading(account, items, known)
+        known_ids = {event.id for event in known}
+        announced: set[str] = set()  # the account's events this batch's posts stored that its request didn't know
         for index, item in enumerate(items):
             analysis = reading.analyses.get(index) if reading else None
+            why = reading.left_out.get(index) if reading else None
+            if (
+                analysis is not None and announced
+            ):  # the same event as an earlier post's, which the request couldn't name?
+                earlier = [event for event in self.events if event.id in announced]
+                if repeats_earlier(analysis, earlier, self.events, account, item.post["id"]):
+                    analysis, why = None, SAME_DAY
             if reading is None or analysis is None:
-                if reading is not None:
-                    log.info("     %s read again alone: %s", item.post["permalink"], reading.left_out[index])
+                if why:
+                    log.info("     %s read again alone: %s", item.post["permalink"], why)
                 stored = self._extract_and_store(account, *self._one(item))
                 if stored:  # read and recorded; one that waits (no quota, time, an error) is counted as pending
                     self.stats.batch_rereads += 1
@@ -98,10 +111,16 @@ class Batches(SweepBase):
                     account, item.post, item.images, analysis, reading.model, reading.provisional
                 )
             self._counted(account, item, stored)
+            announced |= {
+                event.id
+                for event in self.events
+                if event.account == account
+                and event.id not in known_ids
+                and any(media.post_id == item.post["id"] for media in event.media)
+            }
 
-    def _shared_reading(self, account: str, items: list[BatchItem]) -> BatchReading | None:
+    def _shared_reading(self, account: str, items: list[BatchItem], known: list[StoredEvent]) -> BatchReading | None:
         """The batch's request: its reading, or None when no model could give one (each post is then read alone)."""
-        known = self._known_events(account, min(item.published for item in items))
         log.info("   reading %d posts in one request", len(items))
         try:
             reading = self.extractor.extract_batch(account, items, known)

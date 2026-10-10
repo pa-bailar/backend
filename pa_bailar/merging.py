@@ -51,7 +51,7 @@ def _within(day: str, event: EventDetails) -> bool:
     return days is not None and days[0] <= day <= days[1]
 
 
-def _overlap(a: EventDetails, b: EventDetails) -> bool:
+def share_a_day(a: EventDetails, b: EventDetails) -> bool:
     """Whether two events share a day: the same date, a day within an event over several days, or one of a
     workshop series' sessions (the days between them aren't the series')."""
     if a.sessions or b.sessions:
@@ -108,7 +108,7 @@ def looks_like_same_event(stored: StoredEvent, account: str, candidate: EventDet
       and a post about its teacher), never the start time alone (a festival weekend has several nights);
     - a workshop series and a post about one of its sessions: _session_of; two series: _same_series.
     """
-    if stored.account != account or not _overlap(stored, candidate):
+    if stored.account != account or not share_a_day(stored, candidate):
         return False
     if stored.sessions and candidate.sessions:
         return _same_series(stored, candidate)
@@ -240,7 +240,7 @@ def looks_like_shared_event(stored: StoredEvent, account: str, candidate: EventD
         Tour de la Salsa", the second without a time: 7 Oct 2026).
     Titles alone never merge two accounts' events: "Halloween Party" or "Festival … 2026" may be two events.
     """
-    if stored.account == account or not _overlap(stored, candidate):
+    if stored.account == account or not share_a_day(stored, candidate):
         return False
     one_day = not _multi_day(stored) and not _multi_day(candidate)
     if one_day and stored.start_time and candidate.start_time and stored.start_time != candidate.start_time:
@@ -283,12 +283,12 @@ def find_existing(
     """
     others = [e for e in events if all(m.post_id != post_id for m in e.media)]
     linked = _linked(others, account, candidate)
-    if linked and _overlap(linked, candidate):
+    if linked and share_a_day(linked, candidate):
         return linked
     same_account = next((e for e in others if looks_like_same_event(e, account, candidate)), None)
     if same_account:
         return same_account
-    before = [e for e in others if e.id in announced and e.account == account and _overlap(e, candidate)]
+    before = [e for e in others if e.id in announced and e.account == account and share_a_day(e, candidate)]
     if len(before) == 1:
         return before[0]
     return next((e for e in others if looks_like_shared_event(e, account, candidate)), None)
@@ -309,13 +309,13 @@ def refused_link(
     goes through the rules like any other, and may be a reschedule worth a look."""
     others = [e for e in events if all(m.post_id != post_id for m in e.media)]
     linked = _linked(others, account, candidate)
-    return linked if linked and not _overlap(linked, candidate) else None
+    return linked if linked and not share_a_day(linked, candidate) else None
 
 
 def already_stored(events: list[StoredEvent], account: str, candidate: ExtractedEvent, post_id: str) -> bool:
     """Whether an extracted event is one already stored: one this post announced before (read again, a day in
     common) or another post's (find_existing). A past event is published only then (Sweep._discard_reasons)."""
-    own = any(any(m.post_id == post_id for m in e.media) and _overlap(e, candidate) for e in events)
+    own = any(any(m.post_id == post_id for m in e.media) and share_a_day(e, candidate) for e in events)
     return own or find_existing(events, account, candidate, post_id) is not None
 
 
@@ -325,12 +325,12 @@ def matches_hidden(hidden: StoredEvent, account: str, candidate: ExtractedEvent,
     at 16:00 and a social at 21:00, and hiding one keeps the other), linked to it by Gemini (with a day in common),
     or the same event by the merging rules (a later reminder of it, another account's post of it). Anything else is
     a new event, even from the same account."""
-    same_post = post_id in {media.post_id for media in hidden.media} and _overlap(hidden, candidate)
+    same_post = post_id in {media.post_id for media in hidden.media} and share_a_day(hidden, candidate)
     if same_post and (
         looks_like_same_event(hidden, hidden.account, candidate) or fold(hidden.title) == fold(candidate.title)
     ):
         return True
-    if candidate.same_as == hidden.id and hidden.account == account and _overlap(hidden, candidate):
+    if candidate.same_as == hidden.id and hidden.account == account and share_a_day(hidden, candidate):
         return True
     return looks_like_same_event(hidden, account, candidate) or looks_like_shared_event(hidden, account, candidate)
 
@@ -351,7 +351,7 @@ def merge_into(
     it read replaces what they did, title included, as if it were the newest post."""
     others = [m for m in stored.media if m.post_id != media.post_id]
     is_newest = correcting or all(media.published >= other.published for other in others)
-    one_of_its_days = _multi_day(stored) and not _multi_day(candidate) and _overlap(stored, candidate)
+    one_of_its_days = _multi_day(stored) and not _multi_day(candidate) and share_a_day(stored, candidate)
     updates: dict[str, object] = {}
     for field in _DETAIL_FIELDS:
         current, new = getattr(stored, field), getattr(candidate, field)
