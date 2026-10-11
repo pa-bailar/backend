@@ -2014,5 +2014,148 @@
       "merged": 3,
       "reread": 1
     }
+  },
+  {
+    "finished_at": "2026-10-11T03:23:01-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/38123273076",
+    "accounts": 48,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academiadebailepasolatino",
+      "academyfeel",
+      "andonybaron",
+      "aseismanos",
+      "bembeacademiadebaile",
+      "bilongocolombia",
+      "boogaloop.candelaria",
+      "bulevarsalsabar",
+      "bulevarsalsarooftop",
+      "callejonsalsa",
+      "casaquiebracanto",
+      "casavander_",
+      "chanchanlatino",
+      "cremadeajiaco",
+      "danceholicproject",
+      "danitello22",
+      "discojaguar.bta",
+      "dlivingstudio",
+      "dreamcupco",
+      "el_bochinche_cafe_",
+      "el_panteon_de_la_salsa",
+      "elgocepagano",
+      "elratonsalsaclub",
+      "esferalatinaoficial",
+      "fernandoespanadj",
+      "galeriacafelibro",
+      "ilhehabana",
+      "jaleocompetencia_",
+      "juancho__salsita",
+      "la33orquesta",
+      "ladiezluxury_outlet",
+      "lamecanica_original",
+      "madyumdance",
+      "mariavasquezdancer",
+      "oronegroclub",
+      "oswaldgil2",
+      "pachanga_y_pochola",
+      "parchexbogota",
+      "restaurantecasadecitas",
+      "salsacamaraoficial",
+      "salsaysonoficial",
+      "sarasandoval.oficial",
+      "soondanz_company",
+      "studio110dance",
+      "teffa_mg",
+      "tributo.salsayjazz",
+      "zafradance",
+      "zaimora24"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 12,
+    "events_new": 0,
+    "events_merged": 3,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 2,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 9,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3-flash-preview": 2
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 55,
+    "instagram_usage_detail": {
+      "call_count": 19,
+      "total_cputime": 0,
+      "total_time": 55
+    },
+    "instagram_reads": {
+      "accounts": 48,
+      "mean_seconds": 1.67,
+      "median_seconds": 1.49,
+      "max_seconds": 3.48,
+      "mean_cost": 1.17,
+      "max_cost": 4,
+      "max_cost_account": "academyfeel",
+      "headers": {
+        "X-App-Usage": 48
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {
+      "compared": 1,
+      "dropped": 0,
+      "styles": 1
+    },
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "corrected",
+        "id": "el-golazo-de-bulevar-11-oct",
+        "title": "El Golazo de Bulevar",
+        "account": "bulevarsalsarooftop",
+        "date": "2026-10-11",
+        "detail": "Flash cambió los ritmos"
+      },
+      {
+        "kind": "merged",
+        "id": "halloween-social-31-oct",
+        "title": "Halloween Social",
+        "account": "dlivingstudio",
+        "date": "2026-10-31",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "tour-de-la-salsa-capitulo-001-11-oct",
+        "title": "Tour de la Salsa — Capítulo 001",
+        "account": "salsaculto",
+        "date": "2026-10-11",
+        "detail": "otra publicación de @parchexbogota"
+      },
+      {
+        "kind": "merged",
+        "id": "ritmos-cruzados-20-oct",
+        "title": "Ritmos Cruzados",
+        "account": "esferalatinaoficial",
+        "date": "2026-10-20",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "corrected": 1,
+      "merged": 3
+    }
   }
 ]
