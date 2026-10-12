@@ -2320,5 +2320,134 @@
       "merged": 1,
       "reread": 1
     }
+  },
+  {
+    "finished_at": "2026-10-12T03:19:20-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/38220942277",
+    "accounts": 48,
+    "failed_accounts": [
+      "bailabo_studio"
+    ],
+    "read_accounts": [
+      "acaparchamos",
+      "and1erita",
+      "aseismanos",
+      "bailabo_studio",
+      "bembeacademiadebaile",
+      "bilongocolombia",
+      "bogotadanceclub.academy",
+      "bulevarsalsabar",
+      "bulevarsalsarooftop",
+      "callejonsalsa",
+      "casaquiebracanto",
+      "casavander_",
+      "chanchanlatino",
+      "danceholicproject",
+      "danitello22",
+      "discojaguar.bta",
+      "dlivingstudio",
+      "el_bochinche_cafe_",
+      "el_panteon_de_la_salsa",
+      "elgocepagano",
+      "elratonsalsaclub",
+      "esferalatinaoficial",
+      "fernandoespanadj",
+      "foururbandanc",
+      "frank.de.latorre",
+      "galeriacafelibro",
+      "ikubambayadanza",
+      "ilhehabana",
+      "jaleocompetencia_",
+      "la33orquesta",
+      "ladiezluxury_outlet",
+      "lamecanica_original",
+      "madyumdance",
+      "mambolei_",
+      "mundanobaroficial",
+      "oronegroclub",
+      "pachanga_y_pochola",
+      "parchexbogota",
+      "quemaquequema",
+      "restaurantecasadecitas",
+      "rpdancestudio",
+      "salsacamaraoficial",
+      "salsalatina.villaluz",
+      "salsaysonoficial",
+      "sarasandoval.oficial",
+      "sonorasocialclub_",
+      "teffa_mg",
+      "tributo.salsayjazz"
+    ],
+    "skipped_accounts": [
+      "ritmomoderno",
+      "bailaderia",
+      "osupaproject",
+      "lauuurin__"
+    ],
+    "posts_analyzed": 30,
+    "events_new": 0,
+    "events_merged": 2,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 3,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 21,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 4,
+      "gemini-3-flash-preview": 5
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 62,
+    "instagram_usage_detail": {
+      "call_count": 17,
+      "total_cputime": 0,
+      "total_time": 62
+    },
+    "instagram_reads": {
+      "accounts": 48,
+      "mean_seconds": 1.84,
+      "median_seconds": 1.58,
+      "max_seconds": 4.27,
+      "mean_cost": 1.32,
+      "max_cost": 4,
+      "max_cost_account": "restaurantecasadecitas",
+      "headers": {
+        "X-App-Usage": 48
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "batch_requests": 1,
+    "batched_posts": 2,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "merged",
+        "id": "salsa-y-caribe-con-nick-salas-ns-orquesta-11-oct",
+        "title": "Salsa y Caribe con Nick Salas (NS Orquesta)",
+        "account": "galeriacafelibro",
+        "date": "2026-10-11",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "ritmos-cruzados-20-oct",
+        "title": "Ritmos Cruzados",
+        "account": "esferalatinaoficial",
+        "date": "2026-10-20",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "merged": 2
+    }
   }
 ]
