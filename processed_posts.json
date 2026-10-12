@@ -13563,5 +13563,35 @@
     "detail": null,
     "image_hashes": [],
     "by_hand": false
+  },
+  "18113886905021965": {
+    "account": "ritmomoderno",
+    "permalink": "https://www.instagram.com/p/DeUtXuTJcWM/",
+    "processed_at": "2026-10-12T06:31:11-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "b7274c945b9324f2",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17910694326501362": {
+    "account": "ritmomoderno",
+    "permalink": "https://www.instagram.com/p/DeXc81zGEBF/",
+    "processed_at": "2026-10-12T06:31:22-05:00",
+    "is_event_post": false,
+    "reason": "El evento anunciado ocurrió en el pasado ya que la fecha de la publicación es el 11 de octubre de 2026 y hoy es 12 de octubre de 2026.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "97d28fb31e7404a1",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
   }
 }
