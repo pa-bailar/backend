@@ -2765,5 +2765,71 @@
     "change_counts": {
       "merged": 2
     }
+  },
+  {
+    "finished_at": "2026-10-13T06:34:14-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/38390635504",
+    "accounts": 2,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academyfeel",
+      "soondanz_company"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 2,
+    "events_new": 1,
+    "events_merged": 0,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 2,
+      "gemini-3.8-flash": 2
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 1,
+    "instagram_usage_detail": {
+      "call_count": 0,
+      "total_cputime": 0,
+      "total_time": 1
+    },
+    "instagram_reads": {
+      "accounts": 2,
+      "mean_seconds": 1.91,
+      "median_seconds": 1.91,
+      "max_seconds": 2.22,
+      "mean_cost": 1.0,
+      "max_cost": 1,
+      "max_cost_account": "soondanz_company",
+      "headers": {
+        "X-App-Usage": 2
+      },
+      "expected_cost": 1
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "taller-de-bachata-ladies-24-oct",
+        "title": "Taller de Bachata Ladies",
+        "account": "soondanz_company",
+        "date": "2026-10-24",
+        "detail": null
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 1
+    }
   }
 ]

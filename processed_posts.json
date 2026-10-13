@@ -13920,5 +13920,37 @@
     "detail": null,
     "image_hashes": [],
     "by_hand": false
+  },
+  "17986877099881170": {
+    "account": "soondanz_company",
+    "permalink": "https://www.instagram.com/reel/DeaVFhiPsFW/",
+    "processed_at": "2026-10-13T06:31:02-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia clases regulares todos los sábados pero no especifica las fechas exactas de las sesiones.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "0cbaacc531328eae",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "17994756708102808": {
+    "account": "soondanz_company",
+    "permalink": "https://www.instagram.com/reel/DeZ3SvcvdDH/",
+    "processed_at": "2026-10-13T06:34:14-05:00",
+    "is_event_post": true,
+    "reason": "Se anuncia un taller especial de bachata ladies para el sábado 24 de octubre.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
+    "caption_hash": "5f50e584213cbf3f",
+    "outcome": "event",
+    "event_ids": [
+      "taller-de-bachata-ladies-24-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
   }
 }
