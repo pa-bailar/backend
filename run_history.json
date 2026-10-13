@@ -2505,5 +2505,140 @@
     "changes": [],
     "changes_left_out": 0,
     "change_counts": {}
+  },
+  {
+    "finished_at": "2026-10-12T21:20:17-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/38334791647",
+    "accounts": 44,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academia_cowork",
+      "academiaalmadetangoe",
+      "alpasojam",
+      "angie__cuesta",
+      "babou_candelaria",
+      "bachatamania_bogota",
+      "bachatasocialcongresss",
+      "bogotadanceclub",
+      "bureodancestudio",
+      "casineafest",
+      "clandisfrute",
+      "danceinmotionclub",
+      "danzaenlaciudad",
+      "davidylauradancers",
+      "distritosocialbog",
+      "ebi_dancecompany",
+      "efadanza",
+      "elparche.se",
+      "espacio.64",
+      "fredyysaraoficial",
+      "germanbaila",
+      "herencialatinad.c",
+      "iledanza",
+      "imperiolatino",
+      "jackandjilloficial",
+      "lacoartadacentrocultural",
+      "latinproductioncolombia",
+      "latrinidaddelasalsa",
+      "ludancestudios",
+      "mambo_y_control",
+      "meetinghousebogota",
+      "mover__se",
+      "originalstepdance",
+      "proyectourbandance",
+      "reyesdelasalsa.col",
+      "ritmosacademiadebaile",
+      "salsaculto",
+      "sondehabana",
+      "sonrumbero",
+      "soywiwioficial",
+      "studiolatindance",
+      "terrazasalsera",
+      "tubailecom",
+      "valkandela"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 10,
+    "events_new": 1,
+    "events_merged": 3,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 6,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 14,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 5,
+      "gemini-3-flash-preview": 4
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 94,
+    "instagram_usage_detail": {
+      "call_count": 16,
+      "total_cputime": 0,
+      "total_time": 94
+    },
+    "instagram_reads": {
+      "accounts": 44,
+      "mean_seconds": 2.69,
+      "median_seconds": 2.44,
+      "max_seconds": 5.21,
+      "mean_cost": 2.19,
+      "max_cost": 5,
+      "max_cost_account": "salsaculto",
+      "headers": {
+        "X-App-Usage": 44
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "batch_requests": 2,
+    "batched_posts": 2,
+    "batch_rereads": 2,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "provisional",
+        "id": "proyeccion-de-metropolis-con-dj-en-vivo-16-oct",
+        "title": "Proyección de Metrópolis con DJ en vivo",
+        "account": "espacio.64",
+        "date": "2026-10-16",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "merged",
+        "id": "distrito-social-aniversario-31-oct",
+        "title": "Distrito Social Aniversario",
+        "account": "distritosocialbog",
+        "date": "2026-10-31",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "una-cita-con-la-salsa-18-oct",
+        "title": "Una Cita con la Salsa",
+        "account": "elgocepagano",
+        "date": "2026-10-18",
+        "detail": "otra publicación de @germanbaila"
+      },
+      {
+        "kind": "merged",
+        "id": "jack-and-jill-20-nov",
+        "title": "Jack and Jill",
+        "account": "jackandjilloficial",
+        "date": "2026-11-20",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "provisional": 1,
+      "merged": 3
+    }
   }
 ]
