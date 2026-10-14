@@ -1480,56 +1480,7 @@
     "warnings": [
       "missed-sweep:03:00"
     ],
-    "changes": [
-      {
-        "kind": "new",
-        "id": "bachafriday-9-oct",
-        "title": "BachaFriday",
-        "account": "originalstepdance",
-        "date": "2026-10-09",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "bachata-lady-style-con-isabella-urrego-10-oct",
-        "title": "Bachata Lady Style con Isabella Urrego",
-        "account": "originalstepdance",
-        "date": "2026-10-10",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "la-salsa-party-9-oct",
-        "title": "La Salsa Party",
-        "account": "meetinghousebogota",
-        "date": "2026-10-09",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "batalla-internacional-viaalternativa-2026-hip-hop-24-oct",
-        "title": "Batalla Internacional ViaAlternativa 2026 - Hip Hop al Parque",
-        "account": "danzaenlaciudad",
-        "date": "2026-10-24",
-        "detail": null
-      },
-      {
-        "kind": "merged",
-        "id": "distrito-social-aniversario-31-oct",
-        "title": "Distrito Social Aniversario",
-        "account": "distritosocialbog",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "tardeo-latino-edicion-angeles-10-oct",
-        "title": "Tardeo Latino - Edición: Ángeles",
-        "account": "bogotadanceclub",
-        "date": "2026-10-10",
-        "detail": "otra publicación"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "new": 4,
@@ -2982,6 +2933,186 @@
       "dropped": 1,
       "merged": 1,
       "reread": 1
+    }
+  },
+  {
+    "finished_at": "2026-10-14T03:19:40-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/38532070868",
+    "accounts": 48,
+    "failed_accounts": [
+      "bailabo_studio"
+    ],
+    "read_accounts": [
+      "acaparchamos",
+      "and1erita",
+      "aseismanos",
+      "bailabo_studio",
+      "bembeacademiadebaile",
+      "bilongocolombia",
+      "bogotadanceclub.academy",
+      "bulevarsalsabar",
+      "bulevarsalsarooftop",
+      "callejonsalsa",
+      "casaquiebracanto",
+      "casavander_",
+      "chanchanlatino",
+      "danceholicproject",
+      "danitello22",
+      "discojaguar.bta",
+      "dlivingstudio",
+      "el_bochinche_cafe_",
+      "el_panteon_de_la_salsa",
+      "elgocepagano",
+      "elratonsalsaclub",
+      "esferalatinaoficial",
+      "fernandoespanadj",
+      "foururbandanc",
+      "frank.de.latorre",
+      "galeriacafelibro",
+      "ikubambayadanza",
+      "ilhehabana",
+      "jaleocompetencia_",
+      "la33orquesta",
+      "ladiezluxury_outlet",
+      "lamecanica_original",
+      "madyumdance",
+      "mambolei_",
+      "mundanobaroficial",
+      "oronegroclub",
+      "pachanga_y_pochola",
+      "parchexbogota",
+      "quemaquequema",
+      "restaurantecasadecitas",
+      "rpdancestudio",
+      "salsacamaraoficial",
+      "salsalatina.villaluz",
+      "salsaysonoficial",
+      "sarasandoval.oficial",
+      "sonorasocialclub_",
+      "tributo.salsayjazz",
+      "zaimora24"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 33,
+    "events_new": 9,
+    "events_merged": 0,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 11,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 22,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3-flash-preview": 12
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 42,
+    "instagram_usage_detail": {
+      "call_count": 15,
+      "total_cputime": 0,
+      "total_time": 42
+    },
+    "instagram_reads": {
+      "accounts": 48,
+      "mean_seconds": 1.34,
+      "median_seconds": 1.31,
+      "max_seconds": 3.02,
+      "mean_cost": 0.89,
+      "max_cost": 3,
+      "max_cost_account": "danitello22",
+      "headers": {
+        "X-App-Usage": 48
+      },
+      "expected_cost": 3
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "batch_requests": 2,
+    "batched_posts": 3,
+    "batch_rereads": 1,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "provisional",
+        "id": "embrujate-con-salsa-viernes-30-oct",
+        "title": "¡Embrújate con Salsa! - Viernes",
+        "account": "galeriacafelibro",
+        "date": "2026-10-30",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "embrujate-con-salsa-sabado-31-oct",
+        "title": "¡Embrújate con Salsa! - Sábado",
+        "account": "galeriacafelibro",
+        "date": "2026-10-31",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "mambo-candela-15-oct",
+        "title": "Mambo Candela",
+        "account": "salsacamaraoficial",
+        "date": "2026-10-15",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "javier-guaneme-homenaje-a-willie-colon-17-oct",
+        "title": "Javier Guaneme Homenaje a Willie Colón",
+        "account": "salsacamaraoficial",
+        "date": "2026-10-17",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "noche-de-tributo-grupo-niche-y-hermanos-lebron-16-oct",
+        "title": "Noche de Tributo: Grupo Niche y Hermanos Lebron",
+        "account": "casavander_",
+        "date": "2026-10-16",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "remate-del-concierto-de-yellowman-15-oct",
+        "title": "Remate del concierto de Yellowman",
+        "account": "callejonsalsa",
+        "date": "2026-10-15",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "salsa-night-con-timbake-16-oct",
+        "title": "Salsa Night con TimbaKé",
+        "account": "tributo.salsayjazz",
+        "date": "2026-10-16",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "latin-jazz-con-alejandro-castro-15-oct",
+        "title": "Latin Jazz con Alejandro Castro",
+        "account": "tributo.salsayjazz",
+        "date": "2026-10-15",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "salsa-en-familia-18-oct",
+        "title": "Salsa en Familia",
+        "account": "tributo.salsayjazz",
+        "date": "2026-10-18",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "provisional": 9
     }
   }
 ]
