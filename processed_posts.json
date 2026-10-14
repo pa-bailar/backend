@@ -14600,5 +14600,35 @@
     "detail": null,
     "image_hashes": [],
     "by_hand": false
+  },
+  "18112741670589995": {
+    "account": "ritmomoderno",
+    "permalink": "https://www.instagram.com/p/DecHmuPlkf1/",
+    "processed_at": "2026-10-14T06:31:03-05:00",
+    "is_event_post": false,
+    "reason": "no menciona salsa ni bachata (la cuenta es solo para esos estilos)",
+    "model": "-",
+    "provisional": false,
+    "caption_hash": "59f9e1646788c8db",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
+  },
+  "18104975057632966": {
+    "account": "ritmomoderno",
+    "permalink": "https://www.instagram.com/p/DedHBIal1te/",
+    "processed_at": "2026-10-14T06:31:08-05:00",
+    "is_event_post": false,
+    "reason": "El evento no es de salsa o bachata, sino de géneros musicales como rap, dub, reggae, postpunk y cumbia.",
+    "model": "gemini-3.5-flash-lite",
+    "provisional": false,
+    "caption_hash": "cc1874d2cea3fb4a",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false
   }
 }
