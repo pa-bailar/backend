@@ -1,7 +1,114 @@
 {
-  "generated_at": "2026-10-14T06:31:13-05:00",
+  "generated_at": "2026-10-14T21:20:27-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-10-14T21:20:26-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/38668649906",
+        "accounts": 43,
+        "failed_accounts": [],
+        "read_accounts": [
+          "academia_cowork",
+          "academiaalmadetangoe",
+          "alpasojam",
+          "angie__cuesta",
+          "babou_candelaria",
+          "bachatamania_bogota",
+          "bachatasocialcongresss",
+          "bogotadanceclub",
+          "bureodancestudio",
+          "casineafest",
+          "clandisfrute",
+          "danceinmotionclub",
+          "danzaenlaciudad",
+          "davidylauradancers",
+          "distritosocialbog",
+          "ebi_dancecompany",
+          "efadanza",
+          "elparche.se",
+          "espacio.64",
+          "fredyysaraoficial",
+          "germanbaila",
+          "herencialatinad.c",
+          "imperiolatino",
+          "jackandjilloficial",
+          "jen.ssy",
+          "lacoartadacentrocultural",
+          "latinproductioncolombia",
+          "latrinidaddelasalsa",
+          "ludancestudios",
+          "mambo_y_control",
+          "meetinghousebogota",
+          "mover__se",
+          "originalstepdance",
+          "reyesdelasalsa.col",
+          "ritmosacademiadebaile",
+          "salsaculto",
+          "showstarscol",
+          "sondehabana",
+          "sonrumbero",
+          "soywiwioficial",
+          "studiolatindance",
+          "tubailecom",
+          "valkandela"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 11,
+        "events_new": 2,
+        "events_merged": 2,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 2,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 10,
+          "gemini-3.8-flash": 12,
+          "gemini-3.6-flash": 3,
+          "gemini-3-flash-preview": 2
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 41,
+        "instagram_usage_detail": {
+          "call_count": 12,
+          "total_cputime": 0,
+          "total_time": 41
+        },
+        "instagram_reads": {
+          "accounts": 43,
+          "mean_seconds": 1.55,
+          "median_seconds": 1.4,
+          "max_seconds": 2.91,
+          "mean_cost": 0.98,
+          "max_cost": 3,
+          "max_cost_account": "showstarscol",
+          "headers": {
+            "X-App-Usage": 43
+          },
+          "expected_cost": 2
+        },
+        "instagram_stop": null,
+        "upgrade_changes": {
+          "compared": 2,
+          "dropped": 0,
+          "styles": 1
+        },
+        "batch_requests": 0,
+        "batched_posts": 0,
+        "batch_rereads": 0,
+        "warnings": [],
+        "changes_left_out": 0,
+        "change_counts": {
+          "new": 1,
+          "provisional": 1,
+          "corrected": 1,
+          "merged": 2,
+          "reread": 2
+        }
+      },
       {
         "finished_at": "2026-10-14T06:31:12-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/38556994867",
@@ -326,118 +433,11 @@
         "change_counts": {
           "new": 1
         }
-      },
-      {
-        "finished_at": "2026-10-13T03:21:39-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/38366315084",
-        "accounts": 48,
-        "failed_accounts": [],
-        "read_accounts": [
-          "academiadebailepasolatino",
-          "and1erita",
-          "andonybaron",
-          "aseismanos",
-          "bembeacademiadebaile",
-          "bilongocolombia",
-          "boogaloop.candelaria",
-          "bulevarsalsabar",
-          "bulevarsalsarooftop",
-          "callejonsalsa",
-          "casaquiebracanto",
-          "casavander_",
-          "chanchanlatino",
-          "cremadeajiaco",
-          "danceholicproject",
-          "danitello22",
-          "discojaguar.bta",
-          "dlivingstudio",
-          "dreamcupco",
-          "el_bochinche_cafe_",
-          "el_panteon_de_la_salsa",
-          "elgocepagano",
-          "elratonsalsaclub",
-          "esferalatinaoficial",
-          "fernandoespanadj",
-          "frank.de.latorre",
-          "galeriacafelibro",
-          "ilhehabana",
-          "juancho__salsita",
-          "la33orquesta",
-          "ladiezluxury_outlet",
-          "lamecanica_original",
-          "madyumdance",
-          "mariavasquezdancer",
-          "oronegroclub",
-          "oswaldgil2",
-          "pachanga_y_pochola",
-          "parchexbogota",
-          "restaurantecasadecitas",
-          "rpdancestudio",
-          "salsacamaraoficial",
-          "salsaysonoficial",
-          "sarasandoval.oficial",
-          "studio110dance",
-          "teffa_mg",
-          "tributo.salsayjazz",
-          "zafradance",
-          "zaimora24"
-        ],
-        "skipped_accounts": [
-          "academyfeel",
-          "soondanz_company"
-        ],
-        "posts_analyzed": 12,
-        "events_new": 0,
-        "events_merged": 2,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 4,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 8,
-          "gemini-3.8-flash": 6,
-          "gemini-3.6-flash": 6,
-          "gemini-3-flash-preview": 7
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 50,
-        "instagram_usage_detail": {
-          "call_count": 16,
-          "total_cputime": 0,
-          "total_time": 50
-        },
-        "instagram_reads": {
-          "accounts": 48,
-          "mean_seconds": 1.41,
-          "median_seconds": 1.31,
-          "max_seconds": 3.0,
-          "mean_cost": 1.06,
-          "max_cost": 3,
-          "max_cost_account": "danitello22",
-          "headers": {
-            "X-App-Usage": 48
-          },
-          "expected_cost": 2
-        },
-        "instagram_stop": null,
-        "upgrade_changes": {},
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [],
-        "changes_left_out": 0,
-        "change_counts": {
-          "merged": 2
-        }
       }
     ],
     "next": [
-      "2026-10-14T21:00-05:00",
-      "2026-10-15T03:00-05:00"
+      "2026-10-15T03:00-05:00",
+      "2026-10-15T06:30-05:00"
     ]
   },
   "gemini": {
@@ -447,25 +447,25 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 6,
+        "used": 18,
         "budget": 18
       },
       {
         "model": "gemini-3.6-flash",
         "role": "extraction",
-        "used": 6,
+        "used": 9,
         "budget": 18
       },
       {
         "model": "gemini-3-flash-preview",
         "role": "provisional",
-        "used": 12,
+        "used": 14,
         "budget": 18
       },
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 23,
+        "used": 33,
         "budget": 498
       },
       {
@@ -477,7 +477,7 @@
     ]
   },
   "external": {
-    "resets_at": "2026-10-14T19:00-05:00",
+    "resets_at": "2026-10-15T19:00-05:00",
     "providers": [
       {
         "name": "groq",
@@ -510,35 +510,35 @@
     "error": null
   },
   "instagram_quota": {
-    "usage": 2,
+    "usage": 41,
     "detail": {
-      "call_count": 0,
+      "call_count": 12,
       "total_cputime": 0,
-      "total_time": 2
+      "total_time": 41
     },
     "stopped": false,
     "stop": null,
-    "finished_at": "2026-10-14T06:31:12-05:00",
+    "finished_at": "2026-10-14T21:20:26-05:00",
     "stop_at": 98,
     "reads": {
-      "accounts": 2,
-      "mean_seconds": 3.25,
-      "median_seconds": 3.25,
-      "max_seconds": 3.37,
-      "mean_cost": 2.0,
-      "max_cost": 2,
-      "max_cost_account": "soondanz_company",
+      "accounts": 43,
+      "mean_seconds": 1.55,
+      "median_seconds": 1.4,
+      "max_seconds": 2.91,
+      "mean_cost": 0.98,
+      "max_cost": 3,
+      "max_cost_account": "showstarscol",
       "headers": {
-        "X-App-Usage": 2
+        "X-App-Usage": 43
       },
       "expected_cost": 2
     }
   },
   "lighter_reads": {
-    "compared": 15,
+    "compared": 17,
     "dropped": 1,
     "venue": 2,
-    "styles": 4
+    "styles": 5
   },
   "accounts": {
     "followed": 128,
@@ -546,11 +546,11 @@
     "waiting": []
   },
   "posts": {
-    "recorded": 950,
-    "provisional": 193
+    "recorded": 961,
+    "provisional": 192
   },
   "events": {
-    "upcoming": 62,
+    "upcoming": 64,
     "low_confidence": 0
   },
   "new_series": [
@@ -566,7 +566,7 @@
         "2026-11-29"
       ],
       "url": "https://pa-bailar.github.io/evento/guabalosas-intensivo-version-2-0-7-nov/",
-      "first_published": "2026-10-13T21:04-05:00",
+      "first_published": "2026-10-14T21:20-05:00",
       "sources": [
         {
           "kind": "post",
@@ -675,6 +675,87 @@
     }
   ],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "21:00",
+      "finished_at": "2026-10-14T21:20:26-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/38668649906",
+      "target": null,
+      "error": null,
+      "changes": [
+        {
+          "kind": "new",
+          "id": "halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct",
+          "title": "Halloween: Concurso de disfraces, fiesta y taller de baile",
+          "account": "showstarscol",
+          "date": "2026-10-24",
+          "detail": null,
+          "url": "https://pa-bailar.github.io/evento/halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct/"
+        },
+        {
+          "kind": "provisional",
+          "id": "fiesta-de-mascaras-17-oct",
+          "title": "Fiesta de Máscaras",
+          "account": "bogotadanceclub",
+          "date": "2026-10-17",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/fiesta-de-mascaras-17-oct/"
+        },
+        {
+          "kind": "corrected",
+          "id": "la-salsa-party-en-vivo-homenaje-al-gran-combo-de-16-oct",
+          "title": "La Salsa Party en Vivo - Homenaje al Gran Combo de Puerto Rico",
+          "account": "meetinghousebogota",
+          "date": "2026-10-16",
+          "detail": "Flash cambió los ritmos",
+          "url": "https://pa-bailar.github.io/evento/la-salsa-party-en-vivo-homenaje-al-gran-combo-de-16-oct/"
+        },
+        {
+          "kind": "merged",
+          "id": "reyes-de-la-salsa-2027-19-mar",
+          "title": "Reyes de la Salsa 2027",
+          "account": "reyesdelasalsa.col",
+          "date": "2027-03-19",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/reyes-de-la-salsa-2027-19-mar/"
+        },
+        {
+          "kind": "merged",
+          "id": "festival-internacional-casinea-10-a-edicion-13-nov",
+          "title": "Festival Internacional Casinea - 10.ª Edición",
+          "account": "casineafest",
+          "date": "2026-11-13",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/festival-internacional-casinea-10-a-edicion-13-nov/"
+        },
+        {
+          "kind": "reread",
+          "id": "distrito-social-aniversario-31-oct",
+          "title": "Distrito Social Aniversario",
+          "account": "distritosocialbog",
+          "date": "2026-10-31",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/distrito-social-aniversario-31-oct/"
+        },
+        {
+          "kind": "reread",
+          "id": "guabalosas-intensivo-version-2-0-7-nov",
+          "title": "Guabalosas Intensivo Versión 2.0",
+          "account": "jen.ssy",
+          "date": "2026-11-07",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/guabalosas-intensivo-version-2-0-7-nov/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "new": 1,
+        "provisional": 1,
+        "corrected": 1,
+        "merged": 2,
+        "reread": 2
+      }
+    },
     {
       "kind": "sweep",
       "slot": "06:30",
@@ -1024,17 +1105,6 @@
         "merged": 1,
         "reread": 1
       }
-    },
-    {
-      "kind": "sweep",
-      "slot": "06:30",
-      "finished_at": "2026-10-11T06:30:58-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/38135781577",
-      "target": null,
-      "error": null,
-      "changes": [],
-      "left_out": 0,
-      "counts": {}
     }
   ],
   "discovery": null

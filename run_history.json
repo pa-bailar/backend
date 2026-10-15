@@ -1605,7 +1605,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {}
   },
@@ -3135,5 +3135,170 @@
     "changes": [],
     "changes_left_out": 0,
     "change_counts": {}
+  },
+  {
+    "finished_at": "2026-10-14T21:20:26-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/38668649906",
+    "accounts": 43,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academia_cowork",
+      "academiaalmadetangoe",
+      "alpasojam",
+      "angie__cuesta",
+      "babou_candelaria",
+      "bachatamania_bogota",
+      "bachatasocialcongresss",
+      "bogotadanceclub",
+      "bureodancestudio",
+      "casineafest",
+      "clandisfrute",
+      "danceinmotionclub",
+      "danzaenlaciudad",
+      "davidylauradancers",
+      "distritosocialbog",
+      "ebi_dancecompany",
+      "efadanza",
+      "elparche.se",
+      "espacio.64",
+      "fredyysaraoficial",
+      "germanbaila",
+      "herencialatinad.c",
+      "imperiolatino",
+      "jackandjilloficial",
+      "jen.ssy",
+      "lacoartadacentrocultural",
+      "latinproductioncolombia",
+      "latrinidaddelasalsa",
+      "ludancestudios",
+      "mambo_y_control",
+      "meetinghousebogota",
+      "mover__se",
+      "originalstepdance",
+      "reyesdelasalsa.col",
+      "ritmosacademiadebaile",
+      "salsaculto",
+      "showstarscol",
+      "sondehabana",
+      "sonrumbero",
+      "soywiwioficial",
+      "studiolatindance",
+      "tubailecom",
+      "valkandela"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 11,
+    "events_new": 2,
+    "events_merged": 2,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 2,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 10,
+      "gemini-3.8-flash": 12,
+      "gemini-3.6-flash": 3,
+      "gemini-3-flash-preview": 2
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 41,
+    "instagram_usage_detail": {
+      "call_count": 12,
+      "total_cputime": 0,
+      "total_time": 41
+    },
+    "instagram_reads": {
+      "accounts": 43,
+      "mean_seconds": 1.55,
+      "median_seconds": 1.4,
+      "max_seconds": 2.91,
+      "mean_cost": 0.98,
+      "max_cost": 3,
+      "max_cost_account": "showstarscol",
+      "headers": {
+        "X-App-Usage": 43
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {
+      "compared": 2,
+      "dropped": 0,
+      "styles": 1
+    },
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct",
+        "title": "Halloween: Concurso de disfraces, fiesta y taller de baile",
+        "account": "showstarscol",
+        "date": "2026-10-24",
+        "detail": null
+      },
+      {
+        "kind": "provisional",
+        "id": "fiesta-de-mascaras-17-oct",
+        "title": "Fiesta de Máscaras",
+        "account": "bogotadanceclub",
+        "date": "2026-10-17",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "corrected",
+        "id": "la-salsa-party-en-vivo-homenaje-al-gran-combo-de-16-oct",
+        "title": "La Salsa Party en Vivo - Homenaje al Gran Combo de Puerto Rico",
+        "account": "meetinghousebogota",
+        "date": "2026-10-16",
+        "detail": "Flash cambió los ritmos"
+      },
+      {
+        "kind": "merged",
+        "id": "reyes-de-la-salsa-2027-19-mar",
+        "title": "Reyes de la Salsa 2027",
+        "account": "reyesdelasalsa.col",
+        "date": "2027-03-19",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "festival-internacional-casinea-10-a-edicion-13-nov",
+        "title": "Festival Internacional Casinea - 10.ª Edición",
+        "account": "casineafest",
+        "date": "2026-11-13",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "reread",
+        "id": "distrito-social-aniversario-31-oct",
+        "title": "Distrito Social Aniversario",
+        "account": "distritosocialbog",
+        "date": "2026-10-31",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "guabalosas-intensivo-version-2-0-7-nov",
+        "title": "Guabalosas Intensivo Versión 2.0",
+        "account": "jen.ssy",
+        "date": "2026-11-07",
+        "detail": "Flash confirmó la lectura"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 1,
+      "provisional": 1,
+      "corrected": 1,
+      "merged": 2,
+      "reread": 2
+    }
   }
 ]
