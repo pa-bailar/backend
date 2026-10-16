@@ -1946,40 +1946,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "corrected",
-        "id": "el-golazo-de-bulevar-11-oct",
-        "title": "El Golazo de Bulevar",
-        "account": "bulevarsalsarooftop",
-        "date": "2026-10-11",
-        "detail": "Flash cambió los ritmos"
-      },
-      {
-        "kind": "merged",
-        "id": "halloween-social-31-oct",
-        "title": "Halloween Social",
-        "account": "dlivingstudio",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "tour-de-la-salsa-capitulo-001-11-oct",
-        "title": "Tour de la Salsa — Capítulo 001",
-        "account": "salsaculto",
-        "date": "2026-10-11",
-        "detail": "otra publicación de @parchexbogota"
-      },
-      {
-        "kind": "merged",
-        "id": "ritmos-cruzados-20-oct",
-        "title": "Ritmos Cruzados",
-        "account": "esferalatinaoficial",
-        "date": "2026-10-20",
-        "detail": "otra publicación"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "corrected": 1,
@@ -3417,5 +3384,144 @@
     "changes": [],
     "changes_left_out": 0,
     "change_counts": {}
+  },
+  {
+    "finished_at": "2026-10-15T21:17:32-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/38838122851",
+    "accounts": 46,
+    "failed_accounts": [
+      "lacoartadacentrocultural"
+    ],
+    "read_accounts": [
+      "_olorumcongress",
+      "academiaalmadetangoe",
+      "alejochacon.co",
+      "arrollando.dc",
+      "babou_candelaria",
+      "bachatamania_bogota",
+      "bailarito",
+      "bogotadanceclub",
+      "bureodancestudio",
+      "casineafest",
+      "clandisfrute",
+      "cordillerafestival",
+      "danceinmotionclub",
+      "danzaenlaciudad",
+      "distritosocialbog",
+      "ebi_dancecompany",
+      "efadanza",
+      "espacio.64",
+      "fogal_arte",
+      "germanbaila",
+      "guadalupebar751",
+      "habana93",
+      "herencialatinad.c",
+      "iledanza",
+      "imperiolatino",
+      "jackandjilloficial",
+      "jen.ssy",
+      "lacoartadacentrocultural",
+      "lanenamagdalena",
+      "latinproductioncolombia",
+      "mambo_y_control",
+      "meetinghousebogota",
+      "mover__se",
+      "originalstepdance",
+      "proyectourbandance",
+      "puntalpie",
+      "reyesdelasalsa.col",
+      "salsalatina.alsacia",
+      "sandunguera.salsabar",
+      "showstarscol",
+      "sondehabana",
+      "sonrumbero",
+      "soywiwioficial",
+      "tibaduiza__",
+      "valkandela",
+      "zafiro_project_team"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 14,
+    "events_new": 2,
+    "events_merged": 3,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 7,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 20,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3-flash-preview": 3
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 45,
+    "instagram_usage_detail": {
+      "call_count": 12,
+      "total_cputime": 0,
+      "total_time": 45
+    },
+    "instagram_reads": {
+      "accounts": 46,
+      "mean_seconds": 2.21,
+      "median_seconds": 1.77,
+      "max_seconds": 12.82,
+      "mean_cost": 1.02,
+      "max_cost": 3,
+      "max_cost_account": "bureodancestudio",
+      "headers": {
+        "X-App-Usage": 45
+      },
+      "expected_cost": 3
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "batch_requests": 1,
+    "batched_posts": 2,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "provisional",
+        "id": "master-class-heels-19-oct",
+        "title": "Máster Class Heels",
+        "account": "bureodancestudio",
+        "date": "2026-10-19",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "enrique-barrios-en-vivo-en-la-viejoteca-18-oct",
+        "title": "Enrique Barrios en vivo en La Viejoteca",
+        "account": "bogotadanceclub",
+        "date": "2026-10-18",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "merged",
+        "id": "halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct",
+        "title": "Halloween: Concurso de disfraces, fiesta y taller de baile",
+        "account": "showstarscol",
+        "date": "2026-10-24",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "una-cita-con-la-salsa-18-oct",
+        "title": "Una Cita con la Salsa",
+        "account": "elgocepagano",
+        "date": "2026-10-18",
+        "detail": "otra publicación de @germanbaila"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "provisional": 2,
+      "merged": 2
+    }
   }
 ]
