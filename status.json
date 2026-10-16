@@ -1,7 +1,79 @@
 {
-  "generated_at": "2026-10-16T03:18:43-05:00",
+  "generated_at": "2026-10-16T06:39:28-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-10-16T06:39:27-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/38894175105",
+        "accounts": 13,
+        "failed_accounts": [],
+        "read_accounts": [
+          "bogotadanceclub.academy",
+          "el_bochinche_cafe_",
+          "elgocepagano",
+          "elratonsalsaclub",
+          "ladiezluxury_outlet",
+          "mambolei_",
+          "mundanobaroficial",
+          "pachanga_y_pochola",
+          "quemaquequema",
+          "restaurantecasadecitas",
+          "ritmomoderno",
+          "salsaysonoficial",
+          "soondanz_company"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 19,
+        "events_new": 8,
+        "events_merged": 3,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 6,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 30,
+          "gemini-3.8-flash": 6,
+          "gemini-3.6-flash": 6,
+          "gemini-3-flash-preview": 3,
+          "gemini-3.1-flash-lite": 1
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 14,
+        "instagram_usage_detail": {
+          "call_count": 5,
+          "total_cputime": 0,
+          "total_time": 14
+        },
+        "instagram_reads": {
+          "accounts": 13,
+          "mean_seconds": 2.24,
+          "median_seconds": 1.95,
+          "max_seconds": 5.49,
+          "mean_cost": 1.17,
+          "max_cost": 3,
+          "max_cost_account": "mambolei_",
+          "headers": {
+            "X-App-Usage": 13
+          },
+          "expected_cost": 3
+        },
+        "instagram_stop": null,
+        "upgrade_changes": {},
+        "batch_requests": 2,
+        "batched_posts": 4,
+        "batch_rereads": 0,
+        "warnings": [],
+        "changes_left_out": 0,
+        "change_counts": {
+          "new": 3,
+          "provisional": 5,
+          "merged": 3
+        }
+      },
       {
         "finished_at": "2026-10-16T03:18:42-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/38870778775",
@@ -357,118 +429,11 @@
           "provisional": 5,
           "merged": 3
         }
-      },
-      {
-        "finished_at": "2026-10-14T21:20:26-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/38668649906",
-        "accounts": 43,
-        "failed_accounts": [],
-        "read_accounts": [
-          "academia_cowork",
-          "academiaalmadetangoe",
-          "alpasojam",
-          "angie__cuesta",
-          "babou_candelaria",
-          "bachatamania_bogota",
-          "bachatasocialcongresss",
-          "bogotadanceclub",
-          "bureodancestudio",
-          "casineafest",
-          "clandisfrute",
-          "danceinmotionclub",
-          "danzaenlaciudad",
-          "davidylauradancers",
-          "distritosocialbog",
-          "ebi_dancecompany",
-          "efadanza",
-          "elparche.se",
-          "espacio.64",
-          "fredyysaraoficial",
-          "germanbaila",
-          "herencialatinad.c",
-          "imperiolatino",
-          "jackandjilloficial",
-          "jen.ssy",
-          "lacoartadacentrocultural",
-          "latinproductioncolombia",
-          "latrinidaddelasalsa",
-          "ludancestudios",
-          "mambo_y_control",
-          "meetinghousebogota",
-          "mover__se",
-          "originalstepdance",
-          "reyesdelasalsa.col",
-          "ritmosacademiadebaile",
-          "salsaculto",
-          "showstarscol",
-          "sondehabana",
-          "sonrumbero",
-          "soywiwioficial",
-          "studiolatindance",
-          "tubailecom",
-          "valkandela"
-        ],
-        "skipped_accounts": [],
-        "posts_analyzed": 11,
-        "events_new": 2,
-        "events_merged": 2,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 2,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 10,
-          "gemini-3.8-flash": 12,
-          "gemini-3.6-flash": 3,
-          "gemini-3-flash-preview": 2
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 41,
-        "instagram_usage_detail": {
-          "call_count": 12,
-          "total_cputime": 0,
-          "total_time": 41
-        },
-        "instagram_reads": {
-          "accounts": 43,
-          "mean_seconds": 1.55,
-          "median_seconds": 1.4,
-          "max_seconds": 2.91,
-          "mean_cost": 0.98,
-          "max_cost": 3,
-          "max_cost_account": "showstarscol",
-          "headers": {
-            "X-App-Usage": 43
-          },
-          "expected_cost": 2
-        },
-        "instagram_stop": null,
-        "upgrade_changes": {
-          "compared": 2,
-          "dropped": 0,
-          "styles": 1
-        },
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [],
-        "changes_left_out": 0,
-        "change_counts": {
-          "new": 1,
-          "provisional": 1,
-          "corrected": 1,
-          "merged": 2,
-          "reread": 2
-        }
       }
     ],
     "next": [
-      "2026-10-16T06:30-05:00",
-      "2026-10-16T21:00-05:00"
+      "2026-10-16T21:00-05:00",
+      "2026-10-17T03:00-05:00"
     ]
   },
   "gemini": {
@@ -478,31 +443,31 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 6,
+        "used": 12,
         "budget": 18
       },
       {
         "model": "gemini-3.6-flash",
         "role": "extraction",
-        "used": 6,
+        "used": 12,
         "budget": 18
       },
       {
         "model": "gemini-3-flash-preview",
         "role": "provisional",
-        "used": 3,
+        "used": 6,
         "budget": 18
       },
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 11,
+        "used": 41,
         "budget": 498
       },
       {
         "model": "gemini-3.1-flash-lite",
         "role": "triage, provisional",
-        "used": 9,
+        "used": 10,
         "budget": 498
       }
     ]
@@ -541,26 +506,26 @@
     "error": null
   },
   "instagram_quota": {
-    "usage": 80,
+    "usage": 14,
     "detail": {
-      "call_count": 17,
+      "call_count": 5,
       "total_cputime": 0,
-      "total_time": 80
+      "total_time": 14
     },
     "stopped": false,
     "stop": null,
-    "finished_at": "2026-10-16T03:18:42-05:00",
+    "finished_at": "2026-10-16T06:39:27-05:00",
     "stop_at": 98,
     "reads": {
-      "accounts": 48,
+      "accounts": 13,
       "mean_seconds": 2.24,
-      "median_seconds": 2.12,
-      "max_seconds": 4.6,
-      "mean_cost": 1.7,
-      "max_cost": 4,
-      "max_cost_account": "acaparchamos",
+      "median_seconds": 1.95,
+      "max_seconds": 5.49,
+      "mean_cost": 1.17,
+      "max_cost": 3,
+      "max_cost_account": "mambolei_",
       "headers": {
-        "X-App-Usage": 48
+        "X-App-Usage": 13
       },
       "expected_cost": 3
     }
@@ -577,14 +542,34 @@
     "waiting": []
   },
   "posts": {
-    "recorded": 1014,
-    "provisional": 209
+    "recorded": 1033,
+    "provisional": 215
   },
   "events": {
-    "upcoming": 69,
+    "upcoming": 77,
     "low_confidence": 0
   },
   "new_series": [
+    {
+      "id": "taller-de-salsa-calena-17-oct",
+      "title": "Taller de salsa caleña",
+      "account": "bogotadanceclub.academy",
+      "sessions": "4 sesiones: 17, 18, 24 y 25 oct",
+      "dates": [
+        "2026-10-17",
+        "2026-10-18",
+        "2026-10-24",
+        "2026-10-25"
+      ],
+      "url": "https://pa-bailar.github.io/evento/taller-de-salsa-calena-17-oct/",
+      "first_published": "2026-10-16T06:38-05:00",
+      "sources": [
+        {
+          "kind": "post",
+          "link": "https://www.instagram.com/reel/DehSpW3xKUX/"
+        }
+      ]
+    },
     {
       "id": "guabalosas-intensivo-version-2-0-7-nov",
       "title": "Guabalosas Intensivo Versión 2.0",
@@ -706,6 +691,121 @@
     }
   ],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "06:30",
+      "finished_at": "2026-10-16T06:39:27-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/38894175105",
+      "target": null,
+      "error": null,
+      "changes": [
+        {
+          "kind": "new",
+          "id": "parchate-bailando-salsa-22-oct",
+          "title": "Párchate Bailando Salsa",
+          "account": "salsaysonoficial",
+          "date": "2026-10-22",
+          "detail": null,
+          "url": "https://pa-bailar.github.io/evento/parchate-bailando-salsa-22-oct/"
+        },
+        {
+          "kind": "new",
+          "id": "descarga-salsera-16-oct",
+          "title": "Descarga Salsera",
+          "account": "quemaquequema",
+          "date": "2026-10-16",
+          "detail": null,
+          "url": "https://pa-bailar.github.io/evento/descarga-salsera-16-oct/"
+        },
+        {
+          "kind": "new",
+          "id": "descarga-salsera-17-oct",
+          "title": "Descarga Salsera",
+          "account": "quemaquequema",
+          "date": "2026-10-17",
+          "detail": null,
+          "url": "https://pa-bailar.github.io/evento/descarga-salsera-17-oct/"
+        },
+        {
+          "kind": "provisional",
+          "id": "fiesta-de-antifaz-30-oct",
+          "title": "Fiesta de Antifaz",
+          "account": "pachanga_y_pochola",
+          "date": "2026-10-30",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/fiesta-de-antifaz-30-oct/"
+        },
+        {
+          "kind": "provisional",
+          "id": "tributo-a-bob-marley-22-oct",
+          "title": "Tributo a Bob Marley",
+          "account": "el_bochinche_cafe_",
+          "date": "2026-10-22",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/tributo-a-bob-marley-22-oct/"
+        },
+        {
+          "kind": "provisional",
+          "id": "noche-de-bolero-17-oct",
+          "title": "Noche de Bolero",
+          "account": "restaurantecasadecitas",
+          "date": "2026-10-17",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/noche-de-bolero-17-oct/"
+        },
+        {
+          "kind": "provisional",
+          "id": "rueda-de-gaitas-y-tambores-en-vivo-16-oct",
+          "title": "Rueda de Gaitas y Tambores En Vivo",
+          "account": "restaurantecasadecitas",
+          "date": "2026-10-16",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/rueda-de-gaitas-y-tambores-en-vivo-16-oct/"
+        },
+        {
+          "kind": "provisional",
+          "id": "taller-de-salsa-calena-17-oct",
+          "title": "Taller de salsa caleña",
+          "account": "bogotadanceclub.academy",
+          "date": "2026-10-17",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/taller-de-salsa-calena-17-oct/"
+        },
+        {
+          "kind": "merged",
+          "id": "salsoteca-dc-fidel-pena-y-su-tono-mayor-17-oct",
+          "title": "Fidel peña y su Tono Mayor",
+          "account": "elgocepagano",
+          "date": "2026-10-17",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/salsoteca-dc-fidel-pena-y-su-tono-mayor-17-oct/"
+        },
+        {
+          "kind": "merged",
+          "id": "la-fiesta-de-halloween-que-estabas-esperando-31-oct",
+          "title": "La fiesta de Halloween que estabas esperando",
+          "account": "elratonsalsaclub",
+          "date": "2026-10-31",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/la-fiesta-de-halloween-que-estabas-esperando-31-oct/"
+        },
+        {
+          "kind": "merged",
+          "id": "la-guillaera-31-oct",
+          "title": "La Guillaera",
+          "account": "valkandela",
+          "date": "2026-10-31",
+          "detail": "otra publicación de @el_bochinche_cafe_",
+          "url": "https://pa-bailar.github.io/evento/la-guillaera-31-oct/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "new": 3,
+        "provisional": 5,
+        "merged": 3
+      }
+    },
     {
       "kind": "sweep",
       "slot": "03:00",
@@ -1176,38 +1276,6 @@
       "left_out": 0,
       "counts": {
         "new": 1
-      }
-    },
-    {
-      "kind": "sweep",
-      "slot": "03:00",
-      "finished_at": "2026-10-13T03:21:39-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/38366315084",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "merged",
-          "id": "celebrando-40-anos-de-trayectoria-enrique-barrios-22-oct",
-          "title": "Celebrando 40 años de trayectoria - Enrique Barrios",
-          "account": "galeriacafelibro",
-          "date": "2026-10-22",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/celebrando-40-anos-de-trayectoria-enrique-barrios-22-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "halloween-en-pachanga-pochola-31-oct",
-          "title": "Halloween en Pachanga & Pochola",
-          "account": "pachanga_y_pochola",
-          "date": "2026-10-31",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/halloween-en-pachanga-pochola-31-oct/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "merged": 2
       }
     }
   ],
