@@ -50,5 +50,26 @@
     "change_counts": {
       "merged": 1
     }
+  },
+  {
+    "finished_at": "2026-10-17T13:58:32-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/39060333516",
+    "action": "post_again",
+    "target": "https://www.instagram.com/reel/DeVLiDLP40l/",
+    "error": null,
+    "changes": [
+      {
+        "kind": "merged",
+        "id": "halloween-social-31-oct",
+        "title": "Halloween Social",
+        "account": "dlivingstudio",
+        "date": "2026-10-31",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "merged": 1
+    }
   }
 ]

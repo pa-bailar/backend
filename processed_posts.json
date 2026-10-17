@@ -12846,10 +12846,10 @@
   "17879468097554912": {
     "account": "dlivingstudio",
     "permalink": "https://www.instagram.com/reel/DeVLiDLP40l/",
-    "processed_at": "2026-10-11T03:06:11-05:00",
+    "processed_at": "2026-10-17T13:58:32-05:00",
     "is_event_post": true,
-    "reason": "Anuncia el social de Halloween el 31 de octubre de 2026 en D Living Studio.",
-    "model": "gemini-3.6-flash",
+    "reason": "El post anuncia la fiesta/social de Halloween el 31 de octubre en D Living Studio.",
+    "model": "gemini-3.8-flash",
     "provisional": false,
     "caption_hash": "e2eba766a7fdf369",
     "outcome": "merged",
@@ -12858,7 +12858,7 @@
     ],
     "detail": null,
     "image_hashes": [],
-    "by_hand": false
+    "by_hand": true
   },
   "17969691930169272": {
     "account": "parchexbogota",

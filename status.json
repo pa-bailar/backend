@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T13:53:42-05:00",
+  "generated_at": "2026-10-17T13:58:33-05:00",
   "sweeps": {
     "recent": [
       {
@@ -448,7 +448,7 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 9,
+        "used": 10,
         "budget": 18
       },
       {
@@ -701,6 +701,29 @@
     }
   ],
   "history": [
+    {
+      "kind": "post_again",
+      "slot": null,
+      "finished_at": "2026-10-17T13:58:32-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/39060333516",
+      "target": "https://www.instagram.com/reel/DeVLiDLP40l/",
+      "error": null,
+      "changes": [
+        {
+          "kind": "merged",
+          "id": "halloween-social-31-oct",
+          "title": "Halloween Social",
+          "account": "dlivingstudio",
+          "date": "2026-10-31",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/halloween-social-31-oct/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "merged": 1
+      }
+    },
     {
       "kind": "post_again",
       "slot": null,
@@ -1224,17 +1247,6 @@
         "provisional": 2,
         "merged": 2
       }
-    },
-    {
-      "kind": "sweep",
-      "slot": "06:30",
-      "finished_at": "2026-10-15T06:30:43-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/38727764854",
-      "target": null,
-      "error": null,
-      "changes": [],
-      "left_out": 0,
-      "counts": {}
     }
   ],
   "discovery": null
