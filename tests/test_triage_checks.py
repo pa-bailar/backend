@@ -2,6 +2,7 @@
 week without anyone knowing how many were events. At a run's end, with what Flash has left after the upgrades, Flash
 reads a few of the posts the triage ruled out this run, and the run counts how often the triage was wrong."""
 
+import time
 from datetime import UTC, datetime, timedelta
 
 from pa_bailar import config, health, storage
@@ -87,7 +88,11 @@ def test_no_second_opinion_when_flash_cant_be_used():
 def test_no_second_opinion_after_the_runs_time(monkeypatch):
     instagram = FakeInstagram({"academia": [post("tutorial")], "otra": []})
     extractor = FakeExtractor({"tutorial": event_post("tutorial")}, not_events={"tutorial"})
-    monkeypatch.setattr("pa_bailar.pipeline.Sweep._upgrade_by_urgency", lambda self: setattr(self, "started", 0))
+    # The run's budget used up (not `started = 0`: on a runner up for less than the budget, that's no time at all).
+    spent = config.MAX_RUN_MINUTES * 60 + 1
+    monkeypatch.setattr(
+        "pa_bailar.pipeline.Sweep._upgrade_by_urgency", lambda self: setattr(self, "started", time.monotonic() - spent)
+    )
 
     stats = run(instagram, extractor)
 
