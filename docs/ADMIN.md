@@ -62,7 +62,8 @@ address follows the tab you pick. On a keyboard, ← and → (or Home, End) move
   sent (or one you tapped) for 15 minutes; if it's still running then, it says so: tap it again later.
   Each button sends one request per tap. It stays in Herramientas: it's where the requests' answers show.
 
-**Estadísticas:** the sweeps (✅ or ⚠️, with links to the runs) and, under them, "Datos publicados: hoy 3:40 a. m.":
+**Estadísticas:** the sweeps (✅ or ⚠️, with links to the runs; each says what it did: new and merged events, posts
+read provisionally or re-read with Flash, accounts read for Flash beyond their turn) and, under them, "Datos publicados: hoy 3:40 a. m.":
 when the site's data was last published, as the latest sweep found the site when it started (a data PR that merged
 since shows after the next sweep). In the warning color when earlier sweeps' data never reached the site (their data
 PR didn't merge: the same rule as the health warning, backend ARCHITECTURE section 11.1): "⚠️ Datos publicados: sábado
