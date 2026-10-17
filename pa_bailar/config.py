@@ -48,6 +48,9 @@ POSTS_PER_ACCOUNT = 10  # regular sweep; one API call per account regardless of 
 # The admin tools look for a post among this many of the account's latest (one API call): `admin why`, add-post.
 ADMIN_POST_SEARCH = 50
 SITE_URL = "https://pa-bailar.github.io"  # the public site, for links to events in the admin tools' answers
+# The site repository's open data PRs (the sweep's, label `data`): where to look when a sweep's data didn't reach the
+# site (health.unpublished_runs).
+SITE_DATA_PRS_URL = "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata"
 # The admin page (admin-web/): "Ocultar"'s answer links to it with a post filled in, to publish it again in one tap.
 ADMIN_URL = "https://pa-bailar-admin.jzamorac-9.workers.dev"
 # Instagram's quota for our app, as a share used (0-100, from its usage headers, over a rolling hour; at 100 every
@@ -309,6 +312,13 @@ SWEEP_TIMES_SINCE = {"03:00": "2026-10-10"}
 # that run (it started a little early), not a later one. 60 until 9 Oct 2026: a run by hand at 20:05 took the 21:00
 # sweep's whole share (the bug-squash pass).
 LATER_SWEEP_MARGIN_MINUTES = 30
+# A sweep that changed the site's events opens a data PR, which merges itself when the site's `ci` passes (a few
+# minutes). The next sweep checks that it landed (health.unpublished_runs): an earlier sweep that changed events and
+# ended at least this long before this one started, while the site's data (data/meta.json on its main) is older than
+# that sweep's end by more than this too, never reached the site. Within it, its PR may still be merging. Added on 17
+# Oct 2026: five data PRs failed their `ci` on 10-12 Oct and stayed open for a week, their events never on the site,
+# while every run succeeded and the health checks were green (the wait for an open data PR didn't see them).
+DATA_PUBLISH_MARGIN_MINUTES = 60
 # A newly added account is swept more deeply until all of these posts have been analyzed
 # (it can take a few runs if the daily Gemini budget runs out); then it joins the regular sweep.
 BACKFILL_POSTS = 30

@@ -86,11 +86,12 @@ def run_url() -> str | None:
     return "{}/{}/actions/runs/{}".format(*parts) if all(parts) else None
 
 
-def check_health(stats: RunStats) -> tuple[list[health.Finding], str]:
-    """Compare the run with the previous ones (health.py), add it to the history, and build the report."""
+def check_health(stats: RunStats, site: health.SiteData | None = None) -> tuple[list[health.Finding], str]:
+    """Compare the run with the previous ones (health.py), add it to the history, and build the report. `site`: the
+    site's data around the run (whether earlier sweeps' data reached it: health.unpublished_runs)."""
     url = run_url()
     history = health.load_history()
-    run = health.record_of(stats, storage.read_accounts(), url)
+    run = health.record_of(stats, storage.read_accounts(), url, site)
     today = config.now_bogota().date()
     findings = health.check(run, history, stats, today)
     run.warnings = [finding.key for finding in findings if finding.level == "warning"]
@@ -268,7 +269,11 @@ def main(argv: list[str] | None = None) -> None:
         add_post(args.post, links.account_name(args.account) if args.account else None, again=args.again)
         return
 
+    # The site's data as the workflow checked it out, before the sweep rewrites it: did earlier sweeps' data reach it,
+    # and does this one change it (a data PR)?
+    started, published, before = config.now_bogota(), storage.published_at(), storage.data_fingerprint()
     stats = Sweep(lookback_days=args.days, all_accounts=args.all).run()
+    site = health.SiteData(started, published, storage.data_fingerprint() != before)
 
     logging.info(
         "\nDone: %s accounts, %s posts analyzed (%s ruled out by triage), %s new events, %s merged, "
@@ -285,7 +290,7 @@ def main(argv: list[str] | None = None) -> None:
         stats.errors,
         stats.gemini_requests or "none",
     )
-    findings, report = check_health(stats)
+    findings, report = check_health(stats, site)
     publish_health(findings, report)
     if summary_file := os.environ.get("GITHUB_STEP_SUMMARY"):
         with Path(summary_file).open("a", encoding="utf-8") as file:

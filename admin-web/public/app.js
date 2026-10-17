@@ -6,7 +6,7 @@
 // picked here go to "Agregar desde una historia".
 
 import { HIDE_STORY_COMMAND, MAX_SCREENSHOTS, NOTES_MAX, POST_LINK_IN_TEXT, STORY_LINK_IN_TEXT } from "./patterns.js";
-import { escapeHtml, historyCard, seriesCard, when } from "./render.js";
+import { escapeHtml, historyCard, publishedLine, seriesCard, when } from "./render.js";
 import { initialTab, TAB_KEY, tabAfterKey, tabFromHash, tabsHtml } from "./tabs.js";
 
 const main = document.getElementById("main");
@@ -41,11 +41,13 @@ function runItem(run) {
   return `<li>${mark} <span class="when">${when(run.finished_at)}</span>: ${escapeHtml(parts.join(", "))}${link}</li>`;
 }
 
-function sweepsCard(sweeps) {
+/** The latest sweeps, when the site's data was last published (warning when a sweep's never got there), the next
+ * ones. */
+function sweepsCard(sweeps, site) {
   const runs = sweeps.recent.length
     ? `<ul class="runs">${sweeps.recent.map(runItem).join("")}</ul>`
     : `<p class="muted">Todavía no hay barridos registrados.</p>`;
-  return `<section class="card"><h2>Barridos</h2>${runs}
+  return `<section class="card"><h2>Barridos</h2>${runs}${publishedLine(site)}
     <p class="small muted">Próximos: ${sweeps.next.map((moment) => when(moment)).join(" y ")}</p></section>`;
 }
 
@@ -725,7 +727,7 @@ function statusCards(result) {
   if (!result.ok || status?.error) return note(`<p>${escapeHtml(status?.error ?? "No se pudo leer el estado.")}</p>`);
   try {
     const stats = [
-      sweepsCard(status.sweeps),
+      sweepsCard(status.sweeps, status.site_data),
       historyCard(status.history),
       geminiCard(status.gemini),
       externalCard(status.external),

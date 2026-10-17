@@ -4,7 +4,8 @@ After each run, `check` compares it with the previous ones (config.RUN_HISTORY_F
 sweep-state branch with the rest of the state) and returns what needs a look:
   - warnings: something to fix or decide. A problem repeated over several runs (an account that can't be
     read, posts that keep failing, Instagram's rate limit or the time budget cutting every run short, a Gemini
-    model this key can no longer use), a backlog that doesn't go down, a week of posts without a single event.
+    model this key can no longer use), a backlog that doesn't go down, a week of posts without a single event, a
+    scheduled sweep that stopped coming, an earlier sweep's data that never reached the site (its data PR didn't merge).
   - notices: worth knowing, nothing to do yet. This run's one-off problems, Flash's quota running out,
     accounts without posts for weeks, upcoming events worth a second look (Gemini wasn't confident, or
     doubted the date, or a congress or festival has a single day).
@@ -64,6 +65,12 @@ class RunRecord(BaseModel):
 
     finished_at: str
     run_url: str | None = None
+    # The site's data as the run found it (unpublished_runs): when it started, when the site's main was last published
+    # (its data/meta.json's `generated_at`), and whether the run changed the site's events or archive (the workflow
+    # opens a data PR for that). None in records from before 17 Oct 2026.
+    started_at: str | None = None
+    site_data_at: str | None = None
+    data_changed: bool | None = None
     accounts: int
     failed_accounts: list[str]  # couldn't be read
     # Every account the run tried to read (failed ones too). Each account is read about once a day, so a run
@@ -119,12 +126,27 @@ def save_history(history: list[RunRecord]) -> None:
     storage.write_json(config.RUN_HISTORY_FILE, _history_adapter.dump_python(kept, mode="json"))
 
 
-def record_of(stats: RunStats, followed: list[str], run_url: str | None = None) -> RunRecord:
+@dataclass(frozen=True)
+class SiteData:
+    """The site's data around a sweep (commands/sweep.py): when the sweep started, when the data it started from was
+    published (storage.published_at), and whether the sweep changed it (storage.data_fingerprint)."""
+
+    started_at: datetime
+    published_at: str | None
+    changed: bool
+
+
+def record_of(
+    stats: RunStats, followed: list[str], run_url: str | None = None, site: SiteData | None = None
+) -> RunRecord:
     failed = [account for account, s in stats.by_account.items() if s.fetch_failed]
     changes, left_out = bounded(stats.changes.values())
     return RunRecord(
         finished_at=config.now_bogota().isoformat(timespec="seconds"),
         run_url=run_url,
+        started_at=site.started_at.isoformat(timespec="seconds") if site else None,
+        site_data_at=site.published_at if site else None,
+        data_changed=site.changed if site else None,
         accounts=stats.accounts,
         failed_accounts=failed,
         read_accounts=sorted(stats.by_account),
@@ -324,6 +346,63 @@ def _missed_sweep_findings(runs: list[RunRecord], run: RunRecord) -> list[Findin
     ]
 
 
+def changed_site_data(run: RunRecord) -> bool:
+    """Whether the run changed the site's events or archive, so the workflow opened a data PR for it (or tried to).
+    Records from before 17 Oct 2026 don't say: those with new or merged events did."""
+    return run.data_changed if run.data_changed is not None else bool(run.events_new or run.events_merged)
+
+
+def unpublished_runs(run: RunRecord, history: list[RunRecord]) -> list[RunRecord]:
+    """The earlier sweeps whose data never reached the site, as `run` found the site when it started (oldest first):
+    they changed its events (changed_site_data), they ended at least config.DATA_PUBLISH_MARGIN_MINUTES before `run`
+    started (time for their data PR's `ci` and merge), and the site's data (`run.site_data_at`) is older than their end
+    by more than that too (a sweep writes meta.json a moment before it ends). Empty when `run` didn't record the site's
+    data (older records, a run without the site checked out)."""
+    if run.site_data_at is None or run.started_at is None:
+        return []
+    published = datetime.fromisoformat(run.site_data_at)
+    started = datetime.fromisoformat(run.started_at)
+    margin = timedelta(minutes=config.DATA_PUBLISH_MARGIN_MINUTES)
+    return [
+        earlier
+        for earlier in history
+        if changed_site_data(earlier)
+        and published + margin < datetime.fromisoformat(earlier.finished_at) <= started - margin
+    ]
+
+
+def _moment(iso: str) -> str:
+    """ "11 Oct 06:58", in Bogotá."""
+    moment = datetime.fromisoformat(iso).astimezone(config.BOGOTA_TZ)
+    return f"{moment.day} {moment:%b %H:%M}"
+
+
+SHOWN_RUNS = 5  # sweeps linked in the unpublished-data warning; the rest only counted
+
+
+def _unpublished_findings(run: RunRecord, history: list[RunRecord]) -> list[Finding]:
+    """A warning when earlier sweeps' data never reached the site (unpublished_runs): their data PR didn't merge. The
+    wait for an open data PR (the workflow's step 1b) should stop the next run first; this catches what it misses (it
+    saw none for a week, 10-17 Oct 2026) and a data PR closed without merging."""
+    missing = unpublished_runs(run, history)
+    if not missing or run.site_data_at is None:
+        return []
+    shown = [f"[{_moment(r.finished_at)}]({r.run_url})" if r.run_url else _moment(r.finished_at) for r in missing]
+    more = f" and {len(missing) - SHOWN_RUNS} more" if len(missing) > SHOWN_RUNS else ""
+    sweeps = "1 sweep" if len(missing) == 1 else f"{len(missing)} sweeps"
+    return [
+        Finding(
+            "warning",
+            "unpublished-data",
+            f"The site's data is from {_moment(run.site_data_at)} (Bogotá; data/meta.json on its main when this run "
+            f"started), but {sweeps} changed events after that and their data never reached the site: "
+            f"{', '.join(shown[:SHOWN_RUNS])}{more}. Did a data PR not merge? Look at the site repository's "
+            f"[open `data` PRs]({config.SITE_DATA_PRS_URL}): fix what `ci` says and merge them, oldest first "
+            "(docs/ARCHITECTURE.md, section 15).",
+        )
+    ]
+
+
 def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date) -> list[Finding]:
     """What this run (with the ones before it) says needs a look. Warnings first."""
     runs = [*history, run]
@@ -402,6 +481,7 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
 
     findings += _model_findings(runs, run)
     findings += _missed_sweep_findings(runs, run)
+    findings += _unpublished_findings(run, history)
 
     for account, s in stats.by_account.items():
         if s.fetch_failed:

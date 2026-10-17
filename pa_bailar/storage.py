@@ -3,6 +3,7 @@
 Every load and save goes through the Pydantic models, so a malformed file is never written.
 """
 
+import hashlib
 import io
 import json
 from pathlib import Path
@@ -68,6 +69,24 @@ def save_meta(stats: dict[str, Any]) -> None:
         "stats": stats,
     }
     write_json(config.META_FILE, meta)
+
+
+def published_at() -> str | None:
+    """When the site's data was published: data/meta.json's `generated_at` (Bogotá time), read before a sweep rewrites
+    it, so the site's main as the workflow checked it out. None without one."""
+    value = read_json(config.META_FILE, {}).get("generated_at")
+    return value if isinstance(value, str) else None
+
+
+def data_fingerprint() -> str:
+    """A hash of what a data PR carries: data/events.json and the archive's records. The workflow opens one when they
+    changed (meta.json alone doesn't count, and the images live in their own repository), so a run changed the site's
+    data when this differs from before it."""
+    digest = hashlib.sha256()
+    for path in [config.EVENTS_FILE, *sorted(config.ARCHIVE_DIR.glob("*.json"))]:
+        digest.update(path.name.encode() + b"\0")
+        digest.update(path.read_bytes() if path.exists() else b"")
+    return digest.hexdigest()
 
 
 # ---------- processed posts ----------

@@ -254,3 +254,67 @@ def test_a_run_the_quota_stopped_says_why_and_how_its_reads_went():
 
 def test_a_sweep_the_history_doesnt_reach_isnt_judged():
     assert health.missed_sweeps(runs_at("10T03:20", "10T06:50"), AT_6_50) == []
+
+
+# ---------- data that never reached the site (unpublished_runs) ----------
+
+CHANGED = record(
+    finished_at="2026-10-11T06:58:00-05:00", run_url="https://github.com/x/actions/runs/7", data_changed=True
+)
+QUIET = record(finished_at="2026-10-11T21:20:00-05:00", data_changed=False, events_new=0)
+
+
+def next_run(published: str | None, started: str = "2026-10-12T03:05:00-05:00") -> RunRecord:
+    """The next sweep, which found the site's data published at `published` when it started."""
+    return record(finished_at="2026-10-12T03:40:00-05:00", started_at=started, site_data_at=published)
+
+
+def unpublished(run: RunRecord, history: list[RunRecord]) -> list[health.Finding]:
+    return [finding for finding in check(run, history) if finding.key == "unpublished-data"]
+
+
+def test_a_sweep_whose_data_reached_the_site_is_fine():
+    fresh = next_run("2026-10-11T06:57:40-05:00")  # its own meta.json, written a moment before it ended
+    assert health.unpublished_runs(fresh, [CHANGED, QUIET]) == []
+    assert unpublished(fresh, [CHANGED, QUIET]) == []
+
+
+def test_data_behind_by_less_than_the_margin_is_not_flagged():
+    within = next_run("2026-10-11T06:10:00-05:00")  # 48 minutes older than the sweep's end
+    assert health.unpublished_runs(within, [CHANGED]) == []
+    # A sweep that ended less than the margin before this one started: its data PR may still be merging.
+    right_after = next_run("2026-10-10T21:15:00-05:00", started="2026-10-11T07:30:00-05:00")
+    assert health.unpublished_runs(right_after, [CHANGED]) == []
+
+
+def test_data_behind_an_earlier_sweep_with_changes_is_a_warning_naming_it():
+    """10-17 Oct 2026: data PRs failed their ci and stayed open; the next sweeps ran on, and nobody was told."""
+    behind = next_run("2026-10-10T21:15:00-05:00")
+    assert health.unpublished_runs(behind, [CHANGED, QUIET]) == [CHANGED]
+    (finding,) = unpublished(behind, [CHANGED, QUIET])
+    assert finding.level == "warning"
+    assert "The site's data is from 10 Oct 21:15" in finding.text
+    assert "1 sweep changed events after that" in finding.text
+    assert "[11 Oct 06:58](https://github.com/x/actions/runs/7)" in finding.text
+    assert config.SITE_DATA_PRS_URL in finding.text and "section 15" in finding.text
+    # Five unmerged PRs: each named (up to SHOWN_RUNS), the key the same, so the issue emails once.
+    many = [
+        record(finished_at=f"2026-10-1{day}T{hour}:00:00-05:00", data_changed=True)
+        for day in (0, 1)
+        for hour in ("07", "21")
+    ]
+    (several,) = unpublished(next_run("2026-10-10T03:30:00-05:00"), many)
+    assert "4 sweeps changed events" in several.text and several.key == finding.key
+
+
+def test_without_an_earlier_sweep_that_changed_events_nothing_is_flagged():
+    behind = next_run("2026-10-10T21:15:00-05:00")
+    assert health.unpublished_runs(behind, [QUIET]) == []
+    assert health.unpublished_runs(behind, []) == []
+
+
+def test_records_from_before_judge_by_their_new_or_merged_events_and_unknown_data_is_not_judged():
+    older = record(finished_at="2026-10-11T06:58:00-05:00", events_new=0, events_merged=2)  # data_changed: None
+    assert health.unpublished_runs(next_run("2026-10-10T21:15:00-05:00"), [older]) == [older]
+    assert health.unpublished_runs(next_run(None), [CHANGED]) == []  # the site's meta.json wasn't there
+    assert health.unpublished_runs(record(), [CHANGED]) == []  # a run that didn't record it

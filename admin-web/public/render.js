@@ -81,6 +81,38 @@ export function when(iso, now = new Date()) {
 }
 
 /**
+ * The site's data, as status.json's `site_data` gives it (pa_bailar/status.py site_data): when it was last published
+ * (as the latest sweep found it when it started), and the earlier sweeps whose data never reached it (their data PR
+ * didn't merge: health.unpublished_runs).
+ * @typedef {{ published_at: string, checked_at?: string | null, prs_url?: string | null,
+ *   missing?: { finished_at: string, run_url?: string | null }[] }} SiteData
+ */
+
+/**
+ * "Datos publicados: hoy 3:40 a. m."; in the warning's color when earlier sweeps' data never reached the site, with
+ * how many and since when, and a link to the site's open data PRs (status.py site_data_line says the same). Empty
+ * when status.json doesn't have it (a backend from before 17 Oct 2026, or no sweep recorded it yet).
+ * @param {SiteData | null | undefined} site
+ * @param {Date} [now]
+ */
+export function publishedLine(site, now = new Date()) {
+  if (!site?.published_at) return "";
+  const text = `Datos publicados: ${escapeHtml(when(site.published_at, now))}`;
+  const missing = Array.isArray(site.missing) ? site.missing : [];
+  if (!missing.length) return `<p class="small muted">${text}</p>`;
+  const first = escapeHtml(when(missing[0].finished_at, now));
+  const lost =
+    missing.length === 1
+      ? `faltan los del barrido de ${first}`
+      : `faltan los de ${missing.length} barridos con cambios, desde el de ${first}`;
+  const link = safeLink(site.prs_url);
+  const prs = link
+    ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener">PR «data» abiertos</a>`
+    : "PR «data» abiertos";
+  return `<p class="small warn">⚠️ ${text}; ${lost}: revisa los ${prs} del sitio.</p>`;
+}
+
+/**
  * An event's day, short: "2026-10-11" → "sáb 11 oct". Anything else, as it is (escaped by the caller).
  * @param {unknown} day
  */

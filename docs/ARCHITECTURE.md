@@ -361,7 +361,7 @@ sequenceDiagram
 | # | Step | Runs when | What it does | Credentials |
 |---|---|---|---|---|
 | 1 | Check out this repository | Always | The code | None kept (`persist-credentials: false`) |
-| 1b | Make sure the last data PR merged | Always | Waits up to 20 minutes for a `data` PR still open in the site repository (one a scheduled sweep just opened, step 13), then fails if it's still open: the sweep reads the events from the site's `main`, so sweeping past an unmerged PR would lose its events for good (their posts are already marked analyzed). Merge or fix it first. Before anything is checked out: a copy of the site taken before that PR merged lacks its events, and the run deleted their flyers from the images repository and opened a PR that conflicted with it for good (until 6 Oct 2026, when it came after the checkouts). It lists the open PRs through the REST API: `gh pr list --label` is a search, which this token runs on its own repository only, so until 17 Oct 2026 it saw none and sweeps ran on past five unmerged data PRs | `GITHUB_TOKEN` (reads the public site repository) |
+| 1b | Make sure the last data PR merged | Always | Waits up to 20 minutes for a `data` PR still open in the site repository (one a scheduled sweep just opened, step 13), then fails if it's still open: the sweep reads the events from the site's `main`, so sweeping past an unmerged PR would lose its events for good (their posts are already marked analyzed). Merge or fix it first. Before anything is checked out: a copy of the site taken before that PR merged lacks its events, and the run deleted their flyers from the images repository and opened a PR that conflicted with it for good (until 6 Oct 2026, when it came after the checkouts). It lists the open PRs through the REST API: `gh pr list --label` is a search, which this token runs on its own repository only, so until 17 Oct 2026 it saw none and sweeps ran on past five unmerged data PRs. When it fails it writes the health report (the open PRs' links), the body of the failure ping (step 15) | `GITHUB_TOKEN` (reads the public site repository) |
 | 2 | Read the sweep state | Always | Checks out the `sweep-state` branch into `sweep-state/` | None kept |
 | 3 | Copy the state | Always | `sweep-state/*.json` → `state/` | |
 | 4 | Check out the site repository | Always | Into `site/`. `DATA_DIR` points to `site/data` | None (public repository) |
@@ -386,8 +386,12 @@ sequenceDiagram
 | 16 | Answer on the admin issue | `issue` given (admin tools) | Writes the result of adding the post or story, or hiding the story or event (`ADMIN_REPORT_FILE`), and the data PR; `.github/actions/answer-issue` comments it and closes the issue, only if it's an open `admin` issue by `jzamora5` | `GITHUB_TOKEN` |
 
 When step 1b fails, nothing was checked out, so steps 8 to 14 don't run either (`tests/test_workflows.py` checks
-that the steps that keep progress need it to have passed); the health check (step 15) and the answer on an admin
-issue (step 16) still report it.
+that the steps that keep progress need it to have passed), the Sweep health issue included (step 12: no sweep, no
+health report). What reaches the owner is the failure itself: GitHub's email for a failed run, and the health check's
+failure ping (step 15), whose body step 1b writes ("A data PR has not merged…", with its link); for an admin
+request, the answer on its issue (step 16). Once that PR is merged or closed, the next sweep's health rules check
+that the earlier sweeps' data reached the site (section 11.1, "data that never reached the site"): a PR closed
+without merging, or one step 1b didn't see (10–17 Oct 2026), shows there.
 
 Other workflow settings:
 - **`concurrency: data`** (`cancel-in-progress: false`): two sweeps never run at the same time. A new one
@@ -1177,7 +1181,9 @@ memory between runs; the site never sees it.
 | `external_usage.json` | The last resort's day (UTC) and, per provider, requests, tokens and the answers per model | The day's runs share Groq's and OpenRouter's budgets (section 7.3) |
 | `status.json` | What `admin status --json` reports after the run (section 12.3) | The admin page shows it, read through GitHub with the signed-in visitor's access |
 | `hidden_events.json` | Events taken off the site by hand (`sweep --hide-event`), by id: the event as it was and when (`models.HiddenEvent`). Forgotten 60 days after its last day | The sweeps never publish them again from the same posts nor from a later post of the same event (`merging.matches_hidden`), and drop them from `events.json` on load. Adding one of its posts by hand publishes it again (ADMIN.md, "Ocultar evento") |
-| `run_history.json` | The last 180 runs in short (about two months, three a day: `HISTORY_RUNS`): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests (and the last resort's, per provider) and models the key couldn't use; what each of the last resort's models did, those set aside and the providers turned off; Instagram's highest reading and its measures, its reads in short and why it stopped (`instagram_reads`, `instagram_stop`: section 8); what Flash changed in lighter readings (`upgrade_changes`, section 7.2); warning keys; and what the run did to which event (`changes`, `change_counts`, `changes_left_out`: section 10.3) | The health rules compare a run with the previous ones (section 11); the admin page's history shows the changes |
+| `run_history.json` | The last 180 runs in short (about two months, three a day: `HISTORY_RUNS`): accounts read, failed or skipped; posts, events, pending; errors; rate limit, time budget; Gemini requests (and the last resort's, per provider) and models the key couldn't use; what each of the last resort's models did, those set aside and the providers turned off; Instagram's highest reading and its measures, its reads in short and why it stopped (`instagram_reads`, `instagram_stop`: section 8); what Flash changed in lighter readings (`upgrade_changes`, section 7.2); the site's data as the run found it (when it
+started, `started_at`; when the site's data was published, `site_data_at`, its `meta.json`'s `generated_at`; whether the
+run changed it, `data_changed`: section 11.1); warning keys; and what the run did to which event (`changes`, `change_counts`, `changes_left_out`: section 10.3) | The health rules compare a run with the previous ones (section 11); the admin page's history shows the changes |
 | `admin_runs.json` | The last 20 admin requests that ran in the sweep workflow (`sweep --post`, `--story`, `--hide-event`, `--hide-story`): when, which (`action`, `target`), why it couldn't (`error`), and what it did to which event (section 10.3; `changes.AdminRun`) | The admin page's history. Not in `run_history.json`: those runs aren't sweeps, and the health rules compare sweeps |
 
 ```mermaid
@@ -1283,6 +1289,7 @@ flowchart TB
     subgraph Run["Did it work?"]
         FAIL["Failed run → healthchecks.io /fail → email"]
         SUM["Run page: health report + per-account tables<br/>+ warning annotations"]
+        PUB["Health rule: an earlier sweep's data<br/>never reached the site"]
     end
     subgraph Trend["Is it degrading?"]
         RULES["Health rules over run_history.json"]
@@ -1300,6 +1307,7 @@ They run after every sweep. No AI, no quota.
 |---|---|---|
 | `@account` couldn't be read | Notice, then **warning** after 3 failed tries in a row | Renamed, private or no longer a business account? Each account is read on its turn (about once a day, quiet ones less often), so runs that didn't try it (`RunRecord.read_accounts`) don't break the streak |
 | Instagram's hourly quota stopped the run early | Notice, then **warning** after 3 runs in a row | The notice says why (the forecast passing 98%, or Meta's own limit) and how the reads went (Meta's median seconds, the cost of a read). Too many accounts for the app's quota, Meta slow, or discovery or tests using it? |
+| Data that never reached the site | **Warning** (`unpublished-data`) | An earlier sweep changed the site's events (`data_changed`: `events.json` or the archive differ after it, so the workflow opened a data PR; records from before 17 Oct 2026: new or merged events) and ended at least 60 minutes (`DATA_PUBLISH_MARGIN_MINUTES`) before this run started, but the site's data this run started from (its main's `data/meta.json` `generated_at`, read before the sweep rewrites it) is older than that sweep's end by more than those 60 minutes too: its data PR didn't merge (`unpublished_runs`). Within the margin a PR may still be merging. The warning names the sweeps (up to 5, linked) and points to the site repository's open `data` PRs (section 15). Added on 17 Oct 2026: five data PRs failed their `ci` on 10–12 Oct and stayed open for a week while every run succeeded and this table was green; step 1b, which should stop the next run, didn't see them. PB Admin shows the same as "Datos publicados" (`docs/ADMIN.md`) |
 | No sweep at a scheduled time | **Warning** (`missed-sweep:<time>`) | No run finished within 3 hours of a time in `SWEEP_TIMES` on each of the last 2 days (`missed_sweeps`; times the history doesn't reach aren't judged, nor a time before its first day, `SWEEP_TIMES_SINCE`): its cron-job.org job stopped (`SWEEP_TRIGGER`). healthchecks.io can't tell a missed 3:00 run (section 3.5) |
 | The run used its whole time budget | Notice, then **warning** after 3 runs in a row | Is the backlog too big? |
 | Posts failed | Notice, then **warning** after 3 runs in a row | Gemini rejections, image downloads, unexpected errors. Posts waiting for quota aren't failures |
@@ -1445,7 +1453,9 @@ guide.
   answer and a label (`inbox.is_request`: an issue labelled `admin`, or a text with a post link or a command);
   anything else is skipped (`action=skip`). A command is a `/word` at the start of a line, never ordinary
   words, since some commands spend Gemini or change `accounts.txt`. ADMIN.md, "From GitHub (the inbox)".
-- **`admin status`** (`pa_bailar/status.py`): the latest and next sweeps; Gemini usage per model against
+- **`admin status`** (`pa_bailar/status.py`): the latest and next sweeps, and when the site's data was last
+  published (as the latest sweep found the site's `main` when it started), with a warning when earlier sweeps' data
+  never reached it (section 11.1); Gemini usage per model against
   its budget and when the quota resets (2:00 a.m. Bogotá while the US is on daylight time, 3:00 a.m.
   otherwise); whether the Instagram token works (one call, `--no-instagram` skips it) and the last sweep's highest
   reading of Instagram's quota with its measures (the token check's own reading is another counter: 1% at the end
@@ -1577,6 +1587,7 @@ spent only on the few that announce events.
 | Warning: no events in a week | A prompt or the triage rejecting everything (for example, a model change) | Read "not an event" reasons in the logs; tune `prompts.py` |
 | "Gemini API key doesn't work" (the run fails) | The key was revoked, expired or deleted | Create a key in Google AI Studio and update `GEMINI_API_KEY` (`.env` and the GitHub secret). No post was marked: they're read on the next run (`GeminiKeyError`) |
 | "The data PR wasn't opened" (a warning; the run fails at step 9 or 10) | The App token couldn't be minted (key revoked, App uninstalled), or GitHub's API or the push failed | Fix the cause (section 4: `APP_ID`, `APP_PRIVATE_KEY`, the App's installation). Nothing is lost: the run kept this run's posts unread, so the next run reads them again and opens the PR. The run's artifact `site-data-<run id>` (14 days) holds the events and flyers it had, if you'd rather open the PR by hand |
+| Warning: data that never reached the site (or PB Admin's ⚠️ "Datos publicados") | A data PR whose `ci` failed and that step 1b didn't stop on, or one closed without merging. If the sweep it names failed to open its PR ("The data PR wasn't opened"), nothing is lost: the next sweep read its posts again, and the warning goes once that sweep's PR merges | Open the site repository's open `data` PRs (the link in the warning): read `ci`, fix the data or the contract (`models.py` against `check-data.mjs` / `types.ts`) and merge them, oldest first. A PR that now conflicts (later data merged past it) can't merge: close it, and bring its events back by re-reading its posts (PB Admin's "Volver a leer"; the PR's diff of `events.json` lists them), since they're marked as analyzed |
 | "A data PR hasn't merged" (the run fails at step 1b) | An earlier data PR's `ci` failed, or it took more than 20 minutes | Open it in the site repository: fix what `ci` says and merge it (or merge it if it just needed time). Sweeps resume on the next run |
 | Notice: the last resort was used | Gemini's daily quotas ran out (a backlog of new accounts) | Nothing to do: its reads are provisional and Flash upgrades them. If it happens every day, see "backlog stuck" |
 | Warning: Groq or OpenRouter turned off in 3 runs | The key was revoked, or the account needs credit | Create a new key and update `GROQ_API_KEY` or `OPENROUTER_API_KEY` (`.env` and the GitHub secret), or delete the secret to stop using it |
@@ -1662,7 +1673,7 @@ flowchart LR
 | `storage.py` | Reading and writing every JSON file (atomically, LF line endings), flyers, the archive of past events, `accounts.txt` |
 | `media_store.py` | The images' repository (`pa-bailar/media`): `pull` into the site's data before a run, `push` what changed after it |
 | `health.py` | Run history, health rules, events to review, the report and its fingerprint |
-| `status.py` | What `admin status` shows: sweeps, Gemini usage, Instagram, accounts, events, new workshop series, the history (data and Spanish text) |
+| `status.py` | What `admin status` shows: sweeps, when the site's data was published, Gemini usage, Instagram, accounts, events, new workshop series, the history (data and Spanish text) |
 | `changes.py` | What a run did to which event (section 10.3): the kinds of change, one per event, bounded; the admin requests' runs (`admin_runs.json`) |
 | `sweep_state.py` | The sweeps' latest state on your computer: reads the `sweep-state` branch with git |
 | `why.py` | `admin why`: why a post's event is or isn't on the site (fixed checks, Spanish answer) |

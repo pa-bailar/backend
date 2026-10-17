@@ -255,6 +255,11 @@ jobs:
             if [ -z "$open" ]; then break; fi
             if [ "$(date +%s)" -gt "$deadline" ]; then
               echo "::error::A data PR hasn't merged: ${open}. Merge or fix it first (its events aren't on main)."
+              # No sweep, so no health report or issue: this is the health check's failure ping's body (step 15). The
+              # failed run emails too; once the PR is merged or closed, the next sweep's health checks see whether its
+              # data reached the site (health.unpublished_runs).
+              printf '## Health\n\n### ⚠️ Warnings\n\n- A data PR has not merged in the site repository: %s. Its events are not on the site, and this run stopped before sweeping: fix what its `ci` says and merge it (docs/ARCHITECTURE.md, section 15).\n' \
+                "$open" > "$HEALTH_REPORT_FILE"
               exit 1
             fi
             echo "Waiting for ${open} to merge…"

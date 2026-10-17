@@ -280,3 +280,39 @@ def test_the_instagram_card_describes_the_last_run_that_read_accounts():
         {"finished_at": "2026-10-10T06:41:00-05:00", "instagram_usage": 1, "instagram_reads": None},  # none due
     ]
     assert status._instagram_quota(history)["finished_at"].startswith("2026-10-10T03:20")
+
+
+def test_the_status_says_when_the_sites_data_was_published_and_which_sweeps_never_reached_it():
+    """status.json's `site_data` (the admin page's "Datos publicados"): as the latest sweep found the site's main."""
+    from tests.test_health import CHANGED, QUIET, next_run
+
+    def collect(*runs) -> dict:
+        history = [run.model_dump(mode="json") for run in runs]
+        return status.collect(
+            now=NOW, instagram=None, read=lambda name, default: history if "history" in name else default
+        )
+
+    assert collect(CHANGED, QUIET)["site_data"] is None  # no sweep recorded it yet (before 17 Oct 2026)
+
+    fresh = collect(CHANGED, QUIET, next_run("2026-10-11T06:57:40-05:00"))
+    assert fresh["site_data"] == {
+        "published_at": "2026-10-11T06:57:40-05:00",
+        "checked_at": "2026-10-12T03:05:00-05:00",
+        "missing": [],
+        "prs_url": config.SITE_DATA_PRS_URL,
+    }
+    assert "\nDatos publicados: domingo 11/10, 6:57 a. m.\n" in status.markdown(fresh)
+
+    behind = collect(CHANGED, QUIET, next_run("2026-10-10T21:15:00-05:00"))
+    assert behind["site_data"]["missing"] == [
+        {"finished_at": "2026-10-11T06:58:00-05:00", "run_url": "https://github.com/x/actions/runs/7"}
+    ]
+    later = datetime(2026, 10, 12, 8, 0, tzinfo=config.BOGOTA_TZ)
+    assert status.site_data_line(behind["site_data"], later) == (
+        "⚠️ Datos publicados: sábado 10/10, 9:15 p. m.; faltan los del barrido de ayer 6:58 a. m.: revisa los "
+        f"[PR «data» abiertos]({config.SITE_DATA_PRS_URL}) del sitio."
+    )
+    many = collect(CHANGED, QUIET.model_copy(update={"data_changed": True}), next_run("2026-10-10T21:15:00-05:00"))
+    assert "; faltan los de 2 barridos con cambios, desde el de ayer 6:58 a. m.:" in status.site_data_line(
+        many["site_data"], later
+    )

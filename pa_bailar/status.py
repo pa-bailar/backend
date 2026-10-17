@@ -2,6 +2,8 @@
 
 Plain reading of what the sweeps record (no AI, no Gemini requests):
   - the latest sweeps and the next ones (run_history.json, config.SWEEP_TIMES);
+  - when the site's data was last published, and earlier sweeps' data that never reached it (run_history.json:
+    health.unpublished_runs);
   - today's Gemini usage per model against its daily budget, and when the quota resets (gemini_usage.json);
   - today's use of the last resort, the providers outside Gemini (Groq, OpenRouter: external_usage.json);
   - Instagram: whether the token works (one call, optional), and the last sweep's highest reading of its quota
@@ -25,6 +27,7 @@ from . import config, discovery, links, storage, sweep_state
 from .changes import FIELD_NAMES
 from .external import usage_day, usage_reset
 from .gemini import daily_budget, quota_day, quota_reset
+from .health import RunRecord, unpublished_runs
 from .models import AccountState, GeminiUsage, ProcessedPost, StoredEvent
 from .pipeline import overdue_by_account
 from .text import WEEKDAYS, clock, parse_hhmm, sessions_label
@@ -106,6 +109,44 @@ def history_of(
     items += [_history_item(run, run.get("action", "request"), live) for run in admin_runs[-HISTORY_ITEMS:]]
     items.sort(key=_finished, reverse=True)
     return items[:HISTORY_ITEMS]
+
+
+def site_data(history: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """When the site's data was last published, as the latest sweep found it (its main's data/meta.json, when the sweep
+    started: a data PR that merged since shows after the next one), and the earlier sweeps whose data never reached it
+    (health.unpublished_runs: their data PR didn't merge), with where to look. None until a sweep recorded it (from
+    17 Oct 2026)."""
+    latest = next((index for index in range(len(history) - 1, -1, -1) if history[index].get("site_data_at")), None)
+    if latest is None:
+        return None
+    run = RunRecord.model_validate(history[latest])
+    earlier = [RunRecord.model_validate(record) for record in history[:latest]]
+    return {
+        "published_at": run.site_data_at,
+        "checked_at": run.started_at,
+        "missing": [
+            {"finished_at": missing.finished_at, "run_url": missing.run_url}
+            for missing in unpublished_runs(run, earlier)
+        ],
+        "prs_url": config.SITE_DATA_PRS_URL,
+    }
+
+
+def site_data_line(site: dict[str, Any], now: datetime) -> str:
+    """ "Datos publicados: hoy 3:40 a. m."; with sweeps whose data never reached the site, a warning: "⚠️ Datos
+    publicados: sábado 10/10, 9:15 p. m.; faltan los de 3 barridos con cambios, desde el de domingo 11/10, 6:58 a. m.:
+    revisa los PR «data» abiertos del sitio." (the admin page's render.js publishedLine says the same)."""
+    text = f"Datos publicados: {moment_label(site['published_at'], now)}"
+    missing = site["missing"]
+    if not missing:
+        return text
+    first = moment_label(missing[0]["finished_at"], now)
+    lost = (
+        f"faltan los del barrido de {first}"
+        if len(missing) == 1
+        else f"faltan los de {len(missing)} barridos con cambios, desde el de {first}"
+    )
+    return f"⚠️ {text}; {lost}: revisa los [PR «data» abiertos]({site['prs_url']}) del sitio."
 
 
 def _role(model: str) -> str:
@@ -316,6 +357,7 @@ def collect(
             "recent": [{k: v for k, v in run.items() if k != "changes"} for run in history[-RECENT_RUNS:][::-1]],
             "next": [moment.isoformat(timespec="minutes") for moment in next_sweeps(now)],
         },
+        "site_data": site_data(history),
         "gemini": {
             "lite_only": config.LITE_ONLY,
             "resets_at": quota_reset(now).isoformat(timespec="minutes"),
@@ -458,6 +500,8 @@ def markdown(status: dict[str, Any]) -> str:
     lines += ["### Barridos", ""]
     lines += [_run_line(run, now) for run in sweeps["recent"]] or ["- Todavía no hay barridos registrados."]
     lines += ["", "Próximos: " + " y ".join(moment_label(iso, now) for iso in sweeps["next"]), ""]
+    if site := status.get("site_data"):
+        lines += [site_data_line(site, now), ""]
 
     lines += _models_lines(status, now)
 
