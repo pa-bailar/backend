@@ -8,7 +8,7 @@ from collections.abc import Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from datetime import UTC, date, datetime, timedelta
 
-from .. import config, links, storage
+from .. import config, links, public_post, storage
 from ..account_options import AccountOptions, mentions_focus
 from ..batching import BatchItem
 from ..changes import changed_fields
@@ -23,6 +23,7 @@ from ..gemini import (
 )
 from ..instagram import InstagramError, Post, is_rate_limited, published_at, slide_count
 from ..models import AccountState, ProcessedPost, StoredEvent, had_events
+from ..stories import STORY_PREFIX
 from ..text import parse_hhmm
 from . import common
 from .batches import Batches
@@ -147,6 +148,32 @@ def upgrade_urgency(event_ids: list[str], events: dict[str, StoredEvent], today:
     return (0, min(upcoming)) if upcoming else (1, "")
 
 
+def waiting_for_flash(
+    posts: Mapping[str, ProcessedPost], events: dict[str, StoredEvent], today: str
+) -> dict[str, list[str]]:
+    """Per account, its provisional posts whose events haven't ended (upgrade_urgency), the soonest first: the ones a
+    read of the account, in its turn or not, fetches for Flash wherever they are. Not a story (no read returns one), nor
+    a post known only by its public page's id (the API knows it by another: a turn's read adopts it)."""
+    waiting: dict[str, list[tuple[str, str]]] = {}
+    for post_id, record in posts.items():
+        if not record.provisional or post_id.startswith((STORY_PREFIX, public_post.ID_PREFIX)):
+            continue
+        soonest, day = upgrade_urgency(record.event_ids, events, today)
+        if soonest == 0:
+            waiting.setdefault(record.account, []).append((day, post_id))
+    return {account: [post_id for _, post_id in sorted(items)] for account, items in waiting.items()}
+
+
+def upgrade_read_depth(records: Iterable[ProcessedPost], oldest: str) -> int:
+    """How many of an account's latest posts to ask for to reach back to a post read at `oldest` (its processed_at):
+    its posts read since then, that one included, plus config.UPGRADE_READ_MARGIN_POSTS for posts never recorded; at
+    least a turn's config.POSTS_PER_ACCOUNT, at most config.UPGRADE_READ_MAX_POSTS."""
+    since = datetime.fromisoformat(oldest)
+    newer = sum(1 for record in records if datetime.fromisoformat(record.processed_at) >= since)
+    wanted = max(newer + config.UPGRADE_READ_MARGIN_POSTS, config.POSTS_PER_ACCOUNT)
+    return min(wanted, config.UPGRADE_READ_MAX_POSTS)
+
+
 def _bad_key(error: GeminiKeyError) -> SystemExit:
     """The run's end when the Gemini key doesn't work: every request would fail, so it fails loudly, saying why."""
     return SystemExit(
@@ -171,6 +198,7 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
 
         self._share_flash()
         self._to_upgrade: list[tuple[str, Post, datetime]] = []
+        self._read_this_run: set[str] = set()  # the accounts whose turn's read was tried: no read for Flash after it
         self._waited_for_flash = False  # once a run (_wait_for_flash)
         self._batch = []  # posts waiting for a shared extraction request (batches.py)
         due = self._due_accounts()
@@ -187,14 +215,12 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             if self._out_of_time():  # no Gemini work would start: they wait, first next run (_due_accounts)
                 break
             self.stats.accounts += 1
-            call = self.instagram.last_call
-            with self._contained(account, f"@{account}"):
+            self._read_this_run.add(account)
+            with self._contained(account, f"@{account}"), self._read_cost(account):
                 self._process_account(account)
-            if self.instagram.last_call is not None and self.instagram.last_call is not call:
-                log.info("   %s", self.read_costs.record(account, self.instagram.last_call).line())
 
-        self.stats.instagram_reads = self.read_costs.summary()
         self._upgrade_by_urgency()
+        self.stats.instagram_reads = self.read_costs.summary()  # the reads for Flash too
         self._apply_retention()
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
         self.stats.gemini_requests = self.extractor.requests_this_run()
@@ -216,10 +242,11 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             log.info("Flash: %d%% of today's requests left for %d later sweep(s) today", share * 100, later)
 
     def _upgrade_by_urgency(self) -> None:
-        """Re-read the provisional posts seen this run with Flash, while it has requests and time: the soonest events
-        first, the ones visitors look at now (before, in the accounts' order, whatever came first took them)."""
-        if not self._to_upgrade:
-            return
+        """Re-read provisional posts with Flash, while it has requests and time: the soonest events first, the ones
+        visitors look at now (before, in the accounts' order, whatever came first took them). The posts the turn's
+        reads fetched, and, in the same order, the accounts not read this run that hold provisional posts of events
+        not over yet (waiting_for_flash), read beyond their turn for those posts only (_read_for_flash), up to
+        config.UPGRADE_READS_PER_RUN and while Instagram's forecast has room."""
         today = config.now_bogota().date().isoformat()
         events = {event.id: event for event in self.events}
 
@@ -228,17 +255,110 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             return upgrade_urgency(record.event_ids if record else [], events, today)
 
         queue = sorted(self._to_upgrade, key=urgency)
+        waiting = waiting_for_flash(self.processed, events, today)
+        reads = [
+            (upgrade_urgency(self.processed[post_ids[0]].event_ids, events, today), account, post_ids)
+            for account, post_ids in waiting.items()
+            if account in self.options and account not in self._read_this_run
+        ]
+        reads = sorted(reads)[: config.UPGRADE_READS_PER_RUN]
+        if not queue and not reads:
+            return
         log.info("%d provisional posts to re-read with Flash, the soonest events first", len(queue))
-        for done, (account, post, published) in enumerate(queue):
+        if reads:
+            log.info(
+                "%d accounts not read this run hold provisional posts of upcoming events: read for Flash",
+                len(reads),
+            )
+        while queue or reads:
+            if (not self.extractor.can_upgrade() and not self._wait_for_flash()) or self._out_of_time():
+                left = len(queue) + sum(len(post_ids) for _, _, post_ids in reads)
+                log.info("   no Flash (or time) left: %d wait for a later run", left)
+                break
+            if reads and (not queue or reads[0][0] <= urgency(queue[0])):
+                _, account, post_ids = reads.pop(0)
+                fetched = self._read_for_flash(account, post_ids)
+                if fetched is None:  # Instagram has no room for more reads
+                    reads = []
+                queue = sorted([*queue, *(fetched or [])], key=urgency)
+                continue
+            account, post, published = queue.pop(0)
             record = self.processed.get(post["id"])
             if not record or not record.provisional:
                 continue  # read again meanwhile (e.g. its caption was edited)
-            if (not self.extractor.can_upgrade() and not self._wait_for_flash()) or self._out_of_time():
-                log.info("   no Flash (or time) left: %d wait for a later run", len(queue) - done)
-                break
             log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
             with self._contained(account, f"the upgrade of {post['permalink']}"):
                 self._upgrade_post(account, post, published)
+
+    def _read_for_flash(self, account: str, post_ids: list[str]) -> list[tuple[str, Post, datetime]] | None:
+        """Read an account beyond its turn, only for these provisional posts: deep enough to reach the oldest
+        (_flash_depth), and only they are queued for Flash. Not its turn: no other post of it is read, and nothing that
+        sets its turn changes (last_swept_at, latest_post), so a 6:30 read for Flash doesn't take a 21:00 account. None
+        when Instagram's forecast has no room (the run isn't marked as stopped: no account of a turn waits for it)."""
+        usage = self.instagram.app_usage_percent
+        if self.rate_limited or self.read_costs.stop_reason(usage) is not None:
+            log.info(
+                "   Instagram quota %s%% used, a read costs up to %s%%: no more reads for Flash this run",
+                usage,
+                self.read_costs.expected_cost(),
+            )
+            return None
+        depth = self._flash_depth(account) or config.POSTS_PER_ACCOUNT
+        log.info(
+            "== @%s (not its turn: %d provisional posts for Flash, its last %d posts)", account, len(post_ids), depth
+        )
+        self.stats.upgrade_reads += 1
+        try:
+            with self._read_cost(account):
+                posts = self.instagram.fetch_recent_posts(account, limit=depth)
+        except InstagramError as error:
+            log.warning("   could not fetch posts: %s", error)
+            if is_rate_limited(error):
+                self.rate_limited = True
+                self.stats.instagram_stop = "meta"
+                return None
+            return []
+        return self._fetched_for_flash(account, posts, post_ids)
+
+    def _fetched_for_flash(
+        self, account: str, posts: list[Post], post_ids: list[str]
+    ) -> list[tuple[str, Post, datetime]]:
+        """The posts among those fetched that wait for Flash (`post_ids`), to queue. One not returned (deleted, or
+        deeper than the read went) is logged and counted (upgrade_misses), and tried again on a later run."""
+        fetched = {post["id"]: post for post in posts}
+        for post_id in post_ids:
+            if post_id not in fetched:
+                log.info(
+                    "   not among its last %d posts, left as read: %s", len(posts), self.processed[post_id].permalink
+                )
+                self.stats.upgrade_misses += 1
+        return [(account, post, published_at(post)) for post_id in post_ids if (post := fetched.get(post_id))]
+
+    def _waiting_for_flash(self, account: str) -> list[str]:
+        """The account's provisional posts of events not over yet (waiting_for_flash), the soonest first."""
+        today = config.now_bogota().date().isoformat()
+        events = {event.id: event for event in self.events}
+        return waiting_for_flash(self.processed, events, today).get(account, [])
+
+    def _flash_depth(self, account: str) -> int:
+        """How deep a read of the account must go to reach its provisional posts waiting for Flash (upgrade_read_depth);
+        0 when none waits."""
+        post_ids = self._waiting_for_flash(account)
+        if not post_ids:
+            return 0
+        oldest = min((self.processed[post_id].processed_at for post_id in post_ids), key=datetime.fromisoformat)
+        return upgrade_read_depth((r for r in self.processed.values() if r.account == account), oldest)
+
+    @contextmanager
+    def _read_cost(self, account: str) -> Iterator[None]:
+        """Record what a read of the account cost Instagram's quota (read_costs), if a call reached Meta, even when
+        the read failed."""
+        call = self.instagram.last_call
+        try:
+            yield
+        finally:
+            if self.instagram.last_call is not None and self.instagram.last_call is not call:
+                log.info("   %s", self.read_costs.record(account, self.instagram.last_call).line())
 
     def _wait_for_flash(self) -> bool:
         """Flash only paused as busy, with budget left: wait for its pause to end, once a run, if the run's time
@@ -430,6 +550,10 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
                 published = published_at(post)
                 if published >= cutoff:
                     self._read_post(account, post, published)
+        # Its provisional posts of events not over yet, older than the window too (the read went back to them:
+        # _fetch_posts): re-read with Flash after every account, as the window's are (_read_post).
+        waiting = self._fetched_for_flash(account, posts, self._waiting_for_flash(account))
+        self._to_upgrade += [item for item in waiting if item[2] < cutoff]
         fetched = {post["id"] for post in posts}  # a post no longer fetched is never read again
         state.unreadable = {post_id: runs for post_id, runs in state.unreadable.items() if post_id in fetched}
 
@@ -443,10 +567,11 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         storage.save_account_state(self.accounts)
 
     def _fetch_posts(self, account: str, state: AccountState, backfill: bool) -> list[Post] | None:
-        """The account's latest posts (more for its first, deeper sweep). None when Instagram couldn't give them:
-        its turn is over, unless Instagram's rate limit stopped it."""
+        """The account's latest posts (more for its first, deeper sweep, and back to its oldest provisional post of an
+        event not over yet: _flash_depth). None when Instagram couldn't give them: its turn is over, unless Instagram's
+        rate limit stopped it."""
         try:
-            limit = config.BACKFILL_POSTS if backfill else config.POSTS_PER_ACCOUNT
+            limit = config.BACKFILL_POSTS if backfill else max(config.POSTS_PER_ACCOUNT, self._flash_depth(account))
             return self.instagram.fetch_recent_posts(account, limit=limit)
         except InstagramError as error:
             log.error("   could not fetch posts: %s", error)

@@ -51,7 +51,14 @@ def record(account: str = "academia", **fields) -> dict:
 def fake_state():
     files = {
         "run_history.json": [
-            {"finished_at": "2026-10-02T09:12:00-05:00", "events_new": 2, "events_merged": 1, "pending": 0},
+            {
+                "finished_at": "2026-10-02T09:12:00-05:00",
+                "events_new": 2,
+                "events_merged": 1,
+                "pending": 0,
+                "upgraded": 3,
+                "upgrade_reads": 2,
+            },
             {
                 "finished_at": "2026-10-02T21:12:00-05:00",
                 "events_new": 1,
@@ -106,7 +113,7 @@ def test_the_text_says_it_in_spanish():
         "- ⚠️ hoy 9:12 p. m.: 1 nuevos, 0 unidos, 4 en espera, Instagram 90%, límite de Instagram, 1 cuenta sin leer"
     )
     assert f"{latest} · [ver](https://example/run)" in text
-    assert "- ✅ hoy 9:12 a. m.: 2 nuevos, 1 unidos" in text
+    assert "- ✅ hoy 9:12 a. m.: 2 nuevos, 1 unidos, 3 releídas con Flash, 2 cuentas leídas para Flash" in text
     assert "Próximos: hoy 9:00 p. m. y mañana 3:00 a. m." in text
     assert "| `gemini-3.8-flash` | extraction | 18 (agotado) | 18 |" in text
     assert "La cuota se reinicia mañana 2:00 a. m." in text

@@ -33,6 +33,8 @@ function runItem(run) {
     `${run.events_merged ?? 0} unidos`,
     count(run.pending ?? 0, "en espera", "en espera"),
     count(run.provisional ?? 0, "provisional", "provisionales"),
+    count(run.upgraded ?? 0, "releída con Flash", "releídas con Flash"),
+    count(run.upgrade_reads ?? 0, "cuenta leída para Flash", "cuentas leídas para Flash"),
     run.instagram_usage ? `Instagram ${run.instagram_usage}%` : "",
     ...problems,
   ].filter(Boolean);
