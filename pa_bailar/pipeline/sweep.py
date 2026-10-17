@@ -2,6 +2,7 @@
 statistics), with the admin tools' operations mixed in (manual_post.py, story_admin.py, hiding.py)."""
 
 import logging
+import statistics
 import time
 from collections import Counter
 from collections.abc import Iterable, Iterator, Mapping
@@ -28,7 +29,7 @@ from ..stories import STORY_PREFIX
 from ..text import parse_hhmm
 from . import common
 from .batches import Batches
-from .common import RETRYABLE_ERRORS, RunStats, caption_hash, clip_for, flyer_slide
+from .common import ENDED, RETRYABLE_ERRORS, RunStats, caption_hash, clip_for, flyer_slide
 from .hiding import Hiding
 from .manual_post import ManualPosts
 from .story_admin import StoryAdmin
@@ -114,6 +115,75 @@ def overdue_by_account(
         account: hours_overdue(states.get(account), now, account in unproductive, account in busy)
         for account in accounts
     }
+
+
+def lead_days(posts: Iterable[ProcessedPost], events: Iterable[StoredEvent]) -> dict[str, list[int]]:
+    """Per account, how many days ahead it announced each of its events: from the day (Bogotá) of its earliest post
+    of the event to the event's first day (0: the same day). A post is the account's whose read recorded it (by its
+    link: a collaboration's post joins another account's event), the event's own when its record is gone; a story
+    isn't (no sweep reads one), nor an event first announced after it began (a festival's later days)."""
+    reader = {record.permalink: record.account for record in posts}
+    leads: dict[str, list[int]] = {}
+    for event in events:
+        if not event.date:
+            continue
+        first: dict[str, date] = {}
+        for item in event.media:
+            if item.post_id.startswith(STORY_PREFIX):
+                continue
+            account = reader.get(item.permalink, event.account)
+            day = config.bogota_date(datetime.fromisoformat(item.published.replace("+0000", "+00:00")))
+            first[account] = min(day, first.get(account, day))
+        for account, day in first.items():
+            if (lead := (date.fromisoformat(event.date) - day).days) >= 0:
+                leads.setdefault(account, []).append(lead)
+    return leads
+
+
+def missed_as_past(posts: Iterable[ProcessedPost], now: datetime) -> Counter[str]:
+    """Per account, the posts a turn's read found too late within config.SHORT_NOTICE_MISS_DAYS: discarded because
+    their event had ended ("ya pasó"). Not its first read's (a new account's first sweep reads posts a month old, a
+    bar's the past week's nights: config.SHORT_NOTICE_FIRST_READ_HOURS after its earliest record; once those are
+    forgotten, a later read's are skipped there, so it errs towards no evidence), nor a post added by hand."""
+    posts = list(posts)
+    earliest: dict[str, datetime] = {}
+    for record in posts:
+        when = datetime.fromisoformat(record.processed_at)
+        earliest[record.account] = min(when, earliest.get(record.account, when))
+    since = now - timedelta(days=config.SHORT_NOTICE_MISS_DAYS)
+    first_read = timedelta(hours=config.SHORT_NOTICE_FIRST_READ_HOURS)
+    missed: Counter[str] = Counter()
+    for record in posts:
+        when = datetime.fromisoformat(record.processed_at)
+        ended = record.outcome == "discarded" and ENDED in (record.detail or "").split(", ")
+        if ended and not record.by_hand and when >= since and when >= earliest[record.account] + first_read:
+            missed[record.account] += 1
+    return missed
+
+
+def short_notice_accounts(posts: Iterable[ProcessedPost], events: Iterable[StoredEvent], now: datetime) -> set[str]:
+    """The accounts whose turn is the evening sweep (the owner, 17 Oct 2026): those that announce their nights the same
+    day or the day before, so a morning read finds them over. From history: a turn's read found a post of theirs
+    already past (missed_as_past), or they announce a median under config.SHORT_NOTICE_DAYS ahead over at least
+    config.SHORT_NOTICE_MIN_EVENTS of their events on the site (lead_days). The sweep's order and the status page both
+    take it from here."""
+    posts = list(posts)
+    habit = {
+        account
+        for account, leads in lead_days(posts, events).items()
+        if len(leads) >= config.SHORT_NOTICE_MIN_EVENTS and statistics.median(leads) < config.SHORT_NOTICE_DAYS
+    }
+    return habit | set(missed_as_past(posts, now))
+
+
+def is_evening_sweep(now: datetime) -> bool:
+    """Whether a run starting at `now` is the day's evening sweep, the short-notice accounts' turn: the last of
+    config.SWEEP_TIMES (21:00, Bogotá), from config.LATER_SWEEP_MARGIN_MINUTES before it (a run started a little
+    early is that sweep) until midnight. A run by hand after midnight is the next day's, before its evening."""
+    local = now.astimezone(config.BOGOTA_TZ)
+    last = max(parse_hhmm(clock) for clock in config.SWEEP_TIMES)
+    starts = datetime.combine(local.date(), last, config.BOGOTA_TZ)
+    return local >= starts - timedelta(minutes=config.LATER_SWEEP_MARGIN_MINUTES)
 
 
 def sweeps_in_quota_day(now: datetime) -> list[datetime]:
@@ -575,12 +645,33 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         new account's first, deeper sweep can take days of quota), and within each, those that waited longest
         first. So an account a sweep didn't reach (its share, Instagram's limit) is first next time. A sweep with room
         in its share also reads, after them, those due within config.READ_AHEAD_HOURS: the 3:00 sweep takes part of
-        the 6:30 sweep's accounts (due at 4:30), and they keep the 3:00 sweep from then on."""
+        the 6:30 sweep's accounts (due at 4:30), and they keep the 3:00 sweep from then on. Short-notice accounts
+        (short_notice_accounts) take their turn in the evening sweep, first among the due ones, so neither its share
+        nor Instagram's stop pushes them to the next morning; a sweep before it reads one only
+        config.SHORT_NOTICE_WAIT_HOURS past its turn (never starved), and reading ahead never takes one."""
         followed = storage.read_accounts()
-        overdue = overdue_by_account(followed, self.accounts, self.processed.values(), self.events, config.now_bogota())
-        due = followed if self.all_accounts else [account for account in followed if overdue[account] >= 0]
+        now = config.now_bogota()
+        overdue = overdue_by_account(followed, self.accounts, self.processed.values(), self.events, now)
+        evening = is_evening_sweep(now)
+        short = set() if self.all_accounts else short_notice_accounts(self.processed.values(), self.events, now)
+
+        def turn_starts(account: str) -> float:
+            """Hours past its turn this sweep reads it from: a short-notice one waits for the evening."""
+            return config.SHORT_NOTICE_WAIT_HOURS if account in short and not evening else 0
+
+        due = (
+            followed
+            if self.all_accounts
+            else [account for account in followed if overdue[account] >= turn_starts(account)]
+        )
+        if held := [account for account in followed if 0 <= overdue[account] < turn_starts(account)]:
+            log.info("%s short-notice accounts wait for the evening sweep: %s", len(held), ", ".join(held))
         if not self.all_accounts and len(due) < self._share_per_run():
-            ahead = [account for account in followed if -config.READ_AHEAD_HOURS <= overdue[account] < 0]
+            ahead = [
+                account
+                for account in followed
+                if -config.READ_AHEAD_HOURS <= overdue[account] < 0 and account not in short
+            ]
             if ahead:
                 log.info(
                     "%s accounts' turn, and %s due within %s h read ahead",
@@ -594,7 +685,11 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             state = self.accounts.get(account)
             return state is None or not state.backfill_done
 
-        return sorted(due, key=lambda account: (is_new(account), -overdue[account]))
+        def after_short_notice(account: str) -> bool:
+            """In the evening sweep, every account but the short-notice ones goes after them."""
+            return not (evening and account in short)
+
+        return sorted(due, key=lambda account: (is_new(account), after_short_notice(account), -overdue[account]))
 
     def _apply_retention(self) -> None:
         """Archive long-past events (storage.archive_events) and forget old analyzed posts, so the site's data and

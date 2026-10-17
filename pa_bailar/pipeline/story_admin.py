@@ -12,7 +12,7 @@ from ..instagram import InstagramError, Post, api_timestamp
 from ..models import AccountState, ExtractedEvent, PostAnalysis, Session, StoredEvent, StoryAnalysis, StoryEvent
 from ..text import WEEKDAYS
 from .base import SweepBase
-from .common import RETRYABLE_ERRORS, AddPostError, has_ended, no_quota_message
+from .common import ENDED, RETRYABLE_ERRORS, AddPostError, has_ended, no_quota_message
 
 log = logging.getLogger(__name__)
 
@@ -184,7 +184,7 @@ class StoryAdmin(SweepBase):
         record.provisional = False  # no later sweep sees a story: a Flash-Lite read stays as it is
         record.image_hashes = hashes
         if past and record.outcome == "not_event":
-            record.outcome, record.detail = "discarded", "ya pasó"
+            record.outcome, record.detail = "discarded", ENDED
         self._save()
 
         added = checked and storage.add_account(owner)

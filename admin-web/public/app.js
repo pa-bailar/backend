@@ -183,13 +183,18 @@ function accountsCard(status) {
     ? `<p class="small warn chips-title">⚠️ Esperando más de un barrido después de su turno:</p>
        <div class="chips">${waiting.map((account) => `<span>@${escapeHtml(account)}</span>`).join("")}</div>`
     : "";
+  const shortNotice = accounts.short_notice ?? [];
+  const evening = shortNotice.length
+    ? `<p class="small chips-title">Leídas en el barrido de la noche (avisan el mismo día o el anterior):</p>
+       <div class="chips">${shortNotice.map((account) => `<span>@${escapeHtml(account)}</span>`).join("")}</div>`
+    : "";
   const firstSweep = pending.length
     ? `<p class="small chips-title">En su primer barrido (más profundo):</p>
        <div class="chips">${pending.map((account) => `<span>@${escapeHtml(account)}</span>`).join("")}</div>`
     : "";
   return `<section class="card"><h2>Cuentas y eventos</h2>
     <div class="facts">${facts.map(([number, label]) => `<div class="fact"><b>${escapeHtml(number)}</b>${escapeHtml(label)}</div>`).join("")}</div>
-    ${lighterReads(status.lighter_reads)}${firstSweep}${late}</section>`;
+    ${lighterReads(status.lighter_reads)}${firstSweep}${late}${evening}</section>`;
 }
 
 // ---------- the tools: requests to the admin inbox (issues the admin workflow answers) ----------

@@ -46,7 +46,17 @@ from ..normalize import (
 from ..prompts import account_rules
 from ..text import PRICE_WORDS, fold
 from . import common
-from .common import Extractor, Flyer, PostSource, RunStats, caption_hash, has_ended, media_for, unpublishable
+from .common import (
+    ENDED,
+    Extractor,
+    Flyer,
+    PostSource,
+    RunStats,
+    caption_hash,
+    has_ended,
+    media_for,
+    unpublishable,
+)
 
 log = logging.getLogger(__name__)
 
@@ -567,7 +577,7 @@ class SweepBase:
         ended = bool(event.date) and has_ended(event, config.now_bogota().date())
         if ended and not already_stored(self.events, account, event, post_id):
             log.info("     already over, left out: %s %s", _days(event), event.title)
-            reasons.append("ya pasó")
+            reasons.append(ENDED)
         return reasons
 
     def _retry_later(self, account: str, reason: str) -> bool:

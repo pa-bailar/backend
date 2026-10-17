@@ -92,7 +92,7 @@ def test_collect_reads_what_the_sweeps_record():
         "used": 18,
         "budget": daily_budget("gemini-3.8-flash"),
     }
-    assert result["accounts"] == {"followed": 2, "first_sweep_pending": ["nueva"], "waiting": []}
+    assert result["accounts"] == {"followed": 2, "first_sweep_pending": ["nueva"], "waiting": [], "short_notice": []}
     assert result["posts"] == {"recorded": 2, "provisional": 1}
     assert result["instagram"] is None
 

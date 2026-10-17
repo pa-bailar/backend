@@ -29,7 +29,7 @@ from .external import usage_day, usage_reset
 from .gemini import daily_budget, quota_day, quota_reset
 from .health import RunRecord, unpublished_runs
 from .models import AccountState, GeminiUsage, ProcessedPost, StoredEvent
-from .pipeline import overdue_by_account
+from .pipeline import overdue_by_account, short_notice_accounts
 from .text import WEEKDAYS, clock, parse_hhmm, sessions_label
 
 RECENT_RUNS = 5
@@ -344,6 +344,7 @@ def collect(
     events = storage.load_events() if config.EVENTS_FILE.exists() else None
     posts = [ProcessedPost.model_validate(record) for record in processed.values()]
     overdue = overdue_by_account(followed, states, posts, events or [], now)
+    short_notice = short_notice_accounts(posts, events or [], now)
     sweep_gap = 24 / max(1, len(config.SWEEP_TIMES))  # hours between sweeps, on average
 
     # Upcoming until its last day: an event over several days is on the site while it goes on.
@@ -386,6 +387,9 @@ def collect(
             # Past their turn (as the sweep counts turns) by more than a sweep's gap: a sweep didn't reach them (its
             # share, Instagram's limit). One never read isn't late but new (infinitely overdue).
             "waiting": [account for account in followed if sweep_gap < overdue[account] < float("inf")],
+            # Read in the evening sweep, as the sweep picks them (pipeline.short_notice_accounts): they announce their
+            # nights the same day or the day before.
+            "short_notice": [account for account in followed if account in short_notice],
         },
         "posts": {
             "recorded": len(processed),
@@ -471,6 +475,21 @@ def _series_line(item: dict[str, Any]) -> str:
     )
 
 
+def _accounts_lines(accounts: dict[str, Any]) -> list[str]:
+    """The accounts in the sweeps: how many, those in their first sweep, those a sweep didn't reach, and those read in
+    the evening sweep (short-notice)."""
+    lines = [f"- {accounts['followed']} cuentas en los barridos."]
+    groups = [
+        ("first_sweep_pending", "", "en su primer barrido (más profundo)"),
+        ("waiting", "⚠️ ", "esperando más de un barrido después de su turno"),
+        ("short_notice", "", "leídas en el barrido de la noche (avisan el mismo día o el anterior)"),
+    ]
+    for key, mark, label in groups:
+        if names := accounts.get(key):
+            lines.append(f"- {mark}{len(names)} {label}: " + ", ".join(f"@{a}" for a in names))
+    return lines
+
+
 def _models_lines(status: dict[str, Any], now: datetime) -> list[str]:
     """Gemini's use today per model, and the last resort's when it was used (Gemini ran out)."""
     gemini = status["gemini"]
@@ -519,16 +538,7 @@ def markdown(status: dict[str, Any]) -> str:
             lines.append(f"- {quota_line(quota, now)}")
         lines.append("")
 
-    accounts = status["accounts"]
-    pending = accounts["first_sweep_pending"]
-    lines += ["### Cuentas y eventos", "", f"- {accounts['followed']} cuentas en los barridos."]
-    if pending:
-        lines.append(f"- {len(pending)} en su primer barrido (más profundo): " + ", ".join(f"@{a}" for a in pending))
-    if waiting := accounts.get("waiting"):
-        lines.append(
-            f"- ⚠️ {len(waiting)} esperando más de un barrido después de su turno: "
-            + ", ".join(f"@{a}" for a in waiting)
-        )
+    lines += ["### Cuentas y eventos", "", *_accounts_lines(status["accounts"])]
     posts = status["posts"]
     lines.append(f"- {posts['recorded']} publicaciones analizadas en los últimos días.")
     if posts["provisional"]:

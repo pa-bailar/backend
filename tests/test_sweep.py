@@ -13,9 +13,9 @@ from pa_bailar.external import ExternalReport
 from pa_bailar.gemini import ExtractionError, QuotaExhaustedError, RejectedRequestError, UnreadableAnswerError
 from pa_bailar.ids import new_event_id
 from pa_bailar.instagram import APP_HEADER, CallReading, InstagramError
-from pa_bailar.models import AccountState, PostAnalysis, ProcessedPost, Triage, had_events
+from pa_bailar.models import AccountState, PostAnalysis, ProcessedPost, StoredEvent, Triage, had_events
 from pa_bailar.pipeline import Sweep, overdue_by_account, unproductive_accounts
-from pa_bailar.pipeline.sweep import hours_overdue
+from pa_bailar.pipeline.sweep import hours_overdue, is_evening_sweep, lead_days, short_notice_accounts
 from pa_bailar.text import parse_hhmm
 from tests.factories import EVENT_DATE, event_id, extracted, make_image, media, stored
 
@@ -897,8 +897,8 @@ def is_due(state: AccountState, posts=(), events=()) -> bool:
 def record_of(account: str = "academia", days_ago: float = 1, **fields) -> ProcessedPost:
     when = config.now_bogota() - timedelta(days=days_ago)
     return ProcessedPost(
-        account=account, permalink="x", processed_at=when.isoformat(timespec="seconds"), is_event_post=True,
-        reason="", model="m", **fields,
+        account=account, processed_at=when.isoformat(timespec="seconds"), is_event_post=True, reason="", model="m",
+        **({"permalink": "x"} | fields),
     )  # fmt: skip
 
 
@@ -1009,6 +1009,151 @@ def test_an_account_instagrams_limit_didnt_reach_stays_due():
     stats = run(FakeInstagram({"academia": limited, "otra": []}), FakeExtractor({}), all_accounts=False)
     assert stats.rate_limited
     assert turn(storage.read_json(config.ACCOUNT_STATE_FILE, {})) == ["academia", "otra"]
+
+
+# ---------- short-notice accounts: their turn is the evening sweep (the owner, 17 Oct 2026) ----------
+
+
+def at(clock: str, monkeypatch) -> None:
+    """The sweeps run today at `clock`, Bogotá."""
+    moment = datetime.combine(datetime.now(config.BOGOTA_TZ).date(), parse_hhmm(clock), config.BOGOTA_TZ)
+    monkeypatch.setattr(config, "now_bogota", lambda: moment)
+
+
+def found_past(account: str = "academia", days_ago: float = 2, **fields) -> dict[str, ProcessedPost]:
+    """The account's first read (ten days ago), and a later read of its turn that found a post already past."""
+    fields = {"outcome": "discarded", "detail": "ya pasó"} | fields
+    return {
+        f"{account}-first": record_of(account, days_ago=10, outcome="not_event"),
+        f"{account}-late": record_of(account, days_ago=days_ago, **fields),
+    }
+
+
+def announced(event_id: str, days_ahead: int, account: str = "academia", post_id: str | None = None) -> StoredEvent:
+    """An event five days ago, its post published `days_ahead` days before it (at 5 p.m., Bogotá)."""
+    day = config.now_bogota().date() - timedelta(days=5)
+    published = datetime.combine(day - timedelta(days=days_ahead), parse_hhmm("17:00"), config.BOGOTA_TZ)
+    instagram_time = published.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S+0000")
+    return stored(
+        event_id, account=account, posts=[media(post_id or event_id, published=instagram_time)], date=f"{day}"
+    )
+
+
+def is_short_notice(posts=(), events=()) -> bool:
+    return "academia" in short_notice_accounts(list(posts), list(events), config.now_bogota())
+
+
+def test_a_short_notice_account_waits_for_the_evening_sweep_and_goes_first_there(monkeypatch):
+    """@quemaquequema, read at 3:00 or 6:30, had its posts about that night discarded as past the next morning (three
+    times, 10–16 Oct 2026). Its turn is the evening sweep, before the accounts that waited longer."""
+    storage.save_processed_posts(found_past())
+    for clock in ("03:00", "06:30"):
+        at(clock, monkeypatch)
+        assert turn({"academia": swept(24), "otra": swept(24)}) == ["otra"]
+    at("21:00", monkeypatch)
+    assert turn({"academia": swept(24), "otra": swept(40)}) == ["academia", "otra"]
+
+
+def test_the_evening_sweeps_share_never_pushes_a_short_notice_account_to_the_morning(monkeypatch):
+    monkeypatch.setattr(config, "EXTRA_ACCOUNTS_PER_RUN", 0)  # a share of 1 for 2 accounts and 3 sweeps
+    storage.save_processed_posts(found_past())
+    at("21:00", monkeypatch)
+    assert turn({"academia": swept(23), "otra": swept(60)}) == ["academia"]  # otra moves to the next sweep
+
+
+def test_a_short_notice_account_the_evening_missed_is_read_the_next_morning(monkeypatch):
+    """Never starved: SHORT_NOTICE_WAIT_HOURS past its turn (30 h since a 21:00 read: the next day's 3:00), a sweep
+    before the evening reads it."""
+    storage.save_processed_posts(found_past())
+    at("03:00", monkeypatch)
+    hours = config.SWEEP_EVERY_HOURS + config.SHORT_NOTICE_WAIT_HOURS
+    assert turn({"academia": swept(hours - 0.5), "otra": swept(3)}) == []
+    assert turn({"academia": swept(hours), "otra": swept(3)}) == ["academia"]
+
+
+def test_reading_ahead_never_takes_a_short_notice_account(monkeypatch):
+    storage.save_processed_posts(found_past())
+    at("03:00", monkeypatch)  # a 6:30 read: due at 4:30
+    assert turn({"academia": swept(20.5), "otra": swept(20.5)}) == ["otra"]
+    at("21:00", monkeypatch)  # due in 2 hours
+    assert turn({"academia": swept(20), "otra": swept(20)}) == ["otra"]
+
+
+@pytest.mark.parametrize(
+    ("clock", "evening"),
+    [("03:00", False), ("06:30", False), ("20:29", False), ("20:30", True), ("21:00", True), ("23:59", True)],
+)
+def test_the_evening_sweep_is_the_last_of_the_days_sweeps(clock, evening):
+    """From LATER_SWEEP_MARGIN_MINUTES before 21:00 (a run started a little early) until midnight."""
+    moment = datetime.combine(datetime.now(config.BOGOTA_TZ).date(), parse_hhmm(clock), config.BOGOTA_TZ)
+    assert is_evening_sweep(moment) is evening
+    assert is_evening_sweep(moment.astimezone(UTC)) is evening  # whatever the zone it's given in
+
+
+@pytest.mark.parametrize(
+    ("fields", "short"),
+    [
+        ({}, True),
+        ({"detail": "fuera de Bogotá, ya pasó"}, True),
+        ({"detail": "recurrente"}, False),
+        ({"days_ago": config.SHORT_NOTICE_MISS_DAYS + 1}, False),  # long ago
+        ({"by_hand": True}, False),  # added by hand (a story, Agregar): no turn's read was late
+    ],
+)
+def test_a_post_a_turns_read_found_past_makes_an_account_short_notice(fields, short):
+    assert is_short_notice(found_past(**fields).values()) is short
+
+
+def test_a_first_reads_past_posts_dont_make_an_account_short_notice():
+    """A new account's first sweep reads posts a month old, a bar's the past week's nights: those discarded as past
+    say nothing of when it announces (23 of the 27 such records on 17 Oct 2026)."""
+    first_read = [
+        record_of(days_ago=3, outcome="discarded", detail="ya pasó"),
+        record_of(days_ago=3 - config.SHORT_NOTICE_FIRST_READ_HOURS / 48, outcome="discarded", detail="ya pasó"),
+    ]
+    assert not is_short_notice(first_read)
+    assert is_short_notice([*first_read, record_of(days_ago=1, outcome="discarded", detail="ya pasó")])
+
+
+@pytest.mark.parametrize(
+    ("leads", "short"),
+    [
+        ([0, 1, 3], True),  # median 1 day
+        ([1, 1, 2, 3], True),  # 1.5
+        ([2, 2, 3], False),  # two days ahead: a morning read finds it
+        ([0, 1], False),  # too few to tell a habit
+    ],
+)
+def test_an_account_that_announces_its_events_late_is_short_notice(leads, short):
+    events = [announced(f"e{n}", days_ahead) for n, days_ahead in enumerate(leads)]
+    assert is_short_notice(events=events) is short
+
+
+def test_lead_times_count_each_accounts_own_earliest_post():
+    """A collaboration's post is its reader's (by its link); a story isn't read by any sweep; an event first announced
+    after it began (a festival's later days) says nothing of how far ahead the account announces."""
+    event = announced("social", days_ahead=4)
+    reminder = announced("reminder", days_ahead=0).media[0]  # the same day: its earliest post counts
+    collab = announced("collab", days_ahead=1).media[0]
+    story = announced("story-1", days_ahead=6).media[0]
+    event.media += [reminder, collab, story]
+    after = announced("after", days_ahead=-1)
+    reads = [record_of("otra", permalink=collab.permalink)]
+    assert lead_days(reads, [event, after]) == {"academia": [4], "otra": [1]}
+
+
+def test_the_status_page_shows_the_short_notice_accounts_the_sweep_reads_in_the_evening(monkeypatch, tmp_path):
+    monkeypatch.setattr(config, "PRIVATE_DIR", tmp_path / "private")  # no discovery results
+    storage.save_processed_posts(found_past())
+    config.ACCOUNTS_FILE.write_text("academia\notra\n", encoding="utf-8")
+    state = config.ACCOUNT_STATE_FILE.parent
+    result = status.collect(
+        now=config.now_bogota(), instagram=None, read=lambda name, default: storage.read_json(state / name, default)
+    )
+    assert result["accounts"]["short_notice"] == ["academia"]
+    assert "- 1 leídas en el barrido de la noche (avisan el mismo día o el anterior): @academia" in status.markdown(
+        result
+    )
 
 
 # ---------- review fixes: a broken Gemini key, a cancelled event ----------
