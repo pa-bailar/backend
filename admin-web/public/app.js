@@ -19,7 +19,8 @@ const MESSAGES = {
 };
 
 
-const count = (number, one, many) => (number ? `${number} ${number === 1 ? one : many}` : "");
+const amount = (number, one, many) => `${number} ${number === 1 ? one : many}`;
+const count = (number, one, many) => (number ? amount(number, one, many) : "");
 
 function runItem(run) {
   const problems = [
@@ -29,8 +30,8 @@ function runItem(run) {
     count(run.post_errors ?? 0, "error", "errores"),
   ].filter(Boolean);
   const parts = [
-    `${run.events_new ?? 0} nuevos`,
-    `${run.events_merged ?? 0} unidos`,
+    amount(run.events_new ?? 0, "nuevo", "nuevos"), // "1 nuevos" until 17 Oct 2026
+    amount(run.events_merged ?? 0, "unido", "unidos"),
     count(run.pending ?? 0, "en espera", "en espera"),
     count(run.provisional ?? 0, "provisional", "provisionales"),
     count(run.upgraded ?? 0, "releída con Flash", "releídas con Flash"),

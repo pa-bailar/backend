@@ -429,9 +429,14 @@ def moment_label(iso: str, now: datetime) -> str:
     return f"{WEEKDAYS[moment.weekday()]} {moment.day}/{moment.month}, {hour}"
 
 
+def _amount(number: int, one: str, many: str) -> str:
+    """ "1 nuevo", "0 nuevos", "3 nuevos"."""
+    return f"{number} {one if number == 1 else many}"
+
+
 def _count(number: int, one: str, many: str) -> str:
     """ "1 error", "3 errores"; empty for 0."""
-    return f"{number} {one if number == 1 else many}" if number else ""
+    return _amount(number, one, many) if number else ""
 
 
 def _run_line(run: dict[str, Any], now: datetime) -> str:
@@ -444,11 +449,11 @@ def _run_line(run: dict[str, Any], now: datetime) -> str:
     problems = [problem for problem in problems if problem]
     mark = "⚠️" if problems else "✅"
     parts = [
-        f"{run.get('events_new', 0)} nuevos",
-        f"{run.get('events_merged', 0)} unidos",
+        _amount(run.get("events_new", 0), "nuevo", "nuevos"),  # "1 nuevos" until 17 Oct 2026
+        _amount(run.get("events_merged", 0), "unido", "unidos"),
         f"{run.get('pending', 0)} en espera" if run.get("pending") else "",
         f"Instagram {run['instagram_usage']}%" if run.get("instagram_usage") else "",
-        f"{run.get('provisional', 0)} provisionales" if run.get("provisional") else "",
+        _count(run.get("provisional", 0), "provisional", "provisionales"),
         _count(run.get("upgraded", 0), "releída con Flash", "releídas con Flash"),
         _count(run.get("upgrade_reads", 0), "cuenta leída para Flash", "cuentas leídas para Flash"),
         # Flash's second opinion on the triage's "no" (Sweep._check_triage): posts checked, events it found.
