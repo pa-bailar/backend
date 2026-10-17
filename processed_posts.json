@@ -12643,21 +12643,17 @@
   "18110945663238022": {
     "account": "esferalatinaoficial",
     "permalink": "https://www.instagram.com/p/DeSv2aRiRI7/",
-    "processed_at": "2026-10-10T06:39:42-05:00",
-    "is_event_post": true,
-    "reason": "El post anuncia audiciones para diferentes grupos de baile en una fecha específica.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "processed_at": "2026-10-17T13:44:58-05:00",
+    "is_event_post": false,
+    "reason": "El post anuncia una jornada de audiciones para ingresar a los grupos de la academia y no un evento social, taller o espectáculo.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
     "caption_hash": "d45e3324facdb259",
-    "outcome": "event",
-    "event_ids": [
-      "audiciones-esfera-latina-bachata-iniciacion-8-nov",
-      "audiciones-esfera-latina-salsa-8-nov",
-      "audiciones-esfera-latina-ladies-salsa-y-bachata-8-nov"
-    ],
+    "outcome": "not_event",
+    "event_ids": [],
     "detail": null,
     "image_hashes": [],
-    "by_hand": false
+    "by_hand": true
   },
   "18103607480311897": {
     "account": "madyumdance",

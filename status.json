@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T06:31:01-05:00",
+  "generated_at": "2026-10-17T13:44:59-05:00",
   "sweeps": {
     "recent": [
       {
@@ -448,7 +448,7 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 6,
+        "used": 7,
         "budget": 18
       },
       {
@@ -549,7 +549,7 @@
   },
   "posts": {
     "recorded": 1072,
-    "provisional": 207
+    "provisional": 206
   },
   "events": {
     "upcoming": 70,
@@ -701,6 +701,17 @@
     }
   ],
   "history": [
+    {
+      "kind": "post_again",
+      "slot": null,
+      "finished_at": "2026-10-17T13:44:58-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/39059298696",
+      "target": "https://www.instagram.com/p/DeSv2aRiRI7/",
+      "error": null,
+      "changes": [],
+      "left_out": 0,
+      "counts": {}
+    },
     {
       "kind": "sweep",
       "slot": "06:30",
@@ -1346,17 +1357,6 @@
         "merged": 2,
         "reread": 2
       }
-    },
-    {
-      "kind": "sweep",
-      "slot": "06:30",
-      "finished_at": "2026-10-14T06:31:12-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/38556994867",
-      "target": null,
-      "error": null,
-      "changes": [],
-      "left_out": 0,
-      "counts": {}
     }
   ],
   "discovery": null
