@@ -12985,9 +12985,9 @@
   "18026328986860113": {
     "account": "esferalatinaoficial",
     "permalink": "https://www.instagram.com/p/DeP18T8pb0G/",
-    "processed_at": "2026-10-12T03:19:13-05:00",
+    "processed_at": "2026-10-17T14:08:48-05:00",
     "is_event_post": true,
-    "reason": "Anuncia una clase especial de Hip-Hop y Salsa el martes 20 de octubre.",
+    "reason": "Anuncia una clase especial de Hip-Hop y Salsa el 20 de octubre.",
     "model": "gemini-3.8-flash",
     "provisional": false,
     "caption_hash": "ca26025ca5e9ed7a",
@@ -12997,7 +12997,7 @@
     ],
     "detail": null,
     "image_hashes": [],
-    "by_hand": false
+    "by_hand": true
   },
   "18193747135399459": {
     "account": "danceinmotionclub",

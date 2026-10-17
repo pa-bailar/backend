@@ -92,5 +92,26 @@
     "change_counts": {
       "merged": 1
     }
+  },
+  {
+    "finished_at": "2026-10-17T14:08:48-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/39060936387",
+    "action": "post_again",
+    "target": "https://www.instagram.com/p/DeP18T8pb0G/",
+    "error": null,
+    "changes": [
+      {
+        "kind": "merged",
+        "id": "ritmos-cruzados-20-oct",
+        "title": "Ritmos Cruzados",
+        "account": "esferalatinaoficial",
+        "date": "2026-10-20",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "merged": 1
+    }
   }
 ]

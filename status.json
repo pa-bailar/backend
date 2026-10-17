@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T14:02:38-05:00",
+  "generated_at": "2026-10-17T14:08:48-05:00",
   "sweeps": {
     "recent": [
       {
@@ -448,7 +448,7 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 11,
+        "used": 13,
         "budget": 18
       },
       {
@@ -701,6 +701,29 @@
     }
   ],
   "history": [
+    {
+      "kind": "post_again",
+      "slot": null,
+      "finished_at": "2026-10-17T14:08:48-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/39060936387",
+      "target": "https://www.instagram.com/p/DeP18T8pb0G/",
+      "error": null,
+      "changes": [
+        {
+          "kind": "merged",
+          "id": "ritmos-cruzados-20-oct",
+          "title": "Ritmos Cruzados",
+          "account": "esferalatinaoficial",
+          "date": "2026-10-20",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/ritmos-cruzados-20-oct/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "merged": 1
+      }
+    },
     {
       "kind": "post_again",
       "slot": null,
@@ -1166,57 +1189,6 @@
       "counts": {
         "new": 3,
         "provisional": 5,
-        "merged": 3
-      }
-    },
-    {
-      "kind": "sweep",
-      "slot": "03:00",
-      "finished_at": "2026-10-16T03:18:42-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/38870778775",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "new",
-          "id": "los-titanes-de-la-salsa-16-oct",
-          "title": "Los Titanes de la Salsa",
-          "account": "fernandoespanadj",
-          "date": "2026-10-16",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/los-titanes-de-la-salsa-16-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "halloween-social-31-oct",
-          "title": "Halloween Social",
-          "account": "dlivingstudio",
-          "date": "2026-10-31",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/halloween-social-31-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "embrujate-con-salsa-viernes-30-oct",
-          "title": "¡Embrújate con Salsa! - Viernes",
-          "account": "galeriacafelibro",
-          "date": "2026-10-30",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/embrujate-con-salsa-viernes-30-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "embrujate-con-salsa-sabado-31-oct",
-          "title": "¡Embrújate con Salsa! - Sábado",
-          "account": "galeriacafelibro",
-          "date": "2026-10-31",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/embrujate-con-salsa-sabado-31-oct/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "new": 1,
         "merged": 3
       }
     }
