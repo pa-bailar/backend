@@ -253,6 +253,26 @@ def test_an_admin_request_records_what_it_changed_or_why_it_couldnt(fake_sweeps)
     assert failed.error and "No encontré el evento" in failed.error
 
 
+def test_a_sweep_records_the_sites_data_as_it_found_it_and_whether_it_changed_it(monkeypatch):
+    """What health.unpublished_runs judges: the site's meta.json time read before the sweep rewrites it, and whether
+    the sweep changed events.json or the archive (the workflow's data PR)."""
+    storage.write_json(config.META_FILE, {"generated_at": "2026-10-10T21:15:00-05:00"})
+    instagram = FakeInstagram({"academia": [post("p1")], "otra": []})
+    monkeypatch.setattr(
+        sweep_command,
+        "Sweep",
+        lambda lookback_days, all_accounts: Sweep(
+            lookback_days=lookback_days, instagram=instagram, extractor=FakeExtractor({"p1": event_post("p1")})
+        ),
+    )
+    sweep_command.main([])
+    [first] = health.load_history()
+    assert first.site_data_at == "2026-10-10T21:15:00-05:00" and first.started_at and first.data_changed is True
+    assert storage.published_at() != first.site_data_at  # the sweep rewrote meta.json: read before it
+    sweep_command.main(["--all"])  # nothing new: the data PR isn't opened
+    assert health.load_history()[-1].data_changed is False
+
+
 def test_only_the_latest_admin_requests_are_kept(monkeypatch):
     monkeypatch.setattr(config, "ADMIN_RUNS_KEPT", 2)
     for target in ("a", "b", "c"):

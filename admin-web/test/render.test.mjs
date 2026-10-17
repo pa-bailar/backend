@@ -3,7 +3,16 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { changesSummary, escapeHtml, historyCard, runLabel, seriesCard, shortDate, when } from "../public/render.js";
+import {
+  changesSummary,
+  escapeHtml,
+  historyCard,
+  publishedLine,
+  runLabel,
+  seriesCard,
+  shortDate,
+  when,
+} from "../public/render.js";
 
 const SERIES = {
   id: "programa-intensivo-8-nov",
@@ -222,5 +231,37 @@ describe("the history card", () => {
     assert.equal(shortDate("pronto"), "pronto");
     assert.equal(when("2026-10-09T02:30:00Z", NOW), "ayer 9:30 p. m."); // UTC, before Bogotá's midnight
     assert.equal(when("2026-10-04T09:00:00-05:00", NOW), "domingo 4/10, 9:00 a. m.");
+  });
+});
+
+// ---------- when the site's data was published (status.json's `site_data`: pa_bailar/status.py site_data) ----------
+
+describe("the published-data line", () => {
+  const PRS = "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata";
+  const FRESH = { published_at: "2026-10-09T06:57:40-05:00", checked_at: "2026-10-09T06:31:00-05:00", missing: [], prs_url: PRS };
+
+  it("says when the site's data was published, quietly while every sweep's data got there", () => {
+    assert.equal(publishedLine(FRESH, NOW), `<p class="small muted">Datos publicados: hoy 6:57 a. m.</p>`);
+  });
+
+  it("warns, with how many sweeps' data is missing since when and a link to the open data PRs", () => {
+    const one = { ...FRESH, published_at: "2026-10-07T21:15:00-05:00", missing: [{ finished_at: "2026-10-08T06:58:00-05:00" }] };
+    assert.equal(
+      publishedLine(one, NOW),
+      `<p class="small warn">⚠️ Datos publicados: miércoles 7/10, 9:15 p. m.; faltan los del barrido de ayer 6:58 a. m.: ` +
+        `revisa los <a href="${PRS}" target="_blank" rel="noopener">PR «data» abiertos</a> del sitio.</p>`,
+    );
+    const three = { ...one, missing: [...one.missing, { finished_at: "2026-10-08T21:20:00-05:00" }, { finished_at: "2026-10-09T03:40:00-05:00" }] };
+    assert.match(publishedLine(three, NOW), /faltan los de 3 barridos con cambios, desde el de ayer 6:58 a\. m\./);
+  });
+
+  it("is empty without it (an older backend), and escapes and links only http(s)", () => {
+    assert.equal(publishedLine(undefined, NOW), "");
+    assert.equal(publishedLine(null, NOW), "");
+    assert.equal(publishedLine({ published_at: "" }, NOW), "");
+    const evil = { ...FRESH, missing: [{ finished_at: "2026-10-08T06:58:00-05:00" }], prs_url: "javascript:alert(1)" };
+    const html = publishedLine(evil, NOW);
+    assert.doesNotMatch(html, /javascript:|<a /);
+    assert.match(html, /revisa los PR «data» abiertos del sitio\./);
   });
 });
