@@ -413,8 +413,11 @@ class SweepBase:
         model: str,
         provisional: bool,
         count_as_new: bool = True,
+        post_counted: bool = False,
     ) -> bool:
-        """Store the post's events. False when it must be retried next run (a flyer couldn't be saved)."""
+        """Store the post's events. False when it must be retried next run (a flyer couldn't be saved). `post_counted`:
+        the post was counted as analyzed this run already (the triage ruled it out, then Flash read it: its events are
+        new, the post isn't)."""
         light = provisional or config.LITE_ONLY  # read by a lighter model (Flash-Lite, the last resort)
         publishable, reasons = self._publishable(account, post, analysis, light)
         try:
@@ -422,7 +425,7 @@ class SweepBase:
         except OSError as error:
             return self._retry_later(account, f"could not save flyer: {error}")
 
-        if count_as_new:
+        if count_as_new and not post_counted:
             self.stats.count(account, "posts_analyzed")
         self.stats.events_discarded += len(analysis.events) - len(publishable)
         if provisional:

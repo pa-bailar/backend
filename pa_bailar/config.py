@@ -115,6 +115,21 @@ UPGRADE_READS_PER_RUN = 10
 # congress of 13 Nov and La-33's night of 21 Nov, read on 3–4 Oct, kept a lighter model's reading for good).
 UPGRADE_READ_MARGIN_POSTS = 5
 UPGRADE_READ_MAX_POSTS = 50
+# Flash's second opinion on the triage (pipeline.Sweep._check_triage; the owner, 17 Oct 2026): Flash-Lite's triage
+# decides alone whether a post announces an event, and a wrong "no" loses the event for good (Flash never sees it). 119
+# posts were ruled out in the week to 17 Oct and nobody knew how many were events. So at the end of a run, after the
+# upgrades and only while Flash can still be used (the upgrades' gate: budget left beyond the later sweeps' share, not
+# paused as busy, time left; never waiting for it), Flash extracts up to this many of the posts the triage ruled out
+# this run, as fetched (no other Instagram read): accounts that post events first, unproductive ones last, the newest
+# first. An event found is stored as any Flash reading and counted (`triage_misses`). Three a run is at most nine of
+# Flash's 36 a day, and only of what the upgrades left: enough to measure the triage within a few weeks.
+TRIAGE_CHECKS_PER_RUN = 3
+# How many of the run's ruled-out posts (with their images) are held for it meanwhile, the likeliest kept.
+TRIAGE_CHECKS_HELD = 12
+# A health notice when Flash found this many events the triage had ruled out in the last TRIAGE_MISS_RUNS runs (about
+# three days): the triage's prompt or model may need a look (docs/ARCHITECTURE.md, 7.2).
+TRIAGE_MISSES_NOTICE = 2
+TRIAGE_MISS_RUNS = 9
 MAX_IMAGES_PER_POST = 10  # monthly schedules often show an event on slide 5 or later; still one request
 OCR_MIN_SCORE = 0.6  # pieces of text read with less confidence are left out (stray marks on a photo; ocr.py)
 OCR_ROW_OVERLAP = 0.6  # pieces this close (in line heights) to a row's first piece share its row (ocr.group_rows)

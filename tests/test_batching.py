@@ -31,6 +31,13 @@ from tests.test_sweep import (
     two_accounts_and_fake_images,  # noqa: F401  (autouse: two accounts, images offline)
 )
 
+
+@pytest.fixture(autouse=True)
+def no_triage_checks(monkeypatch):
+    """The tutorial the triage rules out stays ruled out: Flash's second opinion on it is test_triage_checks.py's."""
+    monkeypatch.setattr(config, "TRIAGE_CHECKS_PER_RUN", 0)
+
+
 CONTEXT = {
     "account": "academia",
     "published": "2026-10-04 Sunday",

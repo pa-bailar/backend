@@ -102,6 +102,10 @@ class RunRecord(BaseModel):
     upgraded: int = 0
     upgrade_reads: int = 0
     upgrade_misses: int = 0
+    # Flash's second opinion on posts the triage ruled out: the posts it read, and those it found an event in
+    # (RunStats.triage_checked, triage_misses). 0 in records from before 17 Oct 2026.
+    triage_checked: int = 0
+    triage_misses: int = 0
     # Batched extraction (config.EXTRACTION_BATCH_POSTS): shared requests answered, posts stored from them, posts read
     # again alone and recorded (RunStats.batch_requests…): what batching saved, and how often its safeguards stepped in.
     batch_requests: int = 0
@@ -177,6 +181,8 @@ def record_of(
         upgraded=stats.upgraded,
         upgrade_reads=stats.upgrade_reads,
         upgrade_misses=stats.upgrade_misses,
+        triage_checked=stats.triage_checked,
+        triage_misses=stats.triage_misses,
         batch_requests=stats.batch_requests,
         batched_posts=stats.batched_posts,
         batch_rereads=stats.batch_rereads,
@@ -258,7 +264,29 @@ def _model_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
                 "later runs.",
             )
         )
+    findings += _triage_findings(runs, run)
     return findings
+
+
+def _triage_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
+    """A notice when Flash's second opinion found an event the triage had ruled out this run, and
+    config.TRIAGE_MISSES_NOTICE of them in the last config.TRIAGE_MISS_RUNS runs: one may be bad luck, a few say the
+    triage's "no" loses events."""
+    if not run.triage_misses:
+        return []
+    recent = runs[-config.TRIAGE_MISS_RUNS :]
+    misses, checked = sum(r.triage_misses for r in recent), sum(r.triage_checked for r in recent)
+    if misses < config.TRIAGE_MISSES_NOTICE:
+        return []
+    return [
+        Finding(
+            "notice",
+            "triage-misses",
+            f"Flash found events in {misses} of the {checked} posts it checked after the triage ruled them out, in "
+            f"the last {len(recent)} runs: the triage (Flash-Lite) loses events. Look at those posts (`admin why`) "
+            "and the triage's prompt (docs/ARCHITECTURE.md, 7.2).",
+        )
+    ]
 
 
 def _external_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:

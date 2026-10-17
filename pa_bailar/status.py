@@ -447,6 +447,9 @@ def _run_line(run: dict[str, Any], now: datetime) -> str:
         f"{run.get('provisional', 0)} provisionales" if run.get("provisional") else "",
         _count(run.get("upgraded", 0), "releída con Flash", "releídas con Flash"),
         _count(run.get("upgrade_reads", 0), "cuenta leída para Flash", "cuentas leídas para Flash"),
+        # Flash's second opinion on the triage's "no" (Sweep._check_triage): posts checked, events it found.
+        _count(run.get("triage_checked", 0), "descarte revisado con Flash", "descartes revisados con Flash"),
+        _count(run.get("triage_misses", 0), "evento rescatado", "eventos rescatados"),
         *problems,
     ]
     when = moment_label(run["finished_at"], now)

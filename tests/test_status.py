@@ -58,6 +58,8 @@ def fake_state():
                 "pending": 0,
                 "upgraded": 3,
                 "upgrade_reads": 2,
+                "triage_checked": 3,
+                "triage_misses": 1,
             },
             {
                 "finished_at": "2026-10-02T21:12:00-05:00",
@@ -113,7 +115,10 @@ def test_the_text_says_it_in_spanish():
         "- ⚠️ hoy 9:12 p. m.: 1 nuevos, 0 unidos, 4 en espera, Instagram 90%, límite de Instagram, 1 cuenta sin leer"
     )
     assert f"{latest} · [ver](https://example/run)" in text
-    assert "- ✅ hoy 9:12 a. m.: 2 nuevos, 1 unidos, 3 releídas con Flash, 2 cuentas leídas para Flash" in text
+    assert (
+        "- ✅ hoy 9:12 a. m.: 2 nuevos, 1 unidos, 3 releídas con Flash, 2 cuentas leídas para Flash, "
+        "3 descartes revisados con Flash, 1 evento rescatado"
+    ) in text
     assert "Próximos: hoy 9:00 p. m. y mañana 3:00 a. m." in text
     assert "| `gemini-3.8-flash` | extraction | 18 (agotado) | 18 |" in text
     assert "La cuota se reinicia mañana 2:00 a. m." in text

@@ -35,6 +35,8 @@ function runItem(run) {
     count(run.provisional ?? 0, "provisional", "provisionales"),
     count(run.upgraded ?? 0, "releída con Flash", "releídas con Flash"),
     count(run.upgrade_reads ?? 0, "cuenta leída para Flash", "cuentas leídas para Flash"),
+    count(run.triage_checked ?? 0, "descarte revisado con Flash", "descartes revisados con Flash"),
+    count(run.triage_misses ?? 0, "evento rescatado", "eventos rescatados"),
     run.instagram_usage ? `Instagram ${run.instagram_usage}%` : "",
     ...problems,
   ].filter(Boolean);

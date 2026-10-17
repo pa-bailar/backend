@@ -103,6 +103,10 @@ class RunStats:
     # Flash's reading against a lighter model's, on events only lighter models had read (Sweep._audit_upgrade):
     # "compared" events, "dropped" ones, and per field how many Flash changed (date, start_time, title…).
     upgrade_changes: dict[str, int] = field(default_factory=dict)  # a dict: asdict() would mangle a Counter
+    # Flash's second opinion on posts the triage ruled out this run (Sweep._check_triage): the posts it read, and those
+    # it found a published event in (the triage's misses, stored as any Flash reading).
+    triage_checked: int = 0
+    triage_misses: int = 0
     reanalyzed: int = 0  # posts analyzed again because their caption was edited
     # Batched extraction (config.EXTRACTION_BATCH_POSTS, pipeline/batches.py): the shared requests sent, the posts
     # stored from them, and the posts read again alone (left out of a batch's answer, or the batch failed) and recorded:

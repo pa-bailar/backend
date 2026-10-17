@@ -7,6 +7,7 @@ from collections import Counter
 from collections.abc import Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from datetime import UTC, date, datetime, timedelta
+from typing import NamedTuple
 
 from .. import config, links, public_post, storage
 from ..account_options import AccountOptions, mentions_focus
@@ -22,7 +23,7 @@ from ..gemini import (
     quota_date,
 )
 from ..instagram import InstagramError, Post, is_rate_limited, published_at, slide_count
-from ..models import AccountState, ProcessedPost, StoredEvent, had_events
+from ..models import AccountState, PostOutcome, ProcessedPost, StoredEvent, had_events
 from ..stories import STORY_PREFIX
 from ..text import parse_hhmm
 from . import common
@@ -37,6 +38,12 @@ log = logging.getLogger(__name__)
 # How the style filter's reason ends (accounts.txt `solo:`): a post recorded with it is filtered again, with the day's
 # words, whenever it comes back in the window (_filtered_before).
 _OUTSIDE_FOCUS = "(la cuenta es solo para esos estilos)"
+
+# What Flash's second opinion on a post the triage ruled out makes of it that the triage missed: an event published, or
+# one hidden by hand (Sweep._check_triage). Not "discarded": past, recurring or out of Bogotá, the triage's "no" holds.
+_MISSED: frozenset[PostOutcome] = frozenset({"event", "merged", "hidden"})
+# The note on an event the triage had ruled out (the admin page's history).
+MISSED_BY_TRIAGE = "el filtro (Flash-Lite) lo había descartado: Flash lo encontró"
 
 
 def hours_overdue(state: AccountState | None, now: datetime, unproductive: bool = False, busy: bool = False) -> float:
@@ -137,6 +144,31 @@ def flash_reserve(now: datetime) -> float:
     return later / max(len(sweeps_in_quota_day(now)), later + 1) if later else 0.0
 
 
+class RuledOut(NamedTuple):
+    """A post the triage ruled out this run, as fetched, with its images: held for Flash's second opinion."""
+
+    account: str
+    post: Post
+    published: datetime
+    images: list[bytes]
+
+
+def second_opinion_order(items: Iterable[RuledOut], records: Iterable[ProcessedPost]) -> list[RuledOut]:
+    """The posts the triage ruled out, in the order Flash gives them a second opinion (Sweep._check_triage): those of
+    accounts with an event on record first (they do post events: a "no" there is likelier wrong), then the others, then
+    the unproductive ones (unproductive_accounts: none of their posts became an event); the newest first in each (its
+    event, if any, is likelier ahead)."""
+    read = [(record.account, had_events(record.outcome, record.is_event_post)) for record in records]
+    productive = {account for account, events in read if events}
+    unproductive = unproductive_accounts(read)
+
+    def rank(item: RuledOut) -> tuple[int, float]:
+        tier = 0 if item.account in productive else 2 if item.account in unproductive else 1
+        return tier, -item.published.timestamp()
+
+    return sorted(items, key=rank)
+
+
 def upgrade_urgency(event_ids: list[str], events: dict[str, StoredEvent], today: str) -> tuple[int, str]:
     """Where a provisional post stands in the line for Flash: its soonest upcoming event first (one under way counts
     as today), then those without one (not an event, discarded, past), which a Flash read may still correct."""
@@ -198,6 +230,7 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
 
         self._share_flash()
         self._to_upgrade: list[tuple[str, Post, datetime]] = []
+        self._ruled_out: list[RuledOut] = []  # held for Flash's second opinion (_check_triage)
         self._read_this_run: set[str] = set()  # the accounts whose turn's read was tried: no read for Flash after it
         self._waited_for_flash = False  # once a run (_wait_for_flash)
         self._batch = []  # posts waiting for a shared extraction request (batches.py)
@@ -220,6 +253,7 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
                 self._process_account(account)
 
         self._upgrade_by_urgency()
+        self._check_triage()  # after the upgrades: only what Flash has left then
         self.stats.instagram_reads = self.read_costs.summary()  # the reads for Flash too
         self._apply_retention()
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
@@ -289,6 +323,73 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             log.info("   %s upgrading provisional analysis %s", f"{published:%Y-%m-%d}", post["permalink"])
             with self._contained(account, f"the upgrade of {post['permalink']}"):
                 self._upgrade_post(account, post, published)
+
+    def _check_triage(self) -> None:
+        """Flash's second opinion on the triage (config.TRIAGE_CHECKS_PER_RUN; the owner, 17 Oct 2026): a few of the
+        posts the triage ruled out this run, as they were fetched (no other Instagram read), in second_opinion_order,
+        each extracted by Flash while it can be used as for an upgrade (can_upgrade: budget beyond the later sweeps'
+        share, not paused as busy; never waiting for it) and time is left. After the upgrades, so it only takes what
+        they left. What Flash finds is stored as any Flash reading (_check_ruled_out)."""
+        held, self._ruled_out = self._ruled_out, []
+        sample = second_opinion_order(held, self.processed.values())[: config.TRIAGE_CHECKS_PER_RUN]
+        if not sample:
+            return
+        log.info("%d posts ruled out by triage this run: Flash checks %d of them", len(held), len(sample))
+        for item in sample:
+            if not self.extractor.can_upgrade() or self._out_of_time():
+                log.info("   no Flash (or time) left for the triage's checks")
+                break
+            record = self.processed.get(item.post["id"])
+            if record is None or record.outcome != "not_event" or record.triage_checked:
+                continue  # read again meanwhile
+            log.info("   %s triage said no event, Flash reads %s", f"{item.published:%Y-%m-%d}", item.post["permalink"])
+            with self._contained(item.account, f"the triage check of {item.post['permalink']}"):
+                self._check_ruled_out(item)
+
+    def _check_ruled_out(self, item: RuledOut) -> None:
+        """Flash's reading of a post the triage ruled out, stored as any Flash reading (the safeguards, merging, the
+        post's record: Flash's model, not provisional), the record marked as checked. An event published (_MISSED) is a
+        triage miss, counted and noted; none (or only past, recurring or out-of-Bogotá ones) agrees with the triage.
+        A failure leaves the triage's record as it was: the post isn't held past this run."""
+        account, post, published, images = item
+        try:
+            analysis, model, _ = self.extractor.extract(
+                account,
+                post,
+                published,
+                images,
+                self._known_events(account, published),
+                allow_provisional=False,
+                rules=self._rules(account, post["id"]),
+            )
+        except RETRYABLE_ERRORS as error:
+            log.info("     no second opinion: %s", error)
+            return
+        if not self._store_analysis(account, post, images, analysis, model, provisional=False, post_counted=True):
+            return
+        record = self.processed[post["id"]]
+        record.triage_checked = True
+        self._save()
+        self.stats.triage_checked += 1
+        if record.outcome not in _MISSED:
+            log.info("     Flash agrees with the triage (%s)", record.outcome)
+            return
+        self.stats.triage_misses += 1
+        for event in self.events:
+            change = self.stats.changes.get(event.id)
+            if event.id in record.event_ids and change is not None and change.kind == "new":
+                self.stats.note("new", event, MISSED_BY_TRIAGE)
+        log.warning("     the triage missed it: Flash found %s (%s)", ", ".join(record.event_ids), record.outcome)
+
+    def _hold_ruled_out(self, item: RuledOut) -> None:
+        """Hold a post the triage ruled out for Flash's second opinion at the run's end (_check_triage), with its
+        images: the first config.TRIAGE_CHECKS_HELD of the run's in second_opinion_order."""
+        if config.TRIAGE_CHECKS_PER_RUN <= 0:
+            return
+        self._ruled_out.append(item)
+        if len(self._ruled_out) > config.TRIAGE_CHECKS_HELD:
+            ordered = second_opinion_order(self._ruled_out, self.processed.values())
+            self._ruled_out = ordered[: config.TRIAGE_CHECKS_HELD]
 
     def _read_for_flash(self, account: str, post_ids: list[str]) -> list[tuple[str, Post, datetime]] | None:
         """Read an account beyond its turn, only for these provisional posts: deep enough to reach the oldest
@@ -697,6 +798,8 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
 
         if verdict is not None and not verdict.is_event_post:
             self._record_not_event(account, post, verdict.reason, triage_model or "-")
+            if triage_model and not self._by_hand(post["id"]):  # the triage's own "no": Flash may check it
+                self._hold_ruled_out(RuledOut(account, post, published, images))
             return True
         if self._batching():
             rules = self._rules(account, post["id"])
