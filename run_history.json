@@ -2205,24 +2205,7 @@
     "batched_posts": 2,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "merged",
-        "id": "salsa-y-caribe-con-nick-salas-ns-orquesta-11-oct",
-        "title": "Salsa y Caribe con Nick Salas (NS Orquesta)",
-        "account": "galeriacafelibro",
-        "date": "2026-10-11",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "ritmos-cruzados-20-oct",
-        "title": "Ritmos Cruzados",
-        "account": "esferalatinaoficial",
-        "date": "2026-10-20",
-        "detail": "otra publicación"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "merged": 2
@@ -3812,6 +3795,199 @@
       "new": 3,
       "provisional": 5,
       "merged": 3
+    }
+  },
+  {
+    "finished_at": "2026-10-16T21:07:34-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/38993166157",
+    "accounts": 45,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academia_cowork",
+      "academiaalmadetangoe",
+      "alejochacon.co",
+      "alpasojam",
+      "angie__cuesta",
+      "babou_candelaria",
+      "bachatamania_bogota",
+      "bachatasocialcongresss",
+      "bogotadanceclub",
+      "bureodancestudio",
+      "casineafest",
+      "clandisfrute",
+      "danceinmotionclub",
+      "danzaenlaciudad",
+      "davidylauradancers",
+      "distritosocialbog",
+      "ebi_dancecompany",
+      "efadanza",
+      "elparche.se",
+      "espacio.64",
+      "fredyysaraoficial",
+      "germanbaila",
+      "herencialatinad.c",
+      "imperiolatino",
+      "jackandjilloficial",
+      "jen.ssy",
+      "lacoartadacentrocultural",
+      "lanenamagdalena",
+      "latinproductioncolombia",
+      "latrinidaddelasalsa",
+      "ludancestudios",
+      "mambo_y_control",
+      "meetinghousebogota",
+      "mover__se",
+      "originalstepdance",
+      "reyesdelasalsa.col",
+      "ritmosacademiadebaile",
+      "salsaculto",
+      "showstarscol",
+      "sondehabana",
+      "sonrumbero",
+      "soywiwioficial",
+      "studiolatindance",
+      "tubailecom",
+      "valkandela"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 21,
+    "events_new": 4,
+    "events_merged": 8,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 1,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 20,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3-flash-preview": 2
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 62,
+    "instagram_usage_detail": {
+      "call_count": 15,
+      "total_cputime": 0,
+      "total_time": 62
+    },
+    "instagram_reads": {
+      "accounts": 45,
+      "mean_seconds": 2.29,
+      "median_seconds": 2.22,
+      "max_seconds": 4.2,
+      "mean_cost": 1.41,
+      "max_cost": 4,
+      "max_cost_account": "salsaculto",
+      "headers": {
+        "X-App-Usage": 45
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "batch_requests": 3,
+    "batched_posts": 6,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "flagged",
+        "id": "una-cita-con-la-salsa-18-oct",
+        "title": "Una Cita con la Salsa",
+        "account": "elgocepagano",
+        "date": "2026-10-18",
+        "detail": "@germanbaila lo anunció cancelado o aplazado: revisar"
+      },
+      {
+        "kind": "new",
+        "id": "clase-de-bachata-tradicional-en-pareja-18-oct",
+        "title": "Clase de Bachata Tradicional en Pareja",
+        "account": "showstarscol",
+        "date": "2026-10-18",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "clase-especial-con-diego-zaivis-16-oct",
+        "title": "Clase Especial con Diego & Zaivis",
+        "account": "originalstepdance",
+        "date": "2026-10-16",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "perder-la-cabeza-clinica-de-experimentacion-20-oct",
+        "title": "Perder la cabeza - Clínica de Experimentación Coreográfica",
+        "account": "danzaenlaciudad",
+        "date": "2026-10-20",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "halloween-salsero-el-tour-de-la-salsa-vol-1-30-oct",
+        "title": "Halloween Salsero - El Tour de la Salsa Vol. 1",
+        "account": "salsaculto",
+        "date": "2026-10-30",
+        "detail": null
+      },
+      {
+        "kind": "merged",
+        "id": "taller-de-bachata-para-las-fiestas-24-oct",
+        "title": "Taller de bachata para las fiestas",
+        "account": "clandisfrute",
+        "date": "2026-10-24",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "batalla-internacional-viaalternativa-2026-hip-hop-24-oct",
+        "title": "Batalla Internacional ViaAlternativa 2026 - Hip Hop al Parque",
+        "account": "danzaenlaciudad",
+        "date": "2026-10-24",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "taller-female-dancehall-la-feminidad-en-lo-urbano-19-oct",
+        "title": "Taller Female Dancehall: La feminidad en lo urbano",
+        "account": "danzaenlaciudad",
+        "date": "2026-10-19",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "taller-breakin-con-rudolf-laban-14-oct",
+        "title": "Taller Breakin, con Rudolf Laban",
+        "account": "danzaenlaciudad",
+        "date": "2026-10-14",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "fiesta-de-mascaras-17-oct",
+        "title": "Fiesta de Máscaras",
+        "account": "bogotadanceclub",
+        "date": "2026-10-17",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "festival-internacional-casinea-10-a-edicion-13-nov",
+        "title": "Festival Internacional Casinea - 10.ª Edición",
+        "account": "casineafest",
+        "date": "2026-11-13",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "flagged": 1,
+      "new": 4,
+      "merged": 6
     }
   }
 ]
