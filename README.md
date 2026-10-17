@@ -184,6 +184,8 @@ compared with the previous runs, kept in `run_history.json` on the `sweep-state`
   - Instagram's hourly quota (the sweep's forecast or Meta's own limit), the time budget or post errors in 3
     runs in a row;
   - a scheduled time (3:00, 6:30, 21:00) with no sweep two days in a row: its trigger stopped;
+  - an earlier sweep's data that never reached the site (the site's data older than a sweep that changed events,
+    by more than an hour): its data PR didn't merge;
   - a backlog of pending posts that doesn't go down over 4 runs;
   - a week of posts without a single event.
 - **Notices** are worth knowing but need nothing yet:
@@ -205,7 +207,9 @@ Where to see it:
     problem, not every run.
   - It closes itself when everything is clear.
 - **healthchecks.io** emails when a run fails or stops arriving. Each ping carries the report, visible in
-  the check's event log.
+  the check's event log (a run stopped by an unmerged data PR carries that PR's link).
+- **PB Admin** shows when the site's data was last published ("Datos publicados"), in the warning color when a
+  sweep's data never reached it.
 
 ## Dependencies
 

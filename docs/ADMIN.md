@@ -62,7 +62,13 @@ address follows the tab you pick. On a keyboard, ← and → (or Home, End) move
   sent (or one you tapped) for 15 minutes; if it's still running then, it says so: tap it again later.
   Each button sends one request per tap. It stays in Herramientas: it's where the requests' answers show.
 
-**Estadísticas:** the sweeps (✅ or ⚠️, with links to the runs), the history (below), Gemini usage per model and when it resets,
+**Estadísticas:** the sweeps (✅ or ⚠️, with links to the runs) and, under them, "Datos publicados: hoy 3:40 a. m.":
+when the site's data was last published, as the latest sweep found the site when it started (a data PR that merged
+since shows after the next sweep). In the warning color when earlier sweeps' data never reached the site (their data
+PR didn't merge: the same rule as the health warning, backend ARCHITECTURE section 11.1): "⚠️ Datos publicados: sábado
+10/10, 9:15 p. m.; faltan los de 3 barridos con cambios, desde el de domingo 11/10, 6:58 a. m.: revisa los PR «data»
+abiertos del sitio", linked to them (added on 17 Oct 2026, after five data PRs stayed open for a week unnoticed).
+Then the history (below), Gemini usage per model and when it resets,
 the last resort's use (Groq, OpenRouter: a card only on a day Gemini ran out), Instagram (whether the token works,
 the last sweep's highest reading of its quota, whether it stopped itself before the next read passed 98% or Meta
 stopped it, and its reads in short: Meta's seconds a read and what a read cost), accounts (those still in their first sweep or waiting past their
