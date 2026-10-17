@@ -12763,9 +12763,9 @@
   "18115452482045911": {
     "account": "ebi_dancecompany",
     "permalink": "https://www.instagram.com/p/DeUn8eppf1G/",
-    "processed_at": "2026-10-10T21:03:40-05:00",
+    "processed_at": "2026-10-17T13:47:29-05:00",
     "is_event_post": true,
-    "reason": "Anuncia la fiesta de segundo aniversario de Ebi Dance Company con social, clase y shows.",
+    "reason": "El post anuncia la fiesta social de segundo aniversario de Ebi Dance el 7 de noviembre de 2026.",
     "model": "gemini-3.8-flash",
     "provisional": false,
     "caption_hash": "54cf4d8e2f575999",
@@ -12775,7 +12775,7 @@
     ],
     "detail": null,
     "image_hashes": [],
-    "by_hand": false
+    "by_hand": true
   },
   "18141672184717371": {
     "account": "germanbaila",

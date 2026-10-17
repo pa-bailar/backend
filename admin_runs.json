@@ -8,5 +8,26 @@
     "changes": [],
     "changes_left_out": 0,
     "change_counts": {}
+  },
+  {
+    "finished_at": "2026-10-17T13:47:29-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/39059522358",
+    "action": "post_again",
+    "target": "https://www.instagram.com/p/DeUn8eppf1G/",
+    "error": null,
+    "changes": [
+      {
+        "kind": "new",
+        "id": "segundo-aniversario-ebi-dance-7-nov",
+        "title": "Segundo Aniversario Ebi Dance",
+        "account": "ebi_dancecompany",
+        "date": "2026-11-07",
+        "detail": null
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 1
+    }
   }
 ]

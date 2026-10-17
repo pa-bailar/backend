@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T13:44:59-05:00",
+  "generated_at": "2026-10-17T13:47:29-05:00",
   "sweeps": {
     "recent": [
       {
@@ -448,7 +448,7 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 7,
+        "used": 8,
         "budget": 18
       },
       {
@@ -552,7 +552,7 @@
     "provisional": 206
   },
   "events": {
-    "upcoming": 70,
+    "upcoming": 71,
     "low_confidence": 1
   },
   "new_series": [
@@ -701,6 +701,29 @@
     }
   ],
   "history": [
+    {
+      "kind": "post_again",
+      "slot": null,
+      "finished_at": "2026-10-17T13:47:29-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/39059522358",
+      "target": "https://www.instagram.com/p/DeUn8eppf1G/",
+      "error": null,
+      "changes": [
+        {
+          "kind": "new",
+          "id": "segundo-aniversario-ebi-dance-7-nov",
+          "title": "Segundo Aniversario Ebi Dance",
+          "account": "ebi_dancecompany",
+          "date": "2026-11-07",
+          "detail": null,
+          "url": "https://pa-bailar.github.io/evento/segundo-aniversario-ebi-dance-7-nov/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "new": 1
+      }
+    },
     {
       "kind": "post_again",
       "slot": null,
@@ -1275,87 +1298,6 @@
       "counts": {
         "provisional": 5,
         "merged": 3
-      }
-    },
-    {
-      "kind": "sweep",
-      "slot": "21:00",
-      "finished_at": "2026-10-14T21:20:26-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/38668649906",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "new",
-          "id": "halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct",
-          "title": "Halloween: Concurso de disfraces, fiesta y taller de baile",
-          "account": "showstarscol",
-          "date": "2026-10-24",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct/"
-        },
-        {
-          "kind": "provisional",
-          "id": "fiesta-de-mascaras-17-oct",
-          "title": "Fiesta de Máscaras",
-          "account": "bogotadanceclub",
-          "date": "2026-10-17",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/fiesta-de-mascaras-17-oct/"
-        },
-        {
-          "kind": "corrected",
-          "id": "la-salsa-party-en-vivo-homenaje-al-gran-combo-de-16-oct",
-          "title": "La Salsa Party en Vivo - Homenaje al Gran Combo de Puerto Rico",
-          "account": "meetinghousebogota",
-          "date": "2026-10-16",
-          "detail": "Flash cambió los ritmos",
-          "url": "https://pa-bailar.github.io/evento/la-salsa-party-en-vivo-homenaje-al-gran-combo-de-16-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "reyes-de-la-salsa-2027-19-mar",
-          "title": "Reyes de la Salsa 2027",
-          "account": "reyesdelasalsa.col",
-          "date": "2027-03-19",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/reyes-de-la-salsa-2027-19-mar/"
-        },
-        {
-          "kind": "merged",
-          "id": "festival-internacional-casinea-10-a-edicion-13-nov",
-          "title": "Festival Internacional Casinea - 10.ª Edición",
-          "account": "casineafest",
-          "date": "2026-11-13",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/festival-internacional-casinea-10-a-edicion-13-nov/"
-        },
-        {
-          "kind": "reread",
-          "id": "distrito-social-aniversario-31-oct",
-          "title": "Distrito Social Aniversario",
-          "account": "distritosocialbog",
-          "date": "2026-10-31",
-          "detail": "Flash confirmó la lectura",
-          "url": "https://pa-bailar.github.io/evento/distrito-social-aniversario-31-oct/"
-        },
-        {
-          "kind": "reread",
-          "id": "guabalosas-intensivo-version-2-0-7-nov",
-          "title": "Guabalosas Intensivo Versión 2.0",
-          "account": "jen.ssy",
-          "date": "2026-11-07",
-          "detail": "Flash confirmó la lectura",
-          "url": "https://pa-bailar.github.io/evento/guabalosas-intensivo-version-2-0-7-nov/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "new": 1,
-        "provisional": 1,
-        "corrected": 1,
-        "merged": 2,
-        "reread": 2
       }
     }
   ],
