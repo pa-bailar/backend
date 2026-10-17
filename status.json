@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T13:58:33-05:00",
+  "generated_at": "2026-10-17T14:02:38-05:00",
   "sweeps": {
     "recent": [
       {
@@ -448,7 +448,7 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 10,
+        "used": 11,
         "budget": 18
       },
       {
@@ -701,6 +701,29 @@
     }
   ],
   "history": [
+    {
+      "kind": "post_again",
+      "slot": null,
+      "finished_at": "2026-10-17T14:02:37-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/39060634356",
+      "target": "https://www.instagram.com/p/DeT_PobxuZB/",
+      "error": null,
+      "changes": [
+        {
+          "kind": "merged",
+          "id": "batalla-internacional-viaalternativa-2026-hip-hop-24-oct",
+          "title": "Batalla Internacional ViaAlternativa 2026 - Hip Hop al Parque",
+          "account": "danzaenlaciudad",
+          "date": "2026-10-24",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/batalla-internacional-viaalternativa-2026-hip-hop-24-oct/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "merged": 1
+      }
+    },
     {
       "kind": "post_again",
       "slot": null,
@@ -1195,57 +1218,6 @@
       "counts": {
         "new": 1,
         "merged": 3
-      }
-    },
-    {
-      "kind": "sweep",
-      "slot": "21:00",
-      "finished_at": "2026-10-15T21:17:32-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/38838122851",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "provisional",
-          "id": "master-class-heels-19-oct",
-          "title": "Máster Class Heels",
-          "account": "bureodancestudio",
-          "date": "2026-10-19",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/master-class-heels-19-oct/"
-        },
-        {
-          "kind": "provisional",
-          "id": "enrique-barrios-en-vivo-en-la-viejoteca-18-oct",
-          "title": "Enrique Barrios en vivo en La Viejoteca",
-          "account": "bogotadanceclub",
-          "date": "2026-10-18",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/enrique-barrios-en-vivo-en-la-viejoteca-18-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct",
-          "title": "Halloween: Concurso de disfraces, fiesta y taller de baile",
-          "account": "showstarscol",
-          "date": "2026-10-24",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "una-cita-con-la-salsa-18-oct",
-          "title": "Una Cita con la Salsa",
-          "account": "elgocepagano",
-          "date": "2026-10-18",
-          "detail": "otra publicación de @germanbaila",
-          "url": "https://pa-bailar.github.io/evento/una-cita-con-la-salsa-18-oct/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "provisional": 2,
-        "merged": 2
       }
     }
   ],

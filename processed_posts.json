@@ -12797,9 +12797,9 @@
   "18383837752227944": {
     "account": "danzaenlaciudad",
     "permalink": "https://www.instagram.com/p/DeT_PobxuZB/",
-    "processed_at": "2026-10-10T21:05:19-05:00",
+    "processed_at": "2026-10-17T14:02:37-05:00",
     "is_event_post": true,
-    "reason": "Anuncia la Batalla Internacional BIVA 2026 de breaking en Hip Hop al Parque.",
+    "reason": "Anuncia el host y DJ de la Batalla Internacional BIVA 2026 en Hip Hop al Parque los días 24 y 25 de octubre.",
     "model": "gemini-3.8-flash",
     "provisional": false,
     "caption_hash": "6a23f405cb44e87c",
@@ -12809,7 +12809,7 @@
     ],
     "detail": null,
     "image_hashes": [],
-    "by_hand": false
+    "by_hand": true
   },
   "18075365156460717": {
     "account": "latinproductioncolombia",

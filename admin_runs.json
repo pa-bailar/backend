@@ -71,5 +71,26 @@
     "change_counts": {
       "merged": 1
     }
+  },
+  {
+    "finished_at": "2026-10-17T14:02:37-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/39060634356",
+    "action": "post_again",
+    "target": "https://www.instagram.com/p/DeT_PobxuZB/",
+    "error": null,
+    "changes": [
+      {
+        "kind": "merged",
+        "id": "batalla-internacional-viaalternativa-2026-hip-hop-24-oct",
+        "title": "Batalla Internacional ViaAlternativa 2026 - Hip Hop al Parque",
+        "account": "danzaenlaciudad",
+        "date": "2026-10-24",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "merged": 1
+    }
   }
 ]
