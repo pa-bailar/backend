@@ -446,8 +446,25 @@ the three sweeps (`Sweep._due_accounts`, `pipeline.overdue_by_account`, `hours_o
   sweeps of 3–9 Oct (8 Oct site data): 16 of 134 accounts in it on 9 Oct (12 more kept daily by the safeguards),
   about 8 fewer reads a day (7%), and not one of the 55 event posts published in those days read later. Without the
   safeguards it saved 13%, but 5 event posts came 9 to 34 hours later (none after its event had started).
+- **Short-notice accounts: their turn is the evening** (the owner, 17 Oct 2026). Bars and venues that announce a
+  night the same day or the day before lost it when a morning sweep read them: a post at noon waited for the next
+  3:00 or 6:30 read, after the event, and was discarded as past ("ya pasó": @quemaquequema three times, @ritmomoderno
+  once, 10–16 Oct). Such an account is read in the evening sweep (the last of `SWEEP_TIMES`, from 30 minutes before
+  it until midnight: `is_evening_sweep`), first among its due accounts, so neither its share nor Instagram's stop
+  pushes it to the morning; a sweep before the evening doesn't read one until it's 8 hours past its turn
+  (`SHORT_NOTICE_WAIT_HOURS`: 30 h since its last read, the next 3:00 after an evening that missed it), and reading
+  ahead never takes one. No extra read: the regular accounts it displaces go to the next sweep and stay there.
+  Which accounts, from history (`pipeline.short_notice_accounts`, which the status page shows too): a turn's read
+  found a post of theirs already past within 30 days (`missed_as_past`; not their first read's records, within 12
+  hours of their earliest one: a first sweep reads posts a month old, a bar's the past week's nights; nor a post
+  added by hand), or they announce their events a median under 2 days ahead (`lead_days`: the day of their earliest
+  post of each event to its first day, over at least 3 of their events on the site). Not bars as such: of 35 bars,
+  19 had events on the site and 2 of those announced under 2 days ahead. Replayed on the state of 17 Oct (128
+  accounts): 4 qualify (the two misses, @originalstepdance and @ladiezluxury_outlet), 3 move to 21:00, 4 regular
+  ones go from 6:30 to 3:00, and 21:00 reads 46–47 accounts of its share of 48 (43–44 before), the same reads in all.
 - **Order:** due accounts in their regular sweep before new ones (a new account's first, deeper sweep can
-  take days of quota); within each, those that waited longest first.
+  take days of quota); within each, in the evening sweep the short-notice ones first, then those that waited
+  longest.
 - **A sweep's share:** a third of the accounts plus 5 (`EXTRA_ACCOUNTS_PER_RUN`; half until 9 Oct 2026), and it
   stops earlier, before a read that would take Instagram's quota past 98% (section 8). Accounts not reached stay
   due, and having waited longest, they're first next time: a short quota shortage delays a few accounts by one
@@ -503,7 +520,7 @@ Section 11 covers how those are reported.
 ```mermaid
 flowchart TD
     A["Check the Instagram token<br/>(cheap call: our username)"] -->|invalid| X["Stop: run fails"]
-    A --> B["Accounts whose turn it is<br/>(22 h since last read, 46 h if quiet<br/>or unproductive, a week if dormant),<br/>regular ones first, new ones last;<br/>this run's share: a third plus 5"]
+    A --> B["Accounts whose turn it is<br/>(22 h since last read, 46 h if quiet<br/>or unproductive, a week if dormant;<br/>short-notice ones in the evening sweep, first),<br/>regular ones first, new ones last;<br/>this run's share: a third plus 5"]
     B --> C{"Instagram rate limit hit, or would<br/>the next read pass 98% of its quota?"}
     C -->|yes| R["Stop calling Instagram:<br/>the rest wait for the next run"]
     C -->|no| D{"Account's first sweep<br/>done? (state/accounts.json)"}
@@ -1505,8 +1522,8 @@ guide.
   reading of Instagram's quota with its measures (the token check's own reading is another counter: 1% at the end
   of a sweep stopped at 90%), whether the sweep stopped itself (before the next read passed 98%) or Meta's own
   rate-limit error stopped it ("Meta lo frenó antes"), and its reads in short (Meta's seconds a read, the cost
-  of a read); accounts still in their first sweep, and those waiting more than a sweep past their
-  turn (section 5.2); provisional posts, and what Flash changed when it re-read lighter readings (section 7.2);
+  of a read); accounts still in their first sweep, those waiting more than a sweep past their
+  turn, and the short-notice ones, read in the evening sweep (section 5.2); provisional posts, and what Flash changed when it re-read lighter readings (section 7.2);
   upcoming events (until their last day);
   new workshop series to look at, with `/ocultar <id>` (section 9.1); discovery progress; the last resort's use
   today per provider (`external`), shown only when it was used; and the history, what the latest sweeps and admin
@@ -1710,7 +1727,7 @@ flowchart LR
 | `pipeline/` | `Sweep`, one class built from a module per part (the package re-exports the public names): |
 | `pipeline/common.py` | Run statistics (`RunStats`, with the run's changes), the clients' protocols, `AddPostError`, retryable errors, flyers and media records |
 | `pipeline/base.py` | `SweepBase`: the state (events, analyzed posts, hidden events, accounts), storing one analyzed post (only upcoming events in Bogotá; a cancelled post's events taken down), one identity per post |
-| `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; Flash's upgrades by urgency, with reads beyond the turn for them (`waiting_for_flash`, `upgrade_read_depth`); Flash's second opinion on the triage's "no" (`_check_triage`, `second_opinion_order`); `overdue_by_account` (each account's turn, for the sweep and the status page; its tiers: `hours_overdue`, `unproductive_accounts`, `busy_accounts`) |
+| `pipeline/sweep.py` | `Sweep`: accounts whose turn it is, their posts, retention; Flash's upgrades by urgency, with reads beyond the turn for them (`waiting_for_flash`, `upgrade_read_depth`); Flash's second opinion on the triage's "no" (`_check_triage`, `second_opinion_order`); `overdue_by_account` (each account's turn, for the sweep and the status page; its tiers: `hours_overdue`, `unproductive_accounts`, `busy_accounts`); `short_notice_accounts` (those read in the evening sweep: `lead_days`, `missed_as_past`; `is_evening_sweep`) |
 | `pipeline/batches.py` | `Batches`, mixed into `Sweep`: an account's posts waiting for a shared extraction request, read and stored each as its own, and any post left out, or on an earlier post's day, read again alone (section 7.2) |
 | `pipeline/manual_post.py`, `story_admin.py`, `hiding.py` | The admin tools, mixed into `Sweep`: add a post (`add_post`), add a story (`add_story`), hide a story or an event (`hide_story`, `hide_event`) |
 | `clips.py` | Videos' preview clips: download, cut 6 silent seconds with ffmpeg |
