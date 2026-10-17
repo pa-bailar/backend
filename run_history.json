@@ -2263,7 +2263,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {}
   },
@@ -3988,6 +3988,215 @@
       "flagged": 1,
       "new": 4,
       "merged": 6
+    }
+  },
+  {
+    "finished_at": "2026-10-17T03:06:14-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/39015712643",
+    "accounts": 48,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academiadebailepasolatino",
+      "academyfeel",
+      "and1erita",
+      "andonybaron",
+      "aseismanos",
+      "bembeacademiadebaile",
+      "bilongocolombia",
+      "bogotadanceclub.academy",
+      "boogaloop.candelaria",
+      "callejonsalsa",
+      "casaquiebracanto",
+      "casavander_",
+      "chanchanlatino",
+      "cremadeajiaco",
+      "danceholicproject",
+      "danitello22",
+      "discojaguar.bta",
+      "dlivingstudio",
+      "dreamcupco",
+      "el_bochinche_cafe_",
+      "el_panteon_de_la_salsa",
+      "elgocepagano",
+      "elratonsalsaclub",
+      "esferalatinaoficial",
+      "fernandoespanadj",
+      "frank.de.latorre",
+      "galeriacafelibro",
+      "ilhehabana",
+      "juancho__salsita",
+      "la33orquesta",
+      "ladiezluxury_outlet",
+      "lamecanica_original",
+      "madyumdance",
+      "mariavasquezdancer",
+      "oswaldgil2",
+      "pachanga_y_pochola",
+      "parchexbogota",
+      "quemaquequema",
+      "restaurantecasadecitas",
+      "rpdancestudio",
+      "salsacamaraoficial",
+      "salsaysonoficial",
+      "soondanz_company",
+      "studio110dance",
+      "teffa_mg",
+      "tributo.salsayjazz",
+      "zafradance",
+      "zaimora24"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 19,
+    "events_new": 0,
+    "events_merged": 2,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 17,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 52,
+    "instagram_usage_detail": {
+      "call_count": 16,
+      "total_cputime": 0,
+      "total_time": 52
+    },
+    "instagram_reads": {
+      "accounts": 48,
+      "mean_seconds": 1.74,
+      "median_seconds": 1.63,
+      "max_seconds": 4.11,
+      "mean_cost": 1.11,
+      "max_cost": 3,
+      "max_cost_account": "and1erita",
+      "headers": {
+        "X-App-Usage": 48
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {
+      "compared": 10,
+      "dropped": 0,
+      "venue": 4,
+      "styles": 1,
+      "title": 1
+    },
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "corrected",
+        "id": "salsa-boricua-vs-salsa-colombiana-17-oct",
+        "title": "Salsa Boricua vs Salsa Colombiana",
+        "account": "galeriacafelibro",
+        "date": "2026-10-17",
+        "detail": "Flash cambió el lugar"
+      },
+      {
+        "kind": "corrected",
+        "id": "remate-festival-afrodiaspora-el-jam-atipico-17-oct",
+        "title": "Remate Festival Afrodiáspora - El Jam Atípico",
+        "account": "callejonsalsa",
+        "date": "2026-10-17",
+        "detail": "Flash cambió el lugar y los ritmos"
+      },
+      {
+        "kind": "corrected",
+        "id": "noche-de-bolero-17-oct",
+        "title": "Noche de Bolero",
+        "account": "restaurantecasadecitas",
+        "date": "2026-10-17",
+        "detail": "Flash cambió el lugar"
+      },
+      {
+        "kind": "corrected",
+        "id": "celebrando-40-anos-de-trayectoria-enrique-barrios-22-oct",
+        "title": "Enrique Barrios & Gerband Latin Group",
+        "account": "galeriacafelibro",
+        "date": "2026-10-22",
+        "detail": "Flash cambió el título y el lugar"
+      },
+      {
+        "kind": "merged",
+        "id": "los-titanes-de-la-salsa-16-oct",
+        "title": "Los Titanes de la Salsa",
+        "account": "fernandoespanadj",
+        "date": "2026-10-16",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "fiesta-de-antifaz-30-oct",
+        "title": "Fiesta de Antifaz",
+        "account": "pachanga_y_pochola",
+        "date": "2026-10-30",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "reread",
+        "id": "yambu-orquesta-16-oct",
+        "title": "Yambú Orquesta",
+        "account": "casaquiebracanto",
+        "date": "2026-10-16",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "pachito-echavarria-y-la-gente-del-callejon-17-oct",
+        "title": "Pachito Echavarría y La Gente del Callejón",
+        "account": "casaquiebracanto",
+        "date": "2026-10-17",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "mambo-candela-15-oct",
+        "title": "Mambo Candela",
+        "account": "salsacamaraoficial",
+        "date": "2026-10-15",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "javier-guaneme-homenaje-a-willie-colon-17-oct",
+        "title": "Javier Guaneme Homenaje a Willie Colón",
+        "account": "salsacamaraoficial",
+        "date": "2026-10-17",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "taller-de-salsa-calena-17-oct",
+        "title": "Taller de salsa caleña",
+        "account": "bogotadanceclub.academy",
+        "date": "2026-10-17",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsa-en-familia-18-oct",
+        "title": "Salsa en Familia",
+        "account": "tributo.salsayjazz",
+        "date": "2026-10-18",
+        "detail": "Flash confirmó la lectura"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "corrected": 4,
+      "merged": 2,
+      "reread": 6
     }
   }
 ]
