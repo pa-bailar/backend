@@ -133,6 +133,10 @@ Instagram posts, Gemini extracts the events, and the site rebuilds. Owner: jzamo
   happen), not a failure of ours: re-run it. Both repositories are public (the backend since 6 Oct 2026): Actions
   minutes are free. A ruleset on `main` requires `ci`, so `ci.yml` has no path filter (a skipped required check
   leaves a PR unmergeable). Public means every push is public: never a key in a commit.
+  `gh pr list --label` is a search, and a workflow's `GITHUB_TOKEN` searches only its own repository: from Actions, list
+  another repository's PRs through the REST API (`gh api repos/…/pulls`), as the sweep's step 1b does since #191.
+- **Dates in the site's unit tests:** `CLOCK_AT=<ISO time> npx vitest run` runs them at any moment
+  (`tests/shiftedClock.ts`); `ci` also runs them months ahead on a Saturday night (`npm run test:clock-ahead`).
 - **WebKit (Safari's engine) in Playwright** is installed with the toolkit: use it for Safari checks. It isn't iOS
   (no real keyboard, toolbar or home-screen app). A screenshot injects a style the site's CSP refuses: those console
   errors are the test's, not the site's.
@@ -146,6 +150,14 @@ The rules are in `WORKSPACE.md`; these are the lessons behind them.
   minutes late or run long: check `gh run list` first).
 - **Verify before claiming:** an unconfirmed "free Flash ends 20 Oct" came from news about the Gemini app, not the
   API. Say what was checked and what wasn't.
+- **A sweep succeeded is not the data published** (17 Oct 2026): five data PRs failed `ci` on 10–12 Oct and sat
+  unmerged for a week while every run, the health check and PB Admin looked fine; their events never reached the
+  site. Checking sweeps means the last mile too: open `data` PRs in the site repository (REST, not a search), the
+  site's "Actualizado" date against the last sweep that changed events, and that step 1b ran. When a test fails on
+  every branch, look at the bot's data PRs: they were blocked by it too.
+- **A safety check must be seen to fire:** step 1b's wait (added 3 Oct) never once waited until 17 Oct; its test only
+  checked where the step sat. Test a guard against the real condition it guards, and check a date-dependent fix
+  on several days and hours, not one (a Monday missed the Saturday-only failure).
 - **Test like a visitor:** 375 px, both themes, scrolled down, a first visit, back and reload; the live site after
   a deploy. A feature is checked whole (its neighbors too), not just its new lines.
 - **The owner directs, Claude orchestrates:** ask only for direction, money, accounts or keys; decide the rest with
