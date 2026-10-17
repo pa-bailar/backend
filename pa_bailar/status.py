@@ -445,6 +445,8 @@ def _run_line(run: dict[str, Any], now: datetime) -> str:
         f"{run.get('pending', 0)} en espera" if run.get("pending") else "",
         f"Instagram {run['instagram_usage']}%" if run.get("instagram_usage") else "",
         f"{run.get('provisional', 0)} provisionales" if run.get("provisional") else "",
+        _count(run.get("upgraded", 0), "releída con Flash", "releídas con Flash"),
+        _count(run.get("upgrade_reads", 0), "cuenta leída para Flash", "cuentas leídas para Flash"),
         *problems,
     ]
     when = moment_label(run["finished_at"], now)

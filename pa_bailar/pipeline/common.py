@@ -96,6 +96,10 @@ class RunStats:
     events_discarded: int = 0  # recurring or without a date
     provisional: int = 0  # posts extracted by the light model this run
     upgraded: int = 0  # provisional posts re-extracted with Flash this run
+    # Accounts read beyond their turn, only for their provisional posts (Sweep._upgrade_by_urgency): not in `accounts`
+    # (the turn's), each still one Instagram read (`instagram_reads`); and the posts such a read didn't return.
+    upgrade_reads: int = 0
+    upgrade_misses: int = 0
     # Flash's reading against a lighter model's, on events only lighter models had read (Sweep._audit_upgrade):
     # "compared" events, "dropped" ones, and per field how many Flash changed (date, start_time, title…).
     upgrade_changes: dict[str, int] = field(default_factory=dict)  # a dict: asdict() would mangle a Counter

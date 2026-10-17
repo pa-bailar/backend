@@ -100,6 +100,21 @@ UNPRODUCTIVE_AFTER_POSTS = 10
 DORMANT_SWEEP_EVERY_HOURS = 164  # a bit under a week
 DORMANT_AFTER_DAYS = 180
 EXTRA_ACCOUNTS_PER_RUN = 5  # over each sweep's share, so a few late accounts still get read
+# Reads for Flash beyond the turn (pipeline.Sweep._upgrade_by_urgency; 17 Oct 2026): after the accounts whose turn it
+# is, while Flash can upgrade, Instagram's forecast stop has room and time remains, a sweep also reads the accounts it
+# didn't read that hold provisional posts of events not over yet, soonest event first, at most this many a run, only
+# to re-read those posts with Flash (not their turn: nothing else of theirs is read, their turn doesn't move). Until
+# then only the posts of accounts read in their turn were upgraded: since read-ahead (#189) the 6:30 sweep usually reads
+# no account, so its third of Flash went unused while 32 provisional posts waited (events on 18–19 Oct among them).
+# Ten reads are ~13% of Instagram's hour at the usual ~1.3% a read, about 12 Flash requests at one or two posts a read.
+UPGRADE_READS_PER_RUN = 10
+# How deep such a read goes, and a turn's read of an account holding such a post (any read costs Instagram about the
+# same, whatever it asks: section 14 of docs/ARCHITECTURE.md): back to the oldest of those posts, counted from the
+# account's posts read since it (`processed_at`), plus a margin for posts never recorded; at least a turn's
+# POSTS_PER_ACCOUNT and at most this. A provisional post older than the lookback was never fetched again (Level Up's
+# congress of 13 Nov and La-33's night of 21 Nov, read on 3–4 Oct, kept a lighter model's reading for good).
+UPGRADE_READ_MARGIN_POSTS = 5
+UPGRADE_READ_MAX_POSTS = 50
 MAX_IMAGES_PER_POST = 10  # monthly schedules often show an event on slide 5 or later; still one request
 OCR_MIN_SCORE = 0.6  # pieces of text read with less confidence are left out (stray marks on a photo; ocr.py)
 OCR_ROW_OVERLAP = 0.6  # pieces this close (in line heights) to a row's first piece share its row (ocr.group_rows)
