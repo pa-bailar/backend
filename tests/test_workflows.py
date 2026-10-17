@@ -33,6 +33,16 @@ def test_a_run_waits_for_an_open_data_pr_before_it_copies_the_site():
     assert wait < step("Run the sweep")
 
 
+def test_the_wait_lists_the_site_s_open_prs_without_a_search():
+    """`gh pr list --label` is a search, and the workflow's token searches only its own repository: the wait saw no
+    data PR, so sweeps ran on past five unmerged ones and their events never reached the site (10–17 Oct 2026)."""
+    job = SWEEP[step("Make sure the last data PR merged") :]
+    lines = job[: job.index("\n      - ", 1)].splitlines()
+    wait = "\n".join(line for line in lines if not line.lstrip().startswith("#"))  # the commands, not the comments
+    assert "gh pr list" not in wait and "search/" not in wait
+    assert 'gh api "repos/$SITE_OWNER/$SITE_REPO/pulls?state=open' in wait
+
+
 def test_the_steps_that_keep_progress_need_the_wait_to_have_passed():
     """When the wait for an earlier data PR fails, nothing was checked out: a step that runs unless cancelled (to keep
     a failed sweep's progress) would fail in turn on folders that aren't there (the review pass, 7 Oct)."""

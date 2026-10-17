@@ -248,7 +248,10 @@ jobs:
         run: |
           deadline=$(( $(date +%s) + OPEN_DATA_PR_WAIT_MINUTES * 60 ))
           while true; do
-            open="$(gh pr list --repo "$SITE_OWNER/$SITE_REPO" --label data --state open --json url --jq '.[].url')"
+            # The REST list, not `gh pr list --label` (a search): this run's token searches only this repository, so
+            # the search came back empty and runs went on past unmerged data PRs (#194–#198, #212; 10–17 Oct 2026).
+            open="$(gh api "repos/$SITE_OWNER/$SITE_REPO/pulls?state=open&per_page=100" \
+              --jq '[.[] | select(any(.labels[]; .name == "data")) | .html_url] | join(" ")')"
             if [ -z "$open" ]; then break; fi
             if [ "$(date +%s)" -gt "$deadline" ]; then
               echo "::error::A data PR hasn't merged: ${open}. Merge or fix it first (its events aren't on main)."
