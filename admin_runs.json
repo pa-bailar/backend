@@ -29,5 +29,26 @@
     "change_counts": {
       "new": 1
     }
+  },
+  {
+    "finished_at": "2026-10-17T13:53:42-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/39059908071",
+    "action": "post_again",
+    "target": "https://www.instagram.com/reel/DeVgynPxSIT/",
+    "error": null,
+    "changes": [
+      {
+        "kind": "merged",
+        "id": "festival-internacional-casinea-10-a-edicion-13-nov",
+        "title": "Festival Internacional Casinea - 10.ª Edición",
+        "account": "casineafest",
+        "date": "2026-11-13",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "merged": 1
+    }
   }
 ]

@@ -12829,10 +12829,10 @@
   "18051296834803247": {
     "account": "casineafest",
     "permalink": "https://www.instagram.com/reel/DeVgynPxSIT/",
-    "processed_at": "2026-10-10T21:06:48-05:00",
+    "processed_at": "2026-10-17T13:53:42-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia la participación de Wilmer y María en el Festival Internacional Casinea 2026 del 13 al 16 de noviembre de 2026 en Bogotá.",
-    "model": "gemini-3.6-flash",
+    "reason": "Anuncia la participación de Wilmer y María en el festival Casinea 2026.",
+    "model": "gemini-3.8-flash",
     "provisional": false,
     "caption_hash": "e7a23e9a8d1d4ceb",
     "outcome": "merged",
@@ -12841,7 +12841,7 @@
     ],
     "detail": null,
     "image_hashes": [],
-    "by_hand": false
+    "by_hand": true
   },
   "17879468097554912": {
     "account": "dlivingstudio",

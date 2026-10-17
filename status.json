@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T13:47:29-05:00",
+  "generated_at": "2026-10-17T13:53:42-05:00",
   "sweeps": {
     "recent": [
       {
@@ -448,7 +448,7 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 8,
+        "used": 9,
         "budget": 18
       },
       {
@@ -701,6 +701,29 @@
     }
   ],
   "history": [
+    {
+      "kind": "post_again",
+      "slot": null,
+      "finished_at": "2026-10-17T13:53:42-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/39059908071",
+      "target": "https://www.instagram.com/reel/DeVgynPxSIT/",
+      "error": null,
+      "changes": [
+        {
+          "kind": "merged",
+          "id": "festival-internacional-casinea-10-a-edicion-13-nov",
+          "title": "Festival Internacional Casinea - 10.ª Edición",
+          "account": "casineafest",
+          "date": "2026-11-13",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/festival-internacional-casinea-10-a-edicion-13-nov/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "merged": 1
+      }
+    },
     {
       "kind": "post_again",
       "slot": null,
@@ -1212,93 +1235,6 @@
       "changes": [],
       "left_out": 0,
       "counts": {}
-    },
-    {
-      "kind": "sweep",
-      "slot": "03:00",
-      "finished_at": "2026-10-15T03:17:53-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/38702570571",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "provisional",
-          "id": "salsa-boricua-vs-salsa-colombiana-17-oct",
-          "title": "Salsa Boricua vs Salsa Colombiana",
-          "account": "galeriacafelibro",
-          "date": "2026-10-17",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/salsa-boricua-vs-salsa-colombiana-17-oct/"
-        },
-        {
-          "kind": "provisional",
-          "id": "yambu-orquesta-16-oct",
-          "title": "Yambú Orquesta",
-          "account": "casaquiebracanto",
-          "date": "2026-10-16",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/yambu-orquesta-16-oct/"
-        },
-        {
-          "kind": "provisional",
-          "id": "pachito-echavarria-y-la-gente-del-callejon-17-oct",
-          "title": "Pachito Echavarría y La Gente del Callejón",
-          "account": "casaquiebracanto",
-          "date": "2026-10-17",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/pachito-echavarria-y-la-gente-del-callejon-17-oct/"
-        },
-        {
-          "kind": "provisional",
-          "id": "salsa-regueton-16-oct",
-          "title": "Salsa & Reguetón",
-          "account": "el_bochinche_cafe_",
-          "date": "2026-10-16",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/salsa-regueton-16-oct/"
-        },
-        {
-          "kind": "provisional",
-          "id": "remate-festival-afrodiaspora-el-jam-atipico-17-oct",
-          "title": "Remate Festival Afrodiáspora - El Jam Atípico",
-          "account": "callejonsalsa",
-          "date": "2026-10-17",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/remate-festival-afrodiaspora-el-jam-atipico-17-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "embrujate-con-salsa-viernes-30-oct",
-          "title": "¡Embrújate con Salsa! - Viernes",
-          "account": "galeriacafelibro",
-          "date": "2026-10-30",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/embrujate-con-salsa-viernes-30-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "embrujate-con-salsa-sabado-31-oct",
-          "title": "¡Embrújate con Salsa! - Sábado",
-          "account": "galeriacafelibro",
-          "date": "2026-10-31",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/embrujate-con-salsa-sabado-31-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "social-de-halloween-24-oct",
-          "title": "Social de Halloween",
-          "account": "bembeacademiadebaile",
-          "date": "2026-10-24",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/social-de-halloween-24-oct/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "provisional": 5,
-        "merged": 3
-      }
     }
   ],
   "discovery": null
