@@ -2362,40 +2362,7 @@
     "batched_posts": 2,
     "batch_rereads": 2,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "provisional",
-        "id": "proyeccion-de-metropolis-con-dj-en-vivo-16-oct",
-        "title": "Proyección de Metrópolis con DJ en vivo",
-        "account": "espacio.64",
-        "date": "2026-10-16",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "merged",
-        "id": "distrito-social-aniversario-31-oct",
-        "title": "Distrito Social Aniversario",
-        "account": "distritosocialbog",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "una-cita-con-la-salsa-18-oct",
-        "title": "Una Cita con la Salsa",
-        "account": "elgocepagano",
-        "date": "2026-10-18",
-        "detail": "otra publicación de @germanbaila"
-      },
-      {
-        "kind": "merged",
-        "id": "jack-and-jill-20-nov",
-        "title": "Jack and Jill",
-        "account": "jackandjilloficial",
-        "date": "2026-11-20",
-        "detail": "otra publicación"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "provisional": 1,
@@ -4198,5 +4165,42 @@
       "merged": 2,
       "reread": 6
     }
+  },
+  {
+    "finished_at": "2026-10-17T06:31:00-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/39028925997",
+    "accounts": 0,
+    "failed_accounts": [],
+    "read_accounts": [],
+    "skipped_accounts": [],
+    "posts_analyzed": 0,
+    "events_new": 0,
+    "events_merged": 0,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {},
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 1,
+    "instagram_usage_detail": {
+      "call_count": 1,
+      "total_cputime": 1,
+      "total_time": 1
+    },
+    "instagram_reads": null,
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [],
+    "changes_left_out": 0,
+    "change_counts": {}
   }
 ]
