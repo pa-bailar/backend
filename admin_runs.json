@@ -113,5 +113,15 @@
     "change_counts": {
       "merged": 1
     }
+  },
+  {
+    "finished_at": "2026-10-17T14:13:02-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/39061422760",
+    "action": "post_again",
+    "target": "https://www.instagram.com/p/DeUbWwST_qQ/",
+    "error": "No pude leer la publicación: la API de Instagram no la entrega y su página pública no muestra la publicación (¿privada o borrada?).",
+    "changes": [],
+    "changes_left_out": 0,
+    "change_counts": {}
   }
 ]

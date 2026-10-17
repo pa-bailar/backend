@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T14:08:48-05:00",
+  "generated_at": "2026-10-17T14:13:03-05:00",
   "sweeps": {
     "recent": [
       {
@@ -704,6 +704,17 @@
     {
       "kind": "post_again",
       "slot": null,
+      "finished_at": "2026-10-17T14:13:02-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/39061422760",
+      "target": "https://www.instagram.com/p/DeUbWwST_qQ/",
+      "error": "No pude leer la publicación: la API de Instagram no la entrega y su página pública no muestra la publicación (¿privada o borrada?).",
+      "changes": [],
+      "left_out": 0,
+      "counts": {}
+    },
+    {
+      "kind": "post_again",
+      "slot": null,
       "finished_at": "2026-10-17T14:08:48-05:00",
       "run_url": "https://github.com/pa-bailar/backend/actions/runs/39060936387",
       "target": "https://www.instagram.com/p/DeP18T8pb0G/",
@@ -1075,121 +1086,6 @@
         "flagged": 1,
         "new": 4,
         "merged": 6
-      }
-    },
-    {
-      "kind": "sweep",
-      "slot": "06:30",
-      "finished_at": "2026-10-16T06:39:27-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/38894175105",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "new",
-          "id": "parchate-bailando-salsa-22-oct",
-          "title": "Párchate Bailando Salsa",
-          "account": "salsaysonoficial",
-          "date": "2026-10-22",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/parchate-bailando-salsa-22-oct/"
-        },
-        {
-          "kind": "new",
-          "id": "descarga-salsera-16-oct",
-          "title": "Descarga Salsera",
-          "account": "quemaquequema",
-          "date": "2026-10-16",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/descarga-salsera-16-oct/"
-        },
-        {
-          "kind": "new",
-          "id": "descarga-salsera-17-oct",
-          "title": "Descarga Salsera",
-          "account": "quemaquequema",
-          "date": "2026-10-17",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/descarga-salsera-17-oct/"
-        },
-        {
-          "kind": "provisional",
-          "id": "fiesta-de-antifaz-30-oct",
-          "title": "Fiesta de Antifaz",
-          "account": "pachanga_y_pochola",
-          "date": "2026-10-30",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/fiesta-de-antifaz-30-oct/"
-        },
-        {
-          "kind": "provisional",
-          "id": "tributo-a-bob-marley-22-oct",
-          "title": "Tributo a Bob Marley",
-          "account": "el_bochinche_cafe_",
-          "date": "2026-10-22",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/tributo-a-bob-marley-22-oct/"
-        },
-        {
-          "kind": "provisional",
-          "id": "noche-de-bolero-17-oct",
-          "title": "Noche de Bolero",
-          "account": "restaurantecasadecitas",
-          "date": "2026-10-17",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/noche-de-bolero-17-oct/"
-        },
-        {
-          "kind": "provisional",
-          "id": "rueda-de-gaitas-y-tambores-en-vivo-16-oct",
-          "title": "Rueda de Gaitas y Tambores En Vivo",
-          "account": "restaurantecasadecitas",
-          "date": "2026-10-16",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/rueda-de-gaitas-y-tambores-en-vivo-16-oct/"
-        },
-        {
-          "kind": "provisional",
-          "id": "taller-de-salsa-calena-17-oct",
-          "title": "Taller de salsa caleña",
-          "account": "bogotadanceclub.academy",
-          "date": "2026-10-17",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/taller-de-salsa-calena-17-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "salsoteca-dc-fidel-pena-y-su-tono-mayor-17-oct",
-          "title": "Fidel peña y su Tono Mayor",
-          "account": "elgocepagano",
-          "date": "2026-10-17",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/salsoteca-dc-fidel-pena-y-su-tono-mayor-17-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "la-fiesta-de-halloween-que-estabas-esperando-31-oct",
-          "title": "La fiesta de Halloween que estabas esperando",
-          "account": "elratonsalsaclub",
-          "date": "2026-10-31",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/la-fiesta-de-halloween-que-estabas-esperando-31-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "la-guillaera-31-oct",
-          "title": "La Guillaera",
-          "account": "valkandela",
-          "date": "2026-10-31",
-          "detail": "otra publicación de @el_bochinche_cafe_",
-          "url": "https://pa-bailar.github.io/evento/la-guillaera-31-oct/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "new": 3,
-        "provisional": 5,
-        "merged": 3
       }
     }
   ],
