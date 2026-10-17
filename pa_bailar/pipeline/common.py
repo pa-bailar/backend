@@ -23,6 +23,11 @@ from ..text import clock
 # OSError covers network and image errors; httpx.TransportError, Gemini's timeouts and dropped connections.
 RETRYABLE_ERRORS = (ExtractionError, genai_errors.APIError, OSError, httpx.TransportError)
 
+# Why an event read after its last day isn't published (ProcessedPost.detail, among others: "fuera de Bogotá, ya
+# pasó"): what admin why explains, and what makes an account short-notice when a turn's read finds it
+# (sweep.missed_as_past).
+ENDED = "ya pasó"
+
 
 class PostSource(Protocol):
     """Where posts come from: InstagramClient (tests pass a fake). Its readings of Instagram's quota (0-100, Meta's

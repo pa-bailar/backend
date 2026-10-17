@@ -19,7 +19,8 @@ const MESSAGES = {
 };
 
 
-const count = (number, one, many) => (number ? `${number} ${number === 1 ? one : many}` : "");
+const amount = (number, one, many) => `${number} ${number === 1 ? one : many}`;
+const count = (number, one, many) => (number ? amount(number, one, many) : "");
 
 function runItem(run) {
   const problems = [
@@ -29,8 +30,8 @@ function runItem(run) {
     count(run.post_errors ?? 0, "error", "errores"),
   ].filter(Boolean);
   const parts = [
-    `${run.events_new ?? 0} nuevos`,
-    `${run.events_merged ?? 0} unidos`,
+    amount(run.events_new ?? 0, "nuevo", "nuevos"), // "1 nuevos" until 17 Oct 2026
+    amount(run.events_merged ?? 0, "unido", "unidos"),
     count(run.pending ?? 0, "en espera", "en espera"),
     count(run.provisional ?? 0, "provisional", "provisionales"),
     count(run.upgraded ?? 0, "releída con Flash", "releídas con Flash"),
@@ -183,13 +184,18 @@ function accountsCard(status) {
     ? `<p class="small warn chips-title">⚠️ Esperando más de un barrido después de su turno:</p>
        <div class="chips">${waiting.map((account) => `<span>@${escapeHtml(account)}</span>`).join("")}</div>`
     : "";
+  const shortNotice = accounts.short_notice ?? [];
+  const evening = shortNotice.length
+    ? `<p class="small chips-title">Leídas en el barrido de la noche (avisan el mismo día o el anterior):</p>
+       <div class="chips">${shortNotice.map((account) => `<span>@${escapeHtml(account)}</span>`).join("")}</div>`
+    : "";
   const firstSweep = pending.length
     ? `<p class="small chips-title">En su primer barrido (más profundo):</p>
        <div class="chips">${pending.map((account) => `<span>@${escapeHtml(account)}</span>`).join("")}</div>`
     : "";
   return `<section class="card"><h2>Cuentas y eventos</h2>
     <div class="facts">${facts.map(([number, label]) => `<div class="fact"><b>${escapeHtml(number)}</b>${escapeHtml(label)}</div>`).join("")}</div>
-    ${lighterReads(status.lighter_reads)}${firstSweep}${late}</section>`;
+    ${lighterReads(status.lighter_reads)}${firstSweep}${late}${evening}</section>`;
 }
 
 // ---------- the tools: requests to the admin inbox (issues the admin workflow answers) ----------

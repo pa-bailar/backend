@@ -46,7 +46,8 @@ Instagram posts, Gemini extracts the events, and the site rebuilds. Owner: jzamo
 ## 4. How the pieces connect
 
 - **An event's life:** cron-job.org (3:00, 6:30, 21:00) starts `daily-sweep.yml` →
-  `sweep` picks whose turn it is (`accounts.txt`; quiet, unproductive and dormant accounts less often; about a third
+  `sweep` picks whose turn it is (`accounts.txt`; quiet, unproductive and dormant accounts less often; short-notice
+  ones, which announce the same day or the day before, in the 21:00 sweep, since 17 Oct 2026; about a third
   a sweep), reading until the next read would take Instagram's hourly quota past 98% (a forecast from the run's own
   reads) → Instagram Graph API (Business Discovery) → Flash-Lite triage
   → Flash extraction (the `ModelPool`; an older Flash and Lite, then Groq/OpenRouter as the last resort, all

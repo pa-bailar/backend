@@ -92,7 +92,7 @@ def test_collect_reads_what_the_sweeps_record():
         "used": 18,
         "budget": daily_budget("gemini-3.8-flash"),
     }
-    assert result["accounts"] == {"followed": 2, "first_sweep_pending": ["nueva"], "waiting": []}
+    assert result["accounts"] == {"followed": 2, "first_sweep_pending": ["nueva"], "waiting": [], "short_notice": []}
     assert result["posts"] == {"recorded": 2, "provisional": 1}
     assert result["instagram"] is None
 
@@ -111,12 +111,10 @@ def test_the_text_says_it_in_spanish():
     result = status.collect(now=NOW, instagram=lambda: {"ok": True, "error": None}, read=fake_state())
     text = status.markdown(result)
 
-    latest = (
-        "- ⚠️ hoy 9:12 p. m.: 1 nuevos, 0 unidos, 4 en espera, Instagram 90%, límite de Instagram, 1 cuenta sin leer"
-    )
+    latest = "- ⚠️ hoy 9:12 p. m.: 1 nuevo, 0 unidos, 4 en espera, Instagram 90%, límite de Instagram, 1 cuenta sin leer"
     assert f"{latest} · [ver](https://example/run)" in text
     assert (
-        "- ✅ hoy 9:12 a. m.: 2 nuevos, 1 unidos, 3 releídas con Flash, 2 cuentas leídas para Flash, "
+        "- ✅ hoy 9:12 a. m.: 2 nuevos, 1 unido, 3 releídas con Flash, 2 cuentas leídas para Flash, "
         "3 descartes revisados con Flash, 1 evento rescatado"
     ) in text
     assert "Próximos: hoy 9:00 p. m. y mañana 3:00 a. m." in text

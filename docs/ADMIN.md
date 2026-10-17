@@ -73,8 +73,8 @@ abiertos del sitio", linked to them (added on 17 Oct 2026, after five data PRs s
 Then the history (below), Gemini usage per model and when it resets,
 the last resort's use (Groq, OpenRouter: a card only on a day Gemini ran out), Instagram (whether the token works,
 the last sweep's highest reading of its quota, whether it stopped itself before the next read passed 98% or Meta
-stopped it, and its reads in short: Meta's seconds a read and what a read cost), accounts (those still in their first sweep or waiting past their
-turn) and events, with what Flash changed when it re-read lighter models' readings. It's the latest `status.json`, as of the last sweep. When it can't be read
+stopped it, and its reads in short: Meta's seconds a read and what a read cost), accounts (those still in their first sweep, waiting past their
+turn, or read in the evening sweep because they announce their nights the same day or the day before) and events, with what Flash changed when it re-read lighter models' readings. It's the latest `status.json`, as of the last sweep. When it can't be read
 (none saved yet, GitHub failing, offline), a note takes its place and Herramientas still works.
 
 **Historial** (under Barridos, collapsed until tapped): what the latest 10 runs did to which event, so a count

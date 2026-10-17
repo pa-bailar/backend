@@ -100,6 +100,31 @@ UNPRODUCTIVE_AFTER_POSTS = 10
 DORMANT_SWEEP_EVERY_HOURS = 164  # a bit under a week
 DORMANT_AFTER_DAYS = 180
 EXTRA_ACCOUNTS_PER_RUN = 5  # over each sweep's share, so a few late accounts still get read
+# Short-notice accounts (the owner, 17 Oct 2026): bars and venues that announce a night the same day or the day before.
+# Read at 3:00 or 6:30, a post at noon about that night waited for the next morning's read, after the event, and was
+# discarded as "ya pasó" (@quemaquequema three times, @ritmomoderno once, 10–16 Oct). Their turn is the evening sweep
+# (the last of SWEEP_TIMES): the sweeps before it don't read one, read-ahead never takes one, and the evening sweep
+# reads them first among its due accounts, so its share and Instagram's stop push regular accounts to the next sweep
+# instead, with no extra read (pipeline.sweep.short_notice_accounts, Sweep._due_accounts). From history, not a hand
+# list: a turn's read found a post of the account already past within SHORT_NOTICE_MISS_DAYS (a first read's records
+# don't count: a new account's first sweep reads posts a month old, a bar's the past week's nights; they're those within
+# SHORT_NOTICE_FIRST_READ_HOURS of its earliest record), or it announces its events (its earliest post's day to the
+# event's first day, over its events on the site: the last EVENT_RETENTION_DAYS) a median under SHORT_NOTICE_DAYS ahead
+# over at least SHORT_NOTICE_MIN_EVENTS of them. On the real state of 17 Oct 2026 that's 4 of 128 accounts: the two
+# misses, @originalstepdance (median 1 day over 3 events, one the same day) and @ladiezluxury_outlet (1.5 over 4). The
+# next ones announce 2 days ahead (bilongocolombia, meetinghousebogota, restaurantecasadecitas), which a morning read
+# catches; 2 events instead of 3 adds none, and 3 keeps one or two events from deciding. Not bars by default: of the 35
+# bars, 19 have events on the site and 2 of those announce under 2 days ahead (most 3 days to weeks). Replayed over the
+# next four days: 3 accounts move to 21:00, 4 regular ones from 6:30 to 3:00 (the morning's room), and 21:00 reads 46–47
+# of its 48 (43–44 before), the same 333 reads in all.
+SHORT_NOTICE_DAYS = 2
+SHORT_NOTICE_MIN_EVENTS = 3
+SHORT_NOTICE_MISS_DAYS = 30
+SHORT_NOTICE_FIRST_READ_HOURS = 12
+# Never starved: a sweep before the evening reads a short-notice account once it's this far past its turn (30 h since
+# its last read, at the daily 22 h): one the evening sweep missed (Instagram's stop, a sweep that didn't run) is read at
+# the next 3:00 (30 h after a 21:00 read), and back at 21:00 the next day.
+SHORT_NOTICE_WAIT_HOURS = 8
 # Reads for Flash beyond the turn (pipeline.Sweep._upgrade_by_urgency; 17 Oct 2026): after the accounts whose turn it
 # is, while Flash can upgrade, Instagram's forecast stop has room and time remains, a sweep also reads the accounts it
 # didn't read that hold provisional posts of events not over yet, soonest event first, at most this many a run, only
