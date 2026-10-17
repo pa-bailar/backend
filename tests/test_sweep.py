@@ -201,7 +201,8 @@ def test_recurring_and_undated_events_are_not_published():
     assert stats.events_discarded == 2
 
 
-def test_posts_ruled_out_by_triage_never_reach_flash():
+def test_posts_ruled_out_by_triage_never_reach_flash_without_its_second_opinion(monkeypatch):
+    monkeypatch.setattr(config, "TRIAGE_CHECKS_PER_RUN", 0)  # the second opinion: test_triage_checks.py
     instagram = FakeInstagram({"academia": [post("tutorial"), post("flyer")], "otra": []})
     extractor = FakeExtractor({"flyer": event_post("flyer")}, not_events={"tutorial"})
     stats = run(instagram, extractor)

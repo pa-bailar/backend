@@ -313,6 +313,9 @@ class ProcessedPost(BaseModel):
     # Added by hand (Agregar, Volver a leer, a story's screenshots): later reads of it (an upgrade, an edited caption)
     # skip the account's extra rules and style filter too (account_options), as the first one did.
     by_hand: bool = False
+    # The triage (Flash-Lite) ruled it out and Flash then read it as a second opinion (Sweep._check_triage): its
+    # record is Flash's reading now, an event the triage missed or none; never checked twice.
+    triage_checked: bool = False
 
 
 # ---------- Stories: screenshots shared to the admin page (stories.py) ----------

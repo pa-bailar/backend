@@ -63,6 +63,7 @@ def summary_markdown(stats: RunStats) -> str:
             f"{stats.events_discarded} discarded (recurring, undated, past or outside Bogotá) · "
             f"{stats.provisional} provisional · {batched}"
             f"{stats.upgraded} upgraded ({stats.upgrade_reads} accounts read for Flash beyond their turn) · "
+            f"{stats.triage_checked} ruled out by triage checked by Flash ({stats.triage_misses} were events) · "
             f"{stats.reanalyzed} re-analyzed (edited captions) · "
             f"{stats.pending} pending for next run · {stats.errors} errors · "
             f"{stats.events_expired} past events and {stats.flyers_removed} flyers cleaned up",
@@ -279,7 +280,8 @@ def main(argv: list[str] | None = None) -> None:
     logging.info(
         "\nDone: %s accounts, %s posts analyzed (%s ruled out by triage), %s new events, %s merged, "
         "%s discarded, %s provisional, %s upgraded (%s accounts read for Flash beyond their turn, %s posts not "
-        "returned), %s pending, %s errors. Gemini requests: %s",
+        "returned), %s ruled out by triage checked by Flash (%s were events), %s pending, %s errors. "
+        "Gemini requests: %s",
         stats.accounts,
         stats.posts_analyzed,
         stats.posts_triaged_out,
@@ -290,6 +292,8 @@ def main(argv: list[str] | None = None) -> None:
         stats.upgraded,
         stats.upgrade_reads,
         stats.upgrade_misses,
+        stats.triage_checked,
+        stats.triage_misses,
         stats.pending,
         stats.errors,
         stats.gemini_requests or "none",
