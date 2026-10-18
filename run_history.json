@@ -2,6 +2,9 @@
   {
     "finished_at": "2026-10-02T13:29:43-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37044385776",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 35,
     "failed_accounts": [
       "terrazasalsera"
@@ -32,6 +35,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -43,6 +51,9 @@
   {
     "finished_at": "2026-10-02T13:31:23-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37046081524",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 1,
     "failed_accounts": [
       "zafradance"
@@ -103,6 +114,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -114,6 +130,9 @@
   {
     "finished_at": "2026-10-02T21:11:20-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37088209223",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 50,
     "failed_accounts": [],
     "read_accounts": [],
@@ -138,6 +157,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -149,6 +173,9 @@
   {
     "finished_at": "2026-10-03T09:15:27-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37128097876",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 33,
     "failed_accounts": [
       "herencialatinad.c"
@@ -196,6 +223,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -207,6 +239,9 @@
   {
     "finished_at": "2026-10-03T21:14:07-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37169691300",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 20,
     "failed_accounts": [],
     "read_accounts": [
@@ -252,6 +287,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -263,6 +303,9 @@
   {
     "finished_at": "2026-10-04T09:03:25-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37207634002",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 31,
     "failed_accounts": [],
     "read_accounts": [
@@ -322,6 +365,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -333,6 +381,9 @@
   {
     "finished_at": "2026-10-04T21:25:49-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37253619237",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 36,
     "failed_accounts": [],
     "read_accounts": [
@@ -396,6 +447,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -407,6 +463,9 @@
   {
     "finished_at": "2026-10-05T09:27:32-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37321177247",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 50,
     "failed_accounts": [],
     "read_accounts": [
@@ -484,6 +543,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -495,6 +559,9 @@
   {
     "finished_at": "2026-10-05T21:30:59-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37401968570",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 53,
     "failed_accounts": [],
     "read_accounts": [
@@ -590,6 +657,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -601,6 +673,9 @@
   {
     "finished_at": "2026-10-05T22:26:22-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37408545396",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 18,
     "failed_accounts": [],
     "read_accounts": [
@@ -644,6 +719,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -655,6 +735,9 @@
   {
     "finished_at": "2026-10-06T09:14:51-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37475298741",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 43,
     "failed_accounts": [],
     "read_accounts": [
@@ -725,6 +808,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -736,6 +824,9 @@
   {
     "finished_at": "2026-10-06T21:22:40-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37559836912",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 69,
     "failed_accounts": [],
     "read_accounts": [
@@ -835,6 +926,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -846,6 +942,9 @@
   {
     "finished_at": "2026-10-07T09:14:08-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37633037687",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 43,
     "failed_accounts": [],
     "read_accounts": [
@@ -919,6 +1018,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -930,6 +1034,9 @@
   {
     "finished_at": "2026-10-07T21:09:15-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37715684762",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 58,
     "failed_accounts": [],
     "read_accounts": [
@@ -1030,6 +1137,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -1041,6 +1153,9 @@
   {
     "finished_at": "2026-10-08T06:51:48-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37770443659",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 56,
     "failed_accounts": [
       "bailabo_studio"
@@ -1136,6 +1251,11 @@
       "dropped": 0,
       "venue": 1
     },
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -1147,6 +1267,9 @@
   {
     "finished_at": "2026-10-08T21:26:43-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37872450004",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 47,
     "failed_accounts": [],
     "read_accounts": [
@@ -1241,6 +1364,11 @@
       "compared": 2,
       "dropped": 0
     },
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -1252,6 +1380,9 @@
   {
     "finished_at": "2026-10-09T06:49:59-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/37924103416",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 28,
     "failed_accounts": [],
     "read_accounts": [
@@ -1342,6 +1473,11 @@
       "styles": 2,
       "venue": 1
     },
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -1353,6 +1489,9 @@
   {
     "finished_at": "2026-10-09T19:57:54-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38010575496",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 48,
     "failed_accounts": [],
     "read_accounts": [
@@ -1474,6 +1613,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -1490,6 +1634,9 @@
   {
     "finished_at": "2026-10-09T21:19:47-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38015315662",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 25,
     "failed_accounts": [],
     "read_accounts": [
@@ -1559,6 +1706,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -1575,6 +1727,9 @@
   {
     "finished_at": "2026-10-10T03:01:00-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38036358817",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 0,
     "failed_accounts": [],
     "read_accounts": [],
@@ -1601,6 +1756,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -1612,6 +1772,9 @@
   {
     "finished_at": "2026-10-10T06:51:47-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38048618678",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 25,
     "failed_accounts": [
       "bailabo_studio"
@@ -1694,6 +1857,11 @@
     },
     "instagram_stop": "forecast",
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -1709,6 +1877,9 @@
   {
     "finished_at": "2026-10-10T21:23:58-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38103698336",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 48,
     "failed_accounts": [],
     "read_accounts": [
@@ -1830,6 +2001,11 @@
       "dropped": 0,
       "styles": 1
     },
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -1846,6 +2022,9 @@
   {
     "finished_at": "2026-10-11T03:23:01-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38123273076",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 48,
     "failed_accounts": [],
     "read_accounts": [
@@ -1942,6 +2121,11 @@
       "dropped": 0,
       "styles": 1
     },
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -1956,6 +2140,9 @@
   {
     "finished_at": "2026-10-11T06:30:58-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38135781577",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 0,
     "failed_accounts": [],
     "read_accounts": [],
@@ -1982,6 +2169,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -1993,6 +2185,9 @@
   {
     "finished_at": "2026-10-11T21:18:51-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38194059795",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 48,
     "failed_accounts": [],
     "read_accounts": [
@@ -2088,6 +2283,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 1,
     "batched_posts": 0,
     "batch_rereads": 2,
@@ -2102,6 +2302,9 @@
   {
     "finished_at": "2026-10-12T03:19:20-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38220942277",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 48,
     "failed_accounts": [
       "bailabo_studio"
@@ -2201,6 +2404,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 1,
     "batched_posts": 2,
     "batch_rereads": 0,
@@ -2214,6 +2422,9 @@
   {
     "finished_at": "2026-10-12T06:31:29-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38243037352",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 4,
     "failed_accounts": [],
     "read_accounts": [
@@ -2259,6 +2470,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -2270,6 +2486,9 @@
   {
     "finished_at": "2026-10-12T21:20:17-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38334791647",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 44,
     "failed_accounts": [],
     "read_accounts": [
@@ -2358,6 +2577,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 2,
     "batched_posts": 2,
     "batch_rereads": 2,
@@ -2372,6 +2596,9 @@
   {
     "finished_at": "2026-10-13T03:21:39-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38366315084",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 48,
     "failed_accounts": [],
     "read_accounts": [
@@ -2467,28 +2694,16 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "merged",
-        "id": "celebrando-40-anos-de-trayectoria-enrique-barrios-22-oct",
-        "title": "Celebrando 40 años de trayectoria - Enrique Barrios",
-        "account": "galeriacafelibro",
-        "date": "2026-10-22",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "halloween-en-pachanga-pochola-31-oct",
-        "title": "Halloween en Pachanga & Pochola",
-        "account": "pachanga_y_pochola",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "merged": 2
@@ -2497,6 +2712,9 @@
   {
     "finished_at": "2026-10-13T06:34:14-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38390635504",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 2,
     "failed_accounts": [],
     "read_accounts": [
@@ -2541,6 +2759,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -2563,6 +2786,9 @@
   {
     "finished_at": "2026-10-13T21:23:57-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38498710772",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 47,
     "failed_accounts": [],
     "read_accounts": [
@@ -2658,6 +2884,11 @@
       "compared": 2,
       "dropped": 1
     },
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -2715,6 +2946,9 @@
   {
     "finished_at": "2026-10-14T03:19:40-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38532070868",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 48,
     "failed_accounts": [
       "bailabo_studio"
@@ -2809,6 +3043,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 2,
     "batched_posts": 3,
     "batch_rereads": 1,
@@ -2895,6 +3134,9 @@
   {
     "finished_at": "2026-10-14T06:31:12-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38556994867",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 2,
     "failed_accounts": [],
     "read_accounts": [
@@ -2938,6 +3180,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -2949,6 +3196,9 @@
   {
     "finished_at": "2026-10-14T21:20:26-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38668649906",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 43,
     "failed_accounts": [],
     "read_accounts": [
@@ -3040,6 +3290,11 @@
       "dropped": 0,
       "styles": 1
     },
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -3114,6 +3369,9 @@
   {
     "finished_at": "2026-10-15T03:17:53-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38702570571",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 47,
     "failed_accounts": [],
     "read_accounts": [
@@ -3205,6 +3463,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 1,
     "batched_posts": 1,
     "batch_rereads": 1,
@@ -3284,6 +3547,9 @@
   {
     "finished_at": "2026-10-15T06:30:43-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38727764854",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 0,
     "failed_accounts": [],
     "read_accounts": [],
@@ -3310,6 +3576,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -3321,6 +3592,9 @@
   {
     "finished_at": "2026-10-15T21:17:32-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38838122851",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 46,
     "failed_accounts": [
       "lacoartadacentrocultural"
@@ -3413,6 +3687,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 1,
     "batched_posts": 2,
     "batch_rereads": 0,
@@ -3460,6 +3739,9 @@
   {
     "finished_at": "2026-10-16T03:18:42-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38870778775",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 48,
     "failed_accounts": [
       "bailabo_studio"
@@ -3558,6 +3840,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -3605,6 +3892,9 @@
   {
     "finished_at": "2026-10-16T06:39:27-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38894175105",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 13,
     "failed_accounts": [],
     "read_accounts": [
@@ -3663,6 +3953,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 2,
     "batched_posts": 4,
     "batch_rereads": 0,
@@ -3767,6 +4062,9 @@
   {
     "finished_at": "2026-10-16T21:07:34-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/38993166157",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 45,
     "failed_accounts": [],
     "read_accounts": [
@@ -3856,6 +4154,11 @@
     },
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 3,
     "batched_posts": 6,
     "batch_rereads": 0,
@@ -3960,6 +4263,9 @@
   {
     "finished_at": "2026-10-17T03:06:14-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/39015712643",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 48,
     "failed_accounts": [],
     "read_accounts": [
@@ -4057,6 +4363,11 @@
       "styles": 1,
       "title": 1
     },
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -4169,6 +4480,9 @@
   {
     "finished_at": "2026-10-17T06:31:00-05:00",
     "run_url": "https://github.com/pa-bailar/backend/actions/runs/39028925997",
+    "started_at": null,
+    "site_data_at": null,
+    "data_changed": null,
     "accounts": 0,
     "failed_accounts": [],
     "read_accounts": [],
@@ -4195,6 +4509,11 @@
     "instagram_reads": null,
     "instagram_stop": null,
     "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
     "batch_requests": 0,
     "batched_posts": 0,
     "batch_rereads": 0,
@@ -4202,5 +4521,287 @@
     "changes": [],
     "changes_left_out": 0,
     "change_counts": {}
+  },
+  {
+    "finished_at": "2026-10-17T21:23:14-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/39088486136",
+    "started_at": "2026-10-17T21:00:45-05:00",
+    "site_data_at": "2026-10-17T14:08:48-05:00",
+    "data_changed": true,
+    "accounts": 48,
+    "failed_accounts": [],
+    "read_accounts": [
+      "_olorumcongress",
+      "academiaalmadetangoe",
+      "alejochacon.co",
+      "arrollando.dc",
+      "babou_candelaria",
+      "bachatamania_bogota",
+      "bailalo_improsocial",
+      "bailarito",
+      "bogotadanceclub",
+      "bureodancestudio",
+      "casineafest",
+      "clandisfrute",
+      "cordillerafestival",
+      "danceinmotionclub",
+      "danzaenlaciudad",
+      "distritosocialbog",
+      "ebi_dancecompany",
+      "efadanza",
+      "espacio.64",
+      "festivalsalsaalparque",
+      "fogal_arte",
+      "germanbaila",
+      "guadalupebar751",
+      "habana93",
+      "iledanza",
+      "imperiolatino",
+      "jackandjilloficial",
+      "jen.ssy",
+      "lacoartadacentrocultural",
+      "lanenamagdalena",
+      "latinproductioncolombia",
+      "mambo_y_control",
+      "meetinghousebogota",
+      "mover__se",
+      "originalstepdance",
+      "proyectourbandance",
+      "puntalpie",
+      "reyesdelasalsa.col",
+      "salsabravadancehallpicante",
+      "salsaculto",
+      "salsalatina.alsacia",
+      "sandunguera.salsabar",
+      "showstarscol",
+      "sondehabana",
+      "soywiwioficial",
+      "tibaduiza__",
+      "valkandela",
+      "zafiro_project_team"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 9,
+    "events_new": 0,
+    "events_merged": 2,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 9,
+      "gemini-3.8-flash": 5,
+      "gemini-3.6-flash": 12
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 68,
+    "instagram_usage_detail": {
+      "call_count": 15,
+      "total_cputime": 0,
+      "total_time": 68
+    },
+    "instagram_reads": {
+      "accounts": 55,
+      "mean_seconds": 2.27,
+      "median_seconds": 2.19,
+      "max_seconds": 4.88,
+      "mean_cost": 1.26,
+      "max_cost": 4,
+      "max_cost_account": "salsalatina.alsacia",
+      "headers": {
+        "X-App-Usage": 55
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {
+      "compared": 5,
+      "dropped": 0,
+      "title": 2,
+      "venue": 1,
+      "event_type": 1,
+      "styles": 1
+    },
+    "upgraded": 8,
+    "upgrade_reads": 7,
+    "upgrade_misses": 1,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "corrected",
+        "id": "master-class-heels-19-oct",
+        "title": "Máster Class Heels - Maria x Cristi",
+        "account": "bureodancestudio",
+        "date": "2026-10-19",
+        "detail": "Flash cambió el título"
+      },
+      {
+        "kind": "corrected",
+        "id": "tributo-a-bob-marley-22-oct",
+        "title": "Tributo a Bob Marley",
+        "account": "el_bochinche_cafe_",
+        "date": "2026-10-22",
+        "detail": "Flash cambió los ritmos"
+      },
+      {
+        "kind": "corrected",
+        "id": "la-guillaera-31-oct",
+        "title": "La Guillaera - El Verdadero Perreo",
+        "account": "valkandela",
+        "date": "2026-10-31",
+        "detail": "Flash cambió el título, el lugar y el tipo"
+      },
+      {
+        "kind": "merged",
+        "id": "batalla-internacional-viaalternativa-2026-hip-hop-24-oct",
+        "title": "Batalla Internacional ViaAlternativa 2026 - Hip Hop al Parque",
+        "account": "danzaenlaciudad",
+        "date": "2026-10-24",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "jack-and-jill-20-nov",
+        "title": "Jack and Jill",
+        "account": "jackandjilloficial",
+        "date": "2026-11-20",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "tour-de-la-salsa-capitulo-001-11-oct",
+        "title": "Tour de la Salsa — Capítulo 001",
+        "account": "salsaculto",
+        "date": "2026-10-11",
+        "detail": "otra publicación de @elgocepagano"
+      },
+      {
+        "kind": "reread",
+        "id": "fiesta-de-mascaras-17-oct",
+        "title": "Fiesta de Máscaras",
+        "account": "bogotadanceclub",
+        "date": "2026-10-17",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "video-class-survivor-17-oct",
+        "title": "Video Class Survivor",
+        "account": "and1erita",
+        "date": "2026-10-17",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsoteca-dc-canamelao-9-oct",
+        "title": "Cañamelao",
+        "account": "elgocepagano",
+        "date": "2026-10-09",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsoteca-dc-acere-10-oct",
+        "title": "Salsoteca DC - Acere",
+        "account": "elgocepagano",
+        "date": "2026-10-10",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsoteca-dc-the-bambas-16-oct",
+        "title": "The Bambas",
+        "account": "elgocepagano",
+        "date": "2026-10-16",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsoteca-dc-fidel-pena-y-su-tono-mayor-17-oct",
+        "title": "Fidel peña y su Tono Mayor",
+        "account": "elgocepagano",
+        "date": "2026-10-17",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "una-cita-con-la-salsa-18-oct",
+        "title": "Una Cita con la Salsa",
+        "account": "elgocepagano",
+        "date": "2026-10-18",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsoteca-dc-candombe-23-oct",
+        "title": "Candombé",
+        "account": "elgocepagano",
+        "date": "2026-10-23",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsoteca-dc-la-pambele-24-oct",
+        "title": "La Pambelé",
+        "account": "elgocepagano",
+        "date": "2026-10-24",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsoteca-dc-salsa-infierno-30-oct",
+        "title": "Salsa Infierno",
+        "account": "elgocepagano",
+        "date": "2026-10-30",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsoteca-dc-bbyb-31-oct",
+        "title": "Bbyb",
+        "account": "elgocepagano",
+        "date": "2026-10-31",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "iniciacion-a-la-salsa-en-linea-3-oct",
+        "title": "Iniciación a la Salsa en Línea",
+        "account": "frank.de.latorre",
+        "date": "2026-10-03",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "celebrando-40-anos-de-trayectoria-enrique-barrios-22-oct",
+        "title": "Enrique Barrios & Gerband Latin Group",
+        "account": "galeriacafelibro",
+        "date": "2026-10-22",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct",
+        "title": "Halloween: Concurso de disfraces, fiesta y taller de baile",
+        "account": "showstarscol",
+        "date": "2026-10-24",
+        "detail": "Flash confirmó la lectura"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "corrected": 3,
+      "merged": 3,
+      "reread": 14
+    }
   }
 ]
