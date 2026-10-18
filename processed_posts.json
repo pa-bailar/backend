@@ -8997,13 +8997,13 @@
   "17902055949596846": {
     "account": "salsaysonoficial",
     "permalink": "https://www.instagram.com/p/Dd5Qx2xN2_5/",
-    "processed_at": "2026-10-05T21:07:46-05:00",
+    "processed_at": "2026-10-18T06:35:10-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia un concierto y rumba especial con el artista Argy Gómez.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "reason": "Presentación musical en vivo de Argy Gómez en Salsa & Son.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
     "caption_hash": "920b101b72fd4526",
-    "outcome": "event",
+    "outcome": "merged",
     "event_ids": [
       "argy-gomez-en-salsa-son-24-oct"
     ],
@@ -14707,11 +14707,11 @@
   "18105586774965643": {
     "account": "pachanga_y_pochola",
     "permalink": "https://www.instagram.com/reel/Deas6USROzA/",
-    "processed_at": "2026-10-13T03:06:35-05:00",
+    "processed_at": "2026-10-18T06:52:23-05:00",
     "is_event_post": true,
-    "reason": "Se anuncia una fiesta temática de Halloween el 31 de octubre con DJs invitados y un concurso de disfraces.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post anuncia la fiesta de Halloween el 31 de octubre en Pachanga & Pochola.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "550464a4e584aad6",
     "outcome": "merged",
     "event_ids": [
@@ -15847,11 +15847,11 @@
   "18098610047428299": {
     "account": "galeriacafelibro",
     "permalink": "https://www.instagram.com/reel/Defkrb9sp7V/",
-    "processed_at": "2026-10-15T03:03:31-05:00",
+    "processed_at": "2026-10-18T06:35:41-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia dos noches de fiesta de Halloween con temática de salsa en Galería Café Libro.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "reason": "Anuncia la fiesta especial de Halloween 'Embrújate' con salsa para dos fechas en Galería Café Libro.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
     "caption_hash": "50b1f3053cc89a26",
     "outcome": "merged",
     "event_ids": [
@@ -16081,11 +16081,11 @@
   "18132585646756879": {
     "account": "bembeacademiadebaile",
     "permalink": "https://www.instagram.com/reel/DegN-EhhZgl/",
-    "processed_at": "2026-10-15T03:05:47-05:00",
+    "processed_at": "2026-10-18T06:34:57-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia un social de Halloween en Bogotá.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "reason": "Publicación sobre el Social de Halloween el 24 de octubre.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
     "caption_hash": "5aa293ba472b8ec3",
     "outcome": "merged",
     "event_ids": [
@@ -16149,11 +16149,11 @@
   "18088707512695517": {
     "account": "showstarscol",
     "permalink": "https://www.instagram.com/reel/DeiD-SiJ1bz/",
-    "processed_at": "2026-10-15T21:02:38-05:00",
+    "processed_at": "2026-10-18T06:35:21-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia un evento social y de concurso de disfraces de Halloween con fecha exacta.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "reason": "Anuncia una fiesta de Halloween y social con concurso de disfraces y taller de baile para el 24 de octubre.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
     "caption_hash": "1f122f0a86fc593c",
     "outcome": "merged",
     "event_ids": [
@@ -16281,11 +16281,11 @@
   "18106674194266348": {
     "account": "bogotadanceclub",
     "permalink": "https://www.instagram.com/reel/DeiZPvkuoHV/",
-    "processed_at": "2026-10-15T21:04:47-05:00",
+    "processed_at": "2026-10-18T06:32:28-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia un concierto y evento de salsa en vivo en Bogotá Dance Club.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "reason": "Anuncio de concierto y viejoteca con Enrique Barrios en vivo el 18 de octubre.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
     "caption_hash": "0f4bd4209702b46b",
     "outcome": "event",
     "event_ids": [
@@ -16463,11 +16463,11 @@
   "18219406894346651": {
     "account": "galeriacafelibro",
     "permalink": "https://www.instagram.com/reel/DeiQXDAsuEw/",
-    "processed_at": "2026-10-16T03:05:23-05:00",
+    "processed_at": "2026-10-18T06:35:54-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia una celebración especial de Halloween con música en vivo y fiesta en fechas específicas.",
-    "model": "gemini-3.1-flash-lite",
-    "provisional": true,
+    "reason": "El post anuncia la fiesta de Halloween 'Embrújate en Galería Café Libro' los días 30 y 31 de octubre, con música en vivo de NS Orquesta el 31.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "4e7b658d542fefaa",
     "outcome": "merged",
     "event_ids": [
@@ -16761,13 +16761,13 @@
   "18026982905700407": {
     "account": "pachanga_y_pochola",
     "permalink": "https://www.instagram.com/reel/DeheTAxx_sz/",
-    "processed_at": "2026-10-16T06:36:10-05:00",
+    "processed_at": "2026-10-18T06:52:08-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia una fiesta de antifaz con orquesta invitada para el 30 de octubre.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "reason": "Anuncio de la Fiesta de Antifaz con la Orquesta NS en vivo el 30 de octubre.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "e048fdc1bf102cb6",
-    "outcome": "event",
+    "outcome": "merged",
     "event_ids": [
       "fiesta-de-antifaz-30-oct"
     ],
