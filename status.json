@@ -1,7 +1,75 @@
 {
-  "generated_at": "2026-10-20T03:15:37-05:00",
+  "generated_at": "2026-10-20T06:37:04-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-10-20T06:37:04-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/39415379837",
+        "started_at": "2026-10-20T06:30:47-05:00",
+        "site_data_at": "2026-10-20T03:15:36-05:00",
+        "data_changed": true,
+        "accounts": 1,
+        "failed_accounts": [],
+        "read_accounts": [
+          "mambolei_"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 0,
+        "events_new": 0,
+        "events_merged": 0,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 0,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.8-flash": 6,
+          "gemini-3.6-flash": 7
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 6,
+        "instagram_usage_detail": {
+          "call_count": 1,
+          "total_cputime": 0,
+          "total_time": 6
+        },
+        "instagram_reads": {
+          "accounts": 7,
+          "mean_seconds": 1.58,
+          "median_seconds": 1.61,
+          "max_seconds": 1.83,
+          "mean_cost": 1.0,
+          "max_cost": 2,
+          "max_cost_account": "pachanga_y_pochola",
+          "headers": {
+            "X-App-Usage": 7
+          },
+          "expected_cost": 2
+        },
+        "instagram_stop": null,
+        "upgrade_changes": {
+          "compared": 3,
+          "dropped": 0,
+          "title": 1
+        },
+        "upgraded": 6,
+        "upgrade_reads": 6,
+        "upgrade_misses": 1,
+        "triage_checked": 0,
+        "triage_misses": 0,
+        "batch_requests": 0,
+        "batched_posts": 0,
+        "batch_rereads": 0,
+        "warnings": [],
+        "changes_left_out": 0,
+        "change_counts": {
+          "corrected": 1,
+          "reread": 5
+        }
+      },
       {
         "finished_at": "2026-10-20T03:15:36-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/39390284227",
@@ -410,129 +478,16 @@
           "merged": 2,
           "reread": 2
         }
-      },
-      {
-        "finished_at": "2026-10-18T21:06:46-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/39187878951",
-        "started_at": "2026-10-18T21:00:41-05:00",
-        "site_data_at": "2026-10-18T06:52:23-05:00",
-        "data_changed": true,
-        "accounts": 48,
-        "failed_accounts": [],
-        "read_accounts": [
-          "academia_cowork",
-          "academiaalmadetangoe",
-          "alejochacon.co",
-          "alpasojam",
-          "angie__cuesta",
-          "babou_candelaria",
-          "bachatasocialcongresss",
-          "bogotadanceclub",
-          "bureodancestudio",
-          "casineafest",
-          "clandisfrute",
-          "danceinmotionclub",
-          "danzaenlaciudad",
-          "davidylauradancers",
-          "distritosocialbog",
-          "ebi_dancecompany",
-          "efadanza",
-          "elparche.se",
-          "espacio.64",
-          "fredyysaraoficial",
-          "germanbaila",
-          "herencialatinad.c",
-          "imperiolatino",
-          "jackandjilloficial",
-          "jen.ssy",
-          "lacoartadacentrocultural",
-          "ladiezluxury_outlet",
-          "lanenamagdalena",
-          "latinproductioncolombia",
-          "latrinidaddelasalsa",
-          "ludancestudios",
-          "mambo_y_control",
-          "meetinghousebogota",
-          "mover__se",
-          "originalstepdance",
-          "proyectourbandance",
-          "quemaquequema",
-          "reyesdelasalsa.col",
-          "ritmomoderno",
-          "ritmosacademiadebaile",
-          "salsaculto",
-          "showstarscol",
-          "sondehabana",
-          "sonrumbero",
-          "soywiwioficial",
-          "studiolatindance",
-          "tubailecom",
-          "valkandela"
-        ],
-        "skipped_accounts": [],
-        "posts_analyzed": 14,
-        "events_new": 1,
-        "events_merged": 1,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 0,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 11,
-          "gemini-3.8-flash": 6,
-          "gemini-3.6-flash": 6
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 38,
-        "instagram_usage_detail": {
-          "call_count": 13,
-          "total_cputime": 0,
-          "total_time": 38
-        },
-        "instagram_reads": {
-          "accounts": 53,
-          "mean_seconds": 1.47,
-          "median_seconds": 1.36,
-          "max_seconds": 3.37,
-          "mean_cost": 0.73,
-          "max_cost": 2,
-          "max_cost_account": "originalstepdance",
-          "headers": {
-            "X-App-Usage": 53
-          },
-          "expected_cost": 1
-        },
-        "instagram_stop": null,
-        "upgrade_changes": {},
-        "upgraded": 6,
-        "upgrade_reads": 5,
-        "upgrade_misses": 1,
-        "triage_checked": 0,
-        "triage_misses": 0,
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [],
-        "changes_left_out": 0,
-        "change_counts": {
-          "new": 1,
-          "merged": 1,
-          "reread": 5
-        }
       }
     ],
     "next": [
-      "2026-10-20T06:30-05:00",
-      "2026-10-20T21:00-05:00"
+      "2026-10-20T21:00-05:00",
+      "2026-10-21T03:00-05:00"
     ]
   },
   "site_data": {
-    "published_at": "2026-10-19T21:12:13-05:00",
-    "checked_at": "2026-10-20T03:01:03-05:00",
+    "published_at": "2026-10-20T03:15:36-05:00",
+    "checked_at": "2026-10-20T06:30:47-05:00",
     "missing": [],
     "prs_url": "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata"
   },
@@ -543,13 +498,13 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 6,
+        "used": 12,
         "budget": 18
       },
       {
         "model": "gemini-3.6-flash",
         "role": "extraction",
-        "used": 5,
+        "used": 12,
         "budget": 18
       },
       {
@@ -606,36 +561,36 @@
     "error": null
   },
   "instagram_quota": {
-    "usage": 48,
+    "usage": 6,
     "detail": {
-      "call_count": 16,
+      "call_count": 1,
       "total_cputime": 0,
-      "total_time": 48
+      "total_time": 6
     },
     "stopped": false,
     "stop": null,
-    "finished_at": "2026-10-20T03:15:36-05:00",
+    "finished_at": "2026-10-20T06:37:04-05:00",
     "stop_at": 98,
     "reads": {
-      "accounts": 48,
-      "mean_seconds": 2.05,
-      "median_seconds": 2.1,
-      "max_seconds": 3.59,
-      "mean_cost": 1.02,
+      "accounts": 7,
+      "mean_seconds": 1.58,
+      "median_seconds": 1.61,
+      "max_seconds": 1.83,
+      "mean_cost": 1.0,
       "max_cost": 2,
-      "max_cost_account": "and1erita",
+      "max_cost_account": "pachanga_y_pochola",
       "headers": {
-        "X-App-Usage": 48
+        "X-App-Usage": 7
       },
       "expected_cost": 2
     }
   },
   "lighter_reads": {
-    "compared": 37,
+    "compared": 40,
     "dropped": 1,
     "venue": 8,
     "styles": 8,
-    "title": 4,
+    "title": 5,
     "event_type": 3
   },
   "accounts": {
@@ -652,7 +607,7 @@
   },
   "posts": {
     "recorded": 1177,
-    "provisional": 177
+    "provisional": 171
   },
   "events": {
     "upcoming": 67,
@@ -721,6 +676,75 @@
     }
   ],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "06:30",
+      "finished_at": "2026-10-20T06:37:04-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/39415379837",
+      "target": null,
+      "error": null,
+      "changes": [
+        {
+          "kind": "corrected",
+          "id": "dynamic-class-heels-dark-circus-23-oct",
+          "title": "Dynamic Class Heels Dark Circus",
+          "account": "esferalatinaoficial",
+          "date": "2026-10-23",
+          "detail": "Flash cambió el título",
+          "url": "https://pa-bailar.github.io/evento/dynamic-class-heels-dark-circus-23-oct/"
+        },
+        {
+          "kind": "reread",
+          "id": "salsoteca-dc-la-pambele-24-oct",
+          "title": "La Pambelé",
+          "account": "elgocepagano",
+          "date": "2026-10-24",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/salsoteca-dc-la-pambele-24-oct/"
+        },
+        {
+          "kind": "reread",
+          "id": "clase-especial-salsa-25-oct",
+          "title": "Clase especial: Salsa",
+          "account": "zafradance",
+          "date": "2026-10-25",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/clase-especial-salsa-25-oct/"
+        },
+        {
+          "kind": "reread",
+          "id": "clase-especial-champeta-25-oct",
+          "title": "Clase especial: Champeta",
+          "account": "zafradance",
+          "date": "2026-10-25",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/clase-especial-champeta-25-oct/"
+        },
+        {
+          "kind": "reread",
+          "id": "halloween-en-pachanga-pochola-31-oct",
+          "title": "Halloween en Pachanga & Pochola",
+          "account": "pachanga_y_pochola",
+          "date": "2026-10-31",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/halloween-en-pachanga-pochola-31-oct/"
+        },
+        {
+          "kind": "reread",
+          "id": "jack-and-jill-20-nov",
+          "title": "Jack and Jill",
+          "account": "jackandjilloficial",
+          "date": "2026-11-20",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/jack-and-jill-20-nov/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "corrected": 1,
+        "reread": 5
+      }
+    },
     {
       "kind": "sweep",
       "slot": "03:00",
@@ -1432,29 +1456,6 @@
       "changes": [],
       "left_out": 0,
       "counts": {}
-    },
-    {
-      "kind": "post_again",
-      "slot": null,
-      "finished_at": "2026-10-17T14:08:48-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/39060936387",
-      "target": "https://www.instagram.com/p/DeP18T8pb0G/",
-      "error": null,
-      "changes": [
-        {
-          "kind": "merged",
-          "id": "ritmos-cruzados-20-oct",
-          "title": "Ritmos Cruzados",
-          "account": "esferalatinaoficial",
-          "date": "2026-10-20",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/ritmos-cruzados-20-oct/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "merged": 1
-      }
     }
   ],
   "discovery": null
