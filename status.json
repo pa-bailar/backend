@@ -1,7 +1,123 @@
 {
-  "generated_at": "2026-10-20T06:37:04-05:00",
+  "generated_at": "2026-10-20T21:08:42-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-10-20T21:08:41-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/39530518380",
+        "started_at": "2026-10-20T21:00:50-05:00",
+        "site_data_at": "2026-10-20T06:37:04-05:00",
+        "data_changed": true,
+        "accounts": 48,
+        "failed_accounts": [],
+        "read_accounts": [
+          "academia_cowork",
+          "academiaalmadetangoe",
+          "alejochacon.co",
+          "alpasojam",
+          "angie__cuesta",
+          "babou_candelaria",
+          "bachatamania_bogota",
+          "bachatasocialcongresss",
+          "bogotadanceclub",
+          "bureodancestudio",
+          "casineafest",
+          "clandisfrute",
+          "danceinmotionclub",
+          "danzaenlaciudad",
+          "davidylauradancers",
+          "distritosocialbog",
+          "ebi_dancecompany",
+          "efadanza",
+          "el_panteon_de_la_salsa",
+          "elparche.se",
+          "fredyysaraoficial",
+          "germanbaila",
+          "guadalupebar751",
+          "herencialatinad.c",
+          "imperiolatino",
+          "jen.ssy",
+          "lacoartadacentrocultural",
+          "ladiezluxury_outlet",
+          "lanenamagdalena",
+          "latinproductioncolombia",
+          "latrinidaddelasalsa",
+          "ludancestudios",
+          "mambo_y_control",
+          "meetinghousebogota",
+          "mover__se",
+          "originalstepdance",
+          "proyectourbandance",
+          "quemaquequema",
+          "reyesdelasalsa.col",
+          "ritmomoderno",
+          "ritmosacademiadebaile",
+          "salsaculto",
+          "showstarscol",
+          "sondehabana",
+          "sonrumbero",
+          "studiolatindance",
+          "tubailecom",
+          "valkandela"
+        ],
+        "skipped_accounts": [
+          "soywiwioficial",
+          "jackandjilloficial"
+        ],
+        "posts_analyzed": 18,
+        "events_new": 1,
+        "events_merged": 6,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 3,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 18,
+          "gemini-3.8-flash": 6,
+          "gemini-3.6-flash": 6,
+          "gemini-3-flash-preview": 3
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 88,
+        "instagram_usage_detail": {
+          "call_count": 19,
+          "total_cputime": 0,
+          "total_time": 88
+        },
+        "instagram_reads": {
+          "accounts": 48,
+          "mean_seconds": 2.3,
+          "median_seconds": 2.1,
+          "max_seconds": 5.16,
+          "mean_cost": 1.87,
+          "max_cost": 5,
+          "max_cost_account": "elparche.se",
+          "headers": {
+            "X-App-Usage": 48
+          },
+          "expected_cost": 3
+        },
+        "instagram_stop": null,
+        "upgrade_changes": {},
+        "upgraded": 0,
+        "upgrade_reads": 0,
+        "upgrade_misses": 0,
+        "triage_checked": 0,
+        "triage_misses": 0,
+        "batch_requests": 0,
+        "batched_posts": 0,
+        "batch_rereads": 0,
+        "warnings": [],
+        "changes_left_out": 0,
+        "change_counts": {
+          "provisional": 1,
+          "merged": 5
+        }
+      },
       {
         "finished_at": "2026-10-20T06:37:04-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/39415379837",
@@ -365,129 +481,16 @@
           "corrected": 1,
           "reread": 1
         }
-      },
-      {
-        "finished_at": "2026-10-19T03:05:09-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/39219673371",
-        "started_at": "2026-10-19T03:00:59-05:00",
-        "site_data_at": "2026-10-18T21:06:46-05:00",
-        "data_changed": true,
-        "accounts": 48,
-        "failed_accounts": [],
-        "read_accounts": [
-          "academiadebailepasolatino",
-          "academyfeel",
-          "and1erita",
-          "andonybaron",
-          "aseismanos",
-          "bailaderia",
-          "bembeacademiadebaile",
-          "bilongocolombia",
-          "bogotadanceclub.academy",
-          "boogaloop.candelaria",
-          "bulevarsalsabar",
-          "callejonsalsa",
-          "casaquiebracanto",
-          "casavander_",
-          "chanchanlatino",
-          "cremadeajiaco",
-          "danceholicproject",
-          "danitello22",
-          "discojaguar.bta",
-          "dlivingstudio",
-          "dreamcupco",
-          "el_bochinche_cafe_",
-          "elgocepagano",
-          "elratonsalsaclub",
-          "esferalatinaoficial",
-          "fernandoespanadj",
-          "frank.de.latorre",
-          "galeriacafelibro",
-          "ilhehabana",
-          "juancho__salsita",
-          "la33orquesta",
-          "lamecanica_original",
-          "lauuurin__",
-          "madyumdance",
-          "mariavasquezdancer",
-          "osupaproject",
-          "oswaldgil2",
-          "pachanga_y_pochola",
-          "parchexbogota",
-          "restaurantecasadecitas",
-          "salsacamaraoficial",
-          "salsaysonoficial",
-          "soondanz_company",
-          "studio110dance",
-          "teffa_mg",
-          "tributo.salsayjazz",
-          "zafradance",
-          "zaimora24"
-        ],
-        "skipped_accounts": [],
-        "posts_analyzed": 14,
-        "events_new": 2,
-        "events_merged": 2,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 0,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 12,
-          "gemini-3.8-flash": 6,
-          "gemini-3.6-flash": 6
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 49,
-        "instagram_usage_detail": {
-          "call_count": 15,
-          "total_cputime": 0,
-          "total_time": 49
-        },
-        "instagram_reads": {
-          "accounts": 48,
-          "mean_seconds": 1.55,
-          "median_seconds": 1.52,
-          "max_seconds": 2.86,
-          "mean_cost": 1.04,
-          "max_cost": 3,
-          "max_cost_account": "cremadeajiaco",
-          "headers": {
-            "X-App-Usage": 48
-          },
-          "expected_cost": 2
-        },
-        "instagram_stop": null,
-        "upgrade_changes": {},
-        "upgraded": 2,
-        "upgrade_reads": 0,
-        "upgrade_misses": 1,
-        "triage_checked": 0,
-        "triage_misses": 0,
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [],
-        "changes_left_out": 0,
-        "change_counts": {
-          "new": 2,
-          "merged": 2,
-          "reread": 2
-        }
       }
     ],
     "next": [
-      "2026-10-20T21:00-05:00",
-      "2026-10-21T03:00-05:00"
+      "2026-10-21T03:00-05:00",
+      "2026-10-21T06:30-05:00"
     ]
   },
   "site_data": {
-    "published_at": "2026-10-20T03:15:36-05:00",
-    "checked_at": "2026-10-20T06:30:47-05:00",
+    "published_at": "2026-10-20T06:37:04-05:00",
+    "checked_at": "2026-10-20T21:00:50-05:00",
     "missing": [],
     "prs_url": "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata"
   },
@@ -498,25 +501,25 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 12,
+        "used": 18,
         "budget": 18
       },
       {
         "model": "gemini-3.6-flash",
         "role": "extraction",
-        "used": 12,
+        "used": 18,
         "budget": 18
       },
       {
         "model": "gemini-3-flash-preview",
         "role": "provisional",
-        "used": 5,
+        "used": 8,
         "budget": 18
       },
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 20,
+        "used": 38,
         "budget": 498
       },
       {
@@ -528,7 +531,7 @@
     ]
   },
   "external": {
-    "resets_at": "2026-10-20T19:00-05:00",
+    "resets_at": "2026-10-21T19:00-05:00",
     "providers": [
       {
         "name": "groq",
@@ -561,28 +564,28 @@
     "error": null
   },
   "instagram_quota": {
-    "usage": 6,
+    "usage": 88,
     "detail": {
-      "call_count": 1,
+      "call_count": 19,
       "total_cputime": 0,
-      "total_time": 6
+      "total_time": 88
     },
     "stopped": false,
     "stop": null,
-    "finished_at": "2026-10-20T06:37:04-05:00",
+    "finished_at": "2026-10-20T21:08:41-05:00",
     "stop_at": 98,
     "reads": {
-      "accounts": 7,
-      "mean_seconds": 1.58,
-      "median_seconds": 1.61,
-      "max_seconds": 1.83,
-      "mean_cost": 1.0,
-      "max_cost": 2,
-      "max_cost_account": "pachanga_y_pochola",
+      "accounts": 48,
+      "mean_seconds": 2.3,
+      "median_seconds": 2.1,
+      "max_seconds": 5.16,
+      "mean_cost": 1.87,
+      "max_cost": 5,
+      "max_cost_account": "elparche.se",
       "headers": {
-        "X-App-Usage": 7
+        "X-App-Usage": 48
       },
-      "expected_cost": 2
+      "expected_cost": 3
     }
   },
   "lighter_reads": {
@@ -606,11 +609,11 @@
     ]
   },
   "posts": {
-    "recorded": 1177,
-    "provisional": 171
+    "recorded": 1195,
+    "provisional": 174
   },
   "events": {
-    "upcoming": 67,
+    "upcoming": 68,
     "low_confidence": 0
   },
   "new_series": [
@@ -676,6 +679,75 @@
     }
   ],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "21:00",
+      "finished_at": "2026-10-20T21:08:41-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/39530518380",
+      "target": null,
+      "error": null,
+      "changes": [
+        {
+          "kind": "provisional",
+          "id": "tardeo-de-muertos-24-oct",
+          "title": "TARDEO DE MUERTOS",
+          "account": "bogotadanceclub",
+          "date": "2026-10-24",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/tardeo-de-muertos-24-oct/"
+        },
+        {
+          "kind": "merged",
+          "id": "distrito-social-aniversario-31-oct",
+          "title": "Distrito Social Aniversario",
+          "account": "distritosocialbog",
+          "date": "2026-10-31",
+          "detail": "otra publicación de @bachatamania_bogota",
+          "url": "https://pa-bailar.github.io/evento/distrito-social-aniversario-31-oct/"
+        },
+        {
+          "kind": "merged",
+          "id": "halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct",
+          "title": "Halloween: Concurso de disfraces, fiesta y taller de baile",
+          "account": "showstarscol",
+          "date": "2026-10-24",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct/"
+        },
+        {
+          "kind": "merged",
+          "id": "taller-de-bachata-para-las-fiestas-24-oct",
+          "title": "Taller de bachata para las fiestas",
+          "account": "clandisfrute",
+          "date": "2026-10-24",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/taller-de-bachata-para-las-fiestas-24-oct/"
+        },
+        {
+          "kind": "merged",
+          "id": "halloween-salsero-el-tour-de-la-salsa-vol-1-30-oct",
+          "title": "Halloween Salsero - El Tour de la Salsa Vol. 1",
+          "account": "salsaculto",
+          "date": "2026-10-30",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/halloween-salsero-el-tour-de-la-salsa-vol-1-30-oct/"
+        },
+        {
+          "kind": "merged",
+          "id": "festival-internacional-casinea-10-a-edicion-13-nov",
+          "title": "Festival Internacional Casinea - 10.ª Edición",
+          "account": "casineafest",
+          "date": "2026-11-13",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/festival-internacional-casinea-10-a-edicion-13-nov/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "provisional": 1,
+        "merged": 5
+      }
+    },
     {
       "kind": "sweep",
       "slot": "06:30",
@@ -1445,17 +1517,6 @@
         "merged": 3,
         "reread": 14
       }
-    },
-    {
-      "kind": "post_again",
-      "slot": null,
-      "finished_at": "2026-10-17T14:13:02-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/39061422760",
-      "target": "https://www.instagram.com/p/DeUbWwST_qQ/",
-      "error": "No pude leer la publicación: la API de Instagram no la entrega y su página pública no muestra la publicación (¿privada o borrada?).",
-      "changes": [],
-      "left_out": 0,
-      "counts": {}
     }
   ],
   "discovery": null

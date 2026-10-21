@@ -3571,40 +3571,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "new",
-        "id": "los-titanes-de-la-salsa-16-oct",
-        "title": "Los Titanes de la Salsa",
-        "account": "fernandoespanadj",
-        "date": "2026-10-16",
-        "detail": null
-      },
-      {
-        "kind": "merged",
-        "id": "halloween-social-31-oct",
-        "title": "Halloween Social",
-        "account": "dlivingstudio",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "embrujate-con-salsa-viernes-30-oct",
-        "title": "¡Embrújate con Salsa! - Viernes",
-        "account": "galeriacafelibro",
-        "date": "2026-10-30",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "embrujate-con-salsa-sabado-31-oct",
-        "title": "¡Embrújate con Salsa! - Sábado",
-        "account": "galeriacafelibro",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "new": 1,
@@ -5715,6 +5682,172 @@
     "change_counts": {
       "corrected": 1,
       "reread": 5
+    }
+  },
+  {
+    "finished_at": "2026-10-20T21:08:41-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/39530518380",
+    "started_at": "2026-10-20T21:00:50-05:00",
+    "site_data_at": "2026-10-20T06:37:04-05:00",
+    "data_changed": true,
+    "accounts": 48,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academia_cowork",
+      "academiaalmadetangoe",
+      "alejochacon.co",
+      "alpasojam",
+      "angie__cuesta",
+      "babou_candelaria",
+      "bachatamania_bogota",
+      "bachatasocialcongresss",
+      "bogotadanceclub",
+      "bureodancestudio",
+      "casineafest",
+      "clandisfrute",
+      "danceinmotionclub",
+      "danzaenlaciudad",
+      "davidylauradancers",
+      "distritosocialbog",
+      "ebi_dancecompany",
+      "efadanza",
+      "el_panteon_de_la_salsa",
+      "elparche.se",
+      "fredyysaraoficial",
+      "germanbaila",
+      "guadalupebar751",
+      "herencialatinad.c",
+      "imperiolatino",
+      "jen.ssy",
+      "lacoartadacentrocultural",
+      "ladiezluxury_outlet",
+      "lanenamagdalena",
+      "latinproductioncolombia",
+      "latrinidaddelasalsa",
+      "ludancestudios",
+      "mambo_y_control",
+      "meetinghousebogota",
+      "mover__se",
+      "originalstepdance",
+      "proyectourbandance",
+      "quemaquequema",
+      "reyesdelasalsa.col",
+      "ritmomoderno",
+      "ritmosacademiadebaile",
+      "salsaculto",
+      "showstarscol",
+      "sondehabana",
+      "sonrumbero",
+      "studiolatindance",
+      "tubailecom",
+      "valkandela"
+    ],
+    "skipped_accounts": [
+      "soywiwioficial",
+      "jackandjilloficial"
+    ],
+    "posts_analyzed": 18,
+    "events_new": 1,
+    "events_merged": 6,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 3,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 18,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3-flash-preview": 3
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 88,
+    "instagram_usage_detail": {
+      "call_count": 19,
+      "total_cputime": 0,
+      "total_time": 88
+    },
+    "instagram_reads": {
+      "accounts": 48,
+      "mean_seconds": 2.3,
+      "median_seconds": 2.1,
+      "max_seconds": 5.16,
+      "mean_cost": 1.87,
+      "max_cost": 5,
+      "max_cost_account": "elparche.se",
+      "headers": {
+        "X-App-Usage": 48
+      },
+      "expected_cost": 3
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "provisional",
+        "id": "tardeo-de-muertos-24-oct",
+        "title": "TARDEO DE MUERTOS",
+        "account": "bogotadanceclub",
+        "date": "2026-10-24",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "merged",
+        "id": "distrito-social-aniversario-31-oct",
+        "title": "Distrito Social Aniversario",
+        "account": "distritosocialbog",
+        "date": "2026-10-31",
+        "detail": "otra publicación de @bachatamania_bogota"
+      },
+      {
+        "kind": "merged",
+        "id": "halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct",
+        "title": "Halloween: Concurso de disfraces, fiesta y taller de baile",
+        "account": "showstarscol",
+        "date": "2026-10-24",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "taller-de-bachata-para-las-fiestas-24-oct",
+        "title": "Taller de bachata para las fiestas",
+        "account": "clandisfrute",
+        "date": "2026-10-24",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "halloween-salsero-el-tour-de-la-salsa-vol-1-30-oct",
+        "title": "Halloween Salsero - El Tour de la Salsa Vol. 1",
+        "account": "salsaculto",
+        "date": "2026-10-30",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "festival-internacional-casinea-10-a-edicion-13-nov",
+        "title": "Festival Internacional Casinea - 10.ª Edición",
+        "account": "casineafest",
+        "date": "2026-11-13",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "provisional": 1,
+      "merged": 5
     }
   }
 ]
