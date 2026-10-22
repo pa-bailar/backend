@@ -87,6 +87,16 @@ def loudnorm(src: Path, dest: Path, target: float, duration: float, fade: float)
     return str(last_json(second).get("normalization_type", "?"))
 
 
+def trim(path: Path, gain_db: float) -> None:
+    """Change a WAV's level by `gain_db` in place (through a sibling file, so a failed ffmpeg leaves it whole)."""
+    out = path.with_name(f"{path.stem}.trim.wav")
+    try:
+        ffmpeg("-i", str(path), "-af", f"volume={gain_db:.2f}dB", "-c:a", "pcm_s16le", str(out))
+        os.replace(out, path)
+    finally:
+        out.unlink(missing_ok=True)
+
+
 def last_json(stderr: str) -> dict[str, Any]:
     """The last {…} block ffmpeg printed (loudnorm's report)."""
     report: dict[str, Any] = json.loads(stderr[stderr.rindex("{") : stderr.rindex("}") + 1])
@@ -133,6 +143,13 @@ def normalize(v: Video, src: Path, name: str, target: float, fade: float) -> Pen
     try:
         kind = loudnorm(src, tmp, target, v.duration, fade)
         integrated, peak = measure(tmp)
+        if peak > LOUD["true_peak_max"]:
+            # loudnorm's dynamic mode (its fallback when linear can't meet the true peak) limits a little loosely:
+            # finde-halloween's bed came out at −0.9 dBTP for a −1.5 target. Turn the whole soundtrack down to the
+            # target and measure again; the loudness drops as much (well inside the tolerance), the mix stays as it was.
+            kind += f", trimmed {TP - peak:+.1f} dB"
+            trim(tmp, TP - peak)
+            integrated, peak = measure(tmp)
     except BaseException:  # ffmpeg failed (SystemExit), a report didn't parse, Ctrl+C: no half-written file stays
         tmp.unlink(missing_ok=True)
         raise
