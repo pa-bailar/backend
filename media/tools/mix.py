@@ -11,7 +11,8 @@
 
 Reads out/<video>/voice-track.wav (tools/timing.py) and video.json's "music"."bed" (a file in the media home, e.g.
 one of tools/music.py's candidates) and "mix": "voice_only_lufs", "with_music_lufs" (default −15 and −14:
-brand.json's "loudness"), "bed_db" (the bed's level before ducking, −8), "fade" (seconds in and out, 0.3).
+brand.json's "loudness"), "bed_db" (the bed's level before ducking, −8), "fade" (seconds in and out, 0.3), "release"
+(ms the ducked bed takes to come back after the voice stops, 350: longer holds it down through her pauses).
 "first_hit": seconds trimmed off the bed's start so its first hit lands on frame 0. Without a bed, only
 voice-only.wav is written. A video with no voice (no voice track, no "voice" in video.json) gets music-only.wav: the
 bed alone at "music_only_lufs" (−16).
@@ -209,7 +210,7 @@ def mix_music(v: Video, voice: Path, bed: Path, raw: Path, ducked: Path) -> None
         f"[0:a]aresample=48000,pan=stereo|c0=c0|c1=c0,volume=1.0,apad=whole_dur={duration},asplit=2[v][key];"
         f"[1:a]atrim=start={float(music.get('first_hit', 0))},asetpts=PTS-STARTPTS,aresample=48000,"
         f"volume={mix.get('bed_db', -8)}dB,afade=t=out:st={duration - 1.2}:d=1.2[m];"
-        f"[m][key]sidechaincompress=threshold=0.04:ratio=4:attack=20:release=350:makeup=1[duck];"
+        f"[m][key]sidechaincompress=threshold=0.04:ratio=4:attack=20:release={int(mix.get('release', 350))}:makeup=1[duck];"
         f"[duck]asplit=2[duck1][duck2];"
         f"[v][duck1]amix=inputs=2:duration=longest:normalize=0[mix]"
     )

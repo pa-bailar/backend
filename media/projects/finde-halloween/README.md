@@ -35,6 +35,12 @@ look. Started 22 Oct 2026 with `tools/new.py`; the first weekly "este finde" Sto
   "¿Sin disfraz?" with Salsa en Digital and Latinholic Night (flyer and facts each), then the pile and the count.
   21 s; a new take (three recorded, the cleanest kept). The phone-speaker check warns again with this take (32%
   masked at −11 dB, as v1).
+- **v4:** the owner on v3: "sin disfraz" claims something the data doesn't say about those two events, and parts of
+  the voice felt disconnected. It was one take already (the script in one request, only trimmed at its ends); the
+  seams were the reading (the direction asked for short pauses between phrases) and the music swelling back in every
+  pause (the ducking's 350 ms release). Now "Y más sociales: …" on screen and in the voice, a direction for connected
+  phrases (three takes; the one with the shortest pauses kept, 17.2 s), and `mix.release` 900 ms, which holds the bed
+  down through her pauses (and the phone check passes: +21.5 dB, 2% masked). 19.5 s.
 
 ## Make
 

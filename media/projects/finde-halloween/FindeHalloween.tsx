@@ -1,7 +1,7 @@
-// Este finde, Halloween (23–25 Oct 2026), v3: the whole video at night. Lightning opens it on "¿Ya tienes disfraz?" and
+// Este finde, Halloween (23–25 Oct 2026), v4: the whole video at night. Lightning opens it on "¿Ya tienes disfraz?" and
 // strikes again on "¡Halloween!", where the record pops in dressed as a jack-o'-lantern, its carved face flickering
 // like a candle. Then Saturday under a full moon (bats cross it as the page head comes in): the three Halloween socials
-// land as she names them, their facts below; a whip to "¿Sin disfraz?" and the other two socials. Then the rest of the weekend's flyers pile in fast while the count climbs
+// land as she names them, their facts below; a whip to "Más sociales" and the other two. Then the rest of the weekend's flyers pile in fast while the count climbs
 // to the real number ("treinta y dos planes"), and the end card stays at night (the kit's EndCard with `ink`). v1
 // (afternoon into night, only the socials) felt slow to the owner: v2's take is livelier (a third shorter) and its
 // cuts come quicker. The voice (Despina, one take) leads: each section on the beat at or just before its line, each
@@ -80,11 +80,11 @@ const NIGHT_INK: EndInk = { text: NIGHT.text, arrow: NIGHT.title, name: NIGHT.ti
 // ---------- the sections, each on the beat at or just before its line ----------
 
 const SAB = beatAt(line("sab").start);
-const SIN = beatAt(line("sin").start);
+const OTROS = beatAt(line("otros").start);
 const MAS = beatAt(line("mas").start);
-/** The two stages (Saturday's Halloween socials, then the two "sin disfraz"): when each whips in and leaves. */
-const STAGE_IN = [SAB, SIN];
-const STAGE_OUT = [SIN, MAS];
+/** The two stages (Saturday's Halloween socials, then the two others): when each whips in and leaves. */
+const STAGE_IN = [SAB, OTROS];
+const STAGE_OUT = [OTROS, MAS];
 const END_BEAT = beatAt(line("fin").start);
 /** The two words lightning strikes on: the first frames, and "¡Halloween!". */
 const HALLOWEEN = said("hook", "Halloween!");
@@ -108,7 +108,7 @@ function lightning(frame: number) {
 // ---------- the events: the weekend's five socials (all Saturday), then the rest of the weekend ----------
 
 /**
- * `stage`: 0 the Halloween socials, 1 the two without a costume; `name`: the title as the flyer reads it (the data's
+ * `stage`: 0 the Halloween socials, 1 the two others ("más sociales": not "sin disfraz", which the data doesn't say); `name`: the title as the flyer reads it (the data's
  * casing or its first part); `land`: the frame of its name (the owner, v2: the socials must still be named).
  */
 type Shown = { id: string; stage: 0 | 1; name: string; land: number; side: -1 | 1 };
@@ -122,8 +122,8 @@ const SHOWN: Shown[] = [
     side: -1,
   },
   { id: "social-de-halloween-24-oct", stage: 0, name: "Social de Halloween", land: said("sab", "Social"), side: 1 },
-  { id: "salsa-en-digital-24-oct", stage: 1, name: "Salsa en Digital", land: said("sin", "Salsa"), side: 1 },
-  { id: "latinholic-night-24-oct", stage: 1, name: "Latinholic Night", land: said("sin", "Latinholic"), side: -1 },
+  { id: "salsa-en-digital-24-oct", stage: 1, name: "Salsa en Digital", land: said("otros", "Salsa"), side: 1 },
+  { id: "latinholic-night-24-oct", stage: 1, name: "Latinholic Night", land: said("otros", "Latinholic"), side: -1 },
 ];
 const byId = new Map(data.events.map((e) => [e.id, e]));
 const shown = SHOWN.map((s) => {
@@ -343,8 +343,8 @@ const Stage: React.FC<{ frame: number; abs: number; stage: 0 | 1 }> = ({ frame, 
   }
   const drop = stage === 1 ? leave(frame, bt(MAS) - 2, 8) : 0;
   const landings = items.map((s) => s.land - 8); // tossed 8 frames before the name, so it lands on it
-  // "¿Sin disfraz?" while she asks it, until its first flyer comes in.
-  const askAt = Math.min(said("sin", "Sin") - 2, bt(SIN) + 4);
+  // "Más sociales" while she says it, until its first flyer comes in.
+  const askAt = Math.min(said("otros", "más") - 2, bt(OTROS) + 4);
   return (
     <AbsoluteFill style={{ translate: `${x}px ${900 * drop}px`, opacity: 1 - drop }}>
       {stage === 1 ? (
@@ -359,7 +359,7 @@ const Stage: React.FC<{ frame: number; abs: number; stage: 0 | 1 }> = ({ frame, 
             ...rise(frame, askAt, { distance: 70, exitAt: landings[0] }),
           }}
         >
-          ¿Sin disfraz?
+          Más sociales
         </div>
       ) : null}
       {items.map((s, i) => {
@@ -455,7 +455,7 @@ const Pile: React.FC<{ frame: number }> = ({ frame }) => {
 /** Fast moves that get motion blur: the whip into Saturday, the pile's tosses and the end's drop. */
 const FAST: [number, number][] = [
   whipBlur(bt(SAB)),
-  whipBlur(bt(SIN)),
+  whipBlur(bt(OTROS)),
   [bt(MAS) - 2, bt(MAS) + 50],
   [bt(END_BEAT) - 3, bt(END_BEAT) + 6],
 ];
