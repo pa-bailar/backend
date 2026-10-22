@@ -142,13 +142,16 @@ UPGRADE_READ_MARGIN_POSTS = 5
 UPGRADE_READ_MAX_POSTS = 50
 # Flash's second opinion on the triage (pipeline.Sweep._check_triage; the owner, 17 Oct 2026): Flash-Lite's triage
 # decides alone whether a post announces an event, and a wrong "no" loses the event for good (Flash never sees it). 119
-# posts were ruled out in the week to 17 Oct and nobody knew how many were events. So at the end of a run, after the
-# upgrades and only while Flash can still be used (the upgrades' gate: budget left beyond the later sweeps' share, not
-# paused as busy, time left; never waiting for it), Flash extracts up to this many of the posts the triage ruled out
-# this run, as fetched (no other Instagram read): accounts that post events first, unproductive ones last, the newest
-# first. An event found is stored as any Flash reading and counted (`triage_misses`). Three a run is at most nine of
-# Flash's 36 a day, and only of what the upgrades left: enough to measure the triage within a few weeks.
-TRIAGE_CHECKS_PER_RUN = 3
+# posts were ruled out in the week to 17 Oct and nobody knew how many were events. So once the accounts are read,
+# before the upgrades and only while Flash can be used as for one (the upgrades' gate: budget left beyond the later
+# sweeps' share, not paused as busy, time left; never waiting for it), Flash extracts up to this many of the posts the
+# triage ruled out this run, as fetched (no other Instagram read): accounts that post events first, unproductive ones
+# last, the newest first. An event found is stored as any Flash reading and counted (`triage_misses`). Until 22 Oct it
+# came after the upgrades, with what they left, and never ran: Flash is used up every quota day (36 of 36) and
+# provisional posts always wait (24 that week), so `triage_checked` was 0 in all 15 sweeps of 17–22 Oct. Now a fixed
+# share before them (the owner, 22 Oct 2026): one a run, three of Flash's 36 a day, the upgrades take the rest. It's
+# there to measure the triage's misses for about two weeks: keep it or drop it then (early Nov 2026), on what it found.
+TRIAGE_CHECKS_PER_RUN = 1
 # How many of the run's ruled-out posts (with their images) are held for it meanwhile, the likeliest kept.
 TRIAGE_CHECKS_HELD = 12
 # A health notice when Flash found this many events the triage had ruled out in the last TRIAGE_MISS_RUNS runs (about

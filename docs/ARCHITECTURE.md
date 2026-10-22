@@ -600,7 +600,7 @@ flowchart TD
     IMG -->|fails| PEND
     IMG --> TR["Triage: Flash-Lite<br/>caption + first image (512 px)"]
     TR -->|"not an event"| REC["Record as analyzed"]
-    REC -.->|"a few a run, at its end, with the<br/>Flash the upgrades left (7.2)"| SO["Flash's second opinion:<br/>an event found is stored (a triage miss)"]
+    REC -.->|"one a run, once the accounts are read,<br/>before the upgrades (7.2)"| SO["Flash's second opinion:<br/>an event found is stored (a triage miss)"]
     SO --> ST
     TR -->|"Flash-Lite out of<br/>today's quota"| TLR{"Flash out<br/>of quota too?"}
     TLR -->|"no: keep Flash for<br/>screened posts"| PEND
@@ -662,8 +662,8 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 **Flash's second opinion on the triage** (17 Oct 2026, `Sweep._check_triage`): the triage's "no" was final, and
 119 posts were ruled out in the week to 17 Oct without anyone knowing how many announced events. So a run holds the
 posts the triage ruled out (as fetched, with their images: no other Instagram read; at most `TRIAGE_CHECKS_HELD`,
-12), and at its end, after the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (3) of them with what it has
-left (section 7.2). Only the triage's own "no": not the rules' (a bar's or a focus filter's, recorded with model
+12), and once the accounts are read, before the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (1) of them
+(section 7.2). Only the triage's own "no": not the rules' (a bar's or a focus filter's, recorded with model
 `-`), nor posts or stories added by hand. Flash's reading is stored as any Flash reading (section 6.3) and replaces
 the post's record (Flash's model, `triage_checked`, never checked again). An event published (or hidden by hand) is
 a **triage miss**: counted (`triage_misses`), logged as a warning, and its change in the run's history says "el filtro
@@ -892,16 +892,20 @@ flowchart TD
   budget still follow, then upgrades while Flash answers. On 7 Oct 2026 at 21:09 the 34 queued upgrades were given
   up at once, with 21 of the run's 30 minutes left; 40 of the 85 upcoming events had only a lighter reading. Out of
   quota, it doesn't wait; busy again after the wait, the rest waits for a later run.
-- **Flash's second opinion on the triage** (17 Oct 2026, `Sweep._check_triage`; section 6.2): after the upgrades,
-  which come first, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (3) of the posts the triage ruled out this run, under
-  the upgrades' gate (`can_upgrade`: budget beyond the later sweeps' share, not paused as busy; time left), never
-  waiting for a paused Flash. Which ones (`second_opinion_order`): those of accounts with an event on record first
-  (they do post events), then the others, then the unproductive ones (`unproductive_accounts`); the newest first in
-  each. Cost: at most 3 Flash requests a run, 9 a day, and only what the upgrades left (all of it unused at 21:00,
-  when no later sweep of the quota day needs it); no Instagram read. The counters (`run_history.json`, the run's
-  "Done:" line and summary, `admin status` and the admin page's run line: "3 descartes revisados con Flash, 1 evento
-  rescatado"): `triage_checked`, the posts Flash read, and `triage_misses`, those it found an event in. A health
-  notice when misses repeat (section 11.1): then look at those posts (`admin why`) and the triage's prompt.
+- **Flash's second opinion on the triage** (17 Oct 2026, `Sweep._check_triage`; section 6.2): once the accounts are
+  read and before the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (1) of the posts the triage ruled out
+  this run, under the upgrades' gate (`can_upgrade`: budget beyond the later sweeps' share, not paused as busy; time
+  left), never waiting for a paused Flash (that wait is the upgrades'); the upgrades take the rest. Which ones
+  (`second_opinion_order`): those of accounts with an event on record first (they do post events), then the others,
+  then the unproductive ones (`unproductive_accounts`); the newest first in each. Cost: at most 1 Flash request a
+  run, 3 of the 36 a day; no Instagram read. Until 22 Oct 2026 it came after the upgrades, with what they left
+  (3 a run), and never ran: Flash is used up every quota day and provisional posts always wait (24 that week), so
+  `triage_checked` was 0 in all 15 sweeps of 17–22 Oct. The fixed share is there to measure the triage's misses for
+  about two weeks (the owner, 22 Oct 2026); whether it stays is decided then, on what it found. The counters
+  (`run_history.json`, the run's "Done:" line and summary, `admin status` and the admin page's run line: "1 descarte
+  revisado con Flash, 1 evento rescatado"): `triage_checked`, the posts Flash read, and `triage_misses`, those it found
+  an event in. A health notice when misses repeat (section 11.1): then look at those posts (`admin why`) and the
+  triage's prompt.
 - **Batched extraction (off by default; the owner, 9 Oct 2026):** Flash's requests per day are the binding limit,
   not its tokens (250,000 a minute, barely used), and each post that announces events takes one. With
   `GEMINI_BATCH_POSTS` (a repository variable; `config.EXTRACTION_BATCH_POSTS`) at 2 or 3, the posts of one account
@@ -1609,7 +1613,7 @@ section 5, "Whose turn it is"):
 | Gemini Flash-Lite (two models) | 500 / day each (996 usable) | 1 triage per new post, plus provisional extractions | Usually 30–100 new posts | Comfortable. Loading new accounts' older posts can use a few hundred for a few days; when it runs out, new posts wait for the next quota day |
 | Groq (last resort) | 1,000 requests and 200,000 tokens / day; 8,000 tokens / minute (budget: 900 and 180,000) | Only when Flash and Flash-Lite are out, extractions only: about 7,250 tokens each (one image) | 0 on a normal day | About 24 extractions a day (180,000 / 7,250); the minute's 8,000 tokens fit one, so each waits for the one before (up to 60 s): one a minute |
 | OpenRouter free models (last resort) | 50 / day without credit, 20 / minute (budget: 40) | Only when Gemini and Groq are out | 0 on a normal day | Small, and often busy upstream |
-| Gemini Flash (two for extraction, one older for provisional reads) | 20 / day each (36 usable for extraction, 18 more provisional; 3.7 and 3.5 Flash left the pool on 9 Oct 2026: deprecated, answered by 3.8 and 3.6) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read provisionally (by the older Flash or Flash-Lite) | The binding limit, but it loses no events: the overflow is read provisionally and shown. The three sweeps share one quota day (midnight Pacific: 2:00 Bogotá, 3:00 in the Pacific's winter), 3:00 first, so a sweep leaves each later one an equal share (`flash_reserve`: the 3:00 one keeps two thirds of each model's 18, the 6:30 one a third; 12 of the 36 per sweep, and what one leaves unused passes on to the next), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026); what the upgrades leave reads up to 3 posts the triage ruled out (Flash's second opinion, section 6.2; 17 Oct 2026). A provisional post of an event not over yet is reached wherever it is: a turn's read of its account goes back to it, and up to 10 accounts not read that run are read for such posts alone (section 7.2; 17 Oct 2026: until then the 6:30 sweep, which since read-ahead usually reads no account, left its share unused). A post whose events are over leaves the line once it leaves the lookback, so the backlog doesn't grow without end. Batched extraction (`GEMINI_BATCH_POSTS`, off by default; section 7.2) reads an account's posts two or three per request: on the records of 9 Oct 2026 about 19% (two) or 30% (three) fewer extraction requests, the posts confirmed alone included |
+| Gemini Flash (two for extraction, one older for provisional reads) | 20 / day each (36 usable for extraction, 18 more provisional; 3.7 and 3.5 Flash left the pool on 9 Oct 2026: deprecated, answered by 3.8 and 3.6) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read provisionally (by the older Flash or Flash-Lite) | The binding limit, but it loses no events: the overflow is read provisionally and shown. The three sweeps share one quota day (midnight Pacific: 2:00 Bogotá, 3:00 in the Pacific's winter), 3:00 first, so a sweep leaves each later one an equal share (`flash_reserve`: the 3:00 one keeps two thirds of each model's 18, the 6:30 one a third; 12 of the 36 per sweep, and what one leaves unused passes on to the next), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026); before them, one request a run reads a post the triage ruled out (Flash's second opinion, section 6.2; 17 Oct 2026, a fixed share since 22 Oct). A provisional post of an event not over yet is reached wherever it is: a turn's read of its account goes back to it, and up to 10 accounts not read that run are read for such posts alone (section 7.2; 17 Oct 2026: until then the 6:30 sweep, which since read-ahead usually reads no account, left its share unused). A post whose events are over leaves the line once it leaves the lookback, so the backlog doesn't grow without end. Batched extraction (`GEMINI_BATCH_POSTS`, off by default; section 7.2) reads an account's posts two or three per request: on the records of 9 Oct 2026 about 19% (two) or 30% (three) fewer extraction requests, the posts confirmed alone included |
 | GitHub Actions minutes (backend, public since 6 Oct 2026) | Unlimited | 15–30 min (measured 6 Oct 2026: Gemini's pacing and busy retries, Instagram; no longer waiting for the data PR, #124) | ~50–75 (three runs) | Free. Before (private: 2,000 a month), about 1,100–1,500 a month went to the sweeps, plus ci on pull requests |
 | GitHub Actions minutes (public site repository) | Unlimited | ci + deploy, ~2 min | | |
 | cron-job.org | Unlimited jobs | 1 call | 2 | |

@@ -322,8 +322,8 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             with self._contained(account, f"@{account}"), self._read_cost(account):
                 self._process_account(account)
 
+        self._check_triage()  # before the upgrades: its small share, or they'd take all of Flash
         self._upgrade_by_urgency()
-        self._check_triage()  # after the upgrades: only what Flash has left then
         self.stats.instagram_reads = self.read_costs.summary()  # the reads for Flash too
         self._apply_retention()
         self.stats.flyers_removed = storage.remove_unused_flyers(self.events)
@@ -398,8 +398,9 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         """Flash's second opinion on the triage (config.TRIAGE_CHECKS_PER_RUN; the owner, 17 Oct 2026): a few of the
         posts the triage ruled out this run, as they were fetched (no other Instagram read), in second_opinion_order,
         each extracted by Flash while it can be used as for an upgrade (can_upgrade: budget beyond the later sweeps'
-        share, not paused as busy; never waiting for it) and time is left. After the upgrades, so it only takes what
-        they left. What Flash finds is stored as any Flash reading (_check_ruled_out)."""
+        share, not paused as busy; never waiting for it) and time is left. Before the upgrades, a small fixed share
+        (the owner, 22 Oct 2026): after them it never ran, since they took all of Flash every run. The upgrades take
+        the rest. What Flash finds is stored as any Flash reading (_check_ruled_out)."""
         held, self._ruled_out = self._ruled_out, []
         sample = second_opinion_order(held, self.processed.values())[: config.TRIAGE_CHECKS_PER_RUN]
         if not sample:
