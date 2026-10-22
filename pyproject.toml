@@ -18,11 +18,18 @@ max-complexity = 12 # past this, split the function into named steps
 
 [tool.mypy]
 python_version = "3.12"
-files = ["pa_bailar"]
+files = ["pa_bailar", "media/tools"]
 plugins = ["pydantic.mypy"]
 strict = true
 warn_unreachable = true
 
 [[tool.mypy.overrides]]
 module = ["dotenv.*", "rapidocr.*"]  # rapidocr: optional, not installed in CI (ocr.py)
+ignore_missing_imports = true
+
+# The video toolkit's own environments (media/README.md), never in CI: numpy (timing.py, analyze.py), librosa and
+# matplotlib (analyze.py), faster_whisper (the Whisper venv) and acestep (the ACE-Step checkout). Where one is
+# installed, mypy checks against it; where not, it's Any.
+[[tool.mypy.overrides]]
+module = ["numpy.*", "librosa.*", "matplotlib.*", "faster_whisper.*", "acestep.*"]
 ignore_missing_imports = true

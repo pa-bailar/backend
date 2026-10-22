@@ -18,6 +18,7 @@ import argparse
 import json
 import wave
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from common import (
@@ -32,6 +33,9 @@ from common import (
     voice_files,
     voice_key,
 )
+
+if TYPE_CHECKING:
+    from faster_whisper import WhisperModel  # the Whisper venv's (an Any where it isn't installed)
 
 RATE = TTS_RATE
 
@@ -77,13 +81,13 @@ def write(path: Path, audio: np.ndarray) -> None:
         f.writeframes((np.clip(audio, -1, 1) * 32767).astype(np.int16).tobytes())
 
 
-def whisper():
+def whisper() -> "WhisperModel":
     from faster_whisper import WhisperModel
 
     return WhisperModel("medium", device="cpu", compute_type="int8")
 
 
-def hear(path: Path, prompt: str) -> tuple[list[dict], list[dict]]:
+def hear(path: Path, prompt: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Whisper's words (start, end, probability) and segments (start, end, text) of a file, with the script as a hint
     so names come out as written."""
     segments, _ = whisper().transcribe(
@@ -104,12 +108,12 @@ def hear(path: Path, prompt: str) -> tuple[list[dict], list[dict]]:
     return words, segs
 
 
-def words_of(path: Path, prompt: str) -> list[dict]:
+def words_of(path: Path, prompt: str) -> list[dict[str, Any]]:
     """Whisper's words of a file (hear())."""
     return hear(path, prompt)[0]
 
 
-def build_one_take(v: Video, voice: dict, lead: float) -> None:
+def build_one_take(v: Video, voice: dict[str, Any], lead: float) -> None:
     """A one-take recording ("voice"."one_take"): cut from just before its first word to just after its last (the
     model leaves noise past the end: a clipped burst after "link" in the puente take of 8 Oct 2026), its own pauses
     kept, after `lead` seconds of silence; each line found in it by its first two words, in order."""
@@ -149,7 +153,15 @@ def build_one_take(v: Video, voice: dict, lead: float) -> None:
     write_timing(v, track, out, lead, lines, segments=[], note="One take: line and word times are Whisper medium (es).")
 
 
-def write_timing(v: Video, track: np.ndarray, out: Path, lead: float, lines: list, segments: list, note: str) -> None:
+def write_timing(
+    v: Video,
+    track: np.ndarray,
+    out: Path,
+    lead: float,
+    lines: list[dict[str, Any]],
+    segments: list[dict[str, Any]],
+    note: str,
+) -> None:
     timing = {
         "fps_hint": v.fps,
         "duration": round(len(track) / RATE, 3),
@@ -196,9 +208,9 @@ def build(name: str) -> None:
         line["words"] = []
     for w in words:  # each word to the one line it falls in (or the nearest, within 0.15 s), never to two
         mid = (w["start"] + w["end"]) / 2
-        gap = [max(line["start"] - mid, mid - line["end"], 0) for line in lines]
-        nearest = min(range(len(lines)), key=gap.__getitem__)
-        if gap[nearest] <= 0.15:
+        apart = [max(line["start"] - mid, mid - line["end"], 0) for line in lines]
+        nearest = min(range(len(lines)), key=apart.__getitem__)
+        if apart[nearest] <= 0.15:
             lines[nearest]["words"].append(dict(w))
     for line in lines:
         for w in line["words"]:  # Whisper stretches a first word over the silence before it

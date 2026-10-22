@@ -11,6 +11,7 @@ steadier); the cyan lines on the picture are the detected beats.
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
 import librosa
 import librosa.display
@@ -28,7 +29,7 @@ def lufs(path: str) -> float:
     return float(tail.split("I:")[1].split("LUFS")[0])
 
 
-def analyze(path: str):
+def analyze(path: str) -> tuple[dict[str, Any], tuple[np.ndarray, int, np.ndarray]]:
     y, sr = librosa.load(path, sr=22050, mono=True)
     onset = librosa.onset.onset_strength(y=y, sr=sr)
     tempo, beats = librosa.beat.beat_track(onset_envelope=onset, sr=sr, start_bpm=98)

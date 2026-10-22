@@ -49,6 +49,7 @@ import subprocess
 import sys
 from ctypes import wintypes
 from pathlib import Path
+from typing import Any
 
 from common import HOME, MEDIA, parse_render_name, version_key, version_tuple, voice_files
 from mix import SCRATCH as MIX_SCRATCH  # its intermediates (it removes them after a mix; older runs left them)
@@ -217,7 +218,7 @@ def stray_public() -> list[Path]:
     return sorted(p for p in public.glob("*/.flyers-*") if not p.name.startswith(".flyers-old-"))
 
 
-def uses(settings: dict) -> set[Path]:
+def uses(settings: dict[str, Any]) -> set[Path]:
     """The cache files a video uses: its voice lines (or its one take) and its music bed (with the bed's .json)."""
     used: set[Path] = set()
     if voice := settings.get("voice"):
@@ -228,7 +229,7 @@ def uses(settings: dict) -> set[Path]:
     return used
 
 
-Settings = list[tuple[str, dict]]  # (video, its video.json)
+Settings = list[tuple[str, dict[str, Any]]]  # (video, its video.json)
 
 
 def worktree_settings() -> tuple[Settings, list[str]]:
@@ -391,25 +392,31 @@ class SHFileOpStruct(ctypes.Structure):
     ]
 
 
-def recycle(path: Path) -> str | None:
-    """To the Recycle Bin (Windows), so anything can be restored, never stopping on a dialog. Returns why it couldn't
-    (a file another program holds open, a missing file…), or None once it's in the bin."""
-    if sys.platform != "win32":
+if sys.platform == "win32":
+
+    def recycle(path: Path) -> str | None:
+        """To the Recycle Bin (Windows), so anything can be restored, never stopping on a dialog. Returns why it
+        couldn't (a file another program holds open, a missing file…), or None once it's in the bin."""
+        op = SHFileOpStruct(
+            wFunc=FO_DELETE,
+            pFrom=f"{path.resolve()}\0",  # a list of paths, each ended by a NUL, then one more (ctypes adds that one)
+            fFlags=RECYCLE_FLAGS,
+        )
+        code = ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
+        if code or op.fAnyOperationsAborted:
+            # Below 0x71 the code is a Windows error (0x20: another program holds it open); from there on, the
+            # shell's own DE_* codes, which FormatError would misread.
+            why = ctypes.FormatError(code).strip() if 0 < code < 0x71 else f"shell code 0x{code:X}"
+            return f"Windows couldn't move it ({why})"
+        if path.exists():  # a folder's other files went, one didn't (held open): those are in the bin, it isn't
+            return "only part of it went to the Recycle Bin; the rest stays where it is"
+        return None
+
+else:
+
+    def recycle(path: Path) -> str | None:
+        """The Recycle Bin is Windows': elsewhere nothing moves."""
         return "the Recycle Bin is Windows' (nothing moved)"
-    op = SHFileOpStruct(
-        wFunc=FO_DELETE,
-        pFrom=f"{path.resolve()}\0",  # a list of paths, each ended by a NUL, then one more (ctypes adds that one)
-        fFlags=RECYCLE_FLAGS,
-    )
-    code = ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
-    if code or op.fAnyOperationsAborted:
-        # Below 0x71 the code is a Windows error (0x20: another program holds it open); from there on, the shell's
-        # own DE_* codes, which FormatError would misread.
-        why = ctypes.FormatError(code).strip() if 0 < code < 0x71 else f"shell code 0x{code:X}"
-        return f"Windows couldn't move it ({why})"
-    if path.exists():  # a folder's other files went, one didn't (held open): those are in the bin, it isn't
-        return "only part of it went to the Recycle Bin; the rest stays where it is"
-    return None
 
 
 def main() -> None:

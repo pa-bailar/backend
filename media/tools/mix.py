@@ -35,6 +35,7 @@ import sys
 from array import array
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from common import BRAND, HOME, Video, ffmpeg, mix_key, probe, provenance_problems, shown, tool, video
 
@@ -86,9 +87,10 @@ def loudnorm(src: Path, dest: Path, target: float, duration: float, fade: float)
     return str(last_json(second).get("normalization_type", "?"))
 
 
-def last_json(stderr: str) -> dict:
+def last_json(stderr: str) -> dict[str, Any]:
     """The last {…} block ffmpeg printed (loudnorm's report)."""
-    return json.loads(stderr[stderr.rindex("{") : stderr.rindex("}") + 1])
+    report: dict[str, Any] = json.loads(stderr[stderr.rindex("{") : stderr.rindex("}") + 1])
+    return report
 
 
 def parse_ebur128(stderr: str) -> tuple[float, float]:
@@ -204,7 +206,7 @@ def mix_music(v: Video, voice: Path, bed: Path, raw: Path, ducked: Path) -> None
 # ---------- the phone-speaker check ----------
 
 
-def speech_spans(timing: dict, merge: float = 0.15) -> list[tuple[float, float]]:
+def speech_spans(timing: dict[str, Any], merge: float = 0.15) -> list[tuple[float, float]]:
     """The spoken parts (seconds): every word's span from timing.json, joined across gaps shorter than `merge`."""
     words = sorted((float(w["start"]), float(w["end"])) for line in timing["lines"] for w in line["words"])
     out: list[tuple[float, float]] = []
@@ -216,7 +218,7 @@ def speech_spans(timing: dict, merge: float = 0.15) -> list[tuple[float, float]]
     return out
 
 
-def energies(samples: array, rate: int = RATE, window: float = WINDOW) -> list[float]:
+def energies(samples: array[int], rate: int = RATE, window: float = WINDOW) -> list[float]:
     """Sum of squares per window."""
     n = round(rate * window)
     return [float(sum(x * x for x in samples[i : i + n])) for i in range(0, len(samples) - n + 1, n)]
@@ -244,7 +246,7 @@ def masking(voice: list[float], music: list[float], speech: list[int]) -> tuple[
     return ratio, len(masked) / len(windows), masked
 
 
-def band(path: Path, low: int, high: int) -> array:
+def band(path: Path, low: int, high: int) -> array[int]:
     """A soundtrack as a phone plays it: mono (a stereo file is averaged, as a phone's single speaker does), band-
     limited to low–high Hz (two 12 dB/octave stages each side), at RATE, as 16-bit samples."""
     stereo = int(next(s for s in probe(path)["streams"] if s["codec_type"] == "audio")["channels"]) > 1

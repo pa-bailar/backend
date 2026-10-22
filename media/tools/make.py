@@ -162,7 +162,10 @@ def make(name: str, wanted: list[str], draft: bool, force: bool, dry: bool, stri
     unknown = [s for s in wanted if s not in STAGES]
     if unknown:
         raise SystemExit(f"unknown stage(s) {unknown}: {', '.join(STAGES)}")
-    tool = lambda t: str(TOOLS / t)  # noqa: E731
+
+    def tool(script: str) -> str:
+        return str(TOOLS / script)
+
     commands: dict[str, Callable[[], None]] = {
         "tts": lambda: run("venv", tool("tts.py"), name),
         "timing": lambda: run("whisper", tool("timing.py"), name),

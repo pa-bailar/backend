@@ -40,6 +40,7 @@ import tempfile
 from collections import Counter
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 from common import BRAND, at_seconds, ffmpeg, probe, tool, video
 
@@ -154,7 +155,7 @@ def per_frame(text: str, field: str) -> list[tuple[float, int]]:
     return rows
 
 
-def vmaf_frames(report: dict) -> list[tuple[float, int]]:
+def vmaf_frames(report: dict[str, Any]) -> list[tuple[float, int]]:
     """(VMAF, frame) from libvmaf's JSON log."""
     return [(float(f["metrics"]["vmaf"]), int(f["frameNum"])) for f in report.get("frames", [])]
 
@@ -171,18 +172,23 @@ def fit(size_a: tuple[int, int], size_b: tuple[int, int]) -> tuple[str, str]:
 IMAGE_FORMATS = {"image2", "png_pipe", "jpeg_pipe", "webp_pipe", "bmp_pipe"}
 
 
-def rate_mismatch(info_a: dict, info_b: dict) -> str | None:
+def rate_mismatch(info_a: dict[str, Any], info_b: dict[str, Any]) -> str | None:
     """Two videos at different frame rates can't be compared frame by frame: why, or None (stills have no rate)."""
     rates = []
     for info in (info_a, info_b):
         if set(str(info.get("format", {}).get("format_name", "")).split(",")) & IMAGE_FORMATS:
             return None
-        stream = next((s for s in info.get("streams", []) if s.get("codec_type") == "video"), {})
+        stream: dict[str, Any] = next((s for s in info.get("streams", []) if s.get("codec_type") == "video"), {})
         rates.append(str(stream.get("avg_frame_rate") or stream.get("r_frame_rate") or ""))
     return None if rates[0] == rates[1] else f"frame rates differ ({rates[0]} vs {rates[1]} fps)"
 
 
-def diff(a: Path, b: Path, vmaf: bool = True) -> dict:
+def video_size(info: dict[str, Any]) -> tuple[int, int]:
+    """The width and height of a probed file's (probe()) video stream."""
+    return next((int(s["width"]), int(s["height"])) for s in info["streams"] if s["codec_type"] == "video")
+
+
+def diff(a: Path, b: Path, vmaf: bool = True) -> dict[str, Any]:
     """Compare `b` (a new render, or an encode) with `a` (the reference), frame by frame: PSNR (∞ = identical), SSIM
     (1 = identical) and, when this ffmpeg has libvmaf, VMAF (0–100; identical frames score 97–100; about 6 points is
     one just-noticeable difference). The smaller of the two is scaled up to the larger's size (a draft against a full
@@ -192,8 +198,7 @@ def diff(a: Path, b: Path, vmaf: bool = True) -> dict:
     info_a, info_b = probe(a), probe(b)
     if problem := rate_mismatch(info_a, info_b):
         raise SystemExit(f"can't compare {a.name} and {b.name} frame by frame: {problem}")
-    size = lambda info: next((s["width"], s["height"]) for s in info["streams"] if s["codec_type"] == "video")  # noqa: E731
-    (wa, ha), (wb, hb) = size(info_a), size(info_b)
+    (wa, ha), (wb, hb) = video_size(info_a), video_size(info_b)
     fit_a, fit_b = fit((wa, ha), (wb, hb))
     available = has_filter("libvmaf")
     vmaf = vmaf and available
@@ -287,10 +292,18 @@ def parse_spans(text: str) -> list[tuple[float, float]]:
     return [(float(a), float(b)) for a, b in (s.split("-") for s in text.split(",") if s.strip())]
 
 
+def in_allowed(frame: int, fps: int, allow: list[tuple[float, float]]) -> bool:
+    """Whether a frame falls in one of the allowed spans (seconds)."""
+    return any(a <= frame / fps <= b for a, b in allow)
+
+
 def band(path: Path, allow: list[tuple[float, float]], fps: int) -> bool:
     """Check one render or still; prints the verdict and returns whether the band stayed empty."""
     tops = list(band_tops(path))
-    allowed = lambda f: any(a <= f / fps <= b for a, b in allow)  # noqa: E731
+
+    def allowed(f: int) -> bool:
+        return in_allowed(f, fps, allow)
+
     seen = [(f, y) for f, y in enumerate(tops) if y is not None]
     inside = [(f, y) for f, y in seen if y < LIMIT and not allowed(f)]
     excused = [(f, y) for f, y in seen if y < LIMIT and allowed(f)]
@@ -354,7 +367,7 @@ def reel_depths(path: Path) -> Iterator[dict[str, int | None]]:
             yield out
 
 
-def reel_deliverables(settings: dict) -> list[str]:
+def reel_deliverables(settings: dict[str, Any]) -> list[str]:
     """The Reel deliverables of a video: video.json's "reel_safe"."deliverables", else every render named "…reel…"."""
     named = settings.get("reel_safe", {}).get("deliverables")
     return list(named) if named is not None else [d for d in settings.get("renders", {}) if "reel" in d]
@@ -363,10 +376,9 @@ def reel_deliverables(settings: dict) -> list[str]:
 def reel(path: Path, allow: list[tuple[float, float]], fps: int) -> list[str]:
     """Check one Reel render or still against the Reel's safe zones; prints and returns the warnings (one per side)."""
     frames = list(reel_depths(path))
-    allowed = lambda f: any(a <= f / fps <= b for a, b in allow)  # noqa: E731
     warnings = []
     for side in REEL:
-        hits = [(f, d[side]) for f, d in enumerate(frames) if d[side] is not None and not allowed(f)]
+        hits = [(f, d[side]) for f, d in enumerate(frames) if d[side] is not None and not in_allowed(f, fps, allow)]
         if not hits:
             continue
         spans = runs([(f, y) for f, y in hits if y is not None])

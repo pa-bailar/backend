@@ -37,6 +37,7 @@ import subprocess
 import sys
 from datetime import date, datetime
 from pathlib import Path
+from typing import Any
 
 from common import MEDIA, Video, bogota_today, provenance_problems, shown, version_key, version_tuple, video, voice_key
 
@@ -58,7 +59,7 @@ def shelf_lives(data: Path) -> list[tuple[str, date]]:
     """Each dated piece of material in a video's data/ and the last day it's true."""
     out: list[tuple[str, date]] = []
 
-    def read(name: str) -> dict:
+    def read(name: str) -> dict[str, Any]:
         path = data / name
         return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
@@ -159,7 +160,7 @@ def review(v: Video, deliverable: str, dest: Path) -> bool:
     total = rv.duration_of(dest)
     is_reel = deliverable in rv.reel_deliverables(v.settings)
     ok = preflight.check(dest, "reel" if is_reel else "story")
-    at = [round(t * 2 + 1, 2) for t in range(int(total / 2))]
+    at = [t * 2 + 1.0 for t in range(int(total / 2))]
     rv.sheet(dest, at, dest.with_name(f"{dest.stem}-sheet.png"), reel=is_reel)
     band = v.settings.get("sticker_band", {})
     if deliverable in band.get("deliverables", []):

@@ -959,6 +959,21 @@ def test_a_failed_mix_leaves_no_temporary_soundtrack(tmp_path, monkeypatch, fail
     assert not (v.public / "audio" / "voice-only.wav").exists()  # nothing half-made took a soundtrack's place
 
 
+def test_tts_finds_the_audio_or_says_there_is_none():
+    from types import SimpleNamespace as Ns
+
+    def answer(*parts, reason="STOP"):
+        return Ns(candidates=[Ns(content=Ns(parts=list(parts)), finish_reason=reason)])
+
+    pcm = Ns(inline_data=Ns(data=b"pcm"))
+    assert tts.audio_of(answer(Ns(inline_data=None), pcm)) == b"pcm"  # not only the first part
+    with pytest.raises(ValueError, match="without audio.*OTHER"):
+        tts.audio_of(answer(Ns(inline_data=None), reason="OTHER"))
+    with pytest.raises(ValueError, match="without audio"):  # a blocked answer has no candidates
+        tts.audio_of(Ns(candidates=None))
+    assert tts.classify(ValueError("an answer without audio")) == "retry"
+
+
 def test_tts_stops_clearly_without_a_key(monkeypatch):
     monkeypatch.setattr(tts, "load_env", lambda: None)
     monkeypatch.delenv("MEDIA_GEMINI_API_KEY", raising=False)
