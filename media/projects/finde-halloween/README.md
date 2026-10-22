@@ -24,8 +24,13 @@ look. Started 22 Oct 2026 with `tools/new.py`; the first weekly "este finde" Sto
 
 ## Versions
 
-- **v1:** the first cut, approved as is by the owner and posted (22 Oct 2026). Archived in the media home
-  (`archive/finde-halloween/v1/`).
+- **v1:** the first cut, approved by the owner (22 Oct 2026) and archived in the media home
+  (`archive/finde-halloween/v1/`). Then the owner's notes: "Pa' Bailar" sounded odd (Whisper heard "pabellar"), it
+  felt slow, it showed only 5 of the weekend's 32 events, and wanted more Halloween and more excitement.
+- **v2:** 18 s instead of 23. A livelier one take (the direction asks for excitement at a normal pace, and says how
+  "Pa' Bailar" is said; three takes, the one Whisper heard cleanest), night from the first frame, lightning on the
+  open and on "¡Halloween!", cobwebs, a full moon with bats crossing it, the pumpkin's face flickering like a candle;
+  Saturday's three Halloween socials, then the other flyers piling in while the count climbs to the real 32.
 
 ## Make
 

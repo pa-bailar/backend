@@ -1,346 +1,296 @@
 {
  "fps_hint": 30,
- "duration": 21.79,
+ "duration": 16.17,
  "voice": "(media home) out/finde-halloween/voice-track.wav",
  "lead": 0.15,
- "voice_key": "f6c30b833a07fd67",
+ "voice_key": "38bd8387f570dbe7",
  "lines": [
   {
    "id": "hook",
-   "text": "¿Y ya tienes disfraz pa'l sábado?",
+   "text": "¿Ya tienes disfraz? ¡Este finde es de Halloween!",
    "start": 0.15,
-   "end": 2.53,
+   "end": 3.29,
    "words": [
     {
-     "word": "¿Y",
+     "word": "¿Ya",
      "start": 0.15,
-     "end": 0.87,
-     "p": 0.74
-    },
-    {
-     "word": "ya",
-     "start": 0.87,
-     "end": 1.07,
-     "p": 0.98
-    },
-    {
-     "word": "tienes",
-     "start": 1.07,
-     "end": 1.35,
-     "p": 0.99
-    },
-    {
-     "word": "disfraz",
-     "start": 1.35,
-     "end": 1.81,
-     "p": 0.98
-    },
-    {
-     "word": "pa",
-     "start": 1.81,
-     "end": 1.93,
-     "p": 0.37
-    },
-    {
-     "word": "'l",
-     "start": 1.93,
-     "end": 2.07,
+     "end": 0.63,
      "p": 0.89
     },
     {
-     "word": "sábado?",
-     "start": 2.07,
-     "end": 2.53,
-     "p": 0.98
+     "word": "tienes",
+     "start": 0.63,
+     "end": 1.01,
+     "p": 0.5
+    },
+    {
+     "word": "disfraz?",
+     "start": 1.01,
+     "end": 1.45,
+     "p": 0.96
+    },
+    {
+     "word": "¡Este",
+     "start": 1.79,
+     "end": 2.17,
+     "p": 0.75
+    },
+    {
+     "word": "finde",
+     "start": 2.17,
+     "end": 2.43,
+     "p": 0.11
+    },
+    {
+     "word": "es",
+     "start": 2.43,
+     "end": 2.63,
+     "p": 0.99
+    },
+    {
+     "word": "de",
+     "start": 2.63,
+     "end": 2.87,
+     "p": 0.74
+    },
+    {
+     "word": "Halloween!",
+     "start": 2.87,
+     "end": 3.29,
+     "p": 0.95
     }
    ]
   },
   {
-   "id": "tarde",
-   "text": "Arranca de tarde: Tardeo de Muertos, con maquillaje calavérico incluido.",
-   "start": 3.13,
-   "end": 8.19,
+   "id": "sab",
+   "text": "El sábado, Tardeo de Muertos, concurso de disfraces en Show Stars y el Social de Halloween de Bembé.",
+   "start": 3.89,
+   "end": 10.35,
    "words": [
     {
-     "word": "Arranca",
-     "start": 3.13,
-     "end": 3.57,
-     "p": 0.99
+     "word": "El",
+     "start": 3.89,
+     "end": 4.11,
+     "p": 0.94
     },
     {
-     "word": "de",
-     "start": 3.57,
-     "end": 3.83,
-     "p": 0.99
-    },
-    {
-     "word": "tarde,",
-     "start": 3.83,
-     "end": 4.39,
-     "p": 0.33
+     "word": "sábado,",
+     "start": 4.11,
+     "end": 4.75,
+     "p": 0.97
     },
     {
      "word": "Tardeo",
-     "start": 4.61,
-     "end": 5.03,
-     "p": 0.61
+     "start": 4.93,
+     "end": 5.27,
+     "p": 0.78
     },
     {
      "word": "de",
-     "start": 5.03,
-     "end": 5.23,
+     "start": 5.27,
+     "end": 5.45,
      "p": 0.98
     },
     {
      "word": "Muertos,",
-     "start": 5.23,
-     "end": 5.75,
-     "p": 0.92
-    },
-    {
-     "word": "con",
-     "start": 6.05,
-     "end": 6.21,
-     "p": 0.96
-    },
-    {
-     "word": "maquillaje",
-     "start": 6.21,
-     "end": 6.69,
-     "p": 1.0
-    },
-    {
-     "word": "calavérico",
-     "start": 6.69,
-     "end": 7.27,
-     "p": 0.72
-    },
-    {
-     "word": "incluido.",
-     "start": 7.27,
-     "end": 8.19,
+     "start": 5.45,
+     "end": 5.95,
      "p": 0.98
-    }
-   ]
-  },
-  {
-   "id": "noche",
-   "text": "En la noche, el concurso de disfraces de Show Stars y el Social de Halloween de Bembé.",
-   "start": 8.65,
-   "end": 14.05,
-   "words": [
-    {
-     "word": "En",
-     "start": 8.65,
-     "end": 8.77,
-     "p": 0.99
-    },
-    {
-     "word": "la",
-     "start": 8.77,
-     "end": 8.95,
-     "p": 0.97
-    },
-    {
-     "word": "noche,",
-     "start": 8.95,
-     "end": 9.27,
-     "p": 1.0
-    },
-    {
-     "word": "el",
-     "start": 9.59,
-     "end": 9.71,
-     "p": 0.99
     },
     {
      "word": "concurso",
-     "start": 9.71,
-     "end": 10.13,
-     "p": 0.99
+     "start": 6.29,
+     "end": 6.63,
+     "p": 0.98
     },
     {
      "word": "de",
-     "start": 10.13,
-     "end": 10.43,
+     "start": 6.63,
+     "end": 6.77,
      "p": 1.0
     },
     {
      "word": "disfraces",
-     "start": 10.43,
-     "end": 10.81,
-     "p": 0.64
+     "start": 6.77,
+     "end": 7.27,
+     "p": 0.63
     },
     {
-     "word": "de",
-     "start": 10.81,
-     "end": 11.09,
-     "p": 0.96
+     "word": "en",
+     "start": 7.27,
+     "end": 7.53,
+     "p": 0.99
     },
     {
      "word": "Show",
-     "start": 11.09,
-     "end": 11.37,
-     "p": 0.76
+     "start": 7.53,
+     "end": 7.83,
+     "p": 0.82
     },
     {
      "word": "Stars",
-     "start": 11.37,
-     "end": 11.75,
-     "p": 0.3
+     "start": 7.83,
+     "end": 8.15,
+     "p": 0.12
     },
     {
      "word": "y",
-     "start": 11.75,
-     "end": 12.31,
-     "p": 0.93
+     "start": 8.15,
+     "end": 8.59,
+     "p": 0.43
     },
     {
      "word": "el",
-     "start": 12.31,
-     "end": 12.51,
-     "p": 0.97
+     "start": 8.59,
+     "end": 8.83,
+     "p": 0.95
     },
     {
      "word": "Social",
-     "start": 12.51,
-     "end": 12.83,
-     "p": 0.52
+     "start": 8.83,
+     "end": 9.15,
+     "p": 0.51
     },
     {
      "word": "de",
-     "start": 12.83,
-     "end": 13.07,
+     "start": 9.15,
+     "end": 9.43,
      "p": 0.98
     },
     {
      "word": "Halloween",
-     "start": 13.07,
-     "end": 13.43,
-     "p": 0.97
-    },
-    {
-     "word": "de",
-     "start": 13.43,
-     "end": 13.69,
+     "start": 9.43,
+     "end": 9.79,
      "p": 0.98
     },
     {
+     "word": "de",
+     "start": 9.79,
+     "end": 10.01,
+     "p": 0.97
+    },
+    {
      "word": "Bembé.",
-     "start": 13.69,
-     "end": 14.05,
-     "p": 0.39
+     "start": 10.01,
+     "end": 10.35,
+     "p": 0.35
     }
    ]
   },
   {
-   "id": "sin",
-   "text": "¿Sin disfraz? Salsa en Digital y Latinholic Night.",
-   "start": 14.79,
-   "end": 18.41,
+   "id": "mas",
+   "text": "Y en total, treinta y dos planes este finde.",
+   "start": 10.93,
+   "end": 13.41,
    "words": [
     {
-     "word": "¿Sin",
-     "start": 14.79,
-     "end": 15.01,
-     "p": 0.66
-    },
-    {
-     "word": "disfraz?",
-     "start": 15.01,
-     "end": 15.53,
-     "p": 0.93
-    },
-    {
-     "word": "Salsa",
-     "start": 16.07,
-     "end": 16.29,
-     "p": 0.93
+     "word": "Y",
+     "start": 10.93,
+     "end": 11.07,
+     "p": 0.82
     },
     {
      "word": "en",
-     "start": 16.29,
-     "end": 16.47,
-     "p": 0.99
+     "start": 11.07,
+     "end": 11.21,
+     "p": 0.93
     },
     {
-     "word": "Digital",
-     "start": 16.47,
-     "end": 16.93,
-     "p": 0.13
+     "word": "total,",
+     "start": 11.21,
+     "end": 11.55,
+     "p": 1.0
+    },
+    {
+     "word": "treinta",
+     "start": 11.57,
+     "end": 12.17,
+     "p": 0.33
     },
     {
      "word": "y",
-     "start": 16.93,
-     "end": 17.39,
-     "p": 0.97
+     "start": 12.17,
+     "end": 12.25,
+     "p": 1.0
     },
     {
-     "word": "Latinholic",
-     "start": 17.39,
-     "end": 18.13,
-     "p": 0.66
+     "word": "dos",
+     "start": 12.25,
+     "end": 12.43,
+     "p": 1.0
     },
     {
-     "word": "Night.",
-     "start": 18.13,
-     "end": 18.41,
-     "p": 0.79
+     "word": "planes",
+     "start": 12.43,
+     "end": 12.71,
+     "p": 0.99
+    },
+    {
+     "word": "este",
+     "start": 12.71,
+     "end": 13.09,
+     "p": 0.93
+    },
+    {
+     "word": "finde.",
+     "start": 13.09,
+     "end": 13.41,
+     "p": 0.64
     }
    ]
   },
   {
    "id": "fin",
    "text": "Todo en Pa' Bailar. Te dejo el link.",
-   "start": 19.05,
-   "end": 21.37,
+   "start": 13.81,
+   "end": 15.75,
    "words": [
     {
      "word": "Todo",
-     "start": 19.05,
-     "end": 19.29,
-     "p": 0.85
+     "start": 13.81,
+     "end": 14.01,
+     "p": 0.67
     },
     {
      "word": "en",
-     "start": 19.29,
-     "end": 19.65,
-     "p": 0.97
+     "start": 14.01,
+     "end": 14.27,
+     "p": 0.98
     },
     {
      "word": "Pa'",
-     "start": 19.65,
-     "end": 19.79,
-     "p": 0.0
+     "start": 14.27,
+     "end": 14.39,
+     "p": 0.44
     },
     {
      "word": "Bailar.",
-     "start": 19.89,
-     "end": 20.31,
-     "p": 0.54
+     "start": 14.39,
+     "end": 14.83,
+     "p": 0.83
     },
     {
      "word": "Te",
-     "start": 20.65,
-     "end": 20.83,
-     "p": 0.88
+     "start": 15.01,
+     "end": 15.17,
+     "p": 0.93
     },
     {
      "word": "dejo",
-     "start": 20.83,
-     "end": 21.05,
+     "start": 15.17,
+     "end": 15.41,
      "p": 1.0
     },
     {
      "word": "el",
-     "start": 21.05,
-     "end": 21.17,
+     "start": 15.41,
+     "end": 15.55,
      "p": 0.99
     },
     {
      "word": "link.",
-     "start": 21.17,
-     "end": 21.37,
+     "start": 15.55,
+     "end": 15.75,
      "p": 0.99
     }
    ]
