@@ -316,6 +316,10 @@ class ProcessedPost(BaseModel):
     # The triage (Flash-Lite) ruled it out and Flash then read it as a second opinion (Sweep._check_triage): its
     # record is Flash's reading now, an event the triage missed or none; never checked twice.
     triage_checked: bool = False
+    # A provisional post its account's reads for Flash didn't return (deleted, or deeper than they go), in a row: after
+    # config.UPGRADE_MISSES_BEFORE_GIVING_UP it isn't waited for any more (pipeline.waiting_for_flash). 0 in records
+    # from before 22 Oct 2026.
+    upgrade_misses: int = 0
 
 
 # ---------- Stories: screenshots shared to the admin page (stories.py) ----------

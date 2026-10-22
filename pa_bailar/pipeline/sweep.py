@@ -28,6 +28,7 @@ from ..models import AccountState, PostOutcome, ProcessedPost, StoredEvent, had_
 from ..stories import STORY_PREFIX
 from ..text import parse_hhmm
 from . import common
+from .base import only_lighter_reads
 from .batches import Batches
 from .common import ENDED, RETRYABLE_ERRORS, RunStats, caption_hash, clip_for, flyer_slide
 from .hiding import Hiding
@@ -250,15 +251,40 @@ def upgrade_urgency(event_ids: list[str], events: dict[str, StoredEvent], today:
     return (0, min(upcoming)) if upcoming else (1, "")
 
 
+def read_by_flash_elsewhere(
+    record: ProcessedPost, posts: Mapping[str, ProcessedPost], events: Mapping[str, StoredEvent]
+) -> bool:
+    """Whether every event a provisional post announced (those still stored) stands on another post that isn't
+    provisional (or no longer on record): Flash's reading of this one doesn't replace theirs (only_lighter_reads:
+    merging corrects only an event lighter models alone read), so it adds little. Such a post isn't read for beyond its
+    account's turn (waiting_for_flash), and in the upgrades' line it comes last (FLASH_ELSEWHERE): Flash may still
+    find it isn't that event (a reminder, a wrong merge) and take it off. @salsaysonoficial's reel, merged into a night
+    other posts announced, was read for in every sweep of 17–22 Oct 2026."""
+    announced = [event for event_id in record.event_ids if (event := events.get(event_id))]
+    return bool(announced) and not any(only_lighter_reads(event, posts) for event in announced)
+
+
+# Where a post whose events Flash read through other posts (read_by_flash_elsewhere) stands in the upgrades' line:
+# after every other, even those with no upcoming event (upgrade_urgency), so Flash goes to it only when nothing else
+# waits.
+FLASH_ELSEWHERE = (2, "")
+
+
 def waiting_for_flash(
     posts: Mapping[str, ProcessedPost], events: dict[str, StoredEvent], today: str
 ) -> dict[str, list[str]]:
     """Per account, its provisional posts whose events haven't ended (upgrade_urgency), the soonest first: the ones a
     read of the account, in its turn or not, fetches for Flash wherever they are. Not a story (no read returns one), nor
-    a post known only by its public page's id (the API knows it by another: a turn's read adopts it)."""
+    a post known only by its public page's id (the API knows it by another: a turn's read adopts it), nor one the reads
+    gave up on (config.UPGRADE_MISSES_BEFORE_GIVING_UP), nor one whose events Flash read through other posts
+    (read_by_flash_elsewhere)."""
     waiting: dict[str, list[tuple[str, str]]] = {}
     for post_id, record in posts.items():
         if not record.provisional or post_id.startswith((STORY_PREFIX, public_post.ID_PREFIX)):
+            continue
+        if record.upgrade_misses >= config.UPGRADE_MISSES_BEFORE_GIVING_UP:
+            continue
+        if read_by_flash_elsewhere(record, posts, events):
             continue
         soonest, day = upgrade_urgency(record.event_ids, events, today)
         if soonest == 0:
@@ -347,15 +373,18 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
 
     def _upgrade_by_urgency(self) -> None:
         """Re-read provisional posts with Flash, while it has requests and time: the soonest events first, the ones
-        visitors look at now (before, in the accounts' order, whatever came first took them). The posts the turn's
-        reads fetched, and, in the same order, the accounts not read this run that hold provisional posts of events
-        not over yet (waiting_for_flash), read beyond their turn for those posts only (_read_for_flash), up to
-        config.UPGRADE_READS_PER_RUN and while Instagram's forecast has room."""
+        visitors look at now (before, in the accounts' order, whatever came first took them); last, those whose events
+        Flash read through other posts (FLASH_ELSEWHERE). The posts the turn's reads fetched, and, in the same order,
+        the accounts not read this run that hold provisional posts of events not over yet (waiting_for_flash), read
+        beyond their turn for those posts only (_read_for_flash), up to config.UPGRADE_READS_PER_RUN and while
+        Instagram's forecast has room."""
         today = config.now_bogota().date().isoformat()
         events = {event.id: event for event in self.events}
 
         def urgency(item: tuple[str, Post, datetime]) -> tuple[int, str]:
             record = self.processed.get(item[1]["id"])
+            if record and read_by_flash_elsewhere(record, self.processed, events):
+                return FLASH_ELSEWHERE
             return upgrade_urgency(record.event_ids if record else [], events, today)
 
         queue = sorted(self._to_upgrade, key=urgency)
@@ -496,14 +525,30 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         self, account: str, posts: list[Post], post_ids: list[str]
     ) -> list[tuple[str, Post, datetime]]:
         """The posts among those fetched that wait for Flash (`post_ids`), to queue. One not returned (deleted, or
-        deeper than the read went) is logged and counted (upgrade_misses), and tried again on a later run."""
+        deeper than the read went) is logged and counted, in the run (upgrade_misses) and on its record, in a row: tried
+        again on a later run, until config.UPGRADE_MISSES_BEFORE_GIVING_UP (then waiting_for_flash leaves it out)."""
         fetched = {post["id"]: post for post in posts}
+        changed = False
         for post_id in post_ids:
-            if post_id not in fetched:
+            record = self.processed[post_id]
+            if post_id in fetched:
+                changed = changed or record.upgrade_misses > 0
+                record.upgrade_misses = 0  # within reach after all
+                continue
+            record.upgrade_misses += 1
+            self.stats.upgrade_misses += 1
+            changed = True
+            if record.upgrade_misses < config.UPGRADE_MISSES_BEFORE_GIVING_UP:
+                log.info("   not among its last %d posts, left as read: %s", len(posts), record.permalink)
+            else:
                 log.info(
-                    "   not among its last %d posts, left as read: %s", len(posts), self.processed[post_id].permalink
+                    "   not among its last %d posts (%d reads in a row): no longer read for, left as read: %s",
+                    len(posts),
+                    record.upgrade_misses,
+                    record.permalink,
                 )
-                self.stats.upgrade_misses += 1
+        if changed:
+            self._save()
         return [(account, post, published_at(post)) for post_id in post_ids if (post := fetched.get(post_id))]
 
     def _waiting_for_flash(self, account: str) -> list[str]:
@@ -783,7 +828,8 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
 
     def _read_post(self, account: str, post: Post, published: datetime) -> None:
         """One post within the window: analyzed if it's new, again if its caption was edited, with Flash if it was
-        read provisionally; nothing if it's known and unchanged."""
+        read provisionally (even one the reads for Flash gave up on: upgrade_misses); nothing if it's known and
+        unchanged."""
         record = self.processed.get(post["id"]) or self._adopt_public_record(post)
         post_hash = caption_hash(post)
         if record is None:

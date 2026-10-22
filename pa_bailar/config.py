@@ -140,6 +140,12 @@ UPGRADE_READS_PER_RUN = 10
 # congress of 13 Nov and La-33's night of 21 Nov, read on 3–4 Oct, kept a lighter model's reading for good).
 UPGRADE_READ_MARGIN_POSTS = 5
 UPGRADE_READ_MAX_POSTS = 50
+# A provisional post such a read (or a turn's, gone back for it) doesn't return, deleted or deeper than it goes, is
+# counted on its record (`upgrade_misses`, in a row); after this many it isn't waited for any more: it keeps its
+# lighter reading, and a read that finds it anyway (its turn's, within the lookback) still upgrades it. Until 22 Oct
+# 2026 such a post was waited for until its event ended: a reel of @salsaysonoficial, never among its last 16 posts,
+# cost a read in each of the 15 sweeps of 17–22 Oct (1–2% of Instagram's hour each).
+UPGRADE_MISSES_BEFORE_GIVING_UP = 3
 # Flash's second opinion on the triage (pipeline.Sweep._check_triage; the owner, 17 Oct 2026): Flash-Lite's triage
 # decides alone whether a post announces an event, and a wrong "no" loses the event for good (Flash never sees it). 119
 # posts were ruled out in the week to 17 Oct and nobody knew how many were events. So once the accounts are read,
