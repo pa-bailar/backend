@@ -35,6 +35,7 @@ import sys
 from array import array
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from common import BRAND, HOME, Video, ffmpeg, mix_key, probe, provenance_problems, shown, tool, video
 
@@ -86,9 +87,10 @@ def loudnorm(src: Path, dest: Path, target: float, duration: float, fade: float)
     return str(last_json(second).get("normalization_type", "?"))
 
 
-def last_json(stderr: str) -> dict:
+def last_json(stderr: str) -> dict[str, Any]:
     """The last {…} block ffmpeg printed (loudnorm's report)."""
-    return json.loads(stderr[stderr.rindex("{") : stderr.rindex("}") + 1])
+    report: dict[str, Any] = json.loads(stderr[stderr.rindex("{") : stderr.rindex("}") + 1])
+    return report
 
 
 def parse_ebur128(stderr: str) -> tuple[float, float]:
@@ -128,8 +130,12 @@ def normalize(v: Video, src: Path, name: str, target: float, fade: float) -> Pen
     the soundtracks in place together, or none of them."""
     dest = v.public / "audio" / f"{name}.wav"
     tmp = dest.with_name(f".{dest.stem}.tmp.wav")
-    kind = loudnorm(src, tmp, target, v.duration, fade)
-    integrated, peak = measure(tmp)
+    try:
+        kind = loudnorm(src, tmp, target, v.duration, fade)
+        integrated, peak = measure(tmp)
+    except BaseException:  # ffmpeg failed (SystemExit), a report didn't parse, Ctrl+C: no half-written file stays
+        tmp.unlink(missing_ok=True)
+        raise
     wrong = problems(integrated, peak, target)
     line = f"{shown(dest)}: {integrated:.1f} LUFS (target {target}), true peak {peak:+.1f} dBTP, loudnorm {kind}"
     print(f"{line}{'  REJECTED' if wrong else ''}")
@@ -200,7 +206,7 @@ def mix_music(v: Video, voice: Path, bed: Path, raw: Path, ducked: Path) -> None
 # ---------- the phone-speaker check ----------
 
 
-def speech_spans(timing: dict, merge: float = 0.15) -> list[tuple[float, float]]:
+def speech_spans(timing: dict[str, Any], merge: float = 0.15) -> list[tuple[float, float]]:
     """The spoken parts (seconds): every word's span from timing.json, joined across gaps shorter than `merge`."""
     words = sorted((float(w["start"]), float(w["end"])) for line in timing["lines"] for w in line["words"])
     out: list[tuple[float, float]] = []
@@ -212,7 +218,7 @@ def speech_spans(timing: dict, merge: float = 0.15) -> list[tuple[float, float]]
     return out
 
 
-def energies(samples: array, rate: int = RATE, window: float = WINDOW) -> list[float]:
+def energies(samples: array[int], rate: int = RATE, window: float = WINDOW) -> list[float]:
     """Sum of squares per window."""
     n = round(rate * window)
     return [float(sum(x * x for x in samples[i : i + n])) for i in range(0, len(samples) - n + 1, n)]
@@ -240,7 +246,7 @@ def masking(voice: list[float], music: list[float], speech: list[int]) -> tuple[
     return ratio, len(masked) / len(windows), masked
 
 
-def band(path: Path, low: int, high: int) -> array:
+def band(path: Path, low: int, high: int) -> array[int]:
     """A soundtrack as a phone plays it: mono (a stereo file is averaged, as a phone's single speaker does), band-
     limited to low–high Hz (two 12 dB/octave stages each side), at RATE, as 16-bit samples."""
     stereo = int(next(s for s in probe(path)["streams"] if s["codec_type"] == "audio")["channels"]) > 1
@@ -300,15 +306,34 @@ def provenance_gate(v: Video, strict: bool) -> None:
 def main(name: str, strict: bool = False) -> None:
     v = video(name)
     provenance_gate(v, strict)
-    duration = v.duration
-    fade = float(v.settings.get("mix", {}).get("fade", 0.3))
-    voice = v.out / "voice-track.wav"
     public = v.public / "audio"
     public.mkdir(parents=True, exist_ok=True)
     v.out.mkdir(parents=True, exist_ok=True)
+    made: list[Pending] = []
+    try:
+        failed = settle(build(v, made))
+    except BaseException:
+        # A step failed (ffmpeg's error is the SystemExit going up): the soundtracks normalized before it never
+        # reach public/, so their temporary files go (one was left in public/<video>/audio/, 22 Oct 2026).
+        for p in made:
+            p.tmp.unlink(missing_ok=True)
+        raise
+    finally:
+        for scratch in SCRATCH:
+            (v.out / scratch).unlink(missing_ok=True)
+    if failed:
+        raise SystemExit("mix failed (the previous soundtracks stay):\n  " + "\n  ".join(failed))
+    (public / "mix.key").write_text(mix_key(v))  # what these were made from (tools/make.py)
+
+
+def build(v: Video, made: list[Pending]) -> list[Pending]:
+    """Every soundtrack of the video normalized into its temporary file, appended to `made` as each is done (so a
+    failure half-way still knows which temporary files to remove); returns `made`."""
+    duration = v.duration
+    fade = float(v.settings.get("mix", {}).get("fade", 0.3))
+    voice = v.out / "voice-track.wav"
     music = v.settings.get("music", {})
     goals = targets(v)
-    made: list[Pending] = []
     if "music-only" in goals:
         if not music.get("bed"):
             raise SystemExit("no voice and no music bed in video.json: nothing to mix")
@@ -320,7 +345,7 @@ def main(name: str, strict: bool = False) -> None:
         made.append(normalize(v, raw, "music-only", goals["music-only"], fade))
     else:
         if not voice.exists():
-            raise SystemExit(f"no {shown(voice)}: run tools/timing.py {name} first")
+            raise SystemExit(f"no {shown(voice)}: run tools/timing.py {v.name} first")
         tmp = v.out / VOICE_48K
         ffmpeg("-i", str(voice), "-af", "aresample=48000", "-ac", "2", str(tmp))
         made.append(normalize(v, tmp, "voice-only", goals["voice-only"], fade))
@@ -330,12 +355,7 @@ def main(name: str, strict: bool = False) -> None:
             made.append(normalize(v, raw, "with-music", goals["with-music"], fade))
             print(f"{shown(ducked)}: the bed alone after ducking (not normalized)")
             phone_check(v)
-    failed = settle(made)
-    for scratch in SCRATCH:
-        (v.out / scratch).unlink(missing_ok=True)
-    if failed:
-        raise SystemExit("mix failed (the previous soundtracks stay):\n  " + "\n  ".join(failed))
-    (public / "mix.key").write_text(mix_key(v))  # what these were made from (tools/make.py)
+    return made
 
 
 if __name__ == "__main__":

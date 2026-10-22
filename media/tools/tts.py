@@ -18,6 +18,7 @@ import argparse
 import os
 import re
 import time
+from typing import TYPE_CHECKING
 
 from common import (
     CACHE,
@@ -33,6 +34,9 @@ from common import (
     voice_files,
     write_wav,
 )
+
+if TYPE_CHECKING:
+    from google.genai import types
 
 # 2.5 answers reliably on the free tier; both time out at times (90 s timeout, retries with backoff).
 MODELS = ("gemini-2.5-flash-preview-tts", "gemini-3.8-flash-tts")
@@ -66,6 +70,18 @@ def api_key() -> str:
     return value
 
 
+def audio_of(response: "types.GenerateContentResponse") -> bytes:
+    """The audio in a TTS answer. One without any (no candidate, a blocked or empty answer) is a ValueError that
+    says so, retried like a busy model (it used to be a bare "'NoneType' object is not subscriptable")."""
+    candidates = response.candidates or []
+    for candidate in candidates:
+        for part in (candidate.content.parts if candidate.content else None) or []:
+            if part.inline_data and part.inline_data.data:
+                return part.inline_data.data
+    reason = candidates[0].finish_reason if candidates else None
+    raise ValueError(f"an answer without audio (finish reason: {reason})")
+
+
 def say(text: str, voice: str, direction: str) -> tuple[bytes, str]:
     from google import genai
     from google.genai import types
@@ -87,7 +103,7 @@ def say(text: str, voice: str, direction: str) -> tuple[bytes, str]:
                         ),
                     ),
                 )
-                return response.candidates[0].content.parts[0].inline_data.data, model
+                return audio_of(response), model
             except Exception as error:  # timeouts and "busy" are common: back off and retry; not the rest
                 last = " ".join(str(error).split())[:160]
                 action = classify(error)

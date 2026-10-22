@@ -16,11 +16,12 @@ import wave
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any
 
 MEDIA = Path(__file__).resolve().parent.parent
 BACKEND = MEDIA.parent
 # The canvas, safe zones, sticker band, default tempo and loudness targets, shared with src/lib/tokens.ts.
-BRAND: dict = json.loads((MEDIA / "brand.json").read_text(encoding="utf-8"))
+BRAND: dict[str, Any] = json.loads((MEDIA / "brand.json").read_text(encoding="utf-8"))
 # The media home: everything generated (the TTS and music cache, each video's public/ binaries, renders and working
 # files, the archive of posted versions) lives outside any checkout, so every worktree shares it and removing a
 # worktree can't delete it. PA_BAILAR_MEDIA_HOME overrides it (tools/paths.mjs and remotion.config.ts read the same).
@@ -70,7 +71,7 @@ def ffmpeg(*args: str, cwd: Path | None = None) -> str:
     return done.stderr
 
 
-def probe(path: Path) -> dict:
+def probe(path: Path) -> dict[str, Any]:
     out = subprocess.run(
         [tool("ffprobe"), "-v", "error", "-show_format", "-show_streams", "-of", "json", str(path)],
         capture_output=True,
@@ -79,7 +80,8 @@ def probe(path: Path) -> dict:
         errors="replace",
         check=True,
     ).stdout
-    return json.loads(out)
+    info: dict[str, Any] = json.loads(out)
+    return info
 
 
 def main_checkout() -> Path:
@@ -137,7 +139,7 @@ class Video:
     """One video: its folder, its settings and where the tools write for it."""
 
     name: str
-    settings: dict
+    settings: dict[str, Any]
 
     @property
     def folder(self) -> Path:
@@ -184,14 +186,14 @@ class Video:
         return self.out / render_name(self.name, self.version, deliverable, draft)
 
     def versions(self, deliverable: str) -> list[tuple[tuple[int, ...], Path]]:
-        """Every full render of a deliverable (out/ and the archive), oldest version first."""
+        """Every full render of a deliverable (out/ and the archive), oldest version first (version_key())."""
         found: dict[tuple[int, ...], Path] = {}
         for folder in (self.archive, self.out):
             for path in sorted(folder.rglob("*.mp4")) if folder.exists() else []:
                 parsed = parse_render_name(self.name, path.name)
                 if parsed and parsed[1] == deliverable:
                     found.setdefault(parsed[0], path)
-        return sorted(found.items())
+        return sorted(found.items(), key=lambda item: (version_key(item[0]), item[0]))
 
 
 def mix_key(v: "Video") -> str:
@@ -210,7 +212,7 @@ PROVENANCE_FIELDS = ("model", "revision", "prompt", "seed", "reference_audio", "
 LICENSED_FIELDS = ("source", "url", "author", "license", "downloaded")
 
 
-def provenance_problems(music: dict) -> list[str]:
+def provenance_problems(music: dict[str, Any]) -> list[str]:
     """What's missing from the provenance of the bed a video uses (video.json's "music"); [] without a bed."""
     bed = music.get("bed")
     if not bed:
@@ -231,6 +233,16 @@ def provenance_problems(music: dict) -> list[str]:
 
 def version_tuple(text: str) -> tuple[int, ...]:
     return tuple(int(p) for p in text.split("."))
+
+
+def version_key(version: tuple[int, ...]) -> tuple[int, ...]:
+    """A version to compare: numeric part by part, trailing zeros don't count, so v6 = v6.0 < v6.1 < v10. Two
+    spellings of one version (`puente-v6-reel.mp4` and `puente-v6.0-reel.mp4`) are the same cut, neither older: as
+    plain tuples (6,) < (6, 0), and tools/clean.py would have recycled video.json's current "6" next to a "6.0"."""
+    end = len(version)
+    while end and version[end - 1] == 0:
+        end -= 1
+    return version[:end]
 
 
 def render_name(name: str, version: str, deliverable: str, draft: bool = False) -> str:
@@ -285,17 +297,17 @@ DIRECTION = (
 )
 
 
-def script_text(voice: dict) -> str:
+def script_text(voice: dict[str, Any]) -> str:
     """The whole script: its lines joined with spaces (what a one-take recording reads at once)."""
     return " ".join(line["text"] for line in voice["lines"])
 
 
-def one_take_path(voice: dict) -> Path:
+def one_take_path(voice: dict[str, Any]) -> Path:
     """Where a one-take recording of the whole script is cached ("voice"."one_take": true; "take" for another)."""
     return tts_path(script_text(voice), voice["name"], voice.get("direction", DIRECTION), voice.get("take", 0))
 
 
-def voice_files(voice: dict) -> list[Path]:
+def voice_files(voice: dict[str, Any]) -> list[Path]:
     """The cached recordings a voice ("voice" in video.json) is made of: its one take ("one_take"), else each line's,
     in order (its words, "take" and the direction). The one list tts, timing, make and clean read: make.py once
     looked for a one-take video's lines, which never exist, and made it all again on every run (8 Oct 2026)."""
@@ -309,7 +321,7 @@ def _audio_hash(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()[:16] if path.exists() else "missing"
 
 
-def voice_key(settings: dict) -> str | None:
+def voice_key(settings: dict[str, Any]) -> str | None:
     """A key of everything the voice track and its timing are made of: each line's words, take and gap, the voice,
     the direction, the lead and the pauses, and the bytes of each cached line (or of the one take). tools/timing.py
     stores it in timing.json; tools/render.py refuses to render when it no longer matches (timing older than the
@@ -338,7 +350,7 @@ def _norm(word: str) -> str:
     return re.sub(r"[^a-z']", "", plain)
 
 
-def line_starts(lines: list[dict], heard: list[dict]) -> list[int]:
+def line_starts(lines: list[dict[str, Any]], heard: list[dict[str, Any]]) -> list[int]:
     """Where each line ("voice"."lines") starts in a one-take recording, as indexes into Whisper's words (`heard`).
     Heard word for word: each line by its own count. Otherwise each line starts at its first two words, searched in
     order (two words: "El viernes" vs "El sábado"), not before most of the line before it ("Y el domingo" inside "El
@@ -361,7 +373,7 @@ def line_starts(lines: list[dict], heard: list[dict]) -> list[int]:
     return starts
 
 
-def at_seconds(spec: str, timing: dict | None, fps: int = 30) -> float:
+def at_seconds(spec: str, timing: dict[str, Any] | None, fps: int = 30) -> float:
     """A moment as tools/stills.mjs takes it (src/lib/words.ts secondsAt(), the same cases in tests/timing-cases.json):
     seconds ("8.5" or "8.5s"), a frame ("f255"), a line's start ("c4") or a word's start ("c4:link", the nth with
     "c4:link:1"), from a video's data/timing.json."""

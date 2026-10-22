@@ -33,6 +33,7 @@ import urllib.error
 import urllib.request
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 from common import BACKEND, Video, bogota_today, probe, shown, video
 
@@ -66,7 +67,8 @@ def fetch(rel: str, live: bool) -> bytes:
     image = rel.startswith(IMAGE_DIRS)
     if live:
         with urllib.request.urlopen((IMAGES_RAW if image else RAW) + rel, timeout=30) as r:
-            return r.read()
+            body: bytes = r.read()
+            return body
     if image and not (SITE_DATA / rel).exists():
         return (IMAGES / rel).read_bytes()
     return (SITE_DATA / rel).read_bytes()
@@ -87,7 +89,7 @@ def checkout_age() -> str:
     return "missing"
 
 
-def load_events(checkout: bool) -> tuple[list[dict], bool]:
+def load_events(checkout: bool) -> tuple[list[dict[str, Any]], bool]:
     """The site's events and whether they came live (else from the checkout, with a note of its age)."""
     if not checkout:
         try:
@@ -98,7 +100,7 @@ def load_events(checkout: bool) -> tuple[list[dict], bool]:
     return json.loads(fetch("events.json", False)), False
 
 
-def days_of(e: dict) -> list[str]:
+def days_of(e: dict[str, Any]) -> list[str]:
     if e.get("sessions"):
         return [s["date"] for s in e["sessions"]]
     first = date.fromisoformat(e["date"])
@@ -106,7 +108,7 @@ def days_of(e: dict) -> list[str]:
     return [(first + timedelta(d)).isoformat() for d in range((last - first).days + 1)]
 
 
-def occurrence(e: dict, start: str, end: str) -> tuple[str, str | None, str | None]:
+def occurrence(e: dict[str, Any], start: str, end: str) -> tuple[str, str | None, str | None]:
     """The first day of `e` inside [start, end] and that day's times (a session's own, for a workshop series)."""
     for session in e.get("sessions") or []:
         if start <= session["date"] <= end:
@@ -122,7 +124,7 @@ def weekend(of: date) -> tuple[date, date]:
     return friday, friday + timedelta(days=2)
 
 
-def pick(events: list[dict], start: str, end: str, wanted: list[str], limit: int) -> list[dict]:
+def pick(events: list[dict[str, Any]], start: str, end: str, wanted: list[str], limit: int) -> list[dict[str, Any]]:
     """The events on any day of [start, end] (of the wanted styles), by the day the video shows and its time."""
     picked = [
         e
@@ -141,7 +143,7 @@ def iso_day(text: str) -> str:
         raise argparse.ArgumentTypeError(f"not a date (YYYY-MM-DD): {text}") from error
 
 
-def write_snapshot(v: Video, picked: list[dict], meta: dict, live: bool) -> list[dict]:
+def write_snapshot(v: Video, picked: list[dict[str, Any]], meta: dict[str, Any], live: bool) -> list[dict[str, Any]]:
     """The flyers into a fresh folder that then replaces the old one, then events.json replaced whole."""
     flyers = v.public / "flyers"
     fresh = flyers.with_name(f".flyers-{os.getpid()}")

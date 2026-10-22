@@ -18,6 +18,7 @@ import sys
 import time
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 from common import CACHE, key, shown, video
 
@@ -33,7 +34,7 @@ def path_for(name: str, prompt: str, seed: int, bpm: int, duration: int) -> Path
     return CACHE / "music" / f"{name}-s{seed}-{key(prompt, seed, bpm, duration, STEPS, SHIFT, THINKING)}.wav"
 
 
-def provenance(name: str, prompt: str, seed: int, bpm: int, duration: int, revision: str, day: str) -> dict:
+def provenance(name: str, prompt: str, seed: int, bpm: int, duration: int, revision: str, day: str) -> dict[str, Any]:
     """How a bed was made, in the shape of video.json's "music"."provenance"[<bed>] (common.PROVENANCE_FIELDS):
     written next to each new bed as <bed>.json, to copy into video.json when the bed is chosen."""
     return {

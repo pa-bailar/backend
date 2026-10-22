@@ -37,8 +37,9 @@ import subprocess
 import sys
 from datetime import date, datetime
 from pathlib import Path
+from typing import Any
 
-from common import MEDIA, Video, bogota_today, provenance_problems, shown, version_tuple, video, voice_key
+from common import MEDIA, Video, bogota_today, provenance_problems, shown, version_key, version_tuple, video, voice_key
 
 
 def remotion(*args: str) -> None:
@@ -58,7 +59,7 @@ def shelf_lives(data: Path) -> list[tuple[str, date]]:
     """Each dated piece of material in a video's data/ and the last day it's true."""
     out: list[tuple[str, date]] = []
 
-    def read(name: str) -> dict:
+    def read(name: str) -> dict[str, Any]:
         path = data / name
         return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
@@ -140,6 +141,14 @@ def passed_marker(dest: Path) -> Path:
     return dest.with_name(f"{dest.stem}-review.ok")
 
 
+def previous(v: Video, deliverable: str) -> tuple[tuple[int, ...], Path] | None:
+    """The latest render of `deliverable` older than video.json's version (version_key(): a v6.0 isn't older than
+    v6), to compare with; None when there's none."""
+    current = version_key(version_tuple(v.version))
+    older = [(ver, path) for ver, path in v.versions(deliverable) if version_key(ver) < current]
+    return older[-1] if older else None
+
+
 def review(v: Video, deliverable: str, dest: Path) -> bool:
     """Instagram's pre-flight, the keyframe sheet, the sticker band (Story deliverables), the Reel's safe zones (Reel
     deliverables) and a side-by-side with the previous version. Leaves passed_marker() only when it all passes."""
@@ -151,16 +160,15 @@ def review(v: Video, deliverable: str, dest: Path) -> bool:
     total = rv.duration_of(dest)
     is_reel = deliverable in rv.reel_deliverables(v.settings)
     ok = preflight.check(dest, "reel" if is_reel else "story")
-    at = [round(t * 2 + 1, 2) for t in range(int(total / 2))]
+    at = [t * 2 + 1.0 for t in range(int(total / 2))]
     rv.sheet(dest, at, dest.with_name(f"{dest.stem}-sheet.png"), reel=is_reel)
     band = v.settings.get("sticker_band", {})
     if deliverable in band.get("deliverables", []):
         ok = rv.band(dest, rv.allowed_spans(v.name), v.fps) and ok
     if is_reel:
         rv.reel(dest, rv.allowed_spans(v.name, "reel_safe"), v.fps)  # warnings only: images may run into the margins
-    older = [(ver, path) for ver, path in v.versions(deliverable) if ver < version_tuple(v.version)]
-    if older:
-        ver, path = older[-1]
+    if earlier := previous(v, deliverable):
+        ver, path = earlier
         before = ".".join(map(str, ver))
         out = dest.with_name(f"{dest.stem}-vs-v{before}.mp4")
         rv.compare(path, dest, [f"v{before}", f"v{v.version}"], 0.0, None, out)

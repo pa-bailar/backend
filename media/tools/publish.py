@@ -141,7 +141,8 @@ class Graph:
         if "error" in answer:
             err = answer["error"] if isinstance(answer["error"], dict) else {"message": str(answer["error"])}
             message = redact(str(err.get("error_user_msg") or err.get("message") or "unknown error"), [self.token])
-            raise GraphError(message, err.get("code"), ambiguous=status >= 500)
+            code = err.get("code")
+            raise GraphError(message, code if isinstance(code, int) else None, ambiguous=status >= 500)
         if status >= 400:
             raise GraphError(
                 f"HTTP {status}: {redact(json.dumps(answer)[:200], [self.token])}", ambiguous=status >= 500
@@ -149,7 +150,7 @@ class Graph:
         return answer
 
 
-def describe(method: str, url: str, body: dict | None, data: bytes | None, headers: dict[str, str]) -> str:
+def describe(method: str, url: str, body: dict[str, Any] | None, data: bytes | None, headers: dict[str, str]) -> str:
     """One request as a line, headers that matter included (redact() takes the token out)."""
     shown_headers = {k: v for k, v in headers.items() if k not in ("Content-Type",)}
     line = f"{method} {url}"
@@ -226,7 +227,8 @@ class State:
         os.replace(tmp, self.path)
 
     def entry(self, key: str) -> dict[str, Any] | None:
-        return self.data["renders"].get(key)
+        found: dict[str, Any] | None = self.data["renders"].get(key)
+        return found
 
     def put(self, key: str, entry: dict[str, Any]) -> None:
         self.data["renders"][key] = entry
@@ -563,9 +565,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("video")
     parser.add_argument("deliverable")
-    kind = parser.add_mutually_exclusive_group()
-    kind.add_argument("--story", dest="kind", action="store_const", const="story")
-    kind.add_argument("--reel", dest="kind", action="store_const", const="reel")
+    kinds = parser.add_mutually_exclusive_group()
+    kinds.add_argument("--story", dest="kind", action="store_const", const="story")
+    kinds.add_argument("--reel", dest="kind", action="store_const", const="reel")
     parser.add_argument("--caption-file", type=Path)
     parser.add_argument("--no-feed", action="store_true", help="a Reel in the Reels tab only")
     parser.add_argument("--thumb-offset", type=int, help="the cover frame, in ms")

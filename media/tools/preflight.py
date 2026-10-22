@@ -20,6 +20,7 @@ import struct
 from collections.abc import Iterator
 from fractions import Fraction
 from pathlib import Path
+from typing import Any
 
 from common import probe
 
@@ -128,7 +129,7 @@ def edit_lists(path: Path) -> bool | None:
     return False
 
 
-def rotation(video: dict) -> int:
+def rotation(video: dict[str, Any]) -> int:
     """The rotation a player applies (degrees): the display matrix (ffprobe's side data) or the old "rotate" tag."""
     for side in video.get("side_data_list", []) or []:
         if "rotation" in side:
@@ -136,13 +137,15 @@ def rotation(video: dict) -> int:
     return int(float((video.get("tags") or {}).get("rotate", 0) or 0))
 
 
-def displayed_size(video: dict) -> tuple[int, int]:
+def displayed_size(video: dict[str, Any]) -> tuple[int, int]:
     """Width × height as shown: a 1920×1080 stream rotated 90° is a 1080×1920 picture."""
     w, h = int(video.get("width", 0)), int(video.get("height", 0))
     return (h, w) if rotation(video) % 180 else (w, h)
 
 
-def video_problems(video: dict, fmt: dict, audio: dict | None, fail: list[str], warn: list[str]) -> None:
+def video_problems(
+    video: dict[str, Any], fmt: dict[str, Any], audio: dict[str, Any] | None, fail: list[str], warn: list[str]
+) -> None:
     codec = video.get("codec_name")
     if codec not in CODECS:
         fail.append(f"video codec {codec}: Instagram takes H.264 or HEVC")
@@ -168,7 +171,7 @@ def video_problems(video: dict, fmt: dict, audio: dict | None, fail: list[str], 
         fail.append(f"video {bps / 1e6:.1f} Mbps: Instagram takes up to {MAX_VIDEO_BPS / 1e6:.0f} Mbps")
 
 
-def audio_problems(audio: dict, fail: list[str], warn: list[str]) -> None:
+def audio_problems(audio: dict[str, Any], fail: list[str], warn: list[str]) -> None:
     if audio.get("codec_name") != "aac":
         fail.append(f"audio codec {audio.get('codec_name')}: Instagram takes AAC")
     abps = int(audio.get("bit_rate") or 0)
@@ -181,14 +184,14 @@ def audio_problems(audio: dict, fail: list[str], warn: list[str]) -> None:
 
 
 def assess(
-    info: dict,
+    info: dict[str, Any],
     size: int,
     kind: str,
     api: bool,
     faststart: bool | None,
     suffix: str = ".mp4",
     edit_list: bool | None = None,
-):
+) -> tuple[list[str], list[str]]:
     """(failures, warnings) for ffprobe's -show_format -show_streams output of one file."""
     fail: list[str] = []
     warn: list[str] = []
@@ -236,8 +239,8 @@ def check(path: Path, kind: str | None = None, api: bool = False) -> bool:
     kind = kind or ("reel" if "reel" in path.name.lower() else "story")
     info = probe(path)
     fail, warn = assess(info, path.stat().st_size, kind, api, moov_first(path), path.suffix, edit_lists(path))
-    video = next((s for s in info.get("streams", []) if s.get("codec_type") == "video"), {})
-    audio = next((s for s in info.get("streams", []) if s.get("codec_type") == "audio"), {})
+    video: dict[str, Any] = next((s for s in info.get("streams", []) if s.get("codec_type") == "video"), {})
+    audio: dict[str, Any] = next((s for s in info.get("streams", []) if s.get("codec_type") == "audio"), {})
     summary = (
         f"{video.get('codec_name')} {video.get('width')}×{video.get('height')} "
         f"{rate(video.get('avg_frame_rate')):.0f} fps {int(video.get('bit_rate') or 0) / 1e6:.1f} Mbps, "

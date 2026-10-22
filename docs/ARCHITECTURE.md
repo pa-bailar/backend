@@ -1559,7 +1559,8 @@ guide.
 `main` keeps the pip cache where every branch can use it, since a PR's cache stays with that PR):
 - `ruff check` (lint, including a complexity cap: no function over 12, `C901`);
 - `ruff format --check`;
-- `mypy` (strict, with the Pydantic plugin);
+- `mypy` (strict, with the Pydantic plugin) on `pa_bailar/` and the video toolkit's `media/tools/` (since 22 Oct
+  2026; the toolkit's own environments' packages, numpy, librosa, faster-whisper and ACE-Step, have no stubs in CI);
 - `pytest`;
 - the admin page's Worker tests (`node --test "admin-web/test/*.test.mjs"`, Node 24);
 - and, in its own workflow `media-ci.yml`, the video toolkit: `npm ci`, `tsc --noEmit` and its Node tests
