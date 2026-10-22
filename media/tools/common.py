@@ -184,14 +184,14 @@ class Video:
         return self.out / render_name(self.name, self.version, deliverable, draft)
 
     def versions(self, deliverable: str) -> list[tuple[tuple[int, ...], Path]]:
-        """Every full render of a deliverable (out/ and the archive), oldest version first."""
+        """Every full render of a deliverable (out/ and the archive), oldest version first (version_key())."""
         found: dict[tuple[int, ...], Path] = {}
         for folder in (self.archive, self.out):
             for path in sorted(folder.rglob("*.mp4")) if folder.exists() else []:
                 parsed = parse_render_name(self.name, path.name)
                 if parsed and parsed[1] == deliverable:
                     found.setdefault(parsed[0], path)
-        return sorted(found.items())
+        return sorted(found.items(), key=lambda item: (version_key(item[0]), item[0]))
 
 
 def mix_key(v: "Video") -> str:
@@ -231,6 +231,16 @@ def provenance_problems(music: dict) -> list[str]:
 
 def version_tuple(text: str) -> tuple[int, ...]:
     return tuple(int(p) for p in text.split("."))
+
+
+def version_key(version: tuple[int, ...]) -> tuple[int, ...]:
+    """A version to compare: numeric part by part, trailing zeros don't count, so v6 = v6.0 < v6.1 < v10. Two
+    spellings of one version (`puente-v6-reel.mp4` and `puente-v6.0-reel.mp4`) are the same cut, neither older: as
+    plain tuples (6,) < (6, 0), and tools/clean.py would have recycled video.json's current "6" next to a "6.0"."""
+    end = len(version)
+    while end and version[end - 1] == 0:
+        end -= 1
+    return version[:end]
 
 
 def render_name(name: str, version: str, deliverable: str, draft: bool = False) -> str:

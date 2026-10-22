@@ -86,6 +86,37 @@ def test_old_versions_keeps_the_latest_of_each_deliverable(tmp_path):
     assert not set(keep) & set(found)
 
 
+def test_versions_compare_by_number_and_trailing_zeros_dont_count():
+    order = ["5.9", "6", "6.0.1", "6.1", "6.2", "6.10", "10"]
+    keys = [common.version_key(common.version_tuple(v)) for v in order]
+    assert keys == sorted(keys) and len(set(keys)) == len(keys)
+    assert common.version_key((6, 0)) == common.version_key((6,)) == common.version_key((6, 0, 0))
+
+
+@pytest.mark.parametrize("named", [True, False], ids=["video-folder", "archive"])
+def test_old_versions_never_lists_a_spelling_of_the_latest(tmp_path, named):
+    # v6.0 sorted above v6, so video.json's current "6" was listed for recycling next to a "6.0" (8 Oct 2026 suspect,
+    # reproduced 22 Oct 2026).
+    old = [touch(tmp_path / f"puente-v{v}-reel.mp4") for v in ("5", "5.9")]
+    keep = [touch(tmp_path / f"puente-v{v}-reel.mp4") for v in ("6", "6.0")]
+    assert sorted(clean.old_versions(tmp_path, "puente" if named else None)) == old
+    newer = touch(tmp_path / "puente-v10-reel.mp4")
+    assert sorted(clean.old_versions(tmp_path, "puente" if named else None)) == sorted(old + keep)
+    assert newer not in clean.old_versions(tmp_path, "puente" if named else None)
+
+
+def test_the_previous_version_to_compare_with_is_really_older(tmp_path, monkeypatch):
+    monkeypatch.setattr(common, "HOME", tmp_path)
+    v = common.Video("puente", {"version": "6.0"})
+    for ver in ("5", "6", "6.1"):
+        touch(v.out / common.render_name("puente", ver, "reel"))
+    assert render.previous(v, "reel") == ((5,), v.out / "puente-v5-reel.mp4")  # not v6: the same version
+    v.settings["version"] = "10"
+    assert render.previous(v, "reel") == ((6, 1), v.out / "puente-v6.1-reel.mp4")
+    v.settings["version"] = "5"
+    assert render.previous(v, "reel") is None
+
+
 def test_old_versions_without_a_name_reads_the_archive_names(tmp_path):
     old = touch(tmp_path / "teaser-v2.2-reel.mp4")
     touch(tmp_path / "teaser-v2.3-reel.mp4")
@@ -832,6 +863,46 @@ def test_clean_skips_what_the_recycle_bin_would_delete_for_good(tmp_path, monkey
     assert "more than" in clean.unrecyclable(item)
 
 
+def test_recycling_never_asks_or_shows_a_dialog():
+    flags = clean.RECYCLE_FLAGS
+    assert flags & clean.FOF_ALLOWUNDO  # the Recycle Bin, never deleted for good
+    for quiet in (clean.FOF_NOERRORUI, clean.FOF_SILENT, clean.FOF_NOCONFIRMATION, clean.FOF_NOCONFIRMMKDIR):
+        assert flags & quiet
+
+
+@pytest.mark.skipif(os.name != "nt", reason="the Recycle Bin is Windows'")
+def test_a_file_held_open_is_reported_not_moved(tmp_path):
+    # Visual Basic's FileSystem through PowerShell raised CalledProcessError here, ending the whole --yes run
+    # (reproduced 22 Oct 2026), with the shell free to show an error dialog ('OnlyErrorDialogs').
+    held = touch(tmp_path / "held.mp4")
+    with open(held, "rb"):  # Python opens without FILE_SHARE_DELETE: Windows can't move it meanwhile
+        problem = clean.recycle(held)
+    assert problem and "another process" in problem
+    assert held.exists()
+    frames = tmp_path / "frames"
+    touch(frames / "a.png")
+    with open(touch(frames / "b.png"), "rb"):
+        assert clean.recycle(frames)
+    assert sorted(p.name for p in frames.iterdir()) == ["a.png", "b.png"]
+    assert "cannot find" in (clean.recycle(tmp_path / "gone.mp4") or "")
+
+
+def test_recycling_goes_on_past_an_item_it_cannot_move(tmp_path, monkeypatch, capsys):
+    items = [tmp_path / name for name in ("a.mp4", "held.mp4", "c.mp4")]
+    tried: list[Path] = []
+    monkeypatch.setattr(clean, "unrecyclable", lambda p: None)
+    monkeypatch.setattr(clean, "recycle", lambda p: tried.append(p) or ("held open" if p.name == "held.mp4" else None))
+    with pytest.raises(SystemExit, match="1 couldn't be moved"):
+        clean.recycle_all(items)
+    assert tried == items  # the one after it was still tried
+    out = capsys.readouterr()
+    assert f"couldn't move {items[1]}: held open" in out.err
+    assert "2 moved to the Recycle Bin" in out.out
+    tried.clear()
+    clean.recycle_all([items[0], items[2]])  # all moved: no error
+    assert tried == [items[0], items[2]]
+
+
 def test_soundtracks_are_replaced_together_or_not_at_all(tmp_path):
     def pending(name, problem=None):
         dest = touch(tmp_path / f"{name}.wav")
@@ -847,6 +918,45 @@ def test_soundtracks_are_replaced_together_or_not_at_all(tmp_path):
     assert (tmp_path / "with-music.wav").read_text() == "old"
     assert mix.settle([pending("voice-only"), pending("with-music")]) == []
     assert (tmp_path / "voice-only.wav").read_text() == "new" and (tmp_path / "with-music.wav").read_text() == "new"
+
+
+def failing_mix(tmp_path, monkeypatch, fail_in: str) -> common.Video:
+    """A video with a voice and a bed whose mix fails in `fail_in` ("loudnorm" or "mix_music"), ffmpeg's way (a
+    SystemExit), after the output file was written."""
+    monkeypatch.setattr(common, "HOME", tmp_path)
+    monkeypatch.setattr(mix, "HOME", tmp_path)
+    v = common.Video("x", {"duration": 3, "voice": {"lines": []}, "music": {"bed": "cache/music/bed.wav"}})
+    touch(v.out / "voice-track.wav")
+    monkeypatch.setattr(mix, "video", lambda name: v)
+    monkeypatch.setattr(mix, "ffmpeg", lambda *args: touch(Path(args[-1])) and "")
+    monkeypatch.setattr(mix, "measure", lambda path: (-15.0, -3.0))
+
+    def loudnorm(src, dest, *rest):
+        touch(dest)
+        if fail_in == "loudnorm":
+            raise SystemExit("ffmpeg failed:\nloudnorm")
+        return "linear"
+
+    def mix_music(v, voice, bed, raw, ducked):
+        touch(raw)
+        raise SystemExit("ffmpeg failed:\nno such bed")
+
+    monkeypatch.setattr(mix, "loudnorm", loudnorm)
+    if fail_in == "mix_music":
+        monkeypatch.setattr(mix, "mix_music", mix_music)
+    return v
+
+
+@pytest.mark.parametrize("fail_in", ["loudnorm", "mix_music"])
+def test_a_failed_mix_leaves_no_temporary_soundtrack(tmp_path, monkeypatch, fail_in):
+    # A bed ffmpeg couldn't read left public/<video>/audio/.voice-only.tmp.wav behind (reproduced with real ffmpeg,
+    # 22 Oct 2026): the voice was normalized before the music failed.
+    v = failing_mix(tmp_path, monkeypatch, fail_in)
+    with pytest.raises(SystemExit, match="ffmpeg failed"):  # the error is still reported
+        mix.main("x")
+    assert not list((v.public / "audio").glob("*.tmp.wav"))
+    assert not [f for f in mix.SCRATCH if (v.out / f).exists()]
+    assert not (v.public / "audio" / "voice-only.wav").exists()  # nothing half-made took a soundtrack's place
 
 
 def test_tts_stops_clearly_without_a_key(monkeypatch):

@@ -128,8 +128,12 @@ def normalize(v: Video, src: Path, name: str, target: float, fade: float) -> Pen
     the soundtracks in place together, or none of them."""
     dest = v.public / "audio" / f"{name}.wav"
     tmp = dest.with_name(f".{dest.stem}.tmp.wav")
-    kind = loudnorm(src, tmp, target, v.duration, fade)
-    integrated, peak = measure(tmp)
+    try:
+        kind = loudnorm(src, tmp, target, v.duration, fade)
+        integrated, peak = measure(tmp)
+    except BaseException:  # ffmpeg failed (SystemExit), a report didn't parse, Ctrl+C: no half-written file stays
+        tmp.unlink(missing_ok=True)
+        raise
     wrong = problems(integrated, peak, target)
     line = f"{shown(dest)}: {integrated:.1f} LUFS (target {target}), true peak {peak:+.1f} dBTP, loudnorm {kind}"
     print(f"{line}{'  REJECTED' if wrong else ''}")
@@ -300,15 +304,34 @@ def provenance_gate(v: Video, strict: bool) -> None:
 def main(name: str, strict: bool = False) -> None:
     v = video(name)
     provenance_gate(v, strict)
-    duration = v.duration
-    fade = float(v.settings.get("mix", {}).get("fade", 0.3))
-    voice = v.out / "voice-track.wav"
     public = v.public / "audio"
     public.mkdir(parents=True, exist_ok=True)
     v.out.mkdir(parents=True, exist_ok=True)
+    made: list[Pending] = []
+    try:
+        failed = settle(build(v, made))
+    except BaseException:
+        # A step failed (ffmpeg's error is the SystemExit going up): the soundtracks normalized before it never
+        # reach public/, so their temporary files go (one was left in public/<video>/audio/, 22 Oct 2026).
+        for p in made:
+            p.tmp.unlink(missing_ok=True)
+        raise
+    finally:
+        for scratch in SCRATCH:
+            (v.out / scratch).unlink(missing_ok=True)
+    if failed:
+        raise SystemExit("mix failed (the previous soundtracks stay):\n  " + "\n  ".join(failed))
+    (public / "mix.key").write_text(mix_key(v))  # what these were made from (tools/make.py)
+
+
+def build(v: Video, made: list[Pending]) -> list[Pending]:
+    """Every soundtrack of the video normalized into its temporary file, appended to `made` as each is done (so a
+    failure half-way still knows which temporary files to remove); returns `made`."""
+    duration = v.duration
+    fade = float(v.settings.get("mix", {}).get("fade", 0.3))
+    voice = v.out / "voice-track.wav"
     music = v.settings.get("music", {})
     goals = targets(v)
-    made: list[Pending] = []
     if "music-only" in goals:
         if not music.get("bed"):
             raise SystemExit("no voice and no music bed in video.json: nothing to mix")
@@ -320,7 +343,7 @@ def main(name: str, strict: bool = False) -> None:
         made.append(normalize(v, raw, "music-only", goals["music-only"], fade))
     else:
         if not voice.exists():
-            raise SystemExit(f"no {shown(voice)}: run tools/timing.py {name} first")
+            raise SystemExit(f"no {shown(voice)}: run tools/timing.py {v.name} first")
         tmp = v.out / VOICE_48K
         ffmpeg("-i", str(voice), "-af", "aresample=48000", "-ac", "2", str(tmp))
         made.append(normalize(v, tmp, "voice-only", goals["voice-only"], fade))
@@ -330,12 +353,7 @@ def main(name: str, strict: bool = False) -> None:
             made.append(normalize(v, raw, "with-music", goals["with-music"], fade))
             print(f"{shown(ducked)}: the bed alone after ducking (not normalized)")
             phone_check(v)
-    failed = settle(made)
-    for scratch in SCRATCH:
-        (v.out / scratch).unlink(missing_ok=True)
-    if failed:
-        raise SystemExit("mix failed (the previous soundtracks stay):\n  " + "\n  ".join(failed))
-    (public / "mix.key").write_text(mix_key(v))  # what these were made from (tools/make.py)
+    return made
 
 
 if __name__ == "__main__":

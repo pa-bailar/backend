@@ -33,22 +33,24 @@ archive/ folders in the media home, and the voice takes and music only it uses. 
 code, video.json, data/), so it can be made again. The owner decides when a video is done.
 
 With --yes, an item on a drive without a Recycle Bin, or larger than the bin holds (Windows would delete it for good),
-is skipped with a message.
+is skipped with a message. One Windows can't move (a file another program holds open) is named with why, never with a
+dialog; the rest still go, and the run then exits with an error.
 
-Standard library + PowerShell (the Recycle Bin): any Python on Windows runs it.
+Standard library only (the Recycle Bin through ctypes and the Windows shell): any Python on Windows runs it.
 """
 
 import argparse
+import ctypes
 import filecmp
 import json
-import os
 import re
 import shutil
 import subprocess
 import sys
+from ctypes import wintypes
 from pathlib import Path
 
-from common import HOME, MEDIA, parse_render_name, voice_files
+from common import HOME, MEDIA, parse_render_name, version_key, version_tuple, voice_files
 from mix import SCRATCH as MIX_SCRATCH  # its intermediates (it removes them after a mix; older runs left them)
 
 ARCHIVE = MEDIA.parent.parent / "pa-bailar-teaser"
@@ -100,26 +102,25 @@ def size(path: Path) -> int:
 
 
 def old_versions(folder: Path, name: str | None = None) -> list[Path]:
-    """`<name>-v<version>-<deliverable>.mp4` files that aren't the latest version of their deliverable. With `name` (a
-    video's out/ folder) the name is known, so "teaser-v2-v2.4-reel.mp4" parses right; without it, any name."""
-    latest: dict[tuple[str, str], tuple[tuple[int, ...], Path]] = {}
+    """`<name>-v<version>-<deliverable>.mp4` files older than the latest version of their deliverable (version_key():
+    v6 = v6.0 < v6.1 < v10, and both spellings of the latest stay). With `name` (a video's out/ folder) the name is
+    known, so "teaser-v2-v2.4-reel.mp4" parses right; without it, any name."""
+    latest: dict[tuple[str, str], tuple[int, ...]] = {}
     found: list[tuple[tuple[str, str], tuple[int, ...], Path]] = []
     for f in folder.glob("*.mp4"):
         if name is not None:
             parsed = parse_render_name(name, f.name)
             if not parsed:
                 continue
-            key, version = (name, parsed[1]), parsed[0]
+            key, version = (name, parsed[1]), version_key(parsed[0])
         else:
             m = VERSIONED.match(f.name)
             if not m:
                 continue
-            key = (m["name"], m["deliverable"])
-            version = tuple(int(p) for p in m["version"].split("."))
+            key, version = (m["name"], m["deliverable"]), version_key(version_tuple(m["version"]))
         found.append((key, version, f))
-        if key not in latest or version > latest[key][0]:
-            latest[key] = (version, f)
-    return [f for key, version, f in found if latest[key][1] != f]
+        latest[key] = max(latest.get(key, version), version)
+    return [f for key, version, f in found if version < latest[key]]
 
 
 def working_file(path: Path) -> bool:
@@ -357,15 +358,58 @@ def unrecyclable(path: Path) -> str | None:
     return None
 
 
-def recycle(path: Path) -> None:
-    """To the Recycle Bin (Windows), so anything can be restored."""
-    kind = "DeleteDirectory" if path.is_dir() else "DeleteFile"
-    script = (
-        "Add-Type -AssemblyName Microsoft.VisualBasic; "
-        f"[Microsoft.VisualBasic.FileIO.FileSystem]::{kind}($env:TARGET, 'OnlyErrorDialogs', 'SendToRecycleBin')"
+# The shell's SHFileOperationW (shellapi.h), asked to move to the Recycle Bin without a word: no confirmation, no
+# progress, and no error dialog (FOF_NOERRORUI). It answers with a code instead, and the run goes on to the next item.
+# Before 22 Oct 2026 it went through PowerShell and Visual Basic's FileSystem with 'OnlyErrorDialogs' (FOF_NOERRORUI
+# unset: the shell may stop on an error dialog), and an item it couldn't move (a file another program held open)
+# ended the whole run with a traceback, the items after it never tried.
+FO_DELETE = 0x0003
+FOF_SILENT = 0x0004
+FOF_NOCONFIRMATION = 0x0010
+FOF_ALLOWUNDO = 0x0040  # to the Recycle Bin, not deleted for good
+FOF_NOCONFIRMMKDIR = 0x0200
+FOF_NOERRORUI = 0x0400
+# FOF_WANTNUKEWARNING stays off: it's a dialog. What the bin can't take, Windows deletes for good without asking, so
+# unrecyclable() keeps those out before anything is moved.
+RECYCLE_FLAGS = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_SILENT | FOF_NOERRORUI | FOF_NOCONFIRMMKDIR
+
+
+class SHFileOpStruct(ctypes.Structure):
+    """SHFILEOPSTRUCTW (byte-packed in 32-bit Windows, natural in 64-bit)."""
+
+    if ctypes.sizeof(ctypes.c_void_p) == 4:
+        _pack_ = 1
+    _fields_ = [
+        ("hwnd", wintypes.HWND),
+        ("wFunc", wintypes.UINT),
+        ("pFrom", wintypes.LPCWSTR),
+        ("pTo", wintypes.LPCWSTR),
+        ("fFlags", wintypes.WORD),
+        ("fAnyOperationsAborted", wintypes.BOOL),
+        ("hNameMappings", wintypes.LPVOID),
+        ("lpszProgressTitle", wintypes.LPCWSTR),
+    ]
+
+
+def recycle(path: Path) -> str | None:
+    """To the Recycle Bin (Windows), so anything can be restored, never stopping on a dialog. Returns why it couldn't
+    (a file another program holds open, a missing file…), or None once it's in the bin."""
+    if sys.platform != "win32":
+        return "the Recycle Bin is Windows' (nothing moved)"
+    op = SHFileOpStruct(
+        wFunc=FO_DELETE,
+        pFrom=f"{path.resolve()}\0",  # a list of paths, each ended by a NUL, then one more (ctypes adds that one)
+        fFlags=RECYCLE_FLAGS,
     )
-    env = {**os.environ, "TARGET": str(path)}
-    subprocess.run(["powershell", "-NoProfile", "-Command", script], check=True, env=env)
+    code = ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
+    if code or op.fAnyOperationsAborted:
+        # Below 0x71 the code is a Windows error (0x20: another program holds it open); from there on, the shell's
+        # own DE_* codes, which FormatError would misread.
+        why = ctypes.FormatError(code).strip() if 0 < code < 0x71 else f"shell code 0x{code:X}"
+        return f"Windows couldn't move it ({why})"
+    if path.exists():  # a folder's other files went, one didn't (held open): those are in the bin, it isn't
+        return "only part of it went to the Recycle Bin; the rest stays where it is"
+    return None
 
 
 def main() -> None:
@@ -385,14 +429,25 @@ def main() -> None:
         f"{len(picks)} items, {total / 1e6:.0f} MB" + ("" if args.yes else " (nothing removed: --yes to recycle them)")
     )
     if args.yes:
-        moved = 0
-        for p in picks:
-            if reason := unrecyclable(p):
-                print(f"skipped {p}: {reason}; remove it yourself if you mean to")
-                continue
-            recycle(p)
-            moved += 1
-        print(f"{moved} moved to the Recycle Bin")
+        recycle_all(picks)
+
+
+def recycle_all(picks: list[Path]) -> None:
+    """Each item to the Recycle Bin, past the ones it can't move (named, with why); exits with an error when some
+    stayed."""
+    moved, stuck = 0, 0
+    for p in picks:
+        if reason := unrecyclable(p):
+            print(f"skipped {p}: {reason}; remove it yourself if you mean to")
+            continue
+        if problem := recycle(p):
+            print(f"couldn't move {p}: {problem}", file=sys.stderr)
+            stuck += 1
+            continue
+        moved += 1
+    print(f"{moved} moved to the Recycle Bin")
+    if stuck:
+        raise SystemExit(f"{stuck} couldn't be moved (above): close what holds them open and run it again")
 
 
 if __name__ == "__main__":
