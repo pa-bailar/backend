@@ -12,7 +12,8 @@
 Reads out/<video>/voice-track.wav (tools/timing.py) and video.json's "music"."bed" (a file in the media home, e.g.
 one of tools/music.py's candidates) and "mix": "voice_only_lufs", "with_music_lufs" (default −15 and −14:
 brand.json's "loudness"), "bed_db" (the bed's level before ducking, −8), "fade" (seconds in and out, 0.3), "release"
-(ms the ducked bed takes to come back after the voice stops, 350: longer holds it down through her pauses).
+(ms the ducked bed takes to come back after the voice stops, 350: longer holds it down through her pauses),
+"intro_db" (optional: the bed's level before the first word, so a music-only opening is heard; see bed_level()).
 "first_hit": seconds trimmed off the bed's start so its first hit lands on frame 0. Without a bed, only
 voice-only.wav is written. A video with no voice (no voice track, no "voice" in video.json) gets music-only.wav: the
 bed alone at "music_only_lufs" (−16).
@@ -46,6 +47,7 @@ MUSIC_ONLY_RAW, VOICE_48K, WITH_MUSIC_RAW = "music-only-raw.wav", "voice-48k.wav
 SCRATCH = (MUSIC_ONLY_RAW, VOICE_48K, WITH_MUSIC_RAW)
 
 LOUD = BRAND["loudness"]
+INTRO_RAMP = 0.25  # seconds the bed takes from "intro_db" down to "bed_db" before the first word
 TP = LOUD["true_peak_target"]
 
 # The phone-speaker check (see phone_check()). A phone's speaker plays roughly 300 Hz–6 kHz, in mono; speech is
@@ -199,6 +201,24 @@ def check(v: Video) -> list[str]:
     return wrong
 
 
+def bed_level(v: Video) -> str:
+    """The bed's volume filter: "bed_db" all through, or with "intro_db", that level until the voice comes in (the
+    first word in timing.json), ramping down to "bed_db" over the INTRO_RAMP seconds before it. A bed set for under
+    the voice is nearly silent alone: finde-halloween's 0.7 s of music before her first word measured −30 LUFS
+    against −14 with her (v5, 22 Oct 2026)."""
+    mix = v.settings.get("mix", {})
+    bed_db = float(mix.get("bed_db", -8))
+    if "intro_db" not in mix:
+        return f"volume={bed_db}dB"
+    timing = v.data / "timing.json"
+    lines = json.loads(timing.read_text(encoding="utf-8"))["lines"] if timing.exists() else []
+    first = float(lines[0]["start"]) if lines else float(v.settings.get("voice", {}).get("lead", 0.55))
+    a, b = 10 ** (float(mix["intro_db"]) / 20), 10 ** (bed_db / 20)
+    start = max(0.0, first - INTRO_RAMP)
+    ramp = f"min(max((t-{start:.3f})/{INTRO_RAMP},0),1)"
+    return f"volume=eval=frame:volume='{a:.5f}+({b:.5f}-{a:.5f})*{ramp}'"
+
+
 def mix_music(v: Video, voice: Path, bed: Path, raw: Path, ducked: Path) -> None:
     """The bed from its first hit, under the voice; the voice keys a compressor that pulls it down a further ~5 dB
     while someone speaks; out over the last 1.2 s. The voice (the compressor's key) is padded to the full length:
@@ -206,11 +226,12 @@ def mix_music(v: Video, voice: Path, bed: Path, raw: Path, ducked: Path) -> None
     music = v.settings["music"]
     mix = v.settings.get("mix", {})
     duration = v.duration
+    release = int(mix.get("release", 350))  # ms
     graph = (
         f"[0:a]aresample=48000,pan=stereo|c0=c0|c1=c0,volume=1.0,apad=whole_dur={duration},asplit=2[v][key];"
         f"[1:a]atrim=start={float(music.get('first_hit', 0))},asetpts=PTS-STARTPTS,aresample=48000,"
-        f"volume={mix.get('bed_db', -8)}dB,afade=t=out:st={duration - 1.2}:d=1.2[m];"
-        f"[m][key]sidechaincompress=threshold=0.04:ratio=4:attack=20:release={int(mix.get('release', 350))}:makeup=1[duck];"
+        f"{bed_level(v)},afade=t=out:st={duration - 1.2}:d=1.2[m];"
+        f"[m][key]sidechaincompress=threshold=0.04:ratio=4:attack=20:release={release}:makeup=1[duck];"
         f"[duck]asplit=2[duck1][duck2];"
         f"[v][duck1]amix=inputs=2:duration=longest:normalize=0[mix]"
     )

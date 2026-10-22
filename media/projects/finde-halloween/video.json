@@ -1,14 +1,14 @@
 {
   "title": "Este finde, Halloween: the weekend of 23–25 Oct 2026 at night, its Halloween socials, then all 32 plans, to Pa' Bailar",
-  "version": "4",
+  "version": "5",
   "fps": 30,
-  "duration": 19.5,
+  "duration": 20.0,
   "voice": {
     "name": "Despina",
     "one_take": true,
     "take": 1,
     "direction": "# PERFIL DE AUDIO: Valentina, 25 años, rola, nacida y criada en Bogotá, le encanta bailar salsa.\n## LA ESCENA: Le manda una nota de voz por WhatsApp a una amiga, emocionada, para contarle los planes de baile de este fin de semana de Halloween en Bogotá. Le encantan los disfraces y quiere convencerla de salir.\n### NOTAS DE DIRECCIÓN: Acento colombiano de Bogotá, español colombiano natural; nada de acento gringo, mexicano ni de España. Habla como en una nota de voz de verdad, no como si estuviera leyendo: con emoción y buena energía, una sonrisa en la voz, a ritmo normal de conversación (ni lenta ni acelerada). Las frases van seguidas y conectadas, como quien cuenta todo de un tirón en una sola nota de voz: sin cortar entre frase y frase, respirando solo donde hay punto. «Pa' Bailar» es el nombre de la página y se dice «pa bailár», como «para bailar» dicho en Colombia, en dos palabras. Nada de locutora ni de comercial. Lee exactamente la transcripción, sin agregar palabras.\n#### TRANSCRIPCIÓN:",
-    "lead": 0.15,
+    "lead": 0.7,
     "max_pause": 0.22,
     "lines": [
       {
@@ -52,7 +52,8 @@
     "fade": 0.3,
     "voice_only_lufs": -15,
     "with_music_lufs": -14,
-    "bed_db": -11,
+    "bed_db": -9,
+    "intro_db": 4,
     "release": 900
   },
   "sticker_band": {

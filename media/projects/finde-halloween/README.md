@@ -41,6 +41,10 @@ look. Started 22 Oct 2026 with `tools/new.py`; the first weekly "este finde" Sto
   pause (the ducking's 350 ms release). Now "Y más sociales: …" on screen and in the voice, a direction for connected
   phrases (three takes; the one with the shortest pauses kept, 17.2 s), and `mix.release` 900 ms, which holds the bed
   down through her pauses (and the phone check passes: +21.5 dB, 2% masked). 19.5 s.
+- **v5:** the owner on v4: the music takes a while to be heard. The bed, set for under the voice, measured −30 LUFS
+  alone against −14 with her, and she spoke from 0.15 s. Now the voice starts at 0.7 s (`lead`), so the band hits
+  alone on the opening lightning, at `mix.intro_db` +4 dB (−18 LUFS), ramping down to `bed_db` (now −9) just
+  before her first word. Phone check: +19.4 dB, 8% masked. 20 s.
 
 ## Make
 
