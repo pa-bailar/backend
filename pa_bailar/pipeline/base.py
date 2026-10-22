@@ -5,6 +5,7 @@ and keeping one identity per post (the API's id, or public-<id> when it was read
 import logging
 import re
 import time
+from collections.abc import Mapping
 from datetime import datetime, timedelta
 from typing import Any, NamedTuple, cast
 
@@ -59,6 +60,13 @@ from .common import (
 )
 
 log = logging.getLogger(__name__)
+
+
+def only_lighter_reads(event: StoredEvent, processed: Mapping[str, ProcessedPost]) -> bool:
+    """Whether every post or story the event stands on was read by a lighter model (provisional): only then does a
+    Flash reading of one of them correct the event (merging's `correcting`)."""
+    records = [processed.get(media.post_id) for media in event.media]
+    return all(record is not None and record.provisional for record in records)
 
 
 def _with_doubt(event: ExtractedEvent, doubt: str) -> ExtractedEvent:
@@ -671,9 +679,8 @@ class SweepBase:
         return event.id, False
 
     def _only_lighter_reads(self, event: StoredEvent) -> bool:
-        """Whether every post or story the event stands on was read by a lighter model (provisional)."""
-        records = [self.processed.get(media.post_id) for media in event.media]
-        return all(record is not None and record.provisional for record in records)
+        """only_lighter_reads, over the posts on record."""
+        return only_lighter_reads(event, self.processed)
 
     def _event_id(self, candidate: ExtractedEvent, reusable: list[StoredEvent]) -> str:
         """The id of the event this post announced before that fits it best (_fit), else a new readable one. A re-read

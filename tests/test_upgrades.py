@@ -179,10 +179,11 @@ def test_past_events_stories_and_unfollowed_accounts_are_not_read_for():
 
 
 def test_waiting_for_flash_keeps_upcoming_events_soonest_first_and_skips_stories_and_public_ids():
+    lighter_reads = [media(post_id) for post_id in ("soon-post", "story-0123456789abcdef", "public-abc")]
     events = {
-        "soon": stored("soon", date=day(1)),
-        "later": stored("later", date=day(9)),
-        "past": stored("past", date=day(-3)),
+        "soon": stored("soon", posts=lighter_reads, date=day(1)),
+        "later": stored("later", posts=[media("later-post")], date=day(9)),
+        "past": stored("past", posts=[media("past-post")], date=day(-3)),
     }
     posts = {
         "later-post": record("later-post", "academia", 1, events=("later",)),
@@ -242,3 +243,128 @@ def test_a_read_for_flash_goes_back_to_the_oldest_post_within_bounds():
     assert upgrade_read_depth(records, oldest) == 8 + config.UPGRADE_READ_MARGIN_POSTS
     assert upgrade_read_depth(records, records[0].processed_at) == config.POSTS_PER_ACCOUNT  # at least a turn's
     assert upgrade_read_depth(records, records[-1].processed_at) == config.UPGRADE_READ_MAX_POSTS
+
+
+# ---------- posts not worth a read (22 Oct 2026) ----------
+
+
+def set_misses(post_id: str, misses: int) -> None:
+    records = storage.load_processed_posts()
+    records[post_id].upgrade_misses = misses
+    storage.save_processed_posts(records)
+
+
+def misses(post_id: str) -> int:
+    return read(config.PROCESSED_POSTS_FILE)[post_id]["upgrade_misses"]
+
+
+def test_a_post_the_reads_never_return_is_given_up_after_a_few():
+    """@salsaysonoficial's reel was "not among its last 16 posts" in each of the 15 sweeps of 17-22 Oct 2026, each
+    time a read for Flash (1-2% of Instagram's hour). Now it's given up after UPGRADE_MISSES_BEFORE_GIVING_UP."""
+    on_record(("perdido", "otra", day(2), 2))
+    instagram = FakeInstagram({"academia": [], "otra": [post("otro")]})
+
+    for n in range(1, config.UPGRADE_MISSES_BEFORE_GIVING_UP + 1):
+        stats = run(instagram, FakeExtractor({}), all_accounts=False)
+        assert (stats.upgrade_reads, stats.upgrade_misses, misses("perdido")) == (1, 1, n)
+
+    stats = run(instagram, FakeExtractor({}), all_accounts=False)
+    assert (stats.upgrade_reads, stats.upgrade_misses) == (0, 0)
+    assert len(instagram.limits["otra"]) == config.UPGRADE_MISSES_BEFORE_GIVING_UP and provisional("perdido")
+
+
+def test_a_given_up_post_a_turns_read_finds_is_still_upgraded():
+    on_record(("perdido", "otra", day(2), 2), due=("otra",))
+    set_misses("perdido", config.UPGRADE_MISSES_BEFORE_GIVING_UP)
+    instagram = FakeInstagram({"academia": [], "otra": [post("perdido", days_ago=2)]})
+
+    stats = run(instagram, FakeExtractor(flash_reads("perdido", date=day(2))), all_accounts=False)
+
+    assert (stats.accounts, stats.upgrade_reads, stats.upgraded) == (1, 0, 1) and not provisional("perdido")
+
+
+def test_a_post_found_again_starts_its_count_over():
+    on_record(("vuelve", "otra", day(2), 2), due=("otra",))
+    set_misses("vuelve", 2)
+    instagram = FakeInstagram({"academia": [], "otra": [post("vuelve", days_ago=2)]})
+
+    run(instagram, FlashFor(0, flash_reads("vuelve", date=day(2))), all_accounts=False)  # found, no Flash to upgrade
+
+    assert misses("vuelve") == 0 and provisional("vuelve")
+
+
+def test_records_from_before_the_count_load_with_none():
+    storage.write_json(
+        config.PROCESSED_POSTS_FILE,
+        {"viejo": {"account": "a", "permalink": "x", "processed_at": "2026-10-01T10:00:00-05:00",
+                   "is_event_post": True, "reason": "", "model": "m", "provisional": True}},
+    )  # fmt: skip
+    assert storage.load_processed_posts()["viejo"].upgrade_misses == 0
+
+
+def merged_reel(flyer_provisional: bool) -> None:
+    """A night announced by a flyer and, merged into it, a reel read provisionally (@salsaysonoficial, 17-22 Oct)."""
+    storage.write_json(
+        config.ACCOUNT_STATE_FILE, {name: account_state(1) for name in ("academia", "otra")}
+    )  # not their turn
+    storage.save_events([stored("noche", "otra", posts=[media("flyer"), media("reel")], date=day(2))])
+    storage.save_processed_posts(
+        {
+            "flyer": record("flyer", "otra", 3, provisional=flyer_provisional, events=("noche",)),
+            "reel": record("reel", "otra", 2, events=("noche",)),
+        }
+    )
+
+
+def test_a_post_whose_events_flash_read_through_another_post_is_not_read_for():
+    merged_reel(flyer_provisional=False)
+    instagram = FakeInstagram({"academia": [], "otra": [post("reel")]})
+
+    stats = run(instagram, FakeExtractor(flash_reads("reel", date=day(2))), all_accounts=False)
+
+    assert instagram.limits == {} and stats.upgrade_reads == 0 and provisional("reel")
+
+
+def test_a_post_whose_events_only_lighter_models_read_is_still_read_for():
+    merged_reel(flyer_provisional=True)
+    instagram = FakeInstagram({"academia": [], "otra": [post("flyer"), post("reel")]})
+
+    stats = run(instagram, FakeExtractor(flash_reads("flyer", "reel", date=day(2))), all_accounts=False)
+
+    assert instagram.limits == {"otra": [config.POSTS_PER_ACCOUNT]} and stats.upgrade_reads == 1
+
+
+def test_waiting_for_flash_skips_given_up_posts_and_events_flash_read_elsewhere():
+    events = {
+        "noche": stored("noche", posts=[media("flyer"), media("reel")], date=day(2)),
+        "taller": stored("taller", posts=[media("perdido")], date=day(3)),
+    }
+    posts = {
+        "flyer": record("flyer", "otra", 3, provisional=False, events=("noche",)),
+        "reel": record("reel", "otra", 2, events=("noche",)),
+        "perdido": record("perdido", "otra", 2, events=("taller",)),
+    }
+    assert waiting_for_flash(posts, events, day(0)) == {"otra": ["perdido"]}
+    posts["perdido"].upgrade_misses = config.UPGRADE_MISSES_BEFORE_GIVING_UP
+    assert waiting_for_flash(posts, events, day(0)) == {}
+    posts["flyer"].provisional = True  # only lighter readings of the night: the reel may correct it
+    assert waiting_for_flash(posts, events, day(0)) == {"otra": ["flyer", "reel"]}
+
+
+def test_in_the_turn_such_a_post_comes_after_every_other():
+    """A turn's read fetches it anyway: Flash goes to it only when nothing else waits (it may still find the reel isn't
+    that night, and take it off)."""
+    merged_reel(flyer_provisional=False)
+    on_record(("lejos", "otra", day(9), 2), due=("otra",), others=storage.load_processed_posts())
+    events = storage.load_events() + [stored("noche", "otra", posts=[media("flyer"), media("reel")], date=day(2))]
+    storage.save_events(events)
+    instagram = FakeInstagram({"academia": [], "otra": [post("reel"), post("lejos")]})
+    analyses = flash_reads("reel", date=day(2)) | flash_reads("lejos", date=day(9))
+
+    extractor = FlashFor(1, analyses)
+    stats = run(instagram, extractor, all_accounts=False)
+    assert extractor.extracted_posts == ["lejos"] and stats.upgraded == 1 and provisional("reel")
+
+    extractor = FlashFor(1, analyses)
+    run(instagram, extractor)  # its turn again
+    assert extractor.extracted_posts == ["reel"]  # when nothing else waits

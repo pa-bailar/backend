@@ -1,12 +1,14 @@
 """Flash's second opinion on the triage (17 Oct 2026): Flash-Lite's "no" was final, and 119 posts were ruled out in a
-week without anyone knowing how many were events. At a run's end, with what Flash has left after the upgrades, Flash
-reads a few of the posts the triage ruled out this run, and the run counts how often the triage was wrong."""
+week without anyone knowing how many were events. Once the accounts are read, before the upgrades (a small fixed share
+since 22 Oct 2026: after them it never ran), Flash reads one of the posts the triage ruled out this run, and the run
+counts how often the triage was wrong."""
 
 import time
 from datetime import UTC, datetime, timedelta
 
 from pa_bailar import config, health, storage
 from pa_bailar.models import PostAnalysis, ProcessedPost
+from pa_bailar.pipeline import Sweep
 from pa_bailar.pipeline.sweep import MISSED_BY_TRIAGE, RuledOut, second_opinion_order
 from tests.factories import extracted
 from tests.test_health import check as health_check
@@ -90,9 +92,13 @@ def test_no_second_opinion_after_the_runs_time(monkeypatch):
     extractor = FakeExtractor({"tutorial": event_post("tutorial")}, not_events={"tutorial"})
     # The run's budget used up (not `started = 0`: on a runner up for less than the budget, that's no time at all).
     spent = config.MAX_RUN_MINUTES * 60 + 1
-    monkeypatch.setattr(
-        "pa_bailar.pipeline.Sweep._upgrade_by_urgency", lambda self: setattr(self, "started", time.monotonic() - spent)
-    )
+    read_account = Sweep._process_account
+
+    def read_then_out_of_time(self, account):
+        read_account(self, account)
+        self.started = time.monotonic() - spent
+
+    monkeypatch.setattr(Sweep, "_process_account", read_then_out_of_time)
 
     stats = run(instagram, extractor)
 
@@ -110,7 +116,8 @@ def test_at_most_the_cap_the_newest_first(monkeypatch):
     assert extractor.extracted_posts == ["t0", "t1"] and stats.triage_checked == 2
 
 
-def test_flash_stops_the_checks_when_it_runs_out():
+def test_flash_stops_the_checks_when_it_runs_out(monkeypatch):
+    monkeypatch.setattr(config, "TRIAGE_CHECKS_PER_RUN", 3)
     ids = ["t0", "t1", "t2"]
     instagram = FakeInstagram({"academia": [post(i, days_ago=1 + n) for n, i in enumerate(ids)], "otra": []})
     extractor = FlashFor(1, {i: NO_EVENT for i in ids}, not_events=set(ids))
@@ -120,26 +127,64 @@ def test_flash_stops_the_checks_when_it_runs_out():
     assert extractor.extracted_posts == ["t0"] and stats.triage_checked == 1
 
 
-def test_the_upgrades_go_first():
+def test_one_check_a_run_by_default():
+    """The owner, 22 Oct 2026: a small fixed share, three of Flash's 36 a day, to measure the triage's misses."""
+    assert config.TRIAGE_CHECKS_PER_RUN == 1
+    ids = ["t0", "t1"]
+    instagram = FakeInstagram({"academia": [post(i, days_ago=1 + n) for n, i in enumerate(ids)], "otra": []})
+    extractor = FlashFor(10, {i: NO_EVENT for i in ids}, not_events=set(ids))
+
+    stats = run(instagram, extractor)
+
+    assert extractor.extracted_posts == ["t0"] and stats.triage_checked == 1
+
+
+def test_the_check_goes_before_the_upgrades():
+    """22 Oct 2026: after the upgrades it never ran (triage_checked 0 in all 15 sweeps of 17-22 Oct): Flash is used up
+    every quota day and provisional posts always wait. Its share comes first, even with Flash for one request."""
     on_record(("p1", "academia", day(1), 2), due=("academia",))
     instagram = FakeInstagram({"academia": [post("p1"), post("tutorial", days_ago=0.5)], "otra": []})
     analyses = flash_reads("p1", date=day(1)) | {"tutorial": event_post("tutorial", title="Otro social")}
 
     extractor = FlashFor(1, analyses, not_events={"tutorial"})
     stats = run(instagram, extractor, all_accounts=False)
-    assert extractor.extracted_posts == ["p1"] and not provisional("p1")
-    assert (stats.upgraded, stats.triage_checked) == (1, 0)
+    assert extractor.extracted_posts == ["tutorial"] and provisional("p1")
+    assert (stats.upgraded, stats.triage_checked, stats.triage_misses) == (0, 1, 1)
 
 
-def test_what_the_upgrades_leave_goes_to_the_checks():
+def test_the_upgrades_take_the_rest():
+    on_record(("p1", "academia", day(1), 2), ("p2", "academia", day(2), 2), due=("academia",))
+    posts = [post("p1"), post("p2"), post("t0", days_ago=0.5), post("t1", days_ago=0.6)]
+    instagram = FakeInstagram({"academia": posts, "otra": []})
+    analyses = flash_reads("p1", date=day(1)) | flash_reads("p2", date=day(2)) | {"t0": NO_EVENT, "t1": NO_EVENT}
+
+    extractor = FlashFor(3, analyses, not_events={"t0", "t1"})
+    stats = run(instagram, extractor, all_accounts=False)
+    assert extractor.extracted_posts == ["t0", "p1", "p2"]
+    assert (stats.upgraded, stats.triage_checked) == (2, 1)
+
+
+class PausedFlash(FakeExtractor):
+    """Flash paused as busy, with budget left: usable once the run waits for its pause (Sweep._wait_for_flash)."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, flash_available=False, **kwargs)
+        self.flash_back_at = time.monotonic()
+
+    def flash_ready_at(self) -> float | None:
+        self.flash_available = True  # the pause is over once waited for
+        return super().flash_ready_at()
+
+
+def test_the_check_never_waits_for_a_paused_flash_the_upgrades_still_do():
     on_record(("p1", "academia", day(1), 2), due=("academia",))
     instagram = FakeInstagram({"academia": [post("p1"), post("tutorial", days_ago=0.5)], "otra": []})
     analyses = flash_reads("p1", date=day(1)) | {"tutorial": event_post("tutorial", title="Otro social")}
 
-    extractor = FlashFor(2, analyses, not_events={"tutorial"})
+    extractor = PausedFlash(analyses, not_events={"tutorial"})
     stats = run(instagram, extractor, all_accounts=False)
-    assert extractor.extracted_posts == ["p1", "tutorial"]
-    assert (stats.upgraded, stats.triage_checked, stats.triage_misses) == (1, 1, 1)
+    assert extractor.extracted_posts == ["p1"] and not provisional("p1")
+    assert (stats.upgraded, stats.triage_checked) == (1, 0)
 
 
 def test_rule_based_skips_are_not_the_triages_and_never_checked():
