@@ -1,0 +1,990 @@
+{
+ "from": "2026-10-23",
+ "to": "2026-10-25",
+ "styles": [],
+ "source": "live",
+ "events": [
+  {
+   "id": "perder-la-cabeza-clinica-de-experimentacion-20-oct",
+   "title": "Perder la cabeza - Clínica de Experimentación Coreográfica",
+   "event_type": "workshop",
+   "styles": [
+    "otro"
+   ],
+   "organizer": "Orbitante Plataforma Danza Bogotá",
+   "venue": "La Casona de la Danza",
+   "area": null,
+   "date": "2026-10-20",
+   "end_date": "2026-10-23",
+   "sessions": null,
+   "start_time": "14:00",
+   "end_time": "18:00",
+   "prices": [],
+   "account": "danzaenlaciudad",
+   "day": "2026-10-23",
+   "day_start": "14:00",
+   "day_end": "18:00",
+   "flyer": "flyers/17920332081453464-0.webp",
+   "ratio": 0.8012
+  },
+  {
+   "id": "salsa-pa-l-que-sabe-gran-concierto-23-oct",
+   "title": "Salsa Pa'l Que Sabe - Gran Concierto",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Tributo Salsa y Jazz",
+   "venue": "Tributo Salsa y Jazz",
+   "area": "Zona 6",
+   "date": "2026-10-23",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "18:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Aporte cultural",
+     "amount_cop": 15000,
+     "condition": null
+    }
+   ],
+   "account": "tributo.salsayjazz",
+   "day": "2026-10-23",
+   "day_start": "18:00",
+   "day_end": null,
+   "flyer": "flyers/18342425053285357-0.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "salsa-vs-dancehall-23-oct",
+   "title": "Salsa vs Dancehall",
+   "event_type": "party",
+   "styles": [
+    "salsa",
+    "dancehall"
+   ],
+   "organizer": "Parche x Bogotá",
+   "venue": "Viajero Bogotá",
+   "area": null,
+   "date": "2026-10-23",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "19:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Preventa Individual",
+     "amount_cop": 25000,
+     "condition": "incluye cóctel"
+    },
+    {
+     "label": "Preventa Pareja",
+     "amount_cop": 40000,
+     "condition": "incluye cóctel por persona"
+    },
+    {
+     "label": "Taquilla Individual",
+     "amount_cop": 30000,
+     "condition": null
+    },
+    {
+     "label": "Taquilla Pareja",
+     "amount_cop": 50000,
+     "condition": null
+    }
+   ],
+   "account": "parchexbogota",
+   "day": "2026-10-23",
+   "day_start": "19:00",
+   "day_end": null,
+   "flyer": "flyers/18065987546786044-1.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "golazo-panteonista-con-negro-salsero-23-oct",
+   "title": "Golazo Panteonista con Negro Salsero",
+   "event_type": "party",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "El Panteón De La Salsa",
+   "venue": "El Panteón De La Salsa",
+   "area": "Plaza de las Américas",
+   "date": "2026-10-23",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Cover",
+     "amount_cop": 25000,
+     "condition": null
+    },
+    {
+     "label": "Cumpleañeros de octubre",
+     "amount_cop": 0,
+     "condition": "cumpleañeros de octubre no pagan cover"
+    }
+   ],
+   "account": "el_panteon_de_la_salsa",
+   "day": "2026-10-23",
+   "day_start": "20:00",
+   "day_end": null,
+   "flyer": "flyers/18080221511381122-0.webp",
+   "ratio": 0.7901
+  },
+  {
+   "id": "dynamic-class-heels-dark-circus-23-oct",
+   "title": "Dynamic Class Heels Dark Circus",
+   "event_type": "workshop",
+   "styles": [
+    "heels"
+   ],
+   "organizer": "Esfera Latina",
+   "venue": "Esfera Latina",
+   "area": null,
+   "date": "2026-10-23",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "General",
+     "amount_cop": 40000,
+     "condition": null
+    }
+   ],
+   "account": "esferalatinaoficial",
+   "day": "2026-10-23",
+   "day_start": "20:00",
+   "day_end": null,
+   "flyer": "flyers/17911027629473022-0.webp",
+   "ratio": 1.0
+  },
+  {
+   "id": "secreto-en-el-bochi-cumple-de-motta-23-oct",
+   "title": "Secreto en el Bochi - Cumple de Motta",
+   "event_type": "party",
+   "styles": [
+    "salsa",
+    "urbano"
+   ],
+   "organizer": "El Bochinche Café-Bar",
+   "venue": "El Bochinche Café-Bar",
+   "area": null,
+   "date": "2026-10-23",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:00",
+   "end_time": "02:45",
+   "prices": [
+    {
+     "label": "Entrada libre",
+     "amount_cop": 0,
+     "condition": null
+    }
+   ],
+   "account": "el_bochinche_cafe_",
+   "day": "2026-10-23",
+   "day_start": "20:00",
+   "day_end": "02:45",
+   "flyer": "flyers/18136396114646788-0.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "noche-de-tributo-fruko-y-sus-tesos-ismael-rivera-23-oct",
+   "title": "Noche de Tributo: Fruko y Sus Tesos & Ismael Rivera",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Van Der",
+   "venue": "Van Der",
+   "area": null,
+   "date": "2026-10-23",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:30",
+   "end_time": null,
+   "prices": [],
+   "account": "casavander_",
+   "day": "2026-10-23",
+   "day_start": "20:30",
+   "day_end": null,
+   "flyer": "flyers/18124738006905346-0.webp",
+   "ratio": 0.8096
+  },
+  {
+   "id": "salsoteca-dc-candombe-23-oct",
+   "title": "Candombé",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "El Goce Pagano",
+   "venue": "El Goce Pagano",
+   "area": null,
+   "date": "2026-10-23",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "elgocepagano",
+   "day": "2026-10-23",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/17873536227593859-1.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "charanga-new-york-con-armando-quintana-y-la-23-oct",
+   "title": "Charanga New York / Armando Quintana y la Expresividad",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Casa Quiebra-Canto",
+   "venue": "Casa Quiebra-Canto",
+   "area": null,
+   "date": "2026-10-23",
+   "end_date": "2026-10-24",
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "casaquiebracanto",
+   "day": "2026-10-23",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18201605854377858-0.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "taller-de-salsa-calena-17-oct",
+   "title": "Taller de salsa caleña",
+   "event_type": "workshop",
+   "styles": [
+    "salsa caleña"
+   ],
+   "organizer": "Bogotá Dance Club",
+   "venue": "Bogotá Dance Club",
+   "area": null,
+   "date": "2026-10-17",
+   "end_date": "2026-10-25",
+   "sessions": [
+    {
+     "date": "2026-10-17",
+     "start_time": "11:30",
+     "end_time": "13:30"
+    },
+    {
+     "date": "2026-10-18",
+     "start_time": "11:30",
+     "end_time": "13:30"
+    },
+    {
+     "date": "2026-10-24",
+     "start_time": "11:30",
+     "end_time": "13:30"
+    },
+    {
+     "date": "2026-10-25",
+     "start_time": "11:30",
+     "end_time": "13:30"
+    }
+   ],
+   "start_time": "11:30",
+   "end_time": "13:30",
+   "prices": [
+    {
+     "label": "Inversión",
+     "amount_cop": 260000,
+     "condition": null
+    }
+   ],
+   "account": "bogotadanceclub.academy",
+   "day": "2026-10-24",
+   "day_start": "11:30",
+   "day_end": "13:30",
+   "flyer": "flyers/18076363700727121-0.webp",
+   "ratio": 0.5634
+  },
+  {
+   "id": "taller-acrobalance-desde-el-acroyoga-20-oct",
+   "title": "Taller Fenomenología: Sueño y luego produzco movimiento",
+   "event_type": "workshop",
+   "styles": [
+    "otro"
+   ],
+   "organizer": "La Casona de la Danza",
+   "venue": "La Casona de la Danza",
+   "area": null,
+   "date": "2026-10-20",
+   "end_date": "2026-10-24",
+   "sessions": [
+    {
+     "date": "2026-10-20",
+     "start_time": "16:00",
+     "end_time": "18:00"
+    },
+    {
+     "date": "2026-10-22",
+     "start_time": "16:00",
+     "end_time": "18:00"
+    },
+    {
+     "date": "2026-10-24",
+     "start_time": "14:00",
+     "end_time": "16:00"
+    }
+   ],
+   "start_time": "16:00",
+   "end_time": "18:00",
+   "prices": [],
+   "account": "danzaenlaciudad",
+   "day": "2026-10-24",
+   "day_start": "14:00",
+   "day_end": "16:00",
+   "flyer": "flyers/18380887969228934-8.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "tardeo-de-muertos-24-oct",
+   "title": "TARDEO DE MUERTOS",
+   "event_type": "social",
+   "styles": [
+    "merengue",
+    "salsa"
+   ],
+   "organizer": "Bogotá Dance Club",
+   "venue": "Bogotá Dance Club",
+   "area": null,
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "15:00",
+   "end_time": "22:00",
+   "prices": [
+    {
+     "label": "Preventa",
+     "amount_cop": 25000,
+     "condition": "incluye maquillaje calavérico + clase + 1 bebida"
+    },
+    {
+     "label": "Puerta",
+     "amount_cop": 30000,
+     "condition": "incluye maquillaje calavérico + clase + 1 bebida"
+    }
+   ],
+   "account": "bogotadanceclub",
+   "day": "2026-10-24",
+   "day_start": "15:00",
+   "day_end": "22:00",
+   "flyer": "flyers/18130957972687765-0.webp",
+   "ratio": 0.5625
+  },
+  {
+   "id": "homenaje-al-grupo-niche-sonora-extrema-24-oct",
+   "title": "Homenaje al Grupo Niche: Sonora Extrema",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Salsa Camará",
+   "venue": "Salsa Camará",
+   "area": null,
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "16:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Aporte cultural",
+     "amount_cop": 20000,
+     "condition": null
+    }
+   ],
+   "account": "salsacamaraoficial",
+   "day": "2026-10-24",
+   "day_start": "16:00",
+   "day_end": null,
+   "flyer": "flyers/17920212738242048-2.webp",
+   "ratio": 0.7993
+  },
+  {
+   "id": "iniciacion-a-la-salsa-en-linea-3-oct",
+   "title": "Iniciación a la Salsa en Línea",
+   "event_type": "workshop",
+   "styles": [
+    "salsa en línea"
+   ],
+   "organizer": "Academia EFA Danza",
+   "venue": "Academia EFA Danza",
+   "area": null,
+   "date": "2026-10-03",
+   "end_date": "2026-10-24",
+   "sessions": [
+    {
+     "date": "2026-10-03",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    },
+    {
+     "date": "2026-10-10",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    },
+    {
+     "date": "2026-10-17",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    },
+    {
+     "date": "2026-10-24",
+     "start_time": "17:00",
+     "end_time": "18:00"
+    }
+   ],
+   "start_time": "17:00",
+   "end_time": "18:00",
+   "prices": [
+    {
+     "label": "Paquete por persona",
+     "amount_cop": 150000,
+     "condition": null
+    }
+   ],
+   "account": "frank.de.latorre",
+   "day": "2026-10-24",
+   "day_start": "17:00",
+   "day_end": "18:00",
+   "flyer": "flyers/18137899501621419-0.webp",
+   "ratio": 0.5622
+  },
+  {
+   "id": "taller-de-bachata-ladies-24-oct",
+   "title": "Taller de Bachata Ladies",
+   "event_type": "workshop",
+   "styles": [
+    "bachata"
+   ],
+   "organizer": "Soondanz Company",
+   "venue": null,
+   "area": null,
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "18:00",
+   "end_time": "19:30",
+   "prices": [
+    {
+     "label": "Público general",
+     "amount_cop": 40000,
+     "condition": null
+    },
+    {
+     "label": "Alumnas",
+     "amount_cop": 25000,
+     "condition": null
+    }
+   ],
+   "account": "soondanz_company",
+   "day": "2026-10-24",
+   "day_start": "18:00",
+   "day_end": "19:30",
+   "flyer": "flyers/17994756708102808-0.webp",
+   "ratio": 0.5634
+  },
+  {
+   "id": "salsoteca-dc-la-pambele-24-oct",
+   "title": "La Pambelé",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "El Goce Pagano",
+   "venue": "El Goce Pagano",
+   "area": null,
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "18:30",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Preventa",
+     "amount_cop": 40000,
+     "condition": null
+    },
+    {
+     "label": "Taquilla",
+     "amount_cop": 50000,
+     "condition": null
+    },
+    {
+     "label": "Taquilla con donación de chocolate",
+     "amount_cop": 40000,
+     "condition": "si traes chocolate de mesa para donar"
+    }
+   ],
+   "account": "elgocepagano",
+   "day": "2026-10-24",
+   "day_start": "18:30",
+   "day_end": null,
+   "flyer": "flyers/18027082292866197-0.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "taller-de-bachata-para-las-fiestas-24-oct",
+   "title": "Taller de bachata para las fiestas",
+   "event_type": "workshop",
+   "styles": [
+    "bachata"
+   ],
+   "organizer": "Clandisfrute",
+   "venue": "Zafra",
+   "area": "Galerías",
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "19:00",
+   "end_time": "21:00",
+   "prices": [
+    {
+     "label": "Preventa",
+     "amount_cop": 40000,
+     "condition": null
+    }
+   ],
+   "account": "clandisfrute",
+   "day": "2026-10-24",
+   "day_start": "19:00",
+   "day_end": "21:00",
+   "flyer": "flyers/18112944323155166-0.webp",
+   "ratio": 0.5622
+  },
+  {
+   "id": "halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct",
+   "title": "Halloween: Concurso de disfraces, fiesta y taller de baile",
+   "event_type": "social",
+   "styles": [
+    "bachata"
+   ],
+   "organizer": "Show Stars",
+   "venue": "Show Stars Academia de Baile",
+   "area": null,
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "19:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Individual",
+     "amount_cop": 30000,
+     "condition": null
+    },
+    {
+     "label": "Pareja",
+     "amount_cop": 50000,
+     "condition": null
+    }
+   ],
+   "account": "showstarscol",
+   "day": "2026-10-24",
+   "day_start": "19:00",
+   "day_end": null,
+   "flyer": "flyers/18117096400810935-0.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "noche-de-salsa-24-oct",
+   "title": "Noche de Salsa",
+   "event_type": "party",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "El Bochinche Café-Bar",
+   "venue": "El Bochinche Café-Bar",
+   "area": null,
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "19:30",
+   "end_time": "02:30",
+   "prices": [
+    {
+     "label": "Entrada libre",
+     "amount_cop": 0,
+     "condition": null
+    }
+   ],
+   "account": "el_bochinche_cafe_",
+   "day": "2026-10-24",
+   "day_start": "19:30",
+   "day_end": "02:30",
+   "flyer": "flyers/18111489839179212-0.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "social-de-halloween-24-oct",
+   "title": "Social de Halloween",
+   "event_type": "social",
+   "styles": [
+    "salsa",
+    "bachata"
+   ],
+   "organizer": "Bembé Academia de Baile",
+   "venue": "Bembé Academia de Baile",
+   "area": "Galerías",
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Entrada",
+     "amount_cop": 25000,
+     "condition": null
+    }
+   ],
+   "account": "bembeacademiadebaile",
+   "day": "2026-10-24",
+   "day_start": "20:00",
+   "day_end": null,
+   "flyer": "flyers/18129749683771543.webp",
+   "ratio": 1.0
+  },
+  {
+   "id": "salsa-en-digital-24-oct",
+   "title": "Salsa en DIGITAL",
+   "event_type": "social",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "@lanenamagdalena",
+   "venue": "siga.bog",
+   "area": null,
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:00",
+   "end_time": "22:00",
+   "prices": [],
+   "account": "lanenamagdalena",
+   "day": "2026-10-24",
+   "day_start": "20:00",
+   "day_end": "22:00",
+   "flyer": "flyers/18105833054357942-0.webp",
+   "ratio": 0.7504
+  },
+  {
+   "id": "noche-de-boleros-24-oct",
+   "title": "Noche de Boleros",
+   "event_type": "concert",
+   "styles": [
+    "otro"
+   ],
+   "organizer": "Casa de Citas",
+   "venue": "Casa de Citas",
+   "area": "La Candelaria",
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "20:30",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "No Cover",
+     "amount_cop": 0,
+     "condition": null
+    }
+   ],
+   "account": "restaurantecasadecitas",
+   "day": "2026-10-24",
+   "day_start": "20:30",
+   "day_end": null,
+   "flyer": "flyers/18125872663893304-0.webp",
+   "ratio": 1.0122
+  },
+  {
+   "id": "latinholic-night-24-oct",
+   "title": "LATINHOLIC night",
+   "event_type": "social",
+   "styles": [
+    "salsa",
+    "bachata"
+   ],
+   "organizer": "Latinfusion & Danceholic",
+   "venue": "Danceholic Project",
+   "area": null,
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "21:00",
+   "end_time": "02:30",
+   "prices": [
+    {
+     "label": "General (incluye clase y bebida)",
+     "amount_cop": 30000,
+     "condition": null
+    }
+   ],
+   "account": "danceholicproject",
+   "day": "2026-10-24",
+   "day_start": "21:00",
+   "day_end": "02:30",
+   "flyer": "flyers/18383470903236364-0.webp",
+   "ratio": 0.8096
+  },
+  {
+   "id": "clase-dinamita-de-heels-24-oct",
+   "title": "Clase Dinamita de Heels",
+   "event_type": "workshop",
+   "styles": [
+    "heels"
+   ],
+   "organizer": "Esfera Latina",
+   "venue": "Esfera Latina",
+   "area": null,
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "esferalatinaoficial",
+   "day": "2026-10-24",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18112581790860968-1.webp",
+   "ratio": 1.0
+  },
+  {
+   "id": "argy-gomez-en-salsa-son-24-oct",
+   "title": "Argy Gómez en Salsa & Son",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Salsa & Son",
+   "venue": "Salsa & Son",
+   "area": "Zona T",
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Cover",
+     "amount_cop": 20000,
+     "condition": null
+    }
+   ],
+   "account": "salsaysonoficial",
+   "day": "2026-10-24",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/17902055949596846-0.webp",
+   "ratio": 1.0
+  },
+  {
+   "id": "la-noche-de-los-clasicos-tributo-a-los-malos-del-24-oct",
+   "title": "La Noche de los Clásicos - Tributo a los Malos del Bronx Willie Colón & Héctor Lavoe",
+   "event_type": "party",
+   "styles": [
+    "salsa",
+    "merengue"
+   ],
+   "organizer": "Pachanga & Pochola",
+   "venue": "Pachanga & Pochola",
+   "area": null,
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "pachanga_y_pochola",
+   "day": "2026-10-24",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18135151237576897-0.webp",
+   "ratio": 0.5622
+  },
+  {
+   "id": "batalla-internacional-viaalternativa-2026-hip-hop-24-oct",
+   "title": "Batalla Internacional ViaAlternativa 2026 - Hip Hop al Parque",
+   "event_type": "competition",
+   "styles": [
+    "urbano"
+   ],
+   "organizer": "Idartes",
+   "venue": "Parque Simón Bolívar",
+   "area": null,
+   "date": "2026-10-24",
+   "end_date": "2026-10-25",
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "danzaenlaciudad",
+   "day": "2026-10-24",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18116587046115225-1.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "salsa-al-perreo-privado-con-los-morochos-24-oct",
+   "title": "Salsa al Perreo - Privado con Los Morochos",
+   "event_type": "party",
+   "styles": [
+    "salsa",
+    "urbano"
+   ],
+   "organizer": "Salsa al Perreo",
+   "venue": null,
+   "area": "Zona T",
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "soywiwioficial",
+   "day": "2026-10-24",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/17994944046023025-0.webp",
+   "ratio": 0.5625
+  },
+  {
+   "id": "la-feria-de-cali-se-toma-bogot1-clan-del-solar-24-oct",
+   "title": "Clan del Solar: La feria de Cali se toma Bogotá",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Galería Café Libro",
+   "venue": "Galería Café Libro - Sede Parque 93",
+   "area": "Parque 93",
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [
+    {
+     "label": "Preventa",
+     "amount_cop": 25000,
+     "condition": null
+    }
+   ],
+   "account": "galeriacafelibro",
+   "day": "2026-10-24",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18142046725721585-9.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "orquesta-tumbaque-la-m3sica-de-niche-vs-gran-combo-24-oct",
+   "title": "Orquesta Tumbaqué: la música de Niche Vs Gran Combo",
+   "event_type": "concert",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Galería Café Libro",
+   "venue": "Galería Café Libro - Sede Palermo",
+   "area": "Palermo",
+   "date": "2026-10-24",
+   "end_date": null,
+   "sessions": null,
+   "start_time": null,
+   "end_time": null,
+   "prices": [],
+   "account": "galeriacafelibro",
+   "day": "2026-10-24",
+   "day_start": null,
+   "day_end": null,
+   "flyer": "flyers/18142046725721585-1.webp",
+   "ratio": 0.8
+  },
+  {
+   "id": "clase-especial-salsa-25-oct",
+   "title": "Clase especial: Salsa",
+   "event_type": "workshop",
+   "styles": [
+    "salsa"
+   ],
+   "organizer": "Zafra Dance Company",
+   "venue": "Zafra Dance Company",
+   "area": "Galerías",
+   "date": "2026-10-25",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "09:00",
+   "end_time": "10:00",
+   "prices": [
+    {
+     "label": "1 persona",
+     "amount_cop": 40000,
+     "condition": null
+    },
+    {
+     "label": "2 personas",
+     "amount_cop": 70000,
+     "condition": null
+    }
+   ],
+   "account": "zafradance",
+   "day": "2026-10-25",
+   "day_start": "09:00",
+   "day_end": "10:00",
+   "flyer": "flyers/18113569163605668-1.webp",
+   "ratio": 0.7496
+  },
+  {
+   "id": "clase-especial-champeta-25-oct",
+   "title": "Clase especial: Champeta",
+   "event_type": "workshop",
+   "styles": [
+    "champeta"
+   ],
+   "organizer": "Zafra Dance Company",
+   "venue": "Zafra Dance Company",
+   "area": "Galerías",
+   "date": "2026-10-25",
+   "end_date": null,
+   "sessions": null,
+   "start_time": "10:00",
+   "end_time": null,
+   "prices": [
+    {
+     "label": "1 persona",
+     "amount_cop": 40000,
+     "condition": null
+    },
+    {
+     "label": "2 personas",
+     "amount_cop": 70000,
+     "condition": null
+    }
+   ],
+   "account": "zafradance",
+   "day": "2026-10-25",
+   "day_start": "10:00",
+   "day_end": null,
+   "flyer": "flyers/18113569163605668-1.webp",
+   "ratio": 0.7496
+  }
+ ]
+}

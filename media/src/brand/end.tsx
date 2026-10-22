@@ -29,6 +29,13 @@ export const CTA_BOB = 14;
  */
 export const REEL_END = { stripes: { left: 150, width: 780 }, nameMax: 140 };
 
+/**
+ * The end card's colors: the call to action, the arrow, the wordmark and its offset shadow, the sign-off. `PAPER_INK`
+ * is the light theme's; a video on a dark background (finde-halloween's night) passes its own.
+ */
+export type EndInk = { text: string; arrow: string; name: string; shadow: string; signoff: string };
+export const PAPER_INK: EndInk = { text: C.wine900, arrow: C.tomato600, name: C.tomato600, shadow: C.cream300, signoff: C.wine500 };
+
 export const EndCard: React.FC<{
   cta: Cta;
   /** The clock the times below are on (a scene's frame, or the video's). */
@@ -49,9 +56,11 @@ export const EndCard: React.FC<{
   signoff?: { text: string; at: number };
   /** The card's own background (when the scenes behind it should not show). */
   background?: string;
+  /** The text colors (`PAPER_INK` by default). */
+  ink?: EndInk;
   /** The icon and the record, on the main layer (depth 1). */
   children: React.ReactNode;
-}> = ({ cta, frame, cam, link, bob, stripesAt, name, spot, signoff, background, children }) => {
+}> = ({ cta, frame, cam, link, bob, stripesAt, name, spot, signoff, background, ink = PAPER_INK, children }) => {
   const reel = cta === "reel";
   const size = name.size ?? 168;
   // A Reel's smaller wordmark stays centered in the Story's slot (between the icon and the sign-off).
@@ -74,8 +83,10 @@ export const EndCard: React.FC<{
             ...rise(frame, link, { distance: 40 }),
           }}
         >
-          {cta === "story" ? <Arrow size={132} weight={3.2} style={{ translate: `0px ${-CTA_BOB * bob}px` }} /> : null}
-          <div style={{ ...TYPE.sans(68), textAlign: "center" }}>
+          {cta === "story" ? (
+            <Arrow size={132} weight={3.2} color={ink.arrow} style={{ translate: `0px ${-CTA_BOB * bob}px` }} />
+          ) : null}
+          <div style={{ ...TYPE.sans(68, ink.text), textAlign: "center" }}>
             {cta === "story" ? "Link aquí arriba" : "Link en mi perfil"}
           </div>
         </div>
@@ -94,7 +105,7 @@ export const EndCard: React.FC<{
             right: 0,
             top: nameTop,
             textAlign: "center",
-            ...TYPE.display(nameSize, C.tomato600),
+            ...TYPE.display(nameSize, ink.name, ink.shadow),
             lineHeight: 1,
             whiteSpace: "pre",
           }}
@@ -109,7 +120,7 @@ export const EndCard: React.FC<{
               right: 80,
               top: spot.y + 490,
               textAlign: "center",
-              ...TYPE.serif(66),
+              ...TYPE.serif(66, ink.signoff),
               ...rise(frame, signoff.at, { distance: 50 }),
             }}
           >

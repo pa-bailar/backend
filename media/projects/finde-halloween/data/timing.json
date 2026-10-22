@@ -1,0 +1,351 @@
+{
+ "fps_hint": 30,
+ "duration": 21.79,
+ "voice": "(media home) out/finde-halloween/voice-track.wav",
+ "lead": 0.15,
+ "voice_key": "f6c30b833a07fd67",
+ "lines": [
+  {
+   "id": "hook",
+   "text": "¿Y ya tienes disfraz pa'l sábado?",
+   "start": 0.15,
+   "end": 2.53,
+   "words": [
+    {
+     "word": "¿Y",
+     "start": 0.15,
+     "end": 0.87,
+     "p": 0.74
+    },
+    {
+     "word": "ya",
+     "start": 0.87,
+     "end": 1.07,
+     "p": 0.98
+    },
+    {
+     "word": "tienes",
+     "start": 1.07,
+     "end": 1.35,
+     "p": 0.99
+    },
+    {
+     "word": "disfraz",
+     "start": 1.35,
+     "end": 1.81,
+     "p": 0.98
+    },
+    {
+     "word": "pa",
+     "start": 1.81,
+     "end": 1.93,
+     "p": 0.37
+    },
+    {
+     "word": "'l",
+     "start": 1.93,
+     "end": 2.07,
+     "p": 0.89
+    },
+    {
+     "word": "sábado?",
+     "start": 2.07,
+     "end": 2.53,
+     "p": 0.98
+    }
+   ]
+  },
+  {
+   "id": "tarde",
+   "text": "Arranca de tarde: Tardeo de Muertos, con maquillaje calavérico incluido.",
+   "start": 3.13,
+   "end": 8.19,
+   "words": [
+    {
+     "word": "Arranca",
+     "start": 3.13,
+     "end": 3.57,
+     "p": 0.99
+    },
+    {
+     "word": "de",
+     "start": 3.57,
+     "end": 3.83,
+     "p": 0.99
+    },
+    {
+     "word": "tarde,",
+     "start": 3.83,
+     "end": 4.39,
+     "p": 0.33
+    },
+    {
+     "word": "Tardeo",
+     "start": 4.61,
+     "end": 5.03,
+     "p": 0.61
+    },
+    {
+     "word": "de",
+     "start": 5.03,
+     "end": 5.23,
+     "p": 0.98
+    },
+    {
+     "word": "Muertos,",
+     "start": 5.23,
+     "end": 5.75,
+     "p": 0.92
+    },
+    {
+     "word": "con",
+     "start": 6.05,
+     "end": 6.21,
+     "p": 0.96
+    },
+    {
+     "word": "maquillaje",
+     "start": 6.21,
+     "end": 6.69,
+     "p": 1.0
+    },
+    {
+     "word": "calavérico",
+     "start": 6.69,
+     "end": 7.27,
+     "p": 0.72
+    },
+    {
+     "word": "incluido.",
+     "start": 7.27,
+     "end": 8.19,
+     "p": 0.98
+    }
+   ]
+  },
+  {
+   "id": "noche",
+   "text": "En la noche, el concurso de disfraces de Show Stars y el Social de Halloween de Bembé.",
+   "start": 8.65,
+   "end": 14.05,
+   "words": [
+    {
+     "word": "En",
+     "start": 8.65,
+     "end": 8.77,
+     "p": 0.99
+    },
+    {
+     "word": "la",
+     "start": 8.77,
+     "end": 8.95,
+     "p": 0.97
+    },
+    {
+     "word": "noche,",
+     "start": 8.95,
+     "end": 9.27,
+     "p": 1.0
+    },
+    {
+     "word": "el",
+     "start": 9.59,
+     "end": 9.71,
+     "p": 0.99
+    },
+    {
+     "word": "concurso",
+     "start": 9.71,
+     "end": 10.13,
+     "p": 0.99
+    },
+    {
+     "word": "de",
+     "start": 10.13,
+     "end": 10.43,
+     "p": 1.0
+    },
+    {
+     "word": "disfraces",
+     "start": 10.43,
+     "end": 10.81,
+     "p": 0.64
+    },
+    {
+     "word": "de",
+     "start": 10.81,
+     "end": 11.09,
+     "p": 0.96
+    },
+    {
+     "word": "Show",
+     "start": 11.09,
+     "end": 11.37,
+     "p": 0.76
+    },
+    {
+     "word": "Stars",
+     "start": 11.37,
+     "end": 11.75,
+     "p": 0.3
+    },
+    {
+     "word": "y",
+     "start": 11.75,
+     "end": 12.31,
+     "p": 0.93
+    },
+    {
+     "word": "el",
+     "start": 12.31,
+     "end": 12.51,
+     "p": 0.97
+    },
+    {
+     "word": "Social",
+     "start": 12.51,
+     "end": 12.83,
+     "p": 0.52
+    },
+    {
+     "word": "de",
+     "start": 12.83,
+     "end": 13.07,
+     "p": 0.98
+    },
+    {
+     "word": "Halloween",
+     "start": 13.07,
+     "end": 13.43,
+     "p": 0.97
+    },
+    {
+     "word": "de",
+     "start": 13.43,
+     "end": 13.69,
+     "p": 0.98
+    },
+    {
+     "word": "Bembé.",
+     "start": 13.69,
+     "end": 14.05,
+     "p": 0.39
+    }
+   ]
+  },
+  {
+   "id": "sin",
+   "text": "¿Sin disfraz? Salsa en Digital y Latinholic Night.",
+   "start": 14.79,
+   "end": 18.41,
+   "words": [
+    {
+     "word": "¿Sin",
+     "start": 14.79,
+     "end": 15.01,
+     "p": 0.66
+    },
+    {
+     "word": "disfraz?",
+     "start": 15.01,
+     "end": 15.53,
+     "p": 0.93
+    },
+    {
+     "word": "Salsa",
+     "start": 16.07,
+     "end": 16.29,
+     "p": 0.93
+    },
+    {
+     "word": "en",
+     "start": 16.29,
+     "end": 16.47,
+     "p": 0.99
+    },
+    {
+     "word": "Digital",
+     "start": 16.47,
+     "end": 16.93,
+     "p": 0.13
+    },
+    {
+     "word": "y",
+     "start": 16.93,
+     "end": 17.39,
+     "p": 0.97
+    },
+    {
+     "word": "Latinholic",
+     "start": 17.39,
+     "end": 18.13,
+     "p": 0.66
+    },
+    {
+     "word": "Night.",
+     "start": 18.13,
+     "end": 18.41,
+     "p": 0.79
+    }
+   ]
+  },
+  {
+   "id": "fin",
+   "text": "Todo en Pa' Bailar. Te dejo el link.",
+   "start": 19.05,
+   "end": 21.37,
+   "words": [
+    {
+     "word": "Todo",
+     "start": 19.05,
+     "end": 19.29,
+     "p": 0.85
+    },
+    {
+     "word": "en",
+     "start": 19.29,
+     "end": 19.65,
+     "p": 0.97
+    },
+    {
+     "word": "Pa'",
+     "start": 19.65,
+     "end": 19.79,
+     "p": 0.0
+    },
+    {
+     "word": "Bailar.",
+     "start": 19.89,
+     "end": 20.31,
+     "p": 0.54
+    },
+    {
+     "word": "Te",
+     "start": 20.65,
+     "end": 20.83,
+     "p": 0.88
+    },
+    {
+     "word": "dejo",
+     "start": 20.83,
+     "end": 21.05,
+     "p": 1.0
+    },
+    {
+     "word": "el",
+     "start": 21.05,
+     "end": 21.17,
+     "p": 0.99
+    },
+    {
+     "word": "link.",
+     "start": 21.17,
+     "end": 21.37,
+     "p": 0.99
+    }
+   ]
+  }
+ ],
+ "segments": [],
+ "note": "One take: line and word times are Whisper medium (es)."
+}
