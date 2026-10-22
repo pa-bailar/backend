@@ -5,11 +5,13 @@ import "./lib/fonts";
 import { EsteFindeVideo } from "../projects/este-finde/EsteFinde";
 import { TeaserV2 } from "../projects/teaser-v2/Teaser";
 import { PuenteVideo } from "../projects/puente/Puente";
+import { FindeHalloweenVideo } from "../projects/finde-halloween/FindeHalloween";
 
 export const RemotionRoot: React.FC = () => (
   <>
     <TeaserV2 />
     <EsteFindeVideo />
     <PuenteVideo />
+    <FindeHalloweenVideo />
   </>
 );

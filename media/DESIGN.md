@@ -30,7 +30,8 @@ Scene numbers below are teaser v2's (`projects/teaser-v2`), as examples.
 
 ## Colors (v2: "Fania de día", the site's light theme, plus the logo's tomato for the cover)
 
-The owner prefers the light theme (and the dark one is being redesigned), so v2 is paper and ink. Contrast on
+The owner prefers the light theme (and the dark one is being redesigned), so v2 is paper and ink. A video may break it on purpose for its theme: finde-halloween (22 Oct 2026, the owner asked
+for a Halloween look) turns the paper to the record's black for the night, with orange titles and cream type. Contrast on
 the paper (`#ecddc6`): wine 13:1, wine-500 italic 7.7:1, tomato-700 4.9:1, tomato-600 4.0:1 (large display
 type only, ≥3:1 for AA large); cream-50 on tomato 4.9:1.
 

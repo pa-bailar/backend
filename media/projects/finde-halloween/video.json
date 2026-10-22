@@ -1,0 +1,66 @@
+{
+  "title": "Este finde, Halloween: the socials of Saturday 24 Oct 2026, from the afternoon into the night, to Pa' Bailar",
+  "version": "1",
+  "fps": 30,
+  "duration": 23.0,
+  "voice": {
+    "name": "Despina",
+    "one_take": true,
+    "take": 0,
+    "direction": "# PERFIL DE AUDIO: Valentina, 25 años, rola, nacida y criada en Bogotá.\n## LA ESCENA: Le manda una nota de voz por WhatsApp a una amiga para contarle los planes de baile de este sábado de Halloween en Bogotá. Está tranquila, en su casa, y le divierte la idea de los disfraces.\n### NOTAS DE DIRECCIÓN: Acento colombiano de Bogotá, español colombiano natural; nada de acento gringo, mexicano ni de España. Habla como en una nota de voz de verdad, no como si estuviera leyendo: con una sonrisa en la voz, relajada y sin afán, un poquito más despacio que una conversación normal, con pausas naturales entre frases para respirar. Nada de locutora ni de comercial. Lee exactamente la transcripción, sin agregar palabras.\n#### TRANSCRIPCIÓN:",
+    "lead": 0.15,
+    "max_pause": 0.3,
+    "lines": [
+      {
+        "id": "hook",
+        "text": "¿Y ya tienes disfraz pa'l sábado?"
+      },
+      {
+        "id": "tarde",
+        "text": "Arranca de tarde: Tardeo de Muertos, con maquillaje calavérico incluido."
+      },
+      {
+        "id": "noche",
+        "text": "En la noche, el concurso de disfraces de Show Stars y el Social de Halloween de Bembé."
+      },
+      {
+        "id": "sin",
+        "text": "¿Sin disfraz? Salsa en Digital y Latinholic Night."
+      },
+      {
+        "id": "fin",
+        "text": "Todo en Pa' Bailar. Te dejo el link."
+      }
+    ]
+  },
+  "music": {
+    "bpm": 90.51,
+    "bed": "cache/music/pixabay/tunetank-latin-salsa-music-349497.mp3",
+    "bed_source": "puente's track (the owner's pick, 8 Oct 2026), from 0:09.85, where the full band comes in; a placeholder until the owner picks this video's",
+    "first_hit": 9.85,
+    "provenance": {
+      "cache/music/pixabay/tunetank-latin-salsa-music-349497.mp3": {
+        "source": "Pixabay",
+        "url": "https://pixabay.com/music/comedy-latin-salsa-music-349497/",
+        "author": "Tunetank",
+        "license": "Pixabay Content License (no attribution required, commercial use allowed)",
+        "downloaded": "2026-10-08"
+      }
+    }
+  },
+  "mix": {
+    "fade": 0.3,
+    "voice_only_lufs": -15,
+    "with_music_lufs": -14,
+    "bed_db": -11
+  },
+  "sticker_band": {
+    "deliverables": [
+      "story"
+    ],
+    "allow": []
+  },
+  "renders": {
+    "story": "finde-halloween-story"
+  }
+}
