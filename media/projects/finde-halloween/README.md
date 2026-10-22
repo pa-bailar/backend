@@ -31,6 +31,10 @@ look. Started 22 Oct 2026 with `tools/new.py`; the first weekly "este finde" Sto
   "Pa' Bailar" is said; three takes, the one Whisper heard cleanest), night from the first frame, lightning on the
   open and on "¡Halloween!", cobwebs, a full moon with bats crossing it, the pumpkin's face flickering like a candle;
   Saturday's three Halloween socials, then the other flyers piling in while the count climbs to the real 32.
+- **v3:** the owner on v2: the main socials must still be named. Back in the voice and on screen: a whip to
+  "¿Sin disfraz?" with Salsa en Digital and Latinholic Night (flyer and facts each), then the pile and the count.
+  21 s; a new take (three recorded, the cleanest kept). The phone-speaker check warns again with this take (32%
+  masked at −11 dB, as v1).
 
 ## Make
 

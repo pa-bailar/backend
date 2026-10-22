@@ -1,7 +1,7 @@
-// Este finde, Halloween (23–25 Oct 2026), v2: the whole video at night. Lightning opens it on "¿Ya tienes disfraz?" and
+// Este finde, Halloween (23–25 Oct 2026), v3: the whole video at night. Lightning opens it on "¿Ya tienes disfraz?" and
 // strikes again on "¡Halloween!", where the record pops in dressed as a jack-o'-lantern, its carved face flickering
 // like a candle. Then Saturday under a full moon (bats cross it as the page head comes in): the three Halloween socials
-// land as she names them, their facts below. Then the rest of the weekend's flyers pile in fast while the count climbs
+// land as she names them, their facts below; a whip to "¿Sin disfraz?" and the other two socials. Then the rest of the weekend's flyers pile in fast while the count climbs
 // to the real number ("treinta y dos planes"), and the end card stays at night (the kit's EndCard with `ink`). v1
 // (afternoon into night, only the socials) felt slow to the owner: v2's take is livelier (a third shorter) and its
 // cuts come quicker. The voice (Despina, one take) leads: each section on the beat at or just before its line, each
@@ -80,7 +80,11 @@ const NIGHT_INK: EndInk = { text: NIGHT.text, arrow: NIGHT.title, name: NIGHT.ti
 // ---------- the sections, each on the beat at or just before its line ----------
 
 const SAB = beatAt(line("sab").start);
+const SIN = beatAt(line("sin").start);
 const MAS = beatAt(line("mas").start);
+/** The two stages (Saturday's Halloween socials, then the two "sin disfraz"): when each whips in and leaves. */
+const STAGE_IN = [SAB, SIN];
+const STAGE_OUT = [SIN, MAS];
 const END_BEAT = beatAt(line("fin").start);
 /** The two words lightning strikes on: the first frames, and "¡Halloween!". */
 const HALLOWEEN = said("hook", "Halloween!");
@@ -101,19 +105,25 @@ function lightning(frame: number) {
   return v;
 }
 
-// ---------- the events: Saturday's three Halloween socials, then the rest of the weekend ----------
+// ---------- the events: the weekend's five socials (all Saturday), then the rest of the weekend ----------
 
-/** `name`: the title as the flyer reads it (the data's casing or its first part); `land`: the frame of its name. */
-type Shown = { id: string; name: string; land: number; side: -1 | 1 };
+/**
+ * `stage`: 0 the Halloween socials, 1 the two without a costume; `name`: the title as the flyer reads it (the data's
+ * casing or its first part); `land`: the frame of its name (the owner, v2: the socials must still be named).
+ */
+type Shown = { id: string; stage: 0 | 1; name: string; land: number; side: -1 | 1 };
 const SHOWN: Shown[] = [
-  { id: "tardeo-de-muertos-24-oct", name: "Tardeo de Muertos", land: said("sab", "Tardeo"), side: 1 },
+  { id: "tardeo-de-muertos-24-oct", stage: 0, name: "Tardeo de Muertos", land: said("sab", "Tardeo"), side: 1 },
   {
     id: "halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct",
+    stage: 0,
     name: "Concurso de disfraces",
     land: said("sab", "concurso"),
     side: -1,
   },
-  { id: "social-de-halloween-24-oct", name: "Social de Halloween", land: said("sab", "Social"), side: 1 },
+  { id: "social-de-halloween-24-oct", stage: 0, name: "Social de Halloween", land: said("sab", "Social"), side: 1 },
+  { id: "salsa-en-digital-24-oct", stage: 1, name: "Salsa en Digital", land: said("sin", "Salsa"), side: 1 },
+  { id: "latinholic-night-24-oct", stage: 1, name: "Latinholic Night", land: said("sin", "Latinholic"), side: -1 },
 ];
 const byId = new Map(data.events.map((e) => [e.id, e]));
 const shown = SHOWN.map((s) => {
@@ -126,8 +136,11 @@ const OTHERS = data.events.filter(
   (e, i, all) => !SHOWN.some((s) => s.id === e.id) && e.flyer && all.findIndex((x) => x.flyer === e.flyer) === i,
 );
 const TOTAL = data.events.length; // "treinta y dos planes": the real count of this snapshot
-/** When an event's facts leave: just before the next one lands, or as the pile comes in. */
-const leaving = (i: number) => (shown[i + 1] ? shown[i + 1].land - 8 : bt(MAS) - 6);
+/** When an event's facts leave: just before the next one on its stage lands, or as its stage leaves. */
+const leaving = (i: number) => {
+  const next = shown[i + 1];
+  return next && next.stage === shown[i].stage ? next.land - 8 : bt(STAGE_OUT[shown[i].stage]) - 6;
+};
 
 // ---------- the record in its costume ----------
 
@@ -320,14 +333,36 @@ const nightCard = (lift: number): React.CSSProperties => ({
   boxShadow: `0 ${10 + 50 * lift}px ${18 + 70 * lift}px rgba(0,0,0,0.55)`,
 });
 
-const Saturday: React.FC<{ frame: number; abs: number }> = ({ frame, abs }) => {
-  const w = whip(abs, bt(SAB));
-  // The pile drops out of the way for the rest of the weekend's flyers.
-  const drop = leave(frame, bt(MAS) - 2, 8);
-  const landings = shown.map((s) => s.land - 8); // tossed 8 frames before the name, so it lands on it
+/** A stage: it whips in from the right; Saturday's whips out to the left, the last drops out for the pile. */
+const Stage: React.FC<{ frame: number; abs: number; stage: 0 | 1 }> = ({ frame, abs, stage }) => {
+  const items = shown.filter((s) => s.stage === stage);
+  let x = 1080 * (1 - whip(abs, bt(STAGE_IN[stage])).p);
+  if (stage === 0) {
+    const w = whip(abs, bt(STAGE_OUT[0]));
+    x += -1080 * w.p - w.dip;
+  }
+  const drop = stage === 1 ? leave(frame, bt(MAS) - 2, 8) : 0;
+  const landings = items.map((s) => s.land - 8); // tossed 8 frames before the name, so it lands on it
+  // "¿Sin disfraz?" while she asks it, until its first flyer comes in.
+  const askAt = Math.min(said("sin", "Sin") - 2, bt(SIN) + 4);
   return (
-    <AbsoluteFill style={{ translate: `${1080 * (1 - w.p)}px ${900 * drop}px`, opacity: 1 - drop }}>
-      {shown.map((s, i) => {
+    <AbsoluteFill style={{ translate: `${x}px ${900 * drop}px`, opacity: 1 - drop }}>
+      {stage === 1 ? (
+        <div
+          style={{
+            position: "absolute",
+            left: 60,
+            right: 60,
+            top: 800,
+            textAlign: "center",
+            ...TYPE.display(150, NIGHT.title, NIGHT.shadow),
+            ...rise(frame, askAt, { distance: 70, exitAt: landings[0] }),
+          }}
+        >
+          ¿Sin disfraz?
+        </div>
+      ) : null}
+      {items.map((s, i) => {
         const ratio = s.e.ratio ?? 0.8;
         const width = Math.min(BOX.w, BOX.h * ratio);
         const height = width / ratio;
@@ -344,8 +379,8 @@ const Saturday: React.FC<{ frame: number; abs: number }> = ({ frame, abs }) => {
           />
         );
       })}
-      {shown.map((s, i) => (
-        <Facts key={s.id} frame={frame} e={s.e} name={s.name} at={s.land} exitAt={leaving(i)} />
+      {items.map((s) => (
+        <Facts key={s.id} frame={frame} e={s.e} name={s.name} at={s.land} exitAt={leaving(shown.indexOf(s))} />
       ))}
     </AbsoluteFill>
   );
@@ -418,7 +453,12 @@ const Pile: React.FC<{ frame: number }> = ({ frame }) => {
 // ---------- the video ----------
 
 /** Fast moves that get motion blur: the whip into Saturday, the pile's tosses and the end's drop. */
-const FAST: [number, number][] = [whipBlur(bt(SAB)), [bt(MAS) - 2, bt(MAS) + 50], [bt(END_BEAT) - 3, bt(END_BEAT) + 6]];
+const FAST: [number, number][] = [
+  whipBlur(bt(SAB)),
+  whipBlur(bt(SIN)),
+  [bt(MAS) - 2, bt(MAS) + 50],
+  [bt(END_BEAT) - 3, bt(END_BEAT) + 6],
+];
 
 /** `blur` is the kit's render convention (render.py --draft turns it off). */
 export const FindeHalloween: React.FC<{ cta: Cta; blur?: boolean }> = ({ cta, blur = true }) => {
@@ -525,7 +565,11 @@ export const FindeHalloween: React.FC<{ cta: Cta; blur?: boolean }> = ({ cta, bl
             <Head frame={frame} start={bt(SAB)} />
           </AbsoluteFill>
         ) : null}
-        {frame >= bt(SAB) - 8 && frame < bt(MAS) + 12 ? <Saturday frame={frame} abs={abs} /> : null}
+        {([0, 1] as const).map((stage) =>
+          frame >= bt(STAGE_IN[stage]) - 8 && frame < bt(STAGE_OUT[stage]) + 12 ? (
+            <Stage key={stage} frame={frame} abs={abs} stage={stage} />
+          ) : null,
+        )}
         {frame >= bt(MAS) - 4 && frame < END + 8 ? <Pile frame={frame} /> : null}
         {frame >= END ? (
           <EndCard
