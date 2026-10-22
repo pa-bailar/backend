@@ -24,7 +24,8 @@ look. Started 22 Oct 2026 with `tools/new.py`; the first weekly "este finde" Sto
 
 ## Versions
 
-- **v1:** the first cut.
+- **v1:** the first cut, approved as is by the owner and posted (22 Oct 2026). Archived in the media home
+  (`archive/finde-halloween/v1/`).
 
 ## Make
 
