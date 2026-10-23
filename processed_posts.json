@@ -21132,11 +21132,11 @@
   "18208315507368704": {
     "account": "tributo.salsayjazz",
     "permalink": "https://www.instagram.com/p/DeuqwzXlOKD/",
-    "processed_at": "2026-10-21T03:10:26-05:00",
+    "processed_at": "2026-10-23T06:48:07-05:00",
     "is_event_post": true,
-    "reason": "Se anuncia una noche de orquesta en vivo con la agrupación Tambaluna el viernes 6 de noviembre.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "Concierto con orquesta en vivo en Tributo Salsa y Jazz.",
+    "model": "gemini-3.8-flash",
+    "provisional": false,
     "caption_hash": "c9108ace61f9187d",
     "outcome": "event",
     "event_ids": [
@@ -21492,11 +21492,11 @@
   "18105833054357942": {
     "account": "lanenamagdalena",
     "permalink": "https://www.instagram.com/p/Dexrf3ejP7p/",
-    "processed_at": "2026-10-21T21:07:14-05:00",
+    "processed_at": "2026-10-23T06:32:16-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia dos eventos próximos de música y baile en Bogotá.",
-    "model": "gemini-3.5-flash-lite",
-    "provisional": true,
+    "reason": "El post anuncia dos eventos de fiesta con DJ en Bogotá para el 24 y 30 de octubre de 2026.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "545b4d5419e7e0ef",
     "outcome": "event",
     "event_ids": [
@@ -22210,11 +22210,11 @@
   "18096844433407651": {
     "account": "quemaquequema",
     "permalink": "https://www.instagram.com/reel/De0Kud8Pot-/",
-    "processed_at": "2026-10-22T21:13:26-05:00",
+    "processed_at": "2026-10-23T06:31:57-05:00",
     "is_event_post": true,
-    "reason": "Anuncia un evento con música de salsa en vivo para el día siguiente de la publicación.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "Anuncia presentación de una banda de salsa en vivo para el día siguiente a la publicación.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "c7d2c0cb61836ce5",
     "outcome": "event",
     "event_ids": [
