@@ -1,7 +1,7 @@
 """Flash's second opinion on the triage (17 Oct 2026): Flash-Lite's "no" was final, and 119 posts were ruled out in a
 week without anyone knowing how many were events. Once the accounts are read, before the upgrades (a small fixed share
-since 22 Oct 2026: after them it never ran), Flash reads one of the posts the triage ruled out this run, and the run
-counts how often the triage was wrong."""
+since 22 Oct 2026: after them it never ran; waiting for a busy Flash as they do, since the same night), Flash reads one
+of the posts the triage ruled out this run, and the run counts how often the triage was wrong."""
 
 import time
 from datetime import UTC, datetime, timedelta
@@ -176,15 +176,25 @@ class PausedFlash(FakeExtractor):
         return super().flash_ready_at()
 
 
-def test_the_check_never_waits_for_a_paused_flash_the_upgrades_still_do():
+def test_the_check_waits_for_a_paused_flash_and_the_upgrades_follow():
+    """22 Oct 2026: Flash was paused as busy when the check's turn came in every sweep of 21-22 Oct, and only the
+    upgrades waited, so the check never ran. It waits now (the run's one wait); the upgrades then find Flash back."""
     on_record(("p1", "academia", day(1), 2), due=("academia",))
     instagram = FakeInstagram({"academia": [post("p1"), post("tutorial", days_ago=0.5)], "otra": []})
     analyses = flash_reads("p1", date=day(1)) | {"tutorial": event_post("tutorial", title="Otro social")}
 
     extractor = PausedFlash(analyses, not_events={"tutorial"})
     stats = run(instagram, extractor, all_accounts=False)
-    assert extractor.extracted_posts == ["p1"] and not provisional("p1")
-    assert (stats.upgraded, stats.triage_checked) == (1, 0)
+    assert extractor.extracted_posts == ["tutorial", "p1"] and not provisional("p1")
+    assert (stats.upgraded, stats.triage_checked, stats.triage_misses) == (1, 1, 1)
+
+
+def test_the_check_waits_for_a_paused_flash_with_nothing_to_upgrade():
+    instagram = FakeInstagram({"academia": [post("tutorial")], "otra": []})
+
+    extractor = PausedFlash({"tutorial": NO_EVENT}, not_events={"tutorial"})
+    stats = run(instagram, extractor)
+    assert extractor.extracted_posts == ["tutorial"] and stats.triage_checked == 1
 
 
 def test_rule_based_skips_are_not_the_triages_and_never_checked():
