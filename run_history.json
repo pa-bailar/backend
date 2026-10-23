@@ -4237,72 +4237,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "corrected",
-        "id": "embrujate-con-salsa-sabado-31-oct",
-        "title": "¡Embrújate con Salsa! - Sábado",
-        "account": "galeriacafelibro",
-        "date": "2026-10-31",
-        "detail": "Flash cambió el tipo"
-      },
-      {
-        "kind": "corrected",
-        "id": "halloween-en-pachanga-pochola-31-oct",
-        "title": "Halloween en Pachanga & Pochola",
-        "account": "pachanga_y_pochola",
-        "date": "2026-10-31",
-        "detail": "Flash cambió los ritmos"
-      },
-      {
-        "kind": "reread",
-        "id": "enrique-barrios-en-vivo-en-la-viejoteca-18-oct",
-        "title": "Enrique Barrios en vivo en La Viejoteca",
-        "account": "bogotadanceclub",
-        "date": "2026-10-18",
-        "detail": "Flash confirmó la lectura"
-      },
-      {
-        "kind": "reread",
-        "id": "social-de-halloween-24-oct",
-        "title": "Social de Halloween",
-        "account": "bembeacademiadebaile",
-        "date": "2026-10-24",
-        "detail": "Flash confirmó la lectura"
-      },
-      {
-        "kind": "reread",
-        "id": "argy-gomez-en-salsa-son-24-oct",
-        "title": "Argy Gómez en Salsa & Son",
-        "account": "salsaysonoficial",
-        "date": "2026-10-24",
-        "detail": "Flash confirmó la lectura"
-      },
-      {
-        "kind": "reread",
-        "id": "halloween-concurso-de-disfraces-fiesta-y-taller-de-24-oct",
-        "title": "Halloween: Concurso de disfraces, fiesta y taller de baile",
-        "account": "showstarscol",
-        "date": "2026-10-24",
-        "detail": "Flash confirmó la lectura"
-      },
-      {
-        "kind": "reread",
-        "id": "embrujate-con-salsa-viernes-30-oct",
-        "title": "¡Embrújate con Salsa! - Viernes",
-        "account": "galeriacafelibro",
-        "date": "2026-10-30",
-        "detail": "Flash confirmó la lectura"
-      },
-      {
-        "kind": "reread",
-        "id": "fiesta-de-antifaz-30-oct",
-        "title": "Fiesta de Antifaz",
-        "account": "pachanga_y_pochola",
-        "date": "2026-10-30",
-        "detail": "Flash confirmó la lectura"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "corrected": 2,
@@ -6371,6 +6306,154 @@
       "provisional": 2,
       "corrected": 2,
       "merged": 4
+    }
+  },
+  {
+    "finished_at": "2026-10-23T03:25:00-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/39921569211",
+    "started_at": "2026-10-23T03:00:59-05:00",
+    "site_data_at": "2026-10-22T21:29:36-05:00",
+    "data_changed": true,
+    "accounts": 48,
+    "failed_accounts": [
+      "zaimora24"
+    ],
+    "read_accounts": [
+      "academiadebailepasolatino",
+      "academyfeel",
+      "and1erita",
+      "andonybaron",
+      "aseismanos",
+      "bembeacademiadebaile",
+      "bilongocolombia",
+      "bogotadanceclub.academy",
+      "boogaloop.candelaria",
+      "bulevarsalsabar",
+      "callejonsalsa",
+      "casaquiebracanto",
+      "casavander_",
+      "chanchanlatino",
+      "cremadeajiaco",
+      "danceholicproject",
+      "danitello22",
+      "dlivingstudio",
+      "dreamcupco",
+      "el_bochinche_cafe_",
+      "elgocepagano",
+      "elratonsalsaclub",
+      "esferalatinaoficial",
+      "fernandoespanadj",
+      "foururbandanc",
+      "frank.de.latorre",
+      "galeriacafelibro",
+      "ilhehabana",
+      "jackandjilloficial",
+      "juancho__salsita",
+      "la33orquesta",
+      "lamecanica_original",
+      "madyumdance",
+      "mambolei_",
+      "oronegroclub",
+      "oswaldgil2",
+      "pachanga_y_pochola",
+      "parchexbogota",
+      "restaurantecasadecitas",
+      "salsacamaraoficial",
+      "salsaysonoficial",
+      "soondanz_company",
+      "soywiwioficial",
+      "studio110dance",
+      "teffa_mg",
+      "tributo.salsayjazz",
+      "zafradance",
+      "zaimora24"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 16,
+    "events_new": 2,
+    "events_merged": 2,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 13,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 64,
+    "instagram_usage_detail": {
+      "call_count": 19,
+      "total_cputime": 0,
+      "total_time": 64
+    },
+    "instagram_reads": {
+      "accounts": 48,
+      "mean_seconds": 1.8,
+      "median_seconds": 1.73,
+      "max_seconds": 3.53,
+      "mean_cost": 1.36,
+      "max_cost": 3,
+      "max_cost_account": "la33orquesta",
+      "headers": {
+        "X-App-Usage": 48
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "halloween-en-familia-25-oct",
+        "title": "Halloween en Familia",
+        "account": "tributo.salsayjazz",
+        "date": "2026-10-25",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "quiero-cumbia-para-mi-fiesta-de-disfraces-31-oct",
+        "title": "¡Quiero Cumbia Para Mí! - Fiesta de disfraces",
+        "account": "restaurantecasadecitas",
+        "date": "2026-10-31",
+        "detail": null
+      },
+      {
+        "kind": "merged",
+        "id": "los-25-de-la-33-21-nov",
+        "title": "Los 25 de la-33",
+        "account": "la33orquesta",
+        "date": "2026-11-21",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "la-feria-de-cali-se-toma-bogot1-clan-del-solar-24-oct",
+        "title": "Clan del Solar: La feria de Cali se toma Bogotá",
+        "account": "galeriacafelibro",
+        "date": "2026-10-24",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 2,
+      "merged": 2
     }
   }
 ]
