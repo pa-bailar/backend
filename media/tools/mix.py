@@ -45,6 +45,9 @@ from common import BRAND, HOME, Video, ffmpeg, mix_key, probe, provenance_proble
 # tools/clean.py lists the ones an older or stopped run left.
 MUSIC_ONLY_RAW, VOICE_48K, WITH_MUSIC_RAW = "music-only-raw.wav", "voice-48k.wav", "with-music-raw.wav"
 SCRATCH = (MUSIC_ONLY_RAW, VOICE_48K, WITH_MUSIC_RAW)
+# The intermediates are 32-bit float: a mix can go over full scale before loudnorm brings it down, and a 16-bit
+# file clips there (finde-halloween v5: a loud music-only opening hit 0 dBFS in with-music-raw.wav, a click).
+FLOAT = ("-c:a", "pcm_f32le")
 
 LOUD = BRAND["loudness"]
 INTRO_RAMP = 0.25  # seconds the bed takes from "intro_db" down to "bed_db" before the first word
@@ -237,8 +240,8 @@ def mix_music(v: Video, voice: Path, bed: Path, raw: Path, ducked: Path) -> None
     )
     ffmpeg(
         *("-i", str(voice), "-i", str(bed), "-filter_complex", graph),
-        *("-map", "[mix]", "-t", str(duration), str(raw)),
-        *("-map", "[duck2]", "-t", str(duration), str(ducked)),
+        *("-map", "[mix]", "-t", str(duration), *FLOAT, str(raw)),
+        *("-map", "[duck2]", "-t", str(duration), *FLOAT, str(ducked)),
     )
 
 
@@ -379,14 +382,14 @@ def build(v: Video, made: list[Pending]) -> list[Pending]:
         raw = v.out / MUSIC_ONLY_RAW
         trim = f"atrim=start={float(music.get('first_hit', 0))},asetpts=PTS-STARTPTS,aresample=48000"
         fade_out = f"afade=t=out:st={duration - 1.2}:d=1.2"
-        ffmpeg("-i", str(HOME / music["bed"]), "-af", f"{trim},{fade_out}", "-t", str(duration), str(raw))
+        ffmpeg("-i", str(HOME / music["bed"]), "-af", f"{trim},{fade_out}", "-t", str(duration), *FLOAT, str(raw))
         # −16 by default: a bed alone at −14 reaches 0 dBTP (no voice to make the loudness).
         made.append(normalize(v, raw, "music-only", goals["music-only"], fade))
     else:
         if not voice.exists():
             raise SystemExit(f"no {shown(voice)}: run tools/timing.py {v.name} first")
         tmp = v.out / VOICE_48K
-        ffmpeg("-i", str(voice), "-af", "aresample=48000", "-ac", "2", str(tmp))
+        ffmpeg("-i", str(voice), "-af", "aresample=48000", "-ac", "2", *FLOAT, str(tmp))
         made.append(normalize(v, tmp, "voice-only", goals["voice-only"], fade))
         if "with-music" in goals:
             raw, ducked = v.out / WITH_MUSIC_RAW, v.out / "music-ducked.wav"

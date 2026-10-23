@@ -1,5 +1,5 @@
-// Este finde, Halloween (23–25 Oct 2026), v4: the whole video at night. Lightning opens it on "¿Ya tienes disfraz?" and
-// strikes again on "¡Halloween!", where the record pops in dressed as a jack-o'-lantern, its carved face flickering
+// Este finde, Halloween (23–25 Oct 2026), v6: the whole video at night. It opens on the band alone and "¿Ya tienes
+// disfraz?"; lightning strikes on "¡Halloween!", where the record pops in dressed as a jack-o'-lantern, its carved face flickering
 // like a candle. Then Saturday under a full moon (bats cross it as the page head comes in): the three Halloween socials
 // land as she names them, their facts below; a whip to "Más sociales" and the other two. Then the rest of the weekend's flyers pile in fast while the count climbs
 // to the real number ("treinta y dos planes"), and the end card stays at night (the kit's EndCard with `ink`). v1
@@ -86,9 +86,9 @@ const MAS = beatAt(line("mas").start);
 const STAGE_IN = [SAB, OTROS];
 const STAGE_OUT = [OTROS, MAS];
 const END_BEAT = beatAt(line("fin").start);
-/** The two words lightning strikes on: the first frames, and "¡Halloween!". */
+/** Lightning strikes once, on "¡Halloween!" (the owner, v5: no flash on the first frames). */
 const HALLOWEEN = said("hook", "Halloween!");
-const STRIKES = [2, HALLOWEEN - 1];
+const STRIKES = [HALLOWEEN - 1];
 
 /** Lightning, 0–1: a double flash (a strike and its flicker) at each of `STRIKES`. */
 function lightning(frame: number) {

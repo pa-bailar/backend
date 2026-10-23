@@ -45,6 +45,10 @@ look. Started 22 Oct 2026 with `tools/new.py`; the first weekly "este finde" Sto
   alone against −14 with her, and she spoke from 0.15 s. Now the voice starts at 0.7 s (`lead`), so the band hits
   alone on the opening lightning, at `mix.intro_db` +4 dB (−18 LUFS), ramping down to `bed_db` (now −9) just
   before her first word. Phone check: +19.4 dB, 8% masked. 20 s.
+- **v6:** the owner on v5: a click at the start, and no flashing at the start. The click was the take's: Gemini left
+  a full-scale 5 ms burst at its first sample and Whisper put her first word at 0.0 s, so the cut kept it (since v4);
+  `timing.py` now opens a one take on 20 ms of silence and a fade-in. The mix's intermediates are float too (v5's loud
+  opening reached 0 dBFS in a 16-bit file). The opening lightning is gone; it strikes once, on "¡Halloween!".
 
 ## Make
 
