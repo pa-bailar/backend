@@ -134,8 +134,13 @@ def build_one_take(v: Video, voice: dict[str, Any], lead: float) -> None:
             )
     start, end = max(0.0, heard[0]["start"] - 0.06), heard[-1]["end"] + 0.12
     take = raw[int(start * RATE) : int(end * RATE)].copy()
-    fade = int(0.08 * RATE)
+    fade, edge = int(0.08 * RATE), int(0.02 * RATE)
     take[-fade:] *= np.linspace(1, 0, fade, dtype=np.float32)
+    # The model can leave a burst at the very start too: finde-halloween's v4 take opened on a full-scale 5 ms click,
+    # and Whisper put the first word at 0.0 s, so the cut kept it (the owner heard a click, 22 Oct 2026). The cut
+    # opens on 20 ms of silence and a fade-in, as it ends.
+    take[:edge] = 0
+    take[edge : edge + fade] *= np.linspace(0, 1, len(take[edge : edge + fade]), dtype=np.float32)
     track = np.concatenate([np.zeros(int(lead * RATE), np.float32), take, np.zeros(int(0.3 * RATE), np.float32)])
     out = v.out / "voice-track.wav"
 

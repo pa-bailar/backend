@@ -35,7 +35,12 @@ the first one-take had "an American accent" and "sped up"; the fourth was "great
 3. **The accent: name the city and the person, and rule out the others** ("rola, nacida y criada en Bogotá"; "nada
    de acento gringo, mexicano ni de España").
 4. **The pace: ask for relaxed.** "Rápida y animada" came out sped up (16.6 s for a 20 s script); "relajada y sin
-   afán, un poquito más despacio que una conversación normal" gave 19.8 s and sounded natural.
+   afán, un poquito más despacio que una conversación normal" gave 19.8 s and sounded natural. For a livelier video
+   (finde-halloween v2–v4, 22 Oct 2026: the owner found the relaxed one slow) ask for "emoción y buena energía, a
+   ritmo normal de conversación (ni lenta ni acelerada)", and never for "pausas cortas entre frases": that read each
+   phrase as its own exclamation, which the owner heard as disconnected. Ask instead that the phrases go "seguidas y
+   conectadas, como quien cuenta todo de un tirón… respirando solo donde hay punto", record three takes, and keep the
+   one whose pauses (Whisper's gaps between words) are shortest.
 5. **"Lee exactamente la transcripción, sin agregar palabras."** A take added a word ("Todo **va** en Pa' Bailar").
 6. **The voice:** Despina (the owner's pick, 8 Oct 2026, over Laomedeia, Aoede, Callirrhoe, Sulafat and Leda; all
    six read the same lines with the same direction, `tts.py --audition … --voices …`). The male voice of teaser v2:
@@ -44,7 +49,10 @@ the first one-take had "an American accent" and "sped up"; the fourth was "great
    word shows up). Then the owner listens: the accent, the pace, the end. Send samples as MP3 (`ffmpeg -b:a 160k`).
 8. **The model can leave noise after the last word:** the approved take clipped (34 samples at 0 dBFS) right after
    "link". `timing.py`'s one-take cut ends 0.12 s after the last word, with a fade; for a sample sent by hand, cut
-   there too.
+   there too. **And before the first:** finde-halloween's v4 take opened on a full-scale 5 ms burst, and Whisper put
+   the first word at 0.0 s, so the cut kept it (a click the owner heard); the cut now opens on 20 ms of silence and a
+   fade-in. The brand's name: say in the direction how it's said ("«Pa' Bailar» … se dice «pa bailár», como «para
+   bailar» … en dos palabras"); v1's take ran it together ("pabellar").
 9. **Keep an approved take; never re-record it.** TTS isn't deterministic: the same prompt reads differently each
    time. An approved audition (`out/auditions/<voice>-<key>.wav`) is copied to the cache under the video's key
    (`one_take_path` in `tools/common.py`, the same script, voice and direction), so `tts.py` finds it cached.
@@ -57,6 +65,11 @@ the first one-take had "an American accent" and "sped up"; the fourth was "great
     clearer, passes at −14 with 1%. Passing isn't the target: the owner found −14 too low and −8 too loud, and
     settled on −11 (puente v5, 8 Oct 2026). Start a voice-and-music video there. The check depends on the take:
     finde-halloween's, on the same track at −11, warned at 31% masked, and the owner approved it by ear (22 Oct 2026).
+    Two more settings came from it: `mix.release` (ms the bed takes to come back after she stops; 350 by default)
+    at 900 holds it down through her pauses instead of swelling into each one (that, too, sounded disconnected), and
+    `mix.intro_db` gives the bed its own level before her first word: a bed set for under the voice is nearly silent
+    alone (−30 LUFS against −14; "the music takes a while to be heard"). finde-halloween v6: `lead` 0.7 s, so the band
+    opens alone, `intro_db` +4, `bed_db` −9, `release` 900.
 12. **When Gemini isn't enough:** a real person from the city reading the script on a phone (free; the only sure way
     to not sound AI; clean it, then time it like a take), ElevenLabs' Latin American voices (natural; commercial use
     needs a paid plan: the owner's call), or an open model on the GPU (Chatterbox and others: free, more setup).
