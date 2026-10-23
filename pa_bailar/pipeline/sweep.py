@@ -427,16 +427,18 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         """Flash's second opinion on the triage (config.TRIAGE_CHECKS_PER_RUN; the owner, 17 Oct 2026): a few of the
         posts the triage ruled out this run, as they were fetched (no other Instagram read), in second_opinion_order,
         each extracted by Flash while it can be used as for an upgrade (can_upgrade: budget beyond the later sweeps'
-        share, not paused as busy; never waiting for it) and time is left. Before the upgrades, a small fixed share
-        (the owner, 22 Oct 2026): after them it never ran, since they took all of Flash every run. The upgrades take
-        the rest. What Flash finds is stored as any Flash reading (_check_ruled_out)."""
+        share; paused as busy, the run's one wait for it, _wait_for_flash) and time is left. Before the upgrades, a
+        small fixed share (the owner, 22 Oct 2026): after them it never ran, since they took all of Flash every run.
+        Nor did it before them without waiting (22 Oct 2026): Flash was paused as busy at that point in every sweep,
+        and only the upgrades waited. The upgrades take the rest. What Flash finds is stored as any Flash reading
+        (_check_ruled_out)."""
         held, self._ruled_out = self._ruled_out, []
         sample = second_opinion_order(held, self.processed.values())[: config.TRIAGE_CHECKS_PER_RUN]
         if not sample:
             return
         log.info("%d posts ruled out by triage this run: Flash checks %d of them", len(held), len(sample))
         for item in sample:
-            if not self.extractor.can_upgrade() or self._out_of_time():
+            if (not self.extractor.can_upgrade() and not self._wait_for_flash()) or self._out_of_time():
                 log.info("   no Flash (or time) left for the triage's checks")
                 break
             record = self.processed.get(item.post["id"])
@@ -593,7 +595,7 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             return False
         self._waited_for_flash = True
         if wait > 0:
-            log.info("   Flash busy a moment ago: waiting %d s for it before the upgrades", wait)
+            log.info("   Flash busy a moment ago: waiting %d s for it", wait)
             time.sleep(wait)
         return self.extractor.can_upgrade()
 

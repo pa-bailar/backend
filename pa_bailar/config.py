@@ -150,12 +150,14 @@ UPGRADE_MISSES_BEFORE_GIVING_UP = 3
 # decides alone whether a post announces an event, and a wrong "no" loses the event for good (Flash never sees it). 119
 # posts were ruled out in the week to 17 Oct and nobody knew how many were events. So once the accounts are read,
 # before the upgrades and only while Flash can be used as for one (the upgrades' gate: budget left beyond the later
-# sweeps' share, not paused as busy, time left; never waiting for it), Flash extracts up to this many of the posts the
+# sweeps' share, time left; paused as busy, the run's one wait for it), Flash extracts up to this many of the posts the
 # triage ruled out this run, as fetched (no other Instagram read): accounts that post events first, unproductive ones
 # last, the newest first. An event found is stored as any Flash reading and counted (`triage_misses`). Until 22 Oct it
 # came after the upgrades, with what they left, and never ran: Flash is used up every quota day (36 of 36) and
 # provisional posts always wait (24 that week), so `triage_checked` was 0 in all 15 sweeps of 17–22 Oct. Now a fixed
-# share before them (the owner, 22 Oct 2026): one a run, three of Flash's 36 a day, the upgrades take the rest. It's
+# share before them (the owner, 22 Oct 2026): one a run, three of Flash's 36 a day, the upgrades take the rest. It
+# didn't wait for a busy Flash at first, and Flash was paused as busy at that point in every sweep, so it still never
+# ran (0 in the six sweeps of 21–22 Oct); since 22 Oct it waits as the upgrades do (the owner). It's
 # there to measure the triage's misses for about two weeks: keep it or drop it then (early Nov 2026), on what it found.
 TRIAGE_CHECKS_PER_RUN = 1
 # How many of the run's ruled-out posts (with their images) are held for it meanwhile, the likeliest kept.
