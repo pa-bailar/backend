@@ -112,7 +112,8 @@ Instagram posts, Gemini extracts the events, and the site rebuilds. Owner: jzamo
   (`node -e "console.log(new Date().toLocaleTimeString('en-GB',{timeZone:'America/Bogota'}))"`). Git Bash ignores
   `TZ=America/Bogota` and prints UTC.
 - **Multi-line edits:** the Edit/Write tools or a Python script in the scratchpad; heredocs with regexes or
-  backslashes get mangled (one turned `\b` into a control character).
+  backslashes get mangled (one turned `\b` into a control character). Python's `write_text` writes CRLF here:
+  write bytes, or pass `newline="\n"`.
 - **`gh` with a `/word` argument** (`/agregar`): `MSYS_NO_PATHCONV=1`, or Git Bash turns it into a Windows path.
 - **`gh pr create` runs in its own command** (the docs-sync hook reads the command; chained after a commit it blocks).
 - **Parallel shell commands share one working directory:** a `cd` in one can land another in the wrong repository
@@ -158,7 +159,9 @@ The rules are in `WORKSPACE.md`; these are the lessons behind them.
   every branch, look at the bot's data PRs: they were blocked by it too.
 - **A safety check must be seen to fire:** step 1b's wait (added 3 Oct) never once waited until 17 Oct; its test only
   checked where the step sat. Test a guard against the real condition it guards, and check a date-dependent fix
-  on several days and hours, not one (a Monday missed the Saturday-only failure).
+  on several days and hours, not one (a Monday missed the Saturday-only failure). A new counter that stays 0 is a
+  finding: Flash's triage check read 0 posts in every sweep of 17–22 Oct, first starved by the upgrades, then
+  skipping a busy Flash the upgrades waited for (#212, #217); the run's log says why.
 - **Test like a visitor:** 375 px, both themes, scrolled down, a first visit, back and reload; the live site after
   a deploy. A feature is checked whole (its neighbors too), not just its new lines.
 - **The owner directs, Claude orchestrates:** ask only for direction, money, accounts or keys; decide the rest with
