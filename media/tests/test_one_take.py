@@ -18,7 +18,9 @@ def one_take(monkeypatch, tmp_path, lines: list[str], heard_words: list[str], fi
     v = type("V", (), {"name": "x", "fps": 30, "duration": 10.0, "settings": {"voice": voice}})()
     v.out, v.data = tmp_path / "out", tmp_path / "data"
     v.out.mkdir()
-    heard = [{"word": w, "start": 0.5 * i + first, "end": 0.5 * i + first + 0.4, "p": 0.9} for i, w in enumerate(heard_words)]
+    heard = [
+        {"word": w, "start": 0.5 * i + first, "end": 0.5 * i + first + 0.4, "p": 0.9} for i, w in enumerate(heard_words)
+    ]
     audio = take if take is not None else np.zeros(int(0.5 * len(heard_words) * 24000 + 48000), np.float32)
     monkeypatch.setattr(timing, "read", lambda p: audio)
     monkeypatch.setattr(timing, "words_of", lambda p, s: heard)
