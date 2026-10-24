@@ -58,14 +58,14 @@
   "rpdancestudio": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-22T03:09:03-05:00",
+    "last_swept_at": "2026-10-24T06:36:30-05:00",
     "latest_post": "2026-10-11",
     "unreadable": {}
   },
   "salsalatina.villaluz": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-22T03:09:14-05:00",
+    "last_swept_at": "2026-10-24T06:36:37-05:00",
     "latest_post": "2026-07-09",
     "unreadable": {}
   },
@@ -79,7 +79,7 @@
   "foururbandanc": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-23T03:06:56-05:00",
+    "last_swept_at": "2026-10-24T06:36:23-05:00",
     "latest_post": "2026-10-20",
     "unreadable": {}
   },
@@ -100,8 +100,8 @@
   "bogotadanceclub.academy": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-23T03:06:54-05:00",
-    "latest_post": "2026-10-19",
+    "last_swept_at": "2026-10-24T06:36:21-05:00",
+    "latest_post": "2026-10-23",
     "unreadable": {}
   },
   "academyfeel": {
@@ -114,7 +114,7 @@
   "soondanz_company": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-23T03:06:53-05:00",
+    "last_swept_at": "2026-10-24T06:36:16-05:00",
     "latest_post": "2026-10-18",
     "unreadable": {}
   },
@@ -128,7 +128,7 @@
   "ikubambayadanza": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-22T06:31:08-05:00",
+    "last_swept_at": "2026-10-24T06:36:39-05:00",
     "latest_post": "2026-07-18",
     "unreadable": {}
   },
@@ -163,7 +163,7 @@
   "mambolei_": {
     "first_seen": "2026-10-02",
     "backfill_done": true,
-    "last_swept_at": "2026-10-23T03:07:12-05:00",
+    "last_swept_at": "2026-10-24T06:36:26-05:00",
     "latest_post": "2026-10-21",
     "unreadable": {}
   },
@@ -793,7 +793,7 @@
   "bulevarsalsarooftop": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-22T03:09:04-05:00",
+    "last_swept_at": "2026-10-24T06:36:31-05:00",
     "latest_post": "2026-10-07",
     "unreadable": {}
   },
@@ -814,7 +814,7 @@
   "oronegroclub": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-23T03:07:07-05:00",
+    "last_swept_at": "2026-10-24T06:36:25-05:00",
     "latest_post": "2026-10-22",
     "unreadable": {}
   },
@@ -856,8 +856,8 @@
   "restaurantecasadecitas": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-23T03:06:51-05:00",
-    "latest_post": "2026-10-22",
+    "last_swept_at": "2026-10-24T06:36:14-05:00",
+    "latest_post": "2026-10-24",
     "unreadable": {}
   },
   "ladiezluxury_outlet": {
@@ -877,21 +877,21 @@
   "sonorasocialclub_": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-22T03:09:05-05:00",
-    "latest_post": "2026-10-21",
+    "last_swept_at": "2026-10-24T06:36:33-05:00",
+    "latest_post": "2026-10-23",
     "unreadable": {}
   },
   "discojaguar.bta": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-22T03:07:20-05:00",
+    "last_swept_at": "2026-10-24T06:36:28-05:00",
     "latest_post": "2026-10-21",
     "unreadable": {}
   },
   "acaparchamos": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-22T03:09:11-05:00",
+    "last_swept_at": "2026-10-24T06:36:34-05:00",
     "latest_post": "2026-08-26",
     "unreadable": {}
   },
@@ -912,8 +912,8 @@
   "mundanobaroficial": {
     "first_seen": "2026-10-05",
     "backfill_done": true,
-    "last_swept_at": "2026-10-22T06:31:21-05:00",
-    "latest_post": "2026-10-21",
+    "last_swept_at": "2026-10-24T06:36:40-05:00",
+    "latest_post": "2026-10-23",
     "unreadable": {}
   },
   "danceholicproject": {
@@ -935,6 +935,13 @@
     "backfill_done": true,
     "last_swept_at": "2026-10-24T03:01:35-05:00",
     "latest_post": "2026-10-19",
+    "unreadable": {}
+  },
+  "salsayritmolatino": {
+    "first_seen": "2026-10-24",
+    "backfill_done": true,
+    "last_swept_at": "2026-10-24T06:38:29-05:00",
+    "latest_post": "2026-10-22",
     "unreadable": {}
   }
 }
