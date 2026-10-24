@@ -433,13 +433,14 @@ flowchart LR
 - **`.github/workflows/admin.yml`:** runs on new issues and comments, only from `jzamora5`. It reads the
   sweep state and the site's `events.json`, runs `python -m pa_bailar admin inbox` (which skips anything that
   isn't a request: no label, no answer), labels the issue `admin`, comments the answer and closes the issue.
-  An added account is committed to `main` (`accounts.txt`). Adding a post starts the sweep workflow with
+  An added account (`accounts.txt`) is saved through a PR that pa-bailar-bot opens and that merges itself once
+  `ci` passes (`.github/actions/save-accounts`): it reaches the sweeps a few minutes after the answer. Adding a post starts the sweep workflow with
   `post_url`, `account` and `issue`, and `again` (true for Volver a leer); adding a story with `story` (the
   screenshots' ids), `account`, `notes` and `issue`; hiding a story or an event with `hide` (its id) and
   `issue`. Requests take turns, first come first served, for up to 85 minutes, and the workflow has no
   concurrency group (ARCHITECTURE.md section 5.2, "Admin requests take turns").
 - **`.github/workflows/daily-sweep.yml`**, with `post_url`: `sweep --post` (`--again` with `again`) instead of
-  the sweep, then the same data PR and state save; it commits an added account and answers on the issue. With
+  the sweep, then the same data PR and state save; it saves an added account the same way and answers on the issue. With
   `story`: the `story-images` job downloads the screenshots, then `sweep --story`, and `story-cleanup` deletes
   them from KV after a successful run. With `hide`: `sweep --hide-story` or `sweep --hide-event`. Its `request`
   job checks the inputs first (ARCHITECTURE.md section 5.2).
@@ -447,6 +448,10 @@ flowchart LR
   action. It comments (and closes, when asked) only on an issue of yours labelled `admin` (and open, in
   `daily-sweep`; `admin` also answers a request made by commenting on a closed issue). The answer reaches it as
   a file or an input, never inside a script.
+- **`.github/actions/save-accounts`:** saves `accounts.txt` for both workflows when an account was added: a PR
+  opened by pa-bailar-bot, merged by itself once `ci` passes. `main` takes no direct pushes (its ruleset), and a PR
+  opened with the workflow's own token would start no `ci`. Until 24 Oct 2026 both workflows pushed to `main` and
+  were refused: every account added with these tools since 6 Oct was lost (the answer said it was added).
 - **`.github/ISSUE_TEMPLATE/admin.yml`:** the form (Acción: Revisar, Agregar, Volver a leer, Agregar cuenta,
   Estado, Ocultar historia or Ocultar evento; Enlace; Cuenta; Historia; Evento). The page writes its issues the same way, and also
   "Agregar historia" (Capturas, Cuenta, Notas), which isn't in the form: its screenshots come from the page.

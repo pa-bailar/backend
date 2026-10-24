@@ -26,7 +26,7 @@ pa_bailar/            the collector (one Python package; every module in docs/AR
   health.py, status.py, why.py, inbox.py, links.py, patterns.py, sweep_state.py, discovery.py, text.py, logs.py
 tests/                unit and end-to-end tests (no network); fixtures/patterns.json is shared with admin-web/test
 gold/                 the test set: posts checked by hand against their flyers (admin bakeoff --gold; its README)
-.github/              the workflows (ci, media, admin, daily-sweep), the answer-issue action, the admin issue form,
+.github/              the workflows (ci, media, admin, daily-sweep), the answer-issue and save-accounts actions, the admin issue form,
                       Dependabot's settings
 docs/ARCHITECTURE.md  how the whole system works: services, sweep, pipeline, monitoring (start here)
 docs/ADMIN.md         the admin tools: the admin page, the inbox, the commands
