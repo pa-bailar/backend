@@ -69,7 +69,7 @@ on:
         required: false
 
 permissions:
-  contents: write # push the sweep-state branch of this repository
+  contents: write # push the sweep-state branch of this repository, and an added account's branch (its PR is the bot's)
   issues: write # the "Sweep health" issue
 
 concurrency:
@@ -481,17 +481,12 @@ jobs:
       # add-post and add-story add the account when it isn't swept yet (storage.add_account).
       - name: Save an account added by hand
         if: ${{ !cancelled() && steps.wait.outcome == 'success' && (inputs.post_url != '' || inputs.story != '') }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE: ${{ inputs.issue }}
-        run: |
-          if git diff --quiet -- accounts.txt; then exit 0; fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          gh auth setup-git
-          git commit -qm "chore(accounts): add the account of a post or story added by hand (#${ISSUE})" -- accounts.txt
-          git pull -q --rebase origin main
-          git push -q origin HEAD:main
+        uses: ./.github/actions/save-accounts
+        with:
+          title: "chore(accounts): add the account of a ${{ inputs.post_url && 'post' || 'story' }} added by hand"
+          body: "Added with the ${{ inputs.post_url && 'post' || 'story' }} of the admin inbox's #${{ inputs.issue }}."
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       # Health (pa_bailar/health.py): rules over this run and the previous ones, no AI. While there are
       # warnings, one open issue holds the latest report; a comment (which GitHub emails) is added only when

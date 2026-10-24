@@ -1,0 +1,65 @@
+# accounts.txt, changed by the admin tools (storage.add_account: the admin inbox's /cuenta, an account that comes with
+# a post or a story added by hand), saved for every workflow that adds one (admin, daily-sweep). Through a pull
+# request that merges itself once `ci` passes: main takes no direct pushes (its ruleset, enforced since the repository
+# went public on 6 Oct 2026; until 23 Oct both workflows pushed to main, and every account they added since was lost).
+# The pull request is opened by pa-bailar-bot: one opened with the workflow's own token would start no `ci`, and
+# without `ci` it could never merge. Nothing to do when accounts.txt is unchanged (the account was already swept).
+name: Save the added accounts
+description: Open a self-merging pull request with the changed accounts.txt, as pa-bailar-bot.
+
+inputs:
+  title:
+    description: The commit's and the pull request's title (Conventional Commits, as `ci` requires)
+    required: true
+  body:
+    description: The pull request's description
+    required: true
+  app-id:
+    description: The pa-bailar-bot App's id (vars.APP_ID)
+    required: true
+  private-key:
+    description: Its private key (secrets.APP_PRIVATE_KEY)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: See whether accounts.txt changed
+      id: changed
+      shell: bash
+      run: |
+        if git diff --quiet -- accounts.txt; then
+          echo "accounts.txt unchanged: nothing to save."
+        else
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Get a token for this repository (pa-bailar-bot)
+      id: app
+      if: steps.changed.outputs.changed == 'true'
+      uses: actions/create-github-app-token@v3
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.private-key }} # no owner or repositories: this repository only
+
+    - name: Open the pull request
+      if: steps.changed.outputs.changed == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.app.outputs.token }}
+        BOT: ${{ steps.app.outputs.app-slug }}[bot]
+        TITLE: ${{ inputs.title }}
+        BODY: ${{ inputs.body }}
+      run: |
+        gh auth setup-git  # git pushes with the App token (GH_TOKEN)
+        bot_id="$(gh api "/users/${BOT}" --jq .id)"
+        git config user.name "$BOT"
+        git config user.email "${bot_id}+${BOT}@users.noreply.github.com"
+        branch="accounts/run-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+        git switch -c "$branch"
+        git commit -qm "$TITLE" -- accounts.txt
+        git push -q origin "$branch"
+        url="$(gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$branch" --title "$TITLE" \
+          --body "$BODY Merges itself when \`ci\` passes.")"
+        gh pr merge "$url" --auto --squash --delete-branch
+        echo "Opened $url"

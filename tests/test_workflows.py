@@ -68,6 +68,30 @@ def test_the_sweep_job_has_room_for_its_longest_run():
     assert int(job_limit.group(1)) >= longest, f"the job's {job_limit.group(1)} minutes < the longest run's {longest}"
 
 
+def test_no_workflow_pushes_to_main_accounts_go_through_the_bots_pr():
+    """main's ruleset takes changes only through a pull request with `ci` (enforced since the backend went public, 6 Oct
+    2026). Both workflows that add an account pushed accounts.txt to main, were refused, and every account added with
+    the admin tools since then was lost (the admin inbox's /cuenta, 23 Oct). They save it through save-accounts now,
+    whose PR the bot opens (one opened with the workflow's own token would start no `ci`, so it could never merge)."""
+    workflows = ROOT / ".github" / "workflows"
+    for workflow, save in (
+        (workflows / "admin.yml", "Save the added account"),
+        (workflows / "daily-sweep.yml", "Save an account added by hand"),
+    ):
+        text = workflow.read_text(encoding="utf-8")
+        steps = re.split(r"\n      - (?=name: )", text)
+        pushes_to_main = [s.split("\n")[0] for s in steps if re.search(r"git push\b[^\n]*\bmain\b", s)]
+        # The images go to main of their own repository, which has no ruleset (backend ARCHITECTURE §10.2).
+        assert set(pushes_to_main) <= {"name: Save the images to their repository"}, (workflow.name, pushes_to_main)
+        step_ = next(s for s in steps if s.startswith(f"name: {save}\n"))
+        assert "uses: ./.github/actions/save-accounts\n" in step_, workflow.name
+    action = (ROOT / ".github" / "actions" / "save-accounts" / "action.yml").read_text(encoding="utf-8")
+    opened = action[action.index("- name: Open the pull request") :]
+    assert "GH_TOKEN: ${{ steps.app.outputs.token }}" in opened and "github.token" not in opened
+    assert "gh pr merge" in opened and "--auto" in opened
+    assert not re.search(r"git push\b[^\n]*\bmain\b", action)
+
+
 def test_cron_job_org_starts_every_sweep_and_github_schedules_none():
     """Every sweep, 3:00 included, is started by cron-job.org (the owner, 9 Oct 2026: GitHub's own schedule never fired
     here while the repository was private, and it starts late or drops runs). A `schedule:` trigger next to a
