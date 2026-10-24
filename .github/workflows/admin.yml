@@ -17,7 +17,7 @@ on:
     types: [created]
 
 permissions:
-  contents: write # accounts.txt, when an account is added
+  contents: write # accounts.txt's branch, when an account is added (its PR is the bot's: save-accounts)
   issues: write # the answer
   actions: write # start the sweep workflow to add a post or a story, or hide a story or an event
 
@@ -94,17 +94,12 @@ jobs:
 
       - name: Save the added account
         if: steps.answer.outputs.action == 'add-account'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ACCOUNT: ${{ steps.answer.outputs.account }}
-        run: |
-          if git diff --quiet -- accounts.txt; then exit 0; fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          gh auth setup-git
-          git commit -qm "chore(accounts): add @${ACCOUNT} (admin inbox, #${ISSUE})" -- accounts.txt
-          git pull -q --rebase origin main
-          git push -q origin HEAD:main
+        uses: ./.github/actions/save-accounts
+        with:
+          title: "chore(accounts): add @${{ steps.answer.outputs.account }}"
+          body: "Added with the admin inbox (#${{ github.event.issue.number }})."
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Write the reply if the answer failed
         if: >-
