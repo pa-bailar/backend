@@ -80,7 +80,8 @@ def test_rules_compare_titles_when_a_time_is_missing():
 
 
 def test_unrelated_event_is_new():
-    assert find_existing([stored()], "academia", extracted(date="2026-11-01"), "new-post") is None
+    # Not a literal date: the sample event is 8 days ahead (EVENT_DATE), so on 24 Oct 2026 "2026-11-01" was its day.
+    assert find_existing([stored()], "academia", extracted(date=OTHER_DATE), "new-post") is None
 
 
 # ---------- merging ----------
