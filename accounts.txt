@@ -147,6 +147,7 @@ jaleocompetencia_
 dlivingstudio
 salsayritmolatino
 salsalatina_castilla
+dannysalsita.lafabrica
 
 # Salsa bars and salsotecas: open every week. `bar`: only their special occasions count (live bands, guest
 # artists, anniversaries, holiday parties, workshops), their events are tagged so the site can set them apart,
