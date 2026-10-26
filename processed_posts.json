@@ -22831,11 +22831,11 @@
   "18164022982433812": {
     "account": "bachatamania_bogota",
     "permalink": "https://www.instagram.com/reel/De2hv_mgpsr/",
-    "processed_at": "2026-10-23T21:09:26-05:00",
+    "processed_at": "2026-10-25T21:03:22-05:00",
     "is_event_post": true,
-    "reason": "Se anuncia el Festival de Aniversario de Distrito Social, que incluye la gran final de la competencia Bachatamanía Master League.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "Anuncia el Festival de Aniversario de Distrito Social del 31 de octubre al 2 de noviembre de 2026.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "e7aa1fdcecc99319",
     "outcome": "merged",
     "event_ids": [
@@ -24218,6 +24218,42 @@
     "image_hashes": [],
     "by_hand": false,
     "triage_checked": false,
+    "upgrade_misses": 0
+  },
+  "17968742196193898": {
+    "account": "imperiolatino",
+    "permalink": "https://www.instagram.com/p/De5SKJpPHtJ/",
+    "processed_at": "2026-10-25T21:02:48-05:00",
+    "is_event_post": true,
+    "reason": "Anuncia el Social de Halloween de Salsa y Bachata para el viernes 30 de octubre.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
+    "caption_hash": "868f26fabc6bbdd6",
+    "outcome": "event",
+    "event_ids": [
+      "social-de-halloween-30-oct"
+    ],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false,
+    "triage_checked": false,
+    "upgrade_misses": 0
+  },
+  "18114828140604906": {
+    "account": "babou_candelaria",
+    "permalink": "https://www.instagram.com/p/De8DpYllvas/",
+    "processed_at": "2026-10-25T21:03:09-05:00",
+    "is_event_post": false,
+    "reason": "Es una publicación promocional regular del bar para los domingos, sin anunciar un evento especial con fecha única o artistas invitados específicos.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
+    "caption_hash": "f1beaade717ec3ae",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false,
+    "triage_checked": true,
     "upgrade_misses": 0
   }
 }
