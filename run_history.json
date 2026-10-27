@@ -5443,16 +5443,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "reread",
-        "id": "noche-de-salsa-24-oct",
-        "title": "Noche de Salsa",
-        "account": "el_bochinche_cafe_",
-        "date": "2026-10-24",
-        "detail": "Flash confirmó la lectura"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "reread": 1
@@ -7478,6 +7469,260 @@
       "new": 3,
       "provisional": 21,
       "merged": 1
+    }
+  },
+  {
+    "finished_at": "2026-10-27T03:19:56-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/40470557617",
+    "started_at": "2026-10-27T03:02:34-05:00",
+    "site_data_at": "2026-10-26T21:44:50-05:00",
+    "data_changed": true,
+    "accounts": 49,
+    "failed_accounts": [
+      "zaimora24"
+    ],
+    "read_accounts": [
+      "academiadebailepasolatino",
+      "academyfeel",
+      "and1erita",
+      "andonybaron",
+      "aseismanos",
+      "bembeacademiadebaile",
+      "bilongocolombia",
+      "bogotadanceclub",
+      "boogaloop.candelaria",
+      "callejonsalsa",
+      "casaquiebracanto",
+      "casavander_",
+      "casineafest",
+      "chanchanlatino",
+      "clandisfrute",
+      "cremadeajiaco",
+      "danceholicproject",
+      "danitello22",
+      "danzaenlaciudad",
+      "dlivingstudio",
+      "dreamcupco",
+      "ebi_dancecompany",
+      "elgocepagano",
+      "esferalatinaoficial",
+      "fernandoespanadj",
+      "frank.de.latorre",
+      "galeriacafelibro",
+      "germanbaila",
+      "ilhehabana",
+      "jackandjilloficial",
+      "juancho__salsita",
+      "la33orquesta",
+      "lamecanica_original",
+      "lanenamagdalena",
+      "madyumdance",
+      "meetinghousebogota",
+      "oswaldgil2",
+      "parchexbogota",
+      "proyectourbandance",
+      "reyesdelasalsa.col",
+      "salsacamaraoficial",
+      "salsaculto",
+      "salsaysonoficial",
+      "sondehabana",
+      "soywiwioficial",
+      "studio110dance",
+      "teffa_mg",
+      "tributo.salsayjazz",
+      "zaimora24"
+    ],
+    "skipped_accounts": [
+      "pachanga_y_pochola",
+      "bulevarsalsabar",
+      "elratonsalsaclub",
+      "el_bochinche_cafe_"
+    ],
+    "posts_analyzed": 23,
+    "events_new": 10,
+    "events_merged": 7,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 9,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 20,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3-flash-preview": 10
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 66,
+    "instagram_usage_detail": {
+      "call_count": 20,
+      "total_cputime": 0,
+      "total_time": 66
+    },
+    "instagram_reads": {
+      "accounts": 50,
+      "mean_seconds": 1.7,
+      "median_seconds": 1.72,
+      "max_seconds": 3.14,
+      "mean_cost": 1.35,
+      "max_cost": 3,
+      "max_cost_account": "clandisfrute",
+      "headers": {
+        "X-App-Usage": 50
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 1,
+    "upgrade_misses": 0,
+    "triage_checked": 1,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [
+      "fetch:zaimora24"
+    ],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "ix-encuentro-de-escuelas-y-academias-de-ballet-1-nov",
+        "title": "IX Encuentro de Escuelas y Academias de Ballet 2026",
+        "account": "danzaenlaciudad",
+        "date": "2026-11-01",
+        "detail": null
+      },
+      {
+        "kind": "provisional",
+        "id": "javier-ortega-y-su-orquesta-homenaje-a-willy-colon-30-oct",
+        "title": "Javier Ortega y su orquesta: Homenaje a Willy Colón",
+        "account": "casaquiebracanto",
+        "date": "2026-10-30",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "clan-del-solar-presenta-huye-que-te-coje-la-muerte-31-oct",
+        "title": "Clan del Solar presenta: Huye que te coje la muerte",
+        "account": "casaquiebracanto",
+        "date": "2026-10-31",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "jueves-de-son-gozon-zafra-son-29-oct",
+        "title": "Jueves de Son Gozón / Zafra Son",
+        "account": "salsacamaraoficial",
+        "date": "2026-10-29",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "gran-rumba-de-halloween-alex-rebambaramba-31-oct",
+        "title": "Gran Rumba de Halloween / Alex Rebambarambá",
+        "account": "salsacamaraoficial",
+        "date": "2026-10-31",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "miercoles-de-hector-lavoe-y-marc-anthony-28-oct",
+        "title": "Miércoles de Hector Lavoe y Marc Anthony",
+        "account": "bilongocolombia",
+        "date": "2026-10-28",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "jueves-de-la-feria-de-cali-29-oct",
+        "title": "Jueves de la Feria de Cali",
+        "account": "bilongocolombia",
+        "date": "2026-10-29",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "latin-sessions-31-oct",
+        "title": "Latin Sessions",
+        "account": "bilongocolombia",
+        "date": "2026-10-31",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "un-son-de-miedo-30-oct",
+        "title": "Un Son de Miedo",
+        "account": "tributo.salsayjazz",
+        "date": "2026-10-30",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "noche-de-salsa-y-bachata-28-oct",
+        "title": "Noche de Salsa y Bachata",
+        "account": "aseismanos",
+        "date": "2026-10-28",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "merged",
+        "id": "segundo-aniversario-ebi-dance-7-nov",
+        "title": "Segundo Aniversario Ebi Dance",
+        "account": "ebi_dancecompany",
+        "date": "2026-11-07",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "halloween-salsero-el-tour-de-la-salsa-vol-1-30-oct",
+        "title": "Halloween Salsero - El Tour de la Salsa Vol. 1",
+        "account": "salsaculto",
+        "date": "2026-10-30",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "tardeo-latino-tarde-de-bailoween-31-oct",
+        "title": "Tardeo Latino, Tarde de Bailoween",
+        "account": "bogotadanceclub",
+        "date": "2026-10-31",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "jack-and-jill-20-nov",
+        "title": "Jack and Jill",
+        "account": "jackandjilloficial",
+        "date": "2026-11-20",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "audiciones-compania-de-baile-paso-latino-2026-7-nov",
+        "title": "Audiciones Compañía de Baile Paso Latino 2026",
+        "account": "academiadebailepasolatino",
+        "date": "2026-11-07",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "halloween-salsa-party-30-oct",
+        "title": "Halloween Salsa Party",
+        "account": "casavander_",
+        "date": "2026-10-30",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 1,
+      "provisional": 9,
+      "merged": 6
     }
   }
 ]
