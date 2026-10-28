@@ -5858,32 +5858,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "provisional",
-        "id": "un-halloween-de-pelicula-31-oct",
-        "title": "Un Halloween de Película",
-        "account": "ladiezluxury_outlet",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "corrected",
-        "id": "25-anos-de-alma-de-tango-junto-a-tango-bardo-6-nov",
-        "title": "25 años de Alma de Tango junto a Tango Bardo",
-        "account": "academiaalmadetangoe",
-        "date": "2026-11-06",
-        "detail": "Flash cambió el tipo"
-      },
-      {
-        "kind": "merged",
-        "id": "distrito-social-aniversario-31-oct",
-        "title": "Distrito Social Aniversario",
-        "account": "distritosocialbog",
-        "date": "2026-10-31",
-        "detail": "otra publicación de @bachatamania_bogota"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "provisional": 1,
@@ -8073,6 +8048,136 @@
       "provisional": 7,
       "merged": 7,
       "reread": 1
+    }
+  },
+  {
+    "finished_at": "2026-10-28T06:44:34-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/40680426323",
+    "started_at": "2026-10-28T06:30:54-05:00",
+    "site_data_at": "2026-10-28T03:19:36-05:00",
+    "data_changed": true,
+    "accounts": 13,
+    "failed_accounts": [],
+    "read_accounts": [
+      "bogotadanceclub.academy",
+      "bulevarsalsabar",
+      "el_bochinche_cafe_",
+      "elratonsalsaclub",
+      "ikubambayadanza",
+      "mambolei_",
+      "mundanobaroficial",
+      "oronegroclub",
+      "pachanga_y_pochola",
+      "restaurantecasadecitas",
+      "salsalatina.villaluz",
+      "salsayritmolatino",
+      "soondanz_company"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 10,
+    "events_new": 0,
+    "events_merged": 2,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 7,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 27,
+    "instagram_usage_detail": {
+      "call_count": 6,
+      "total_cputime": 0,
+      "total_time": 27
+    },
+    "instagram_reads": {
+      "accounts": 16,
+      "mean_seconds": 2.34,
+      "median_seconds": 2.36,
+      "max_seconds": 3.75,
+      "mean_cost": 1.8,
+      "max_cost": 3,
+      "max_cost_account": "ikubambayadanza",
+      "headers": {
+        "X-App-Usage": 16
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {
+      "compared": 4,
+      "dropped": 0
+    },
+    "upgraded": 2,
+    "upgrade_reads": 3,
+    "upgrade_misses": 0,
+    "triage_checked": 1,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "merged",
+        "id": "halloween-en-pachanga-pochola-31-oct",
+        "title": "Halloween en Pachanga & Pochola",
+        "account": "pachanga_y_pochola",
+        "date": "2026-10-31",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "la-fiesta-de-halloween-que-estabas-esperando-31-oct",
+        "title": "La fiesta de Halloween que estabas esperando",
+        "account": "elratonsalsaclub",
+        "date": "2026-10-31",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "reread",
+        "id": "noche-de-salsa-y-bachata-28-oct",
+        "title": "Noche de Salsa y Bachata",
+        "account": "aseismanos",
+        "date": "2026-10-28",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "miercoles-de-hector-lavoe-y-marc-anthony-28-oct",
+        "title": "Miércoles de Hector Lavoe y Marc Anthony",
+        "account": "bilongocolombia",
+        "date": "2026-10-28",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "jueves-de-la-feria-de-cali-29-oct",
+        "title": "Jueves de la Feria de Cali",
+        "account": "bilongocolombia",
+        "date": "2026-10-29",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "latin-sessions-31-oct",
+        "title": "Latin Sessions",
+        "account": "bilongocolombia",
+        "date": "2026-10-31",
+        "detail": "Flash confirmó la lectura"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "merged": 2,
+      "reread": 4
     }
   }
 ]
