@@ -662,7 +662,7 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 **Flash's second opinion on the triage** (17 Oct 2026, `Sweep._check_triage`): the triage's "no" was final, and
 119 posts were ruled out in the week to 17 Oct without anyone knowing how many announced events. So a run holds the
 posts the triage ruled out (as fetched, with their images: no other Instagram read; at most `TRIAGE_CHECKS_HELD`,
-12), and once the accounts are read, before the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (1) of them
+12), and once the accounts are read, before the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (1; 3 at 6:30, `TRIAGE_CHECKS_AT`) of them
 (section 7.2). Only the triage's own "no": not the rules' (a bar's or a focus filter's, recorded with model
 `-`), nor posts or stories added by hand. Flash's reading is stored as any Flash reading (section 6.3) and replaces
 the post's record (Flash's model, `triage_checked`, never checked again). An event published (or hidden by hand) is
@@ -902,14 +902,16 @@ flowchart TD
   up at once, with 21 of the run's 30 minutes left; 40 of the 85 upcoming events had only a lighter reading. Out of
   quota, it doesn't wait; busy again after the wait, the rest waits for a later run.
 - **Flash's second opinion on the triage** (17 Oct 2026, `Sweep._check_triage`; section 6.2): once the accounts are
-  read and before the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (1) of the posts the triage ruled out
+  read and before the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (1), or `TRIAGE_CHECKS_AT` for a scheduled sweep
+  (3 at 6:30: `scheduled_sweep`, `triage_checks`), of the posts the triage ruled out
   this run, under the upgrades' gate (`can_upgrade`: budget beyond the later sweeps' share, not paused as busy; time
   left), taking the run's one wait for a paused Flash (above); the upgrades take the rest. Which ones
   (`second_opinion_order`): those of accounts with an event on record first (they do post events), then the others,
-  then the unproductive ones (`unproductive_accounts`); the newest first in each. Cost: at most 1 Flash request a
-  run, 3 of the 36 a day; no Instagram read. Until 22 Oct 2026 it came after the upgrades, with what they left
+  then the unproductive ones (`unproductive_accounts`); the newest first in each. Cost: at most 5 Flash requests a
+  day (1 at 3:00 and 21:00, 3 at 6:30) of the 36; no Instagram read. Until 22 Oct 2026 it came after the upgrades, with what they left
   (3 a run), and never ran: Flash is used up every quota day and provisional posts always wait (24 that week), so
-  `triage_checked` was 0 in all 15 sweeps of 17–22 Oct. Before them but not waiting, it still never ran (0 in the
+  `triage_checked` was 0 in all 15 sweeps of 17–22 Oct. Three at 6:30 since 28 Oct 2026 (the owner): at 21:00 and
+  3:00 Google's overload outlasted the wait in 4 of the 6 sweeps of 27–28 Oct; at 6:30 Flash answers. Before them but not waiting, it still never ran (0 in the
   six sweeps of 21–22 Oct): Flash was paused as busy at its turn every time, and only the upgrades waited; it waits
   since 22 Oct 2026 (the owner). The fixed share is there to measure the triage's misses for
   about two weeks (the owner, 22 Oct 2026); whether it stays is decided then, on what it found. The counters
