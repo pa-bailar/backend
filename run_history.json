@@ -5742,40 +5742,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "corrected",
-        "id": "salsa-en-digital-24-oct",
-        "title": "Salsa en DIGITAL",
-        "account": "lanenamagdalena",
-        "date": "2026-10-24",
-        "detail": "Flash cambió el tipo"
-      },
-      {
-        "kind": "reread",
-        "id": "salsa-en-vivo-en-quema-23-oct",
-        "title": "Salsa en vivo en Quema",
-        "account": "quemaquequema",
-        "date": "2026-10-23",
-        "detail": "Flash confirmó la lectura"
-      },
-      {
-        "kind": "reread",
-        "id": "celebracion-cumpleanos-7-de-la-nena-magdalena-30-oct",
-        "title": "Celebración cumpleaños #7 de la Nena Magdalena",
-        "account": "lanenamagdalena",
-        "date": "2026-10-30",
-        "detail": "Flash confirmó la lectura"
-      },
-      {
-        "kind": "reread",
-        "id": "viernes-de-salsa-son-con-tambaluna-6-nov",
-        "title": "Viernes de Salsa & Son con Tambaluna",
-        "account": "tributo.salsayjazz",
-        "date": "2026-11-06",
-        "detail": "Flash confirmó la lectura"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "corrected": 1,
@@ -7855,6 +7822,257 @@
     "change_counts": {
       "new": 1,
       "merged": 3
+    }
+  },
+  {
+    "finished_at": "2026-10-28T03:19:36-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/40653711038",
+    "started_at": "2026-10-28T03:01:04-05:00",
+    "site_data_at": "2026-10-27T21:17:48-05:00",
+    "data_changed": true,
+    "accounts": 49,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academiadebailepasolatino",
+      "academyfeel",
+      "acaparchamos",
+      "and1erita",
+      "aseismanos",
+      "bembeacademiadebaile",
+      "bilongocolombia",
+      "bogotadanceclub",
+      "bulevarsalsarooftop",
+      "callejonsalsa",
+      "casaquiebracanto",
+      "casavander_",
+      "casineafest",
+      "chanchanlatino",
+      "clandisfrute",
+      "danzaenlaciudad",
+      "discojaguar.bta",
+      "dlivingstudio",
+      "ebi_dancecompany",
+      "elgocepagano",
+      "esferalatinaoficial",
+      "fernandoespanadj",
+      "frank.de.latorre",
+      "galeriacafelibro",
+      "germanbaila",
+      "ilhehabana",
+      "jackandjilloficial",
+      "jaleocompetencia_",
+      "la33orquesta",
+      "lamecanica_original",
+      "lanenamagdalena",
+      "latinproductioncolombia",
+      "madyumdance",
+      "mariavasquezdancer",
+      "meetinghousebogota",
+      "parchexbogota",
+      "reyesdelasalsa.col",
+      "rpdancestudio",
+      "salsacamaraoficial",
+      "salsaculto",
+      "salsaysonoficial",
+      "sarasandoval.oficial",
+      "sondehabana",
+      "sonorasocialclub_",
+      "soywiwioficial",
+      "studio110dance",
+      "teffa_mg",
+      "tributo.salsayjazz",
+      "zafradance"
+    ],
+    "skipped_accounts": [
+      "salsalatina.villaluz",
+      "ikubambayadanza",
+      "mundanobaroficial",
+      "pachanga_y_pochola",
+      "bulevarsalsabar",
+      "elratonsalsaclub",
+      "el_bochinche_cafe_",
+      "restaurantecasadecitas",
+      "soondanz_company",
+      "bogotadanceclub.academy",
+      "oronegroclub",
+      "mambolei_",
+      "salsayritmolatino"
+    ],
+    "posts_analyzed": 37,
+    "events_new": 7,
+    "events_merged": 9,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 11,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 22,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3-flash-preview": 11
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 67,
+    "instagram_usage_detail": {
+      "call_count": 20,
+      "total_cputime": 0,
+      "total_time": 67
+    },
+    "instagram_reads": {
+      "accounts": 49,
+      "mean_seconds": 1.93,
+      "median_seconds": 1.57,
+      "max_seconds": 6.62,
+      "mean_cost": 1.4,
+      "max_cost": 3,
+      "max_cost_account": "la33orquesta",
+      "headers": {
+        "X-App-Usage": 49
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "provisional",
+        "id": "rumba-en-vivo-con-kabala-ensamble-29-oct",
+        "title": "Rumba en Vivo con Kabala Ensamble",
+        "account": "galeriacafelibro",
+        "date": "2026-10-29",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "viernes-de-salsa-30-oct",
+        "title": "Viernes de Salsa",
+        "account": "callejonsalsa",
+        "date": "2026-10-30",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "el-cementerio-de-las-canciones-vivas-31-oct",
+        "title": "El Cementerio de las canciones vivas",
+        "account": "callejonsalsa",
+        "date": "2026-10-31",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "dia-de-muertos-y-de-las-almas-1-nov",
+        "title": "Día de Muertos y de las Almas",
+        "account": "callejonsalsa",
+        "date": "2026-11-01",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "venezuela-en-su-sazon-1-nov",
+        "title": "Venezuela en su Sazón",
+        "account": "tributo.salsayjazz",
+        "date": "2026-11-01",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "tributo-a-ismael-rivera-20-nov",
+        "title": "Tributo a Ismael Rivera",
+        "account": "tributo.salsayjazz",
+        "date": "2026-11-20",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "gran-taller-salsa-corporalidad-21-nov",
+        "title": "Gran Taller: Salsa Corporalidad",
+        "account": "madyumdance",
+        "date": "2026-11-21",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "merged",
+        "id": "coca-cola-bailable-1-nov",
+        "title": "Coca-Cola Bailable - Especial de Halloween",
+        "account": "germanbaila",
+        "date": "2026-11-01",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "celebracion-cumpleanos-7-de-la-nena-magdalena-30-oct",
+        "title": "Celebración cumpleaños #7 de la Nena Magdalena",
+        "account": "lanenamagdalena",
+        "date": "2026-10-30",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "tardeo-latino-tarde-de-bailoween-31-oct",
+        "title": "Tardeo Latino, Tarde de Bailoween",
+        "account": "bogotadanceclub",
+        "date": "2026-10-31",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "halloween-social-31-oct",
+        "title": "Halloween Social",
+        "account": "dlivingstudio",
+        "date": "2026-10-31",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "embrujate-con-salsa-viernes-30-oct",
+        "title": "¡Embrújate con Salsa! - Viernes",
+        "account": "galeriacafelibro",
+        "date": "2026-10-30",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "embrujate-con-salsa-sabado-31-oct",
+        "title": "¡Embrújate con Salsa! - Sábado",
+        "account": "galeriacafelibro",
+        "date": "2026-10-31",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "clan-del-solar-presenta-huye-que-te-coje-la-muerte-31-oct",
+        "title": "Clan del Solar presenta: Huye que te coje la muerte",
+        "account": "casaquiebracanto",
+        "date": "2026-10-31",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "reread",
+        "id": "halloween-salsero-el-tour-de-la-salsa-vol-1-30-oct",
+        "title": "Halloween Salsero - El Tour de la Salsa Vol. 1",
+        "account": "salsaculto",
+        "date": "2026-10-30",
+        "detail": "publicación editada, sin cambios"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "provisional": 7,
+      "merged": 7,
+      "reread": 1
     }
   }
 ]
