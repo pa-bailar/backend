@@ -187,6 +187,28 @@ def is_evening_sweep(now: datetime) -> bool:
     return local >= starts - timedelta(minutes=config.LATER_SWEEP_MARGIN_MINUTES)
 
 
+def scheduled_sweep(now: datetime) -> str | None:
+    """The scheduled sweep (its clock in config.SWEEP_TIMES) a run at `now` belongs to: the latest that starts at most
+    config.LATER_SWEEP_MARGIN_MINUTES later (a run started a little early) and less than config.SWEEP_WINDOW_HOURS
+    earlier (a run waits and takes a while). None: a run by hand at another time."""
+    local = now.astimezone(config.BOGOTA_TZ)
+    early, window = timedelta(minutes=config.LATER_SWEEP_MARGIN_MINUTES), timedelta(hours=config.SWEEP_WINDOW_HOURS)
+    starts = [
+        (datetime.combine(local.date() + timedelta(days=offset), parse_hhmm(clock), config.BOGOTA_TZ), clock)
+        for offset in (-1, 0)
+        for clock in config.SWEEP_TIMES
+    ]
+    belongs = [(start, clock) for start, clock in starts if start - early <= local < start + window]
+    return max(belongs)[1] if belongs else None
+
+
+def triage_checks(now: datetime) -> int:
+    """How many of the posts the triage ruled out Flash reads in a run at `now`: config.TRIAGE_CHECKS_AT for its
+    scheduled sweep (three at 6:30), config.TRIAGE_CHECKS_PER_RUN otherwise."""
+    clock = scheduled_sweep(now)
+    return config.TRIAGE_CHECKS_AT.get(clock, config.TRIAGE_CHECKS_PER_RUN) if clock else config.TRIAGE_CHECKS_PER_RUN
+
+
 def sweeps_in_quota_day(now: datetime) -> list[datetime]:
     """When the scheduled sweeps (config.SWEEP_TIMES, Bogotá) of `now`'s Gemini quota day (Pacific) start, in order:
     3:00, 6:30 and 21:00 of one Bogotá day (its quota day starts at 2:00 Bogotá, or 3:00 in the Pacific's winter)."""
@@ -424,16 +446,16 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
                 self._upgrade_post(account, post, published)
 
     def _check_triage(self) -> None:
-        """Flash's second opinion on the triage (config.TRIAGE_CHECKS_PER_RUN; the owner, 17 Oct 2026): a few of the
-        posts the triage ruled out this run, as they were fetched (no other Instagram read), in second_opinion_order,
-        each extracted by Flash while it can be used as for an upgrade (can_upgrade: budget beyond the later sweeps'
-        share; paused as busy, the run's one wait for it, _wait_for_flash) and time is left. Before the upgrades, a
-        small fixed share (the owner, 22 Oct 2026): after them it never ran, since they took all of Flash every run.
-        Nor did it before them without waiting (22 Oct 2026): Flash was paused as busy at that point in every sweep,
-        and only the upgrades waited. The upgrades take the rest. What Flash finds is stored as any Flash reading
-        (_check_ruled_out)."""
+        """Flash's second opinion on the triage (the owner, 17 Oct 2026): a few of the posts the triage ruled out this
+        run (triage_checks: one, three at 6:30), as they were fetched (no other Instagram read), in
+        second_opinion_order, each extracted by Flash while it can be used as for an upgrade (can_upgrade: budget beyond
+        the later sweeps' share; paused as busy, the run's one wait for it, _wait_for_flash) and time is left. Before
+        the upgrades, a small fixed share (the owner, 22 Oct 2026): after them it never ran, since they took all of
+        Flash every run. Nor did it before them without waiting (22 Oct 2026): Flash was paused as busy at that point
+        in every sweep, and only the upgrades waited. The upgrades take the rest. What Flash finds is stored as any
+        Flash reading (_check_ruled_out)."""
         held, self._ruled_out = self._ruled_out, []
-        sample = second_opinion_order(held, self.processed.values())[: config.TRIAGE_CHECKS_PER_RUN]
+        sample = second_opinion_order(held, self.processed.values())[: triage_checks(config.now_bogota())]
         if not sample:
             return
         log.info("%d posts ruled out by triage this run: Flash checks %d of them", len(held), len(sample))
@@ -486,7 +508,7 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
     def _hold_ruled_out(self, item: RuledOut) -> None:
         """Hold a post the triage ruled out for Flash's second opinion at the run's end (_check_triage), with its
         images: the first config.TRIAGE_CHECKS_HELD of the run's in second_opinion_order."""
-        if config.TRIAGE_CHECKS_PER_RUN <= 0:
+        if max(config.TRIAGE_CHECKS_PER_RUN, *config.TRIAGE_CHECKS_AT.values()) <= 0:
             return
         self._ruled_out.append(item)
         if len(self._ruled_out) > config.TRIAGE_CHECKS_HELD:

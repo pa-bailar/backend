@@ -9,7 +9,7 @@ from datetime import UTC, datetime, timedelta
 from pa_bailar import config, health, storage
 from pa_bailar.models import PostAnalysis, ProcessedPost
 from pa_bailar.pipeline import Sweep
-from pa_bailar.pipeline.sweep import MISSED_BY_TRIAGE, RuledOut, second_opinion_order
+from pa_bailar.pipeline.sweep import MISSED_BY_TRIAGE, RuledOut, scheduled_sweep, second_opinion_order, triage_checks
 from tests.factories import extracted
 from tests.test_health import check as health_check
 from tests.test_health import record as run_record
@@ -137,6 +137,41 @@ def test_one_check_a_run_by_default():
     stats = run(instagram, extractor)
 
     assert extractor.extracted_posts == ["t0"] and stats.triage_checked == 1
+
+
+def bogota(day: int, clock: str) -> datetime:
+    """A moment in Bogotá on October `day`, 2026."""
+    hours, minutes = map(int, clock.split(":"))
+    return datetime(2026, 10, day, hours, minutes, tzinfo=config.BOGOTA_TZ)
+
+
+def test_a_run_belongs_to_the_scheduled_sweep_it_started_for():
+    assert scheduled_sweep(bogota(28, "03:01")) == "03:00"
+    assert scheduled_sweep(bogota(28, "06:05")) == "06:30"  # started a little early
+    assert scheduled_sweep(bogota(28, "06:45")) == "06:30"  # the check comes 10-25 minutes in
+    assert scheduled_sweep(bogota(28, "09:20")) == "06:30"  # a run that waited for an earlier one
+    assert scheduled_sweep(bogota(28, "21:10")) == "21:00"
+    assert scheduled_sweep(bogota(28, "23:50")) == "21:00"
+    assert scheduled_sweep(bogota(28, "14:00")) is None  # a run by hand
+    assert scheduled_sweep(bogota(29, "01:00")) is None
+
+
+def test_three_checks_at_6_30_one_in_the_others():
+    """The owner, 28 Oct 2026: at 21:00 and 3:00 Google's overload outlasted the wait in 4 of 6 sweeps; at 6:30 Flash
+    answers."""
+    assert config.TRIAGE_CHECKS_AT == {"06:30": 3}
+    assert [triage_checks(bogota(28, clock)) for clock in ("03:10", "06:40", "21:05", "14:00")] == [1, 3, 1, 1]
+
+
+def test_a_6_30_sweep_reads_three(monkeypatch):
+    ids = ["t0", "t1", "t2", "t3"]
+    instagram = FakeInstagram({"academia": [post(i, days_ago=1 + n) for n, i in enumerate(ids)], "otra": []})
+    extractor = FlashFor(10, {i: NO_EVENT for i in ids}, not_events=set(ids))
+    monkeypatch.setattr("pa_bailar.pipeline.sweep.triage_checks", lambda now: triage_checks(bogota(28, "06:40")))
+
+    stats = run(instagram, extractor)
+
+    assert extractor.extracted_posts == ["t0", "t1", "t2"] and stats.triage_checked == 3
 
 
 def test_the_check_goes_before_the_upgrades():
