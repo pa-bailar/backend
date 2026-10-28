@@ -41,10 +41,9 @@ STUCK_RUNS = 4  # pending posts not going down over this many runs: the backlog 
 QUIET_RUNS = 7 * RUNS_PER_DAY  # a week of runs...
 QUIET_MIN_POSTS = 10  # ...analyzing at least this many posts without finding a single event
 INACTIVE_DAYS = 45  # an account without posts for this long may be abandoned
-# A scheduled sweep (config.SWEEP_TIMES) finishes within this long of its time: a run can wait for one before it, and
-# takes up to ~45 minutes. None finished in this window on MISSED_DAYS days in a row: its cron-job.org job stopped (an
-# expired token, a job paused), which healthchecks.io's ping can't tell when the other sweeps still run.
-SWEEP_WINDOW_HOURS = 3
+# A scheduled sweep (config.SWEEP_TIMES) finishes within config.SWEEP_WINDOW_HOURS of its time. None finished in that
+# window on MISSED_DAYS days in a row: its cron-job.org job stopped (an expired token, a job paused), which
+# healthchecks.io's ping can't tell when the other sweeps still run.
 MISSED_DAYS = 2
 # Doubts about the date (folded text): the costliest mistake. Its words, a month or a year guessed ("mes deducido"),
 # and a weekday that doesn't fit ("dice sábado, pero el 12 es domingo": stories.py).
@@ -345,13 +344,13 @@ def _quota_stop(run: RunRecord) -> str:
 
 
 def missed_sweeps(runs: list[RunRecord], now: datetime) -> list[str]:
-    """The scheduled times (config.SWEEP_TIMES) with no run finishing within SWEEP_WINDOW_HOURS of them on each of the
-    last MISSED_DAYS days whose window has passed. A time the history doesn't reach back to isn't judged, nor one newer
-    than those days (config.SWEEP_TIMES_SINCE: a time just added)."""
+    """The scheduled times (config.SWEEP_TIMES) with no run finishing within config.SWEEP_WINDOW_HOURS of them on each
+    of the last MISSED_DAYS days whose window has passed. A time the history doesn't reach back to isn't judged, nor one
+    newer than those days (config.SWEEP_TIMES_SINCE: a time just added)."""
     finished = [datetime.fromisoformat(run.finished_at) for run in runs]
     if not finished:
         return []
-    oldest, window = min(finished), timedelta(hours=SWEEP_WINDOW_HOURS)
+    oldest, window = min(finished), timedelta(hours=config.SWEEP_WINDOW_HOURS)
     missed = []
     for clock in config.SWEEP_TIMES:
         starts: list[datetime] = []

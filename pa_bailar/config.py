@@ -160,6 +160,11 @@ UPGRADE_MISSES_BEFORE_GIVING_UP = 3
 # ran (0 in the six sweeps of 21–22 Oct); since 22 Oct it waits as the upgrades do (the owner). It's
 # there to measure the triage's misses for about two weeks: keep it or drop it then (early Nov 2026), on what it found.
 TRIAGE_CHECKS_PER_RUN = 1
+# More of them in some sweeps (by config.SWEEP_TIMES' clock; the others take TRIAGE_CHECKS_PER_RUN): at 6:30 Flash
+# answers, while at 21:00 and 3:00 Google's 503 "overloaded" outlasted the run's wait for it in 4 of the 6 sweeps of
+# 27-28 Oct, so the second opinion read 2 posts in two days. Three at 6:30 (the owner, 28 Oct 2026): two more Flash
+# requests a day, from the 6:30 sweep's own third.
+TRIAGE_CHECKS_AT = {"06:30": 3}
 # How many of the run's ruled-out posts (with their images) are held for it meanwhile, the likeliest kept.
 TRIAGE_CHECKS_HELD = 12
 # A health notice when Flash found this many events the triage had ruled out in the last TRIAGE_MISS_RUNS runs (about
@@ -378,6 +383,10 @@ SWEEP_TIMES_SINCE = {"03:00": "2026-10-10"}
 # that run (it started a little early), not a later one. 60 until 9 Oct 2026: a run by hand at 20:05 took the 21:00
 # sweep's whole share (the bug-squash pass).
 LATER_SWEEP_MARGIN_MINUTES = 30
+# A scheduled sweep (SWEEP_TIMES) runs within this long of its time: a run can wait for one before it, and takes up to
+# ~45 minutes. The health check's missed sweeps (health.missed_sweeps) and the sweep a run belongs to
+# (pipeline.sweep.scheduled_sweep) go by it.
+SWEEP_WINDOW_HOURS = 3
 # A sweep that changed the site's events opens a data PR, which merges itself when the site's `ci` passes (a few
 # minutes). The next sweep checks that it landed (health.unpublished_runs): an earlier sweep that changed events and
 # ended at least this long before this one started, while the site's data (data/meta.json on its main) is older than
