@@ -22,7 +22,9 @@ export default {
     const { page, check } = ctx;
     if (ctx.touch) throw new Skip("the side panel is a desktop's");
     await ctx.goto("/");
-    const cards = ctx.cards();
+    // Cards with their own image: a flyer's schedule (one card, a row per event: the site's 28 Oct 2026) has its rows as
+    // event cards, and the image is the whole card's.
+    const cards = ctx.cards().filter({ has: page.locator("[data-card-image]") });
     if ((await cards.count()) < 4) throw new Skip("fewer than 4 events on the list");
     const id = (n) => cards.nth(n).getAttribute("data-event-card");
 
