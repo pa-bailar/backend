@@ -6802,208 +6802,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "new",
-        "id": "la-danza-de-los-vampiros-31-oct",
-        "title": "La Danza de los Vampiros",
-        "account": "el_panteon_de_la_salsa",
-        "date": "2026-10-31",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "fiesta-de-disfraces-epoca-dorada-de-cuba-anos-20-30-oct",
-        "title": "Fiesta de disfraces: Época dorada de Cuba años 20 (Tributo a Celia Cruz y Son Cubano)",
-        "account": "quemaquequema",
-        "date": "2026-10-30",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "fiesta-de-disfraces-piratas-y-ron-31-oct",
-        "title": "Fiesta de disfraces: Piratas y Ron",
-        "account": "quemaquequema",
-        "date": "2026-10-31",
-        "detail": null
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-commercial-dance-con-dani-almanza-26-oct",
-        "title": "Semana Ryan: Commercial Dance con Dani Almanza",
-        "account": "bureodancestudio",
-        "date": "2026-10-26",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-sexy-style-con-lu-guerrero-26-oct",
-        "title": "Semana Ryan: Sexy Style con Lu Guerrero",
-        "account": "bureodancestudio",
-        "date": "2026-10-26",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-sexy-style-con-cata-velasco-27-oct",
-        "title": "Semana Ryan: Sexy Style con Cata Velasco",
-        "account": "bureodancestudio",
-        "date": "2026-10-27",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-dancehall-con-erika-diaz-27-oct",
-        "title": "Semana Ryan: Dancehall con Erika Díaz",
-        "account": "bureodancestudio",
-        "date": "2026-10-27",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-reggaeton-con-jujo-28-oct",
-        "title": "Semana Ryan: Reggaeton con Jujo",
-        "account": "bureodancestudio",
-        "date": "2026-10-28",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-coreografia-con-dani-almanza-28-oct",
-        "title": "Semana Ryan: Coreografía con Dani Almanza",
-        "account": "bureodancestudio",
-        "date": "2026-10-28",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-heels-con-maju-pardo-29-oct",
-        "title": "Semana Ryan: Heels con Maju Pardo",
-        "account": "bureodancestudio",
-        "date": "2026-10-29",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-sexy-style-con-tito-29-oct",
-        "title": "Semana Ryan: Sexy Style con Tito",
-        "account": "bureodancestudio",
-        "date": "2026-10-29",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-coreografia-con-didac-30-oct",
-        "title": "Semana Ryan: Coreografía con Didac",
-        "account": "bureodancestudio",
-        "date": "2026-10-30",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-reggaeton-con-ana-nino-30-oct",
-        "title": "Semana Ryan: Reggaeton con Ana Niño",
-        "account": "bureodancestudio",
-        "date": "2026-10-30",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-reggaeton-con-lu-guerrero-31-oct",
-        "title": "Semana Ryan: Reggaeton con Lu Guerrero",
-        "account": "bureodancestudio",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "semana-ryan-reggaeton-con-mutante-31-oct",
-        "title": "Semana Ryan: Reggaeton con Mutante",
-        "account": "bureodancestudio",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "yoga-31-oct",
-        "title": "Yoga",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "bachata-basica-31-oct",
-        "title": "Bachata Básica",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "bachata-intermedia-31-oct",
-        "title": "Bachata Intermedia",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "salsa-basica-31-oct",
-        "title": "Salsa Básica",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "salsa-intermedia-31-oct",
-        "title": "Salsa Intermedia",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "salsa-basica-31-oct-2",
-        "title": "Salsa Básica",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "salsa-intermedia-31-oct-2",
-        "title": "Salsa Intermedia",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "bachata-basica-31-oct-2",
-        "title": "Bachata Básica",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "bachata-intermedia-31-oct-2",
-        "title": "Bachata Intermedia",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "merged",
-        "id": "distrito-social-aniversario-31-oct",
-        "title": "Distrito Social Aniversario",
-        "account": "distritosocialbog",
-        "date": "2026-10-31",
-        "detail": "otra publicación de @bachatamania_bogota"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "new": 3,
@@ -9142,6 +8941,101 @@
     "change_counts": {
       "provisional": 1,
       "merged": 8
+    }
+  },
+  {
+    "finished_at": "2026-10-31T06:42:25-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/41197097318",
+    "started_at": "2026-10-31T06:30:47-05:00",
+    "site_data_at": "2026-10-31T03:21:57-05:00",
+    "data_changed": true,
+    "accounts": 10,
+    "failed_accounts": [],
+    "read_accounts": [
+      "bogotadanceclub.academy",
+      "bulevarsalsabar",
+      "el_bochinche_cafe_",
+      "elratonsalsaclub",
+      "foururbandanc",
+      "oronegroclub",
+      "pachanga_y_pochola",
+      "restaurantecasadecitas",
+      "salsayritmolatino",
+      "soondanz_company"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 2,
+    "events_new": 0,
+    "events_merged": 1,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 2,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 4
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 28,
+    "instagram_usage_detail": {
+      "call_count": 6,
+      "total_cputime": 0,
+      "total_time": 28
+    },
+    "instagram_reads": {
+      "accounts": 16,
+      "mean_seconds": 3.6,
+      "median_seconds": 3.54,
+      "max_seconds": 8.54,
+      "mean_cost": 1.87,
+      "max_cost": 3,
+      "max_cost_account": "pachanga_y_pochola",
+      "headers": {
+        "X-App-Usage": 16
+      },
+      "expected_cost": 3
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {
+      "compared": 1,
+      "dropped": 0
+    },
+    "upgraded": 1,
+    "upgrade_reads": 6,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "merged",
+        "id": "halloween-en-pachanga-pochola-31-oct",
+        "title": "Halloween en Pachanga & Pochola",
+        "account": "pachanga_y_pochola",
+        "date": "2026-10-31",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "reread",
+        "id": "halloween-clase-kids-31-oct",
+        "title": "Halloween Clase Kids",
+        "account": "salsayritmolatino",
+        "date": "2026-10-31",
+        "detail": "Flash confirmó la lectura"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "merged": 1,
+      "reread": 1
     }
   }
 ]
