@@ -7237,128 +7237,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "provisional",
-        "id": "rumba-en-vivo-con-kabala-ensamble-29-oct",
-        "title": "Rumba en Vivo con Kabala Ensamble",
-        "account": "galeriacafelibro",
-        "date": "2026-10-29",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "viernes-de-salsa-30-oct",
-        "title": "Viernes de Salsa",
-        "account": "callejonsalsa",
-        "date": "2026-10-30",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "el-cementerio-de-las-canciones-vivas-31-oct",
-        "title": "El Cementerio de las canciones vivas",
-        "account": "callejonsalsa",
-        "date": "2026-10-31",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "dia-de-muertos-y-de-las-almas-1-nov",
-        "title": "Día de Muertos y de las Almas",
-        "account": "callejonsalsa",
-        "date": "2026-11-01",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "venezuela-en-su-sazon-1-nov",
-        "title": "Venezuela en su Sazón",
-        "account": "tributo.salsayjazz",
-        "date": "2026-11-01",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "tributo-a-ismael-rivera-20-nov",
-        "title": "Tributo a Ismael Rivera",
-        "account": "tributo.salsayjazz",
-        "date": "2026-11-20",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "gran-taller-salsa-corporalidad-21-nov",
-        "title": "Gran Taller: Salsa Corporalidad",
-        "account": "madyumdance",
-        "date": "2026-11-21",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "merged",
-        "id": "coca-cola-bailable-1-nov",
-        "title": "Coca-Cola Bailable - Especial de Halloween",
-        "account": "germanbaila",
-        "date": "2026-11-01",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "celebracion-cumpleanos-7-de-la-nena-magdalena-30-oct",
-        "title": "Celebración cumpleaños #7 de la Nena Magdalena",
-        "account": "lanenamagdalena",
-        "date": "2026-10-30",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "tardeo-latino-tarde-de-bailoween-31-oct",
-        "title": "Tardeo Latino, Tarde de Bailoween",
-        "account": "bogotadanceclub",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "halloween-social-31-oct",
-        "title": "Halloween Social",
-        "account": "dlivingstudio",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "embrujate-con-salsa-viernes-30-oct",
-        "title": "¡Embrújate con Salsa! - Viernes",
-        "account": "galeriacafelibro",
-        "date": "2026-10-30",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "embrujate-con-salsa-sabado-31-oct",
-        "title": "¡Embrújate con Salsa! - Sábado",
-        "account": "galeriacafelibro",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "clan-del-solar-presenta-huye-que-te-coje-la-muerte-31-oct",
-        "title": "Clan del Solar presenta: Huye que te coje la muerte",
-        "account": "casaquiebracanto",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "reread",
-        "id": "halloween-salsero-el-tour-de-la-salsa-vol-1-30-oct",
-        "title": "Halloween Salsero - El Tour de la Salsa Vol. 1",
-        "account": "salsaculto",
-        "date": "2026-10-30",
-        "detail": "publicación editada, sin cambios"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "provisional": 7,
@@ -9542,6 +9421,202 @@
     "change_counts": {
       "corrected": 2,
       "reread": 3
+    }
+  },
+  {
+    "finished_at": "2026-11-01T21:13:37-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/41375339674",
+    "started_at": "2026-11-01T21:00:47-05:00",
+    "site_data_at": "2026-11-01T06:40:12-05:00",
+    "data_changed": true,
+    "accounts": 38,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academia_cowork",
+      "academiaalmadetangoe",
+      "alpasojam",
+      "angie__cuesta",
+      "bachatamania_bogota",
+      "bachatasocialcongresss",
+      "bailaderia",
+      "bureodancestudio",
+      "danceholicproject",
+      "danceinmotionclub",
+      "dannysalsita.lafabrica",
+      "davidylauradancers",
+      "distritosocialbog",
+      "efadanza",
+      "el_panteon_de_la_salsa",
+      "elparche.se",
+      "espacio.64",
+      "fredyysaraoficial",
+      "herencialatinad.c",
+      "iledanza",
+      "imperiolatino",
+      "jen.ssy",
+      "lacoartadacentrocultural",
+      "ladiezluxury_outlet",
+      "lauuurin__",
+      "ludancestudios",
+      "originalstepdance",
+      "osupaproject",
+      "quemaquequema",
+      "ritmomoderno",
+      "ritmosacademiadebaile",
+      "salsalatina_castilla",
+      "sandunguera.salsabar",
+      "showstarscol",
+      "sonrumbero",
+      "studiolatindance",
+      "tubailecom",
+      "valkandela"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 20,
+    "events_new": 3,
+    "events_merged": 1,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 19,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 62,
+    "instagram_usage_detail": {
+      "call_count": 17,
+      "total_cputime": 0,
+      "total_time": 62
+    },
+    "instagram_reads": {
+      "accounts": 42,
+      "mean_seconds": 2.29,
+      "median_seconds": 1.98,
+      "max_seconds": 6.57,
+      "mean_cost": 1.51,
+      "max_cost": 4,
+      "max_cost_account": "showstarscol",
+      "headers": {
+        "X-App-Usage": 42
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {
+      "compared": 7,
+      "dropped": 0
+    },
+    "upgraded": 4,
+    "upgrade_reads": 4,
+    "upgrade_misses": 0,
+    "triage_checked": 1,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "sabado-de-bachata-bachatango-7-nov",
+        "title": "Sábado de Bachata - Bachatango",
+        "account": "showstarscol",
+        "date": "2026-11-07",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "clase-especial-de-bachata-en-pareja-8-nov",
+        "title": "Clase Especial de Bachata en Pareja",
+        "account": "showstarscol",
+        "date": "2026-11-08",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "zouk-intensivo-bases-y-fundamentos-6-nov",
+        "title": "Zouk Intensivo: Bases y Fundamentos",
+        "account": "ludancestudios",
+        "date": "2026-11-06",
+        "detail": null
+      },
+      {
+        "kind": "merged",
+        "id": "ix-encuentro-de-escuelas-y-academias-de-ballet-1-nov-2",
+        "title": "IX Encuentro de Escuelas y Academias de Ballet",
+        "account": "lacoartadacentrocultural",
+        "date": "2026-11-01",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "reread",
+        "id": "la-maquina-del-tiempo-4-nov",
+        "title": "La Máquina del Tiempo",
+        "account": "bilongocolombia",
+        "date": "2026-11-04",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "la-maquina-del-tiempo-11-nov",
+        "title": "La Máquina del Tiempo",
+        "account": "bilongocolombia",
+        "date": "2026-11-11",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "la-maquina-del-tiempo-18-nov",
+        "title": "La Máquina del Tiempo",
+        "account": "bilongocolombia",
+        "date": "2026-11-18",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "la-maquina-del-tiempo-25-nov",
+        "title": "La Máquina del Tiempo",
+        "account": "bilongocolombia",
+        "date": "2026-11-25",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "joaquin-fernandez-presenta-caminando-6-nov",
+        "title": "Joaquín Fernández presenta: Caminando",
+        "account": "restaurantecasadecitas",
+        "date": "2026-11-06",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "mira-ven-pa-aca-7-nov",
+        "title": "Mira, ven pa’ acá",
+        "account": "acaparchamos",
+        "date": "2026-11-07",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "fiesta-de-fin-de-ano-con-gustavo-rodriguez-y-danny-14-nov",
+        "title": "Fiesta de fin de año con Gustavo Rodríguez y Danny Rosales",
+        "account": "galeriacafelibro",
+        "date": "2026-11-14",
+        "detail": "Flash confirmó la lectura"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 3,
+      "merged": 1,
+      "reread": 7
     }
   }
 ]
