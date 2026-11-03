@@ -138,7 +138,9 @@ Instagram posts, Gemini extracts the events, and the site rebuilds. Owner: jzamo
   `gh pr list --label` is a search, and a workflow's `GITHUB_TOKEN` searches only its own repository: from Actions, list
   another repository's PRs through the REST API (`gh api repos/…/pulls`), as the sweep's step 1b does since #191.
 - **Dates in the site's unit tests:** `CLOCK_AT=<ISO time> npx vitest run` runs them at any moment
-  (`tests/shiftedClock.ts`); `ci` also runs them months ahead on a Saturday night (`npm run test:clock-ahead`).
+  (`tests/shiftedClock.ts`); `ci` also runs them a week, a month and months ahead on a Saturday night
+  (`npm run test:clock-ahead`). A test with fixed dates while the code reads the clock breaks only once the calendar
+  reaches them: pin the clock in it (`vi.setSystemTime`) or make its dates relative to today.
 - **WebKit (Safari's engine) in Playwright** is installed with the toolkit: use it for Safari checks. It isn't iOS
   (no real keyboard, toolbar or home-screen app). A screenshot injects a style the site's CSP refuses: those console
   errors are the test's, not the site's.
@@ -155,8 +157,9 @@ The rules are in `WORKSPACE.md`; these are the lessons behind them.
 - **A sweep succeeded is not the data published** (17 Oct 2026): five data PRs failed `ci` on 10–12 Oct and sat
   unmerged for a week while every run, the health check and PB Admin looked fine; their events never reached the
   site. Checking sweeps means the last mile too: open `data` PRs in the site repository (REST, not a search), the
-  site's "Actualizado" date against the last sweep that changed events, and that step 1b ran. When a test fails on
-  every branch, look at the bot's data PRs: they were blocked by it too.
+  site's "Actualizado" date against the last sweep that changed events, and that step 1b ran. A sweep fails when the
+  previous data PR stays open (step 1b), so on 2–3 Nov a date-bound unit test cost four sweeps: since site #274 a
+  data-only PR skips the unit tests (they test the code), and only the data check and the build gate the events.
 - **A safety check must be seen to fire:** step 1b's wait (added 3 Oct) never once waited until 17 Oct; its test only
   checked where the step sat. Test a guard against the real condition it guards, and check a date-dependent fix
   on several days and hours, not one (a Monday missed the Saturday-only failure). A new counter that stays 0 is a
