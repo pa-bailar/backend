@@ -1,7 +1,149 @@
 {
-  "generated_at": "2026-11-03T21:22:15-05:00",
+  "generated_at": "2026-11-04T03:14:03-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-11-04T03:14:03-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/41796169469",
+        "started_at": "2026-11-04T03:00:52-05:00",
+        "site_data_at": "2026-11-03T21:22:14-05:00",
+        "data_changed": true,
+        "accounts": 49,
+        "failed_accounts": [],
+        "read_accounts": [
+          "academiadebailepasolatino",
+          "acaparchamos",
+          "and1erita",
+          "andonybaron",
+          "aseismanos",
+          "bembeacademiadebaile",
+          "bilongocolombia",
+          "bogotadanceclub",
+          "bulevarsalsabar",
+          "bulevarsalsarooftop",
+          "callejonsalsa",
+          "casaquiebracanto",
+          "casavander_",
+          "casineafest",
+          "chanchanlatino",
+          "danzaenlaciudad",
+          "discojaguar.bta",
+          "dlivingstudio",
+          "ebi_dancecompany",
+          "elgocepagano",
+          "esferalatinaoficial",
+          "fernandoespanadj",
+          "frank.de.latorre",
+          "germanbaila",
+          "ikubambayadanza",
+          "ilhehabana",
+          "jaleocompetencia_",
+          "la33orquesta",
+          "lanenamagdalena",
+          "latinproductioncolombia",
+          "madyumdance",
+          "meetinghousebogota",
+          "mundanobaroficial",
+          "oronegroclub",
+          "pachanga_y_pochola",
+          "parchexbogota",
+          "reyesdelasalsa.col",
+          "rpdancestudio",
+          "salsacamaraoficial",
+          "salsaculto",
+          "salsalatina.villaluz",
+          "salsaysonoficial",
+          "sarasandoval.oficial",
+          "sondehabana",
+          "sonorasocialclub_",
+          "soywiwioficial",
+          "studio110dance",
+          "tributo.salsayjazz",
+          "zafradance"
+        ],
+        "skipped_accounts": [
+          "mambolei_",
+          "fredyysaraoficial",
+          "academia_cowork",
+          "tubailecom",
+          "alpasojam",
+          "angie__cuesta",
+          "davidylauradancers",
+          "ritmosacademiadebaile",
+          "herencialatinad.c",
+          "elparche.se",
+          "salsalatina_castilla",
+          "dannysalsita.lafabrica",
+          "jackandjilloficial",
+          "lamecanica_original",
+          "juancho__salsita",
+          "boogaloop.candelaria",
+          "dreamcupco",
+          "danitello22",
+          "oswaldgil2",
+          "cremadeajiaco",
+          "proyectourbandance",
+          "zaimora24",
+          "mariavasquezdancer",
+          "foururbandanc"
+        ],
+        "posts_analyzed": 45,
+        "events_new": 11,
+        "events_merged": 3,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 9,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 32,
+          "gemini-3.8-flash": 6,
+          "gemini-3.6-flash": 6,
+          "gemini-3-flash-preview": 9
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 82,
+        "instagram_usage_detail": {
+          "call_count": 20,
+          "total_cputime": 0,
+          "total_time": 82
+        },
+        "instagram_reads": {
+          "accounts": 49,
+          "mean_seconds": 2.89,
+          "median_seconds": 2.49,
+          "max_seconds": 7.19,
+          "mean_cost": 1.71,
+          "max_cost": 4,
+          "max_cost_account": "fernandoespanadj",
+          "headers": {
+            "X-App-Usage": 49
+          },
+          "expected_cost": 4
+        },
+        "instagram_stop": null,
+        "upgrade_changes": {},
+        "upgraded": 0,
+        "upgrade_reads": 0,
+        "upgrade_misses": 0,
+        "triage_checked": 0,
+        "triage_misses": 0,
+        "batch_requests": 0,
+        "batched_posts": 0,
+        "batch_rereads": 0,
+        "warnings": [
+          "missed-sweep:06:30"
+        ],
+        "changes_left_out": 0,
+        "change_counts": {
+          "new": 1,
+          "provisional": 10,
+          "merged": 3
+        }
+      },
       {
         "finished_at": "2026-11-03T21:22:14-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/41757808123",
@@ -501,138 +643,22 @@
           "corrected": 2,
           "reread": 3
         }
-      },
-      {
-        "finished_at": "2026-11-01T03:25:51-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/41286991283",
-        "started_at": "2026-11-01T03:01:01-05:00",
-        "site_data_at": "2026-10-31T21:20:42-05:00",
-        "data_changed": true,
-        "accounts": 49,
-        "failed_accounts": [],
-        "read_accounts": [
-          "academiadebailepasolatino",
-          "academyfeel",
-          "acaparchamos",
-          "and1erita",
-          "andonybaron",
-          "aseismanos",
-          "bembeacademiadebaile",
-          "bilongocolombia",
-          "bogotadanceclub",
-          "bulevarsalsarooftop",
-          "callejonsalsa",
-          "casaquiebracanto",
-          "casavander_",
-          "casineafest",
-          "chanchanlatino",
-          "clandisfrute",
-          "danzaenlaciudad",
-          "discojaguar.bta",
-          "dlivingstudio",
-          "ebi_dancecompany",
-          "elgocepagano",
-          "esferalatinaoficial",
-          "fernandoespanadj",
-          "frank.de.latorre",
-          "galeriacafelibro",
-          "germanbaila",
-          "ilhehabana",
-          "jaleocompetencia_",
-          "la33orquesta",
-          "lamecanica_original",
-          "lanenamagdalena",
-          "latinproductioncolombia",
-          "madyumdance",
-          "mariavasquezdancer",
-          "meetinghousebogota",
-          "parchexbogota",
-          "reyesdelasalsa.col",
-          "rpdancestudio",
-          "salsacamaraoficial",
-          "salsaculto",
-          "salsaysonoficial",
-          "sarasandoval.oficial",
-          "sondehabana",
-          "sonorasocialclub_",
-          "soywiwioficial",
-          "studio110dance",
-          "teffa_mg",
-          "tributo.salsayjazz",
-          "zafradance"
-        ],
-        "skipped_accounts": [
-          "salsalatina.villaluz"
-        ],
-        "posts_analyzed": 27,
-        "events_new": 5,
-        "events_merged": 11,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 11,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 19,
-          "gemini-3.8-flash": 6,
-          "gemini-3.6-flash": 6,
-          "gemini-3-flash-preview": 11
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 69,
-        "instagram_usage_detail": {
-          "call_count": 19,
-          "total_cputime": 0,
-          "total_time": 69
-        },
-        "instagram_reads": {
-          "accounts": 49,
-          "mean_seconds": 2.33,
-          "median_seconds": 1.96,
-          "max_seconds": 7.36,
-          "mean_cost": 1.44,
-          "max_cost": 4,
-          "max_cost_account": "meetinghousebogota",
-          "headers": {
-            "X-App-Usage": 49
-          },
-          "expected_cost": 2
-        },
-        "instagram_stop": null,
-        "upgrade_changes": {},
-        "upgraded": 0,
-        "upgrade_reads": 0,
-        "upgrade_misses": 0,
-        "triage_checked": 1,
-        "triage_misses": 1,
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [],
-        "changes_left_out": 0,
-        "change_counts": {
-          "provisional": 5,
-          "merged": 8
-        }
       }
     ],
     "next": [
-      "2026-11-04T03:00-05:00",
-      "2026-11-04T06:30-05:00"
+      "2026-11-04T06:30-05:00",
+      "2026-11-04T21:00-05:00"
     ]
   },
   "site_data": {
-    "published_at": "2026-11-02T03:21:30-05:00",
-    "checked_at": "2026-11-03T21:00:50-05:00",
+    "published_at": "2026-11-03T21:22:14-05:00",
+    "checked_at": "2026-11-04T03:00:52-05:00",
     "missing": [],
     "prs_url": "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata"
   },
   "gemini": {
     "lite_only": false,
-    "resets_at": "2026-11-04T03:00-05:00",
+    "resets_at": "2026-11-05T03:00-05:00",
     "models": [
       {
         "model": "gemini-3.8-flash",
@@ -643,7 +669,7 @@
       {
         "model": "gemini-3.6-flash",
         "role": "extraction",
-        "used": 13,
+        "used": 6,
         "budget": 18
       },
       {
@@ -655,7 +681,7 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 30,
+        "used": 32,
         "budget": 498
       },
       {
@@ -700,28 +726,28 @@
     "error": null
   },
   "instagram_quota": {
-    "usage": 74,
+    "usage": 82,
     "detail": {
       "call_count": 20,
       "total_cputime": 0,
-      "total_time": 74
+      "total_time": 82
     },
     "stopped": false,
     "stop": null,
-    "finished_at": "2026-11-03T21:22:14-05:00",
+    "finished_at": "2026-11-04T03:14:03-05:00",
     "stop_at": 98,
     "reads": {
-      "accounts": 51,
-      "mean_seconds": 2.26,
-      "median_seconds": 1.92,
-      "max_seconds": 6.63,
-      "mean_cost": 1.48,
+      "accounts": 49,
+      "mean_seconds": 2.89,
+      "median_seconds": 2.49,
+      "max_seconds": 7.19,
+      "mean_cost": 1.71,
       "max_cost": 4,
-      "max_cost_account": "bachatamania_bogota",
+      "max_cost_account": "fernandoespanadj",
       "headers": {
-        "X-App-Usage": 51
+        "X-App-Usage": 49
       },
-      "expected_cost": 2
+      "expected_cost": 4
     }
   },
   "lighter_reads": {
@@ -737,56 +763,18 @@
     "followed": 131,
     "first_sweep_pending": [],
     "waiting": [
-      "zafradance",
-      "bembeacademiadebaile",
-      "esferalatinaoficial",
-      "madyumdance",
-      "academiadebailepasolatino",
-      "rpdancestudio",
-      "salsalatina.villaluz",
-      "studio110dance",
-      "ikubambayadanza",
+      "ritmosacademiadebaile",
+      "tubailecom",
       "mambolei_",
-      "sondehabana",
-      "ebi_dancecompany",
-      "reyesdelasalsa.col",
-      "germanbaila",
-      "danzaenlaciudad",
-      "salsaculto",
-      "latinproductioncolombia",
-      "bogotadanceclub",
-      "parchexbogota",
-      "casineafest",
-      "soywiwioficial",
-      "frank.de.latorre",
-      "and1erita",
-      "andonybaron",
-      "sarasandoval.oficial",
-      "la33orquesta",
-      "fernandoespanadj",
-      "lanenamagdalena",
-      "jaleocompetencia_",
-      "dlivingstudio",
-      "casaquiebracanto",
-      "salsacamaraoficial",
-      "elgocepagano",
-      "salsaysonoficial",
-      "pachanga_y_pochola",
-      "bulevarsalsabar",
-      "bulevarsalsarooftop",
-      "bilongocolombia",
-      "oronegroclub",
-      "casavander_",
-      "chanchanlatino",
-      "callejonsalsa",
-      "tributo.salsayjazz",
-      "ilhehabana",
-      "sonorasocialclub_",
-      "discojaguar.bta",
-      "acaparchamos",
-      "aseismanos",
-      "mundanobaroficial",
-      "meetinghousebogota"
+      "academia_cowork",
+      "herencialatinad.c",
+      "elparche.se",
+      "alpasojam",
+      "angie__cuesta",
+      "fredyysaraoficial",
+      "davidylauradancers",
+      "salsalatina_castilla",
+      "dannysalsita.lafabrica"
     ],
     "short_notice": [
       "academyfeel",
@@ -799,15 +787,157 @@
     ]
   },
   "posts": {
-    "recorded": 1766,
-    "provisional": 241
+    "recorded": 1811,
+    "provisional": 250
   },
   "events": {
-    "upcoming": 50,
+    "upcoming": 61,
     "low_confidence": 0
   },
   "new_series": [],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "03:00",
+      "finished_at": "2026-11-04T03:14:03-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/41796169469",
+      "target": null,
+      "error": null,
+      "changes": [
+        {
+          "kind": "new",
+          "id": "parche-de-bailadores-7-nov",
+          "title": "Parche de Bailadores",
+          "account": "bogotadanceclub",
+          "date": "2026-11-07",
+          "detail": null,
+          "url": "https://pa-bailar.github.io/evento/parche-de-bailadores-7-nov/"
+        },
+        {
+          "kind": "provisional",
+          "id": "yambu-orquesta-en-vivo-6-nov",
+          "title": "Yambú Orquesta en vivo",
+          "account": "casaquiebracanto",
+          "date": "2026-11-06",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/yambu-orquesta-en-vivo-6-nov/"
+        },
+        {
+          "kind": "provisional",
+          "id": "salsa-dura-guaguanco-con-zonora-quiebracanto-7-nov",
+          "title": "Salsa Dura & Guaguancó con Zonora Quiebracanto",
+          "account": "casaquiebracanto",
+          "date": "2026-11-07",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/salsa-dura-guaguanco-con-zonora-quiebracanto-7-nov/"
+        },
+        {
+          "kind": "provisional",
+          "id": "latin-sessions-con-trio-bilonguero-7-nov",
+          "title": "Latin Sessions con Trío Bilonguero",
+          "account": "bilongocolombia",
+          "date": "2026-11-07",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/latin-sessions-con-trio-bilonguero-7-nov/"
+        },
+        {
+          "kind": "provisional",
+          "id": "latin-sessions-con-trio-bilonguero-14-nov",
+          "title": "Latin Sessions con Trío Bilonguero",
+          "account": "bilongocolombia",
+          "date": "2026-11-14",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/latin-sessions-con-trio-bilonguero-14-nov/"
+        },
+        {
+          "kind": "provisional",
+          "id": "latin-sessions-con-trio-bilonguero-21-nov",
+          "title": "Latin Sessions con Trío Bilonguero",
+          "account": "bilongocolombia",
+          "date": "2026-11-21",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/latin-sessions-con-trio-bilonguero-21-nov/"
+        },
+        {
+          "kind": "provisional",
+          "id": "latin-sessions-con-trio-bilonguero-28-nov",
+          "title": "Latin Sessions con Trío Bilonguero",
+          "account": "bilongocolombia",
+          "date": "2026-11-28",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/latin-sessions-con-trio-bilonguero-28-nov/"
+        },
+        {
+          "kind": "provisional",
+          "id": "gran-tributo-a-ruben-blades-y-hector-lavoe-6-nov",
+          "title": "Gran Tributo a Ruben Blades y Héctor Lavoe",
+          "account": "casavander_",
+          "date": "2026-11-06",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/gran-tributo-a-ruben-blades-y-hector-lavoe-6-nov/"
+        },
+        {
+          "kind": "provisional",
+          "id": "pachanghetto-volumen-2-7-nov",
+          "title": "Pachanghetto Volumen 2",
+          "account": "callejonsalsa",
+          "date": "2026-11-07",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/pachanghetto-volumen-2-7-nov/"
+        },
+        {
+          "kind": "provisional",
+          "id": "capital-de-la-salsa-7-nov",
+          "title": "Capital de la Salsa",
+          "account": "tributo.salsayjazz",
+          "date": "2026-11-07",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/capital-de-la-salsa-7-nov/"
+        },
+        {
+          "kind": "provisional",
+          "id": "oro-negro-con-mas-afinque-14-nov",
+          "title": "Oro Negro con más Afinque",
+          "account": "oronegroclub",
+          "date": "2026-11-14",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/oro-negro-con-mas-afinque-14-nov/"
+        },
+        {
+          "kind": "merged",
+          "id": "segundo-aniversario-ebi-dance-7-nov",
+          "title": "Segundo Aniversario Ebi Dance",
+          "account": "ebi_dancecompany",
+          "date": "2026-11-07",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/segundo-aniversario-ebi-dance-7-nov/"
+        },
+        {
+          "kind": "merged",
+          "id": "festival-internacional-casinea-10-a-edicion-13-nov",
+          "title": "Festival Internacional Casinea - 10.ª Edición",
+          "account": "casineafest",
+          "date": "2026-11-13",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/festival-internacional-casinea-10-a-edicion-13-nov/"
+        },
+        {
+          "kind": "merged",
+          "id": "los-25-de-la-33-21-nov",
+          "title": "Los 25 de la-33",
+          "account": "la33orquesta",
+          "date": "2026-11-21",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/los-25-de-la-33-21-nov/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "new": 1,
+        "provisional": 10,
+        "merged": 3
+      }
+    },
     {
       "kind": "sweep",
       "slot": "21:00",
@@ -1775,39 +1905,6 @@
         "new": 2,
         "provisional": 1,
         "merged": 2
-      }
-    },
-    {
-      "kind": "sweep",
-      "slot": "06:30",
-      "finished_at": "2026-10-30T06:54:58-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/41048508297",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "provisional",
-          "id": "salsa-vs-reggaeton-30-oct",
-          "title": "Salsa vs Reggaeton",
-          "account": "el_bochinche_cafe_",
-          "date": "2026-10-30",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/salsa-vs-reggaeton-30-oct/"
-        },
-        {
-          "kind": "merged",
-          "id": "tardeo-salsero-31-oct",
-          "title": "Tardeo Salsero",
-          "account": "bulevarsalsabar",
-          "date": "2026-10-31",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/tardeo-salsero-31-oct/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "provisional": 1,
-        "merged": 1
       }
     }
   ],
