@@ -1,10 +1,10 @@
 {
   "day": "2026-11-06",
   "requests": {
-    "gemini-3.5-flash-lite": 35,
-    "gemini-3.8-flash": 12,
-    "gemini-3.6-flash": 12,
-    "gemini-3-flash-preview": 17
+    "gemini-3.5-flash-lite": 71,
+    "gemini-3.8-flash": 18,
+    "gemini-3.6-flash": 18,
+    "gemini-3-flash-preview": 18
   },
   "unavailable": []
 }

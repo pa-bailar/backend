@@ -8338,232 +8338,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-sexy-style-con-lu-guerrero-26-oct",
-        "title": "Semana Ryan: Sexy Style con Lu Guerrero",
-        "account": "bureodancestudio",
-        "date": "2026-10-26",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-commercial-dance-con-dani-almanza-26-oct",
-        "title": "Semana Ryan: Commercial Dance con Dani Almanza",
-        "account": "bureodancestudio",
-        "date": "2026-10-26",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-dancehall-con-erika-diaz-27-oct",
-        "title": "Semana Ryan: Dancehall con Erika Díaz",
-        "account": "bureodancestudio",
-        "date": "2026-10-27",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-sexy-style-con-cata-velasco-27-oct",
-        "title": "Semana Ryan: Sexy Style con Cata Velasco",
-        "account": "bureodancestudio",
-        "date": "2026-10-27",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-coreografia-con-dani-almanza-28-oct",
-        "title": "Semana Ryan: Coreografía con Dani Almanza",
-        "account": "bureodancestudio",
-        "date": "2026-10-28",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-reggaeton-con-jujo-28-oct",
-        "title": "Semana Ryan: Reggaeton con Jujo",
-        "account": "bureodancestudio",
-        "date": "2026-10-28",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-heels-con-maju-pardo-29-oct",
-        "title": "Semana Ryan: Sexy Style con Tito",
-        "account": "bureodancestudio",
-        "date": "2026-10-29",
-        "detail": "Flash cambió la hora, el título, el lugar y los ritmos"
-      },
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-sexy-style-con-tito-29-oct",
-        "title": "Semana Ryan: Heels con Maju Pardo",
-        "account": "bureodancestudio",
-        "date": "2026-10-29",
-        "detail": "Flash cambió la hora, el título, el lugar y los ritmos"
-      },
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-reggaeton-con-ana-nino-30-oct",
-        "title": "Semana Ryan: Reggaeton con Ana Niño",
-        "account": "bureodancestudio",
-        "date": "2026-10-30",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-coreografia-con-didac-30-oct",
-        "title": "Semana Ryan: Coreografía con Didac",
-        "account": "bureodancestudio",
-        "date": "2026-10-30",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-reggaeton-con-lu-guerrero-31-oct",
-        "title": "Semana Ryan: Reggaeton con Lu Guerrero",
-        "account": "bureodancestudio",
-        "date": "2026-10-31",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "semana-ryan-reggaeton-con-mutante-31-oct",
-        "title": "Semana Ryan: Reggaeton con Mutante",
-        "account": "bureodancestudio",
-        "date": "2026-10-31",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "bachata-basica-31-oct",
-        "title": "Bachata Básica",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "bachata-intermedia-31-oct",
-        "title": "Bachata Intermedia",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "salsa-basica-31-oct",
-        "title": "Salsa Básica",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "salsa-intermedia-31-oct",
-        "title": "Salsa Intermedia",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "salsa-basica-31-oct-2",
-        "title": "Salsa Básica",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "salsa-intermedia-31-oct-2",
-        "title": "Salsa Intermedia",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "bachata-basica-31-oct-2",
-        "title": "Bachata Básica",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "bachata-intermedia-31-oct-2",
-        "title": "Bachata Intermedia",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "Flash cambió el lugar"
-      },
-      {
-        "kind": "corrected",
-        "id": "el-cementerio-de-las-canciones-vivas-31-oct",
-        "title": "El Cementerio de las canciones vivas",
-        "account": "callejonsalsa",
-        "date": "2026-10-31",
-        "detail": "Flash cambió los ritmos"
-      },
-      {
-        "kind": "corrected",
-        "id": "dia-de-muertos-y-de-las-almas-1-nov",
-        "title": "Día de Muertos y de las Almas",
-        "account": "callejonsalsa",
-        "date": "2026-11-01",
-        "detail": "Flash cambió los ritmos"
-      },
-      {
-        "kind": "corrected",
-        "id": "clan-del-solar-presenta-huye-que-te-coje-la-muerte-31-oct",
-        "title": "Clan del Solar presenta: Huye que te coje la muerte",
-        "account": "casaquiebracanto",
-        "date": "2026-10-31",
-        "detail": "Flash cambió los ritmos"
-      },
-      {
-        "kind": "dropped",
-        "id": "yoga-31-oct",
-        "title": "Yoga",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "Flash no lo encontró al releer"
-      },
-      {
-        "kind": "merged",
-        "id": "fiesta-de-disfraces-piratas-y-ron-31-oct",
-        "title": "Fiesta de disfraces: Piratas y Ron",
-        "account": "quemaquequema",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "halloween-en-studio-latin-dance-31-oct",
-        "title": "Halloween en Studio Latin Dance",
-        "account": "studiolatindance",
-        "date": "2026-10-31",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "reread",
-        "id": "viernes-de-salsa-30-oct",
-        "title": "Viernes de Salsa",
-        "account": "callejonsalsa",
-        "date": "2026-10-30",
-        "detail": "Flash confirmó la lectura"
-      },
-      {
-        "kind": "reread",
-        "id": "javier-ortega-y-su-orquesta-homenaje-a-willy-colon-30-oct",
-        "title": "Javier Ortega y su orquesta: Homenaje a Willy Colón",
-        "account": "casaquiebracanto",
-        "date": "2026-10-30",
-        "detail": "Flash confirmó la lectura"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "corrected": 23,
@@ -11038,6 +10813,204 @@
     "changes_left_out": 0,
     "change_counts": {
       "reread": 2
+    }
+  },
+  {
+    "finished_at": "2026-11-06T21:17:42-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/42326962745",
+    "started_at": "2026-11-06T21:00:49-05:00",
+    "site_data_at": "2026-11-06T06:56:22-05:00",
+    "data_changed": true,
+    "accounts": 33,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academiaalmadetangoe",
+      "academyfeel",
+      "bachatamania_bogota",
+      "bachatasocialcongresss",
+      "bogotadanceclub.academy",
+      "bureodancestudio",
+      "danceholicproject",
+      "danceinmotionclub",
+      "distritosocialbog",
+      "efadanza",
+      "el_bochinche_cafe_",
+      "el_panteon_de_la_salsa",
+      "elratonsalsaclub",
+      "espacio.64",
+      "galeriacafelibro",
+      "imperiolatino",
+      "jen.ssy",
+      "lacoartadacentrocultural",
+      "ladiezluxury_outlet",
+      "ludancestudios",
+      "originalstepdance",
+      "puntalpie",
+      "quemaquequema",
+      "restaurantecasadecitas",
+      "ritmomoderno",
+      "salsayritmolatino",
+      "sandunguera.salsabar",
+      "showstarscol",
+      "sonrumbero",
+      "soondanz_company",
+      "studiolatindance",
+      "teffa_mg",
+      "valkandela"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 30,
+    "events_new": 11,
+    "events_merged": 1,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 6,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 36,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3-flash-preview": 1
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 63,
+    "instagram_usage_detail": {
+      "call_count": 13,
+      "total_cputime": 0,
+      "total_time": 63
+    },
+    "instagram_reads": {
+      "accounts": 33,
+      "mean_seconds": 3.29,
+      "median_seconds": 2.79,
+      "max_seconds": 8.04,
+      "mean_cost": 1.97,
+      "max_cost": 5,
+      "max_cost_account": "espacio.64",
+      "headers": {
+        "X-App-Usage": 33
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "latinholic-night-21-nov",
+        "title": "Latinholic Night",
+        "account": "danceholicproject",
+        "date": "2026-11-21",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "los-escorpiones-estan-de-fiesta-6-nov",
+        "title": "Los Escorpiones Están de Fiesta!",
+        "account": "el_panteon_de_la_salsa",
+        "date": "2026-11-06",
+        "detail": null
+      },
+      {
+        "kind": "provisional",
+        "id": "salsa-en-vivo-tributo-al-gran-combo-de-puerto-rico-6-nov",
+        "title": "Salsa en Vivo - Tributo al Gran Combo de Puerto Rico",
+        "account": "quemaquequema",
+        "date": "2026-11-06",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "salsa-en-vivo-tributo-al-gran-combo-de-puerto-rico-7-nov",
+        "title": "Salsa en Vivo - Tributo al Gran Combo de Puerto Rico",
+        "account": "quemaquequema",
+        "date": "2026-11-07",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "raices-latinas-en-vivo-jazz-lab-big-band-y-sabra-11-nov",
+        "title": "Raíces Latinas en Vivo: Jazz Lab Big Band y Sabra Collective",
+        "account": "galeriacafelibro",
+        "date": "2026-11-11",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "santa-grooves-noche-de-jefas-6-nov",
+        "title": "Santa Grooves Noche de Jefas",
+        "account": "ritmomoderno",
+        "date": "2026-11-06",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "son-pimienta-en-vivo-14-nov",
+        "title": "Son Pimienta en vivo",
+        "account": "restaurantecasadecitas",
+        "date": "2026-11-14",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "provisional",
+        "id": "bachatamania-social-28-nov",
+        "title": "Bachatamania Social",
+        "account": "bachatamania_bogota",
+        "date": "2026-11-28",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "merged",
+        "id": "bachata-social-congress-2027-24-jun",
+        "title": "Bachata Social Congress 2027",
+        "account": "bachatasocialcongresss",
+        "date": "2027-06-24",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "reread",
+        "id": "tornas-abiertas-de-rap-y-salsa-4-nov",
+        "title": "Tornas Abiertas de Rap y Salsa",
+        "account": "ritmomoderno",
+        "date": "2026-11-04",
+        "detail": "publicación editada, sin cambios"
+      },
+      {
+        "kind": "reread",
+        "id": "kea-moderno-5-nov",
+        "title": "Kea Moderno",
+        "account": "ritmomoderno",
+        "date": "2026-11-05",
+        "detail": "publicación editada, sin cambios"
+      },
+      {
+        "kind": "reread",
+        "id": "i-salsa-y-perreo-7-nov",
+        "title": "I ❤️ Salsa y Perreo",
+        "account": "ritmomoderno",
+        "date": "2026-11-07",
+        "detail": "publicación editada, sin cambios"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 2,
+      "provisional": 6,
+      "merged": 1,
+      "reread": 3
     }
   }
 ]
