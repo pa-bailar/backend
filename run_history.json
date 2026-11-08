@@ -8776,56 +8776,7 @@
     "warnings": [
       "fetch:zaimora24"
     ],
-    "changes": [
-      {
-        "kind": "new",
-        "id": "dos-costas-en-un-solo-pais-5-nov",
-        "title": "Dos Costas en un Solo País",
-        "account": "bilongocolombia",
-        "date": "2026-11-05",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "dos-costas-en-un-solo-pais-12-nov",
-        "title": "Dos Costas en un Solo País",
-        "account": "bilongocolombia",
-        "date": "2026-11-12",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "dos-costas-en-un-solo-pais-19-nov",
-        "title": "Dos Costas en un Solo País",
-        "account": "bilongocolombia",
-        "date": "2026-11-19",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "dos-costas-en-un-solo-pais-26-nov",
-        "title": "Dos Costas en un Solo País",
-        "account": "bilongocolombia",
-        "date": "2026-11-26",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "noche-de-salsa-y-bachata-clase-de-baile-4-nov",
-        "title": "Noche de Salsa y Bachata: Clase de Baile",
-        "account": "aseismanos",
-        "date": "2026-11-04",
-        "detail": null
-      },
-      {
-        "kind": "corrected",
-        "id": "tributo-a-ismael-rivera-20-nov",
-        "title": "Tributo a Ismael Rivera",
-        "account": "tributo.salsayjazz",
-        "date": "2026-11-20",
-        "detail": "Flash cambió los ritmos"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "new": 5,
@@ -11293,6 +11244,171 @@
     "change_counts": {
       "merged": 4,
       "reread": 2
+    }
+  },
+  {
+    "finished_at": "2026-11-08T03:11:44-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/42461040035",
+    "started_at": "2026-11-08T03:00:49-05:00",
+    "site_data_at": "2026-11-07T21:23:47-05:00",
+    "data_changed": true,
+    "accounts": 49,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academiadebailepasolatino",
+      "and1erita",
+      "andonybaron",
+      "aseismanos",
+      "bembeacademiadebaile",
+      "bilongocolombia",
+      "bogotadanceclub",
+      "bulevarsalsabar",
+      "bulevarsalsarooftop",
+      "callejonsalsa",
+      "casaquiebracanto",
+      "casavander_",
+      "casineafest",
+      "clandisfrute",
+      "cremadeajiaco",
+      "danzaenlaciudad",
+      "discojaguar.bta",
+      "ebi_dancecompany",
+      "elgocepagano",
+      "fernandoespanadj",
+      "foururbandanc",
+      "frank.de.latorre",
+      "germanbaila",
+      "ikubambayadanza",
+      "ilhehabana",
+      "jaleocompetencia_",
+      "la33orquesta",
+      "lamecanica_original",
+      "lanenamagdalena",
+      "latinproductioncolombia",
+      "madyumdance",
+      "oronegroclub",
+      "pachanga_y_pochola",
+      "parchexbogota",
+      "proyectourbandance",
+      "reyesdelasalsa.col",
+      "ritmosacademiadebaile",
+      "rpdancestudio",
+      "salsacamaraoficial",
+      "salsaculto",
+      "salsalatina.villaluz",
+      "salsaysonoficial",
+      "sarasandoval.oficial",
+      "sondehabana",
+      "sonorasocialclub_",
+      "soywiwioficial",
+      "studio110dance",
+      "tributo.salsayjazz",
+      "zafradance"
+    ],
+    "skipped_accounts": [
+      "mundanobaroficial"
+    ],
+    "posts_analyzed": 17,
+    "events_new": 2,
+    "events_merged": 4,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 13,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 86,
+    "instagram_usage_detail": {
+      "call_count": 20,
+      "total_cputime": 0,
+      "total_time": 86
+    },
+    "instagram_reads": {
+      "accounts": 49,
+      "mean_seconds": 2.9,
+      "median_seconds": 2.35,
+      "max_seconds": 8.43,
+      "mean_cost": 1.79,
+      "max_cost": 4,
+      "max_cost_account": "danzaenlaciudad",
+      "headers": {
+        "X-App-Usage": 49
+      },
+      "expected_cost": 3
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 1,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "franja-de-videodanza-mov-xix-festival-danza-en-la-11-nov",
+        "title": "Franja de Videodanza .MOV - XIX Festival Danza en la Ciudad",
+        "account": "danzaenlaciudad",
+        "date": "2026-11-11",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "luigi-texidor-en-pachanga-4-dic",
+        "title": "Luigi Texidor en Pachanga",
+        "account": "pachanga_y_pochola",
+        "date": "2026-12-04",
+        "detail": null
+      },
+      {
+        "kind": "merged",
+        "id": "festival-internacional-casinea-10-a-edicion-13-nov",
+        "title": "Festival Internacional Casinea - 10.ª Edición",
+        "account": "casineafest",
+        "date": "2026-11-13",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "audiciones-compania-de-baile-paso-latino-2026-7-nov",
+        "title": "Audiciones Compañía de Baile Paso Latino 2026",
+        "account": "academiadebailepasolatino",
+        "date": "2026-11-07",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "elysium-madyum-gran-aniversario-2026-5-dic",
+        "title": "Elysium Madyum Gran Aniversario 2026",
+        "account": "madyumdance",
+        "date": "2026-12-05",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "oro-negro-con-mas-afinque-14-nov",
+        "title": "Oro Negro con más Afinque",
+        "account": "oronegroclub",
+        "date": "2026-11-14",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 2,
+      "merged": 4
     }
   }
 ]
