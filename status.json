@@ -1,7 +1,74 @@
 {
-  "generated_at": "2026-11-09T03:23:11-05:00",
+  "generated_at": "2026-11-09T06:52:36-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-11-09T06:52:36-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/42609520506",
+        "started_at": "2026-11-09T06:31:04-05:00",
+        "site_data_at": "2026-11-09T03:23:10-05:00",
+        "data_changed": true,
+        "accounts": 0,
+        "failed_accounts": [],
+        "read_accounts": [],
+        "skipped_accounts": [],
+        "posts_analyzed": 0,
+        "events_new": 0,
+        "events_merged": 0,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 0,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.8-flash": 6,
+          "gemini-3.6-flash": 6
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 11,
+        "instagram_usage_detail": {
+          "call_count": 2,
+          "total_cputime": 0,
+          "total_time": 11
+        },
+        "instagram_reads": {
+          "accounts": 6,
+          "mean_seconds": 3.04,
+          "median_seconds": 2.66,
+          "max_seconds": 6.36,
+          "mean_cost": 2.2,
+          "max_cost": 3,
+          "max_cost_account": "casavander_",
+          "headers": {
+            "X-App-Usage": 6
+          },
+          "expected_cost": 3
+        },
+        "instagram_stop": null,
+        "upgrade_changes": {
+          "compared": 7,
+          "dropped": 0,
+          "styles": 3,
+          "venue": 1
+        },
+        "upgraded": 6,
+        "upgrade_reads": 6,
+        "upgrade_misses": 0,
+        "triage_checked": 0,
+        "triage_misses": 0,
+        "batch_requests": 0,
+        "batched_posts": 0,
+        "batch_rereads": 0,
+        "warnings": [],
+        "changes_left_out": 0,
+        "change_counts": {
+          "corrected": 4,
+          "reread": 4
+        }
+      },
       {
         "finished_at": "2026-11-09T03:23:10-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/42582853747",
@@ -411,134 +478,16 @@
           "new": 2,
           "merged": 4
         }
-      },
-      {
-        "finished_at": "2026-11-07T21:23:47-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/42436617216",
-        "started_at": "2026-11-07T21:00:50-05:00",
-        "site_data_at": "2026-11-07T06:49:24-05:00",
-        "data_changed": true,
-        "accounts": 49,
-        "failed_accounts": [],
-        "read_accounts": [
-          "_olorumcongress",
-          "academiaalmadetangoe",
-          "academyfeel",
-          "alejochacon.co",
-          "arrollando.dc",
-          "babou_candelaria",
-          "bachatamania_bogota",
-          "bachatasocialcongresss",
-          "bailalo_improsocial",
-          "bailarito",
-          "bogotadanceclub.academy",
-          "bureodancestudio",
-          "cordillerafestival",
-          "danceholicproject",
-          "danceinmotionclub",
-          "distritosocialbog",
-          "efadanza",
-          "el_bochinche_cafe_",
-          "el_panteon_de_la_salsa",
-          "elratonsalsaclub",
-          "festivalsalsaalparque",
-          "fogal_arte",
-          "galeriacafelibro",
-          "guadalupebar751",
-          "habana93",
-          "iledanza",
-          "imperiolatino",
-          "jen.ssy",
-          "lacoartadacentrocultural",
-          "ladiezluxury_outlet",
-          "latrinidaddelasalsa",
-          "ludancestudios",
-          "mambo_y_control",
-          "mover__se",
-          "originalstepdance",
-          "quemaquequema",
-          "restaurantecasadecitas",
-          "ritmomoderno",
-          "salsabravadancehallpicante",
-          "salsalatina.alsacia",
-          "salsayritmolatino",
-          "sandunguera.salsabar",
-          "showstarscol",
-          "sonrumbero",
-          "studiolatindance",
-          "teffa_mg",
-          "tibaduiza__",
-          "valkandela",
-          "zafiro_project_team"
-        ],
-        "skipped_accounts": [
-          "clandisfrute"
-        ],
-        "posts_analyzed": 16,
-        "events_new": 0,
-        "events_merged": 4,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 0,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 16,
-          "gemini-3.8-flash": 6,
-          "gemini-3.6-flash": 6
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 82,
-        "instagram_usage_detail": {
-          "call_count": 21,
-          "total_cputime": 0,
-          "total_time": 82
-        },
-        "instagram_reads": {
-          "accounts": 52,
-          "mean_seconds": 2.68,
-          "median_seconds": 1.98,
-          "max_seconds": 8.84,
-          "mean_cost": 1.61,
-          "max_cost": 3,
-          "max_cost_account": "festivalsalsaalparque",
-          "headers": {
-            "X-App-Usage": 52
-          },
-          "expected_cost": 3
-        },
-        "instagram_stop": null,
-        "upgrade_changes": {
-          "compared": 2,
-          "dropped": 0
-        },
-        "upgraded": 1,
-        "upgrade_reads": 3,
-        "upgrade_misses": 1,
-        "triage_checked": 1,
-        "triage_misses": 0,
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [],
-        "changes_left_out": 0,
-        "change_counts": {
-          "merged": 4,
-          "reread": 2
-        }
       }
     ],
     "next": [
-      "2026-11-09T06:30-05:00",
-      "2026-11-09T21:00-05:00"
+      "2026-11-09T21:00-05:00",
+      "2026-11-10T03:00-05:00"
     ]
   },
   "site_data": {
-    "published_at": "2026-11-08T21:20:56-05:00",
-    "checked_at": "2026-11-09T03:01:04-05:00",
+    "published_at": "2026-11-09T03:23:10-05:00",
+    "checked_at": "2026-11-09T06:31:04-05:00",
     "missing": [],
     "prs_url": "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata"
   },
@@ -549,13 +498,13 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 6,
+        "used": 12,
         "budget": 18
       },
       {
         "model": "gemini-3.6-flash",
         "role": "extraction",
-        "used": 6,
+        "used": 12,
         "budget": 18
       },
       {
@@ -612,35 +561,35 @@
     "error": null
   },
   "instagram_quota": {
-    "usage": 74,
+    "usage": 11,
     "detail": {
-      "call_count": 16,
+      "call_count": 2,
       "total_cputime": 0,
-      "total_time": 74
+      "total_time": 11
     },
     "stopped": false,
     "stop": null,
-    "finished_at": "2026-11-09T03:23:10-05:00",
+    "finished_at": "2026-11-09T06:52:36-05:00",
     "stop_at": 98,
     "reads": {
-      "accounts": 42,
-      "mean_seconds": 2.94,
-      "median_seconds": 2.72,
-      "max_seconds": 8.64,
-      "mean_cost": 1.8,
-      "max_cost": 4,
-      "max_cost_account": "la33orquesta",
+      "accounts": 6,
+      "mean_seconds": 3.04,
+      "median_seconds": 2.66,
+      "max_seconds": 6.36,
+      "mean_cost": 2.2,
+      "max_cost": 3,
+      "max_cost_account": "casavander_",
       "headers": {
-        "X-App-Usage": 42
+        "X-App-Usage": 6
       },
-      "expected_cost": 2
+      "expected_cost": 3
     }
   },
   "lighter_reads": {
-    "compared": 135,
+    "compared": 142,
     "dropped": 5,
-    "venue": 37,
-    "styles": 21,
+    "venue": 38,
+    "styles": 24,
     "title": 15,
     "event_type": 7,
     "start_time": 2
@@ -655,13 +604,12 @@
       "originalstepdance",
       "galeriacafelibro",
       "el_panteon_de_la_salsa",
-      "quemaquequema",
-      "ritmomoderno"
+      "quemaquequema"
     ]
   },
   "posts": {
     "recorded": 2035,
-    "provisional": 279
+    "provisional": 273
   },
   "events": {
     "upcoming": 64,
@@ -980,6 +928,93 @@
     }
   ],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "06:30",
+      "finished_at": "2026-11-09T06:52:36-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/42609520506",
+      "target": null,
+      "error": null,
+      "changes": [
+        {
+          "kind": "corrected",
+          "id": "vacio-10-nov",
+          "title": "VACÍO",
+          "account": "danzaenlaciudad",
+          "date": "2026-11-10",
+          "detail": "Flash cambió los ritmos",
+          "url": "https://pa-bailar.github.io/evento/vacio-10-nov/"
+        },
+        {
+          "kind": "corrected",
+          "id": "raices-latinas-en-vivo-jazz-lab-big-band-y-sabra-11-nov",
+          "title": "Raíces Latinas en Vivo: Jazz Lab Big Band y Sabra Collective",
+          "account": "galeriacafelibro",
+          "date": "2026-11-11",
+          "detail": "Flash cambió los ritmos",
+          "url": "https://pa-bailar.github.io/evento/raices-latinas-en-vivo-jazz-lab-big-band-y-sabra-11-nov/"
+        },
+        {
+          "kind": "corrected",
+          "id": "tributo-a-ismael-rivera-y-fruko-y-sus-tesos-13-nov",
+          "title": "Tributo a Ismael Rivera y Fruko y sus Tesos",
+          "account": "casavander_",
+          "date": "2026-11-13",
+          "detail": "Flash cambió el lugar",
+          "url": "https://pa-bailar.github.io/evento/tributo-a-ismael-rivera-y-fruko-y-sus-tesos-13-nov/"
+        },
+        {
+          "kind": "corrected",
+          "id": "convocatoria-2027-22-nov",
+          "title": "Convocatoria 2027",
+          "account": "imperiolatino",
+          "date": "2026-11-22",
+          "detail": "Flash cambió los ritmos",
+          "url": "https://pa-bailar.github.io/evento/convocatoria-2027-22-nov/"
+        },
+        {
+          "kind": "reread",
+          "id": "competencia-palo-pa-rumba-13-nov",
+          "title": "Competencia Palo Pa' Rumba",
+          "account": "imperiolatino",
+          "date": "2026-11-13",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/competencia-palo-pa-rumba-13-nov/"
+        },
+        {
+          "kind": "reread",
+          "id": "taller-especial-de-bachata-21-nov",
+          "title": "Taller Especial de Bachata",
+          "account": "imperiolatino",
+          "date": "2026-11-21",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/taller-especial-de-bachata-21-nov/"
+        },
+        {
+          "kind": "reread",
+          "id": "practica-social-13-nov",
+          "title": "Práctica Social",
+          "account": "studiolatindance",
+          "date": "2026-11-13",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/practica-social-13-nov/"
+        },
+        {
+          "kind": "reread",
+          "id": "tardeo-salsero-14-nov",
+          "title": "Tardeo Salsero",
+          "account": "bulevarsalsabar",
+          "date": "2026-11-14",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/tardeo-salsero-14-nov/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "corrected": 4,
+        "reread": 4
+      }
+    },
     {
       "kind": "sweep",
       "slot": "03:00",
@@ -1645,337 +1680,6 @@
       "left_out": 0,
       "counts": {
         "reread": 2
-      }
-    },
-    {
-      "kind": "sweep",
-      "slot": "03:00",
-      "finished_at": "2026-11-06T03:23:09-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/42184570478",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "new",
-          "id": "salones-de-baile-fiesta-disco-ciudad-bolivar-7-nov",
-          "title": "Salones de Baile: Fiesta Disco - Ciudad Bolívar",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-07",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/salones-de-baile-fiesta-disco-ciudad-bolivar-7-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "salones-de-baile-pongale-clave-a-la-salsa-engativa-5-nov",
-          "title": "Salones de Baile: Póngale clave a la salsa - Engativá",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-05",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/salones-de-baile-pongale-clave-a-la-salsa-engativa-5-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "salones-de-baile-pongale-clave-a-la-salsa-suba-5-nov",
-          "title": "Salones de Baile: Póngale clave a la salsa - Suba",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-05",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/salones-de-baile-pongale-clave-a-la-salsa-suba-5-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "salones-de-baile-susurros-de-bandoneon-santa-fe-7-nov",
-          "title": "Salones de Baile: Susurros de Bandoneón - Santa Fe",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-07",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/salones-de-baile-susurros-de-bandoneon-santa-fe-7-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "salones-de-baile-fiesta-disco-san-cristobal-7-nov",
-          "title": "Salones de Baile: Fiesta Disco - San Cristóbal",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-07",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/salones-de-baile-fiesta-disco-san-cristobal-7-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "salones-de-baile-fiesta-tropical-kennedy-4-nov",
-          "title": "Salones de Baile: Fiesta Tropical - Kennedy",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-04",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/salones-de-baile-fiesta-tropical-kennedy-4-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "salones-de-baile-fiesta-tropical-usaquen-7-nov",
-          "title": "Salones de Baile: Fiesta Tropical - Usaquén",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-07",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/salones-de-baile-fiesta-tropical-usaquen-7-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "salones-de-baile-susurros-de-bandoneon-chapinero-6-nov",
-          "title": "Salones de Baile: Susurros de Bandoneón - Chapinero",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-06",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/salones-de-baile-susurros-de-bandoneon-chapinero-6-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "salones-de-baile-susurros-de-bandoneon-teusaquillo-4-nov",
-          "title": "Salones de Baile: Susurros de Bandoneón - Teusaquillo",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-04",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/salones-de-baile-susurros-de-bandoneon-teusaquillo-4-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "taller-cuidando-a-cuidadoras-danza-bienestar-y-7-nov",
-          "title": "Taller - Cuidando a cuidadoras: danza, bienestar y comunidad",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-07",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/taller-cuidando-a-cuidadoras-danza-bienestar-y-7-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "de-la-media-punta-a-la-punta-segura-metodologia-18-nov",
-          "title": "De la media punta a la punta segura: metodología, biomecánica y prevención de lesiones en el ballet",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-18",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/de-la-media-punta-a-la-punta-segura-metodologia-18-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "muestra-formativa-del-miocardio-el-gaznate-y-unas-18-nov",
-          "title": "Muestra formativa del miocardio, el gaznate y unas cuantas bayas silvestres",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-18",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/muestra-formativa-del-miocardio-el-gaznate-y-unas-18-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "conversacion-teorico-practica-a-ritmo-de-19-nov",
-          "title": "Conversación teórico-práctica a ritmo de torbellino y merengue",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-19",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/conversacion-teorico-practica-a-ritmo-de-19-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "vi-encuentro-sobre-las-pedagogias-danzarias-20-nov",
-          "title": "VI Encuentro sobre las pedagogías danzarias entramados sensibles: cuerpos, saberes y pedagogías",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-20",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/vi-encuentro-sobre-las-pedagogias-danzarias-20-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "taller-en-clave-de-casino-fundamentos-para-23-nov",
-          "title": "Taller - En clave de casino: fundamentos para conectar, bailar en pareja y entrar en la rueda",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-23",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/taller-en-clave-de-casino-fundamentos-para-23-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "taller-objetos-como-companeros-creativos-23-nov",
-          "title": "Taller - Objetos como compañeros creativos",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-23",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/taller-objetos-como-companeros-creativos-23-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "taller-cali-es-cali-lo-demas-es-loma-18-nov",
-          "title": "Taller - \"¡Cali es Cali, lo demás es loma!\"",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-18",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/taller-cali-es-cali-lo-demas-es-loma-18-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "taller-a-mover-la-cintura-que-llego-la-sabrosura-23-nov",
-          "title": "Taller ¡A mover la cintura, que llegó la sabrosura del merengue y lo tropical!",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-23",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/taller-a-mover-la-cintura-que-llego-la-sabrosura-23-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "taller-azucar-tumbao-y-sabor-24-nov",
-          "title": "Taller - Azúcar, tumbao y sabor",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-24",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/taller-azucar-tumbao-y-sabor-24-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "clase-maestra-danza-pausa-y-pasion-25-nov",
-          "title": "Clase maestra Danza, pausa y pasión",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-25",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/clase-maestra-danza-pausa-y-pasion-25-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "muestra-educativa-adios-bogota-28-nov",
-          "title": "Muestra educativa Adiós Bogotá",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-28",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/muestra-educativa-adios-bogota-28-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "muestra-en-el-museo-colonial-29-nov",
-          "title": "Muestra en el Museo Colonial",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-29",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/muestra-en-el-museo-colonial-29-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "taller-las-fabulas-de-tamalameque-3-dic",
-          "title": "Taller - Las fábulas de Tamalameque",
-          "account": "danzaenlaciudad",
-          "date": "2026-12-03",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/taller-las-fabulas-de-tamalameque-3-dic/"
-        },
-        {
-          "kind": "new",
-          "id": "vi-festival-de-velitas-y-tambores-2026-4-dic",
-          "title": "VI Festival de Velitas y Tambores 2026",
-          "account": "danzaenlaciudad",
-          "date": "2026-12-04",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/vi-festival-de-velitas-y-tambores-2026-4-dic/"
-        },
-        {
-          "kind": "provisional",
-          "id": "petra-xix-festival-danza-en-la-ciudad-7-nov",
-          "title": "Petra - XIX Festival Danza en la Ciudad",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-07",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/petra-xix-festival-danza-en-la-ciudad-7-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "coquito-maldita-danza-xix-festival-danza-en-la-7-nov",
-          "title": "Coquito - Maldita Danza (XIX Festival Danza en la Ciudad)",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-07",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/coquito-maldita-danza-xix-festival-danza-en-la-7-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "salon-de-baile-carranguero-7-nov",
-          "title": "Salón de baile Carranguero",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-07",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/salon-de-baile-carranguero-7-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "cielo-de-durazno-quasar-cia-de-danca-xix-festival-6-nov",
-          "title": "Cielo de Durazno - Quasar Cia. de Dança (XIX Festival Danza en la Ciudad)",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-06",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/cielo-de-durazno-quasar-cia-de-danca-xix-festival-6-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "clase-de-salsa-con-teffa-murcia-6-nov",
-          "title": "Clase de Salsa con Teffa Murcia",
-          "account": "callejonsalsa",
-          "date": "2026-11-06",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/clase-de-salsa-con-teffa-murcia-6-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "los-clasicos-de-el-pinchadiscos-de-kien-6-nov",
-          "title": "Los Clásicos de El Pinchadiscos de Kien",
-          "account": "callejonsalsa",
-          "date": "2026-11-06",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/los-clasicos-de-el-pinchadiscos-de-kien-6-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "un-paso-para-bailar-otro-para-conectar-6-nov",
-          "title": "Un paso para bailar, otro para conectar",
-          "account": "tributo.salsayjazz",
-          "date": "2026-11-06",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/un-paso-para-bailar-otro-para-conectar-6-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "ns-orquesta-en-vivo-6-nov",
-          "title": "NS Orquesta en vivo",
-          "account": "pachanga_y_pochola",
-          "date": "2026-11-06",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/ns-orquesta-en-vivo-6-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "salsa-dura-la-bemba-venenosa-en-vivo-6-nov",
-          "title": "Salsa Dura - La Bemba Venenosa en vivo",
-          "account": "elgocepagano",
-          "date": "2026-11-06",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/salsa-dura-la-bemba-venenosa-en-vivo-6-nov/"
-        },
-        {
-          "kind": "merged",
-          "id": "xix-festival-danza-en-la-ciudad-6-nov",
-          "title": "XIX Festival Danza en la Ciudad",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-06",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/xix-festival-danza-en-la-ciudad-6-nov/"
-        },
-        {
-          "kind": "merged",
-          "id": "parche-de-bailadores-7-nov",
-          "title": "Parche de Bailadores",
-          "account": "bogotadanceclub",
-          "date": "2026-11-07",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/parche-de-bailadores-7-nov/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "new": 24,
-        "provisional": 9,
-        "merged": 2
       }
     }
   ],
