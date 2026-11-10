@@ -9402,80 +9402,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "provisional",
-        "id": "parchese-la-salsa-6-nov",
-        "title": "Párchese la Salsa",
-        "account": "parchexbogota",
-        "date": "2026-11-06",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "jueves-de-son-gozon-con-huaracha-lnt-5-nov",
-        "title": "¡Jueves de Son Gozón! con Huaracha LNT",
-        "account": "salsacamaraoficial",
-        "date": "2026-11-05",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "sabado-de-orquesta-y-sabor-con-real-charanga-7-nov",
-        "title": "¡Sábado de Orquesta y Sabor! con Real Charanga",
-        "account": "salsacamaraoficial",
-        "date": "2026-11-07",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "noche-de-salsa-con-son-legales-7-nov",
-        "title": "Noche de Salsa con Son Legales",
-        "account": "salsaysonoficial",
-        "date": "2026-11-07",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "merged",
-        "id": "xix-festival-danza-en-la-ciudad-6-nov",
-        "title": "XIX Festival Danza en la Ciudad",
-        "account": "danzaenlaciudad",
-        "date": "2026-11-06",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "festival-internacional-casinea-10-a-edicion-13-nov",
-        "title": "Festival Internacional Casinea - 10.ª Edición",
-        "account": "casineafest",
-        "date": "2026-11-13",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "audiciones-compania-de-baile-paso-latino-2026-7-nov",
-        "title": "Audiciones Compañía de Baile Paso Latino 2026",
-        "account": "academiadebailepasolatino",
-        "date": "2026-11-07",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "archived",
-        "id": "fiesta-neon-5-sep",
-        "title": "FIESTA NEÓN",
-        "account": "bogotadanceclub",
-        "date": "2026-09-05",
-        "detail": "terminó hace más de 60 días"
-      },
-      {
-        "kind": "archived",
-        "id": "social-espacio-seguro-5-sep",
-        "title": "Social Espacio Seguro",
-        "account": "zafradance",
-        "date": "2026-09-05",
-        "detail": "terminó hace más de 60 días"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "provisional": 4,
@@ -11656,6 +11583,138 @@
     "change_counts": {
       "corrected": 4,
       "reread": 4
+    }
+  },
+  {
+    "finished_at": "2026-11-09T21:23:39-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/42739666003",
+    "started_at": "2026-11-09T21:00:48-05:00",
+    "site_data_at": "2026-11-09T06:52:36-05:00",
+    "data_changed": true,
+    "accounts": 40,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academiaalmadetangoe",
+      "academyfeel",
+      "alejochacon.co",
+      "arrollando.dc",
+      "babou_candelaria",
+      "bachatamania_bogota",
+      "bachatasocialcongresss",
+      "bailarito",
+      "bogotadanceclub.academy",
+      "bureodancestudio",
+      "cordillerafestival",
+      "danceholicproject",
+      "danceinmotionclub",
+      "distritosocialbog",
+      "efadanza",
+      "el_bochinche_cafe_",
+      "elratonsalsaclub",
+      "fogal_arte",
+      "galeriacafelibro",
+      "guadalupebar751",
+      "iledanza",
+      "imperiolatino",
+      "jen.ssy",
+      "ladiezluxury_outlet",
+      "latrinidaddelasalsa",
+      "mambo_y_control",
+      "mover__se",
+      "originalstepdance",
+      "quemaquequema",
+      "restaurantecasadecitas",
+      "ritmomoderno",
+      "salsalatina.alsacia",
+      "salsayritmolatino",
+      "showstarscol",
+      "sonrumbero",
+      "studiolatindance",
+      "teffa_mg",
+      "tibaduiza__",
+      "valkandela",
+      "zafiro_project_team"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 14,
+    "events_new": 2,
+    "events_merged": 1,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 4,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 14,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3-flash-preview": 4
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 56,
+    "instagram_usage_detail": {
+      "call_count": 16,
+      "total_cputime": 0,
+      "total_time": 56
+    },
+    "instagram_reads": {
+      "accounts": 40,
+      "mean_seconds": 2.37,
+      "median_seconds": 1.81,
+      "max_seconds": 9.22,
+      "mean_cost": 1.44,
+      "max_cost": 4,
+      "max_cost_account": "mover__se",
+      "headers": {
+        "X-App-Usage": 40
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "the-big-jhony-21-nov",
+        "title": "The Big Jhony",
+        "account": "galeriacafelibro",
+        "date": "2026-11-21",
+        "detail": null
+      },
+      {
+        "kind": "provisional",
+        "id": "clausura-2026-studio-latin-dance-18-dic",
+        "title": "Clausura 2026 Studio Latin Dance",
+        "account": "studiolatindance",
+        "date": "2026-12-18",
+        "detail": "leído por un modelo más liviano: Flash lo relee después"
+      },
+      {
+        "kind": "merged",
+        "id": "latinholic-night-21-nov",
+        "title": "Latinholic Night",
+        "account": "danceholicproject",
+        "date": "2026-11-21",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 1,
+      "provisional": 1,
+      "merged": 1
     }
   }
 ]
