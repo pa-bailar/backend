@@ -9584,40 +9584,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "provisional",
-        "id": "practica-social-13-nov",
-        "title": "Práctica Social",
-        "account": "studiolatindance",
-        "date": "2026-11-13",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "merged",
-        "id": "rumba-salsera-en-vivo-con-nick-salas-orquesta-5-nov",
-        "title": "Rumba salsera en vivo con Nick Salas Orquesta",
-        "account": "galeriacafelibro",
-        "date": "2026-11-05",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "fiesta-de-fin-de-ano-con-gustavo-rodriguez-y-danny-14-nov",
-        "title": "Fiesta de fin de año con Gustavo Rodríguez y Danny Rosales",
-        "account": "galeriacafelibro",
-        "date": "2026-11-14",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "sabado-de-bachata-bachatango-7-nov",
-        "title": "Sábado de Bachata - Bachatango",
-        "account": "showstarscol",
-        "date": "2026-11-07",
-        "detail": "otra publicación"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "provisional": 1,
@@ -11924,5 +11891,87 @@
       "merged": 1,
       "archived": 1
     }
+  },
+  {
+    "finished_at": "2026-11-10T06:50:27-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/42807958162",
+    "started_at": "2026-11-10T06:31:06-05:00",
+    "site_data_at": "2026-11-10T03:18:57-05:00",
+    "data_changed": false,
+    "accounts": 20,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academia_cowork",
+      "alpasojam",
+      "angie__cuesta",
+      "boogaloop.candelaria",
+      "danitello22",
+      "dannysalsita.lafabrica",
+      "davidylauradancers",
+      "dreamcupco",
+      "elparche.se",
+      "fredyysaraoficial",
+      "herencialatinad.c",
+      "ikubambayadanza",
+      "juancho__salsita",
+      "mambolei_",
+      "mariavasquezdancer",
+      "mundanobaroficial",
+      "oswaldgil2",
+      "salsalatina_castilla",
+      "tubailecom",
+      "zaimora24"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 3,
+    "events_new": 0,
+    "events_merged": 0,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 2,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 44,
+    "instagram_usage_detail": {
+      "call_count": 8,
+      "total_cputime": 0,
+      "total_time": 44
+    },
+    "instagram_reads": {
+      "accounts": 22,
+      "mean_seconds": 3.69,
+      "median_seconds": 2.92,
+      "max_seconds": 9.38,
+      "mean_cost": 2.1,
+      "max_cost": 5,
+      "max_cost_account": "callejonsalsa",
+      "headers": {
+        "X-App-Usage": 22
+      },
+      "expected_cost": 5
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 2,
+    "upgrade_misses": 0,
+    "triage_checked": 2,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [],
+    "changes": [],
+    "changes_left_out": 0,
+    "change_counts": {}
   }
 ]
