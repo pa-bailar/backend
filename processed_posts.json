@@ -36165,11 +36165,11 @@
   "18113833910581771": {
     "account": "salsacamaraoficial",
     "permalink": "https://www.instagram.com/p/Dfidie2FbKO/",
-    "processed_at": "2026-11-10T03:06:32-05:00",
+    "processed_at": "2026-11-11T06:36:15-05:00",
     "is_event_post": true,
-    "reason": "Se anuncian dos eventos con orquestas en vivo: Charanga Premiere el jueves 12 y Sonido 70 el sábado 14 de noviembre.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post anuncia dos conciertos de salsa y son en vivo en Salsa Camará.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "eeb93661b4f80611",
     "outcome": "event",
     "event_ids": [
@@ -36202,11 +36202,11 @@
   "18011591999994531": {
     "account": "callejonsalsa",
     "permalink": "https://www.instagram.com/p/Dfi4WPVx4kZ/",
-    "processed_at": "2026-11-10T03:07:17-05:00",
+    "processed_at": "2026-11-11T06:35:48-05:00",
     "is_event_post": true,
-    "reason": "Se anuncian talleres de tango y salsa, y un concierto de salsa y son en vivo para la semana del 11 al 13 de noviembre.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post anuncia la programación semanal del bar, que incluye tres eventos únicos de baile: una clase de tango el miércoles y una clase de baile más un concierto de salsa y son el viernes.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "225f53e6b2cf63d0",
     "outcome": "event",
     "event_ids": [
@@ -36308,11 +36308,11 @@
   "18146133592592644": {
     "account": "pachanga_y_pochola",
     "permalink": "https://www.instagram.com/reel/Dfijr2ARvtt/",
-    "processed_at": "2026-11-10T03:08:09-05:00",
+    "processed_at": "2026-11-11T06:36:27-05:00",
     "is_event_post": true,
-    "reason": "Se anuncia el lanzamiento del nuevo álbum de la Orquesta La Palabra con una presentación en vivo el viernes 13 de noviembre.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post anuncia el concierto de lanzamiento del nuevo álbum de la Orquesta La Palabra el viernes 13 de noviembre.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "dda928a89ac6e338",
     "outcome": "event",
     "event_ids": [
@@ -36934,11 +36934,11 @@
   "18106114553570142": {
     "account": "tributo.salsayjazz",
     "permalink": "https://www.instagram.com/p/Dfko-WcmUWB/",
-    "processed_at": "2026-11-11T03:18:00-05:00",
+    "processed_at": "2026-11-11T06:36:42-05:00",
     "is_event_post": true,
-    "reason": "Se anuncia un concierto de la orquesta Tumbaqué el viernes 13 de noviembre en un bar.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post anuncia la presentación en vivo de la orquesta Tumbaqué para el viernes 13 de noviembre.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "65344b4b0aeff3c3",
     "outcome": "event",
     "event_ids": [
