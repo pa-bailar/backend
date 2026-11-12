@@ -173,3 +173,77 @@ def test_the_wait_tells_an_api_that_never_answers_from_an_open_pr(tmp_path):
     assert code == 1 and "didn't list the site repository's pull requests" in report
     code, report = run_wait(tmp_path / "pr", ["https://github.com/pa-bailar/pa-bailar.github.io/pull/1"], minutes=0)
     assert code == 1 and "A data PR has not merged" in report and "/pull/1" in report
+
+
+def test_an_added_account_goes_on_main_as_it_is_after_an_earlier_accounts_pr(tmp_path):
+    """12 Nov 2026: every admin addition goes at the same spot of accounts.txt, so a second accounts PR opened before
+    the first merged, or from a copy older than main (a sweep's, taken when it started), conflicted and never merged,
+    while its answer said "Agregué". The PR now waits for an earlier one and is built on main as it is."""
+    import os
+    import subprocess
+
+    no_crlf = {"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "core.autocrlf", "GIT_CONFIG_VALUE_0": "false"}
+
+    def git(*args: str, cwd: Path) -> str:  # as on the runner: no line-ending conversion (Windows' default)
+        done = subprocess.run(
+            ["git", *args], cwd=cwd, capture_output=True, text=True, check=True, env=os.environ | no_crlf
+        )
+        return done.stdout
+
+    seed = tmp_path / "seed"
+    seed.mkdir()
+    git("init", "-q", "-b", "main", cwd=seed)
+    (seed / "accounts.txt").write_text("vieja\n# Added with the admin tools\n", encoding="utf-8", newline="\n")
+    git("add", "accounts.txt", cwd=seed)
+    git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "seed", cwd=seed)
+    origin = tmp_path / "origin.git"
+    git("clone", "-q", "--bare", seed.as_posix(), origin.as_posix(), cwd=tmp_path)
+    run_copy = tmp_path / "run"  # the run's copy, shallow like actions/checkout's
+    git("clone", "-q", "--depth=1", origin.as_uri(), run_copy.as_posix(), cwd=tmp_path)
+
+    other = tmp_path / "other"  # meanwhile an earlier accounts PR merges: "uno" at the section's end
+    git("clone", "-q", origin.as_posix(), other.as_posix(), cwd=tmp_path)
+    with (other / "accounts.txt").open("a", encoding="utf-8", newline="\n") as file:
+        file.write("uno\n")
+    git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qam", "add uno", cwd=other)
+    git("push", "-q", "origin", "main", cwd=other)
+
+    with (run_copy / "accounts.txt").open("a", encoding="utf-8", newline="\n") as file:
+        file.write("dos\n")  # this run's addition, at the same spot
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    calls = tmp_path / "calls"
+    log = calls.as_posix()
+    (bin_dir / "gh").write_text(  # an earlier accounts PR open at first, then merged
+        f'#!/bin/bash\necho x >> "{log}"\n[ "$(wc -l < "{log}")" -ge 2 ] && echo 0 || echo 1\n',
+        encoding="utf-8",
+        newline="\n",
+    )
+    (bin_dir / "gh").chmod(0o755)
+    script = ROOT / ".github" / "actions" / "save-accounts" / "on-main.sh"
+    pr_copy = tmp_path / "pr"
+    env = {
+        "PATH": f"{bin_dir.as_posix()}:/usr/bin:/bin:/mingw64/bin",
+        "GITHUB_REPOSITORY": "pa-bailar/backend",
+        "SAVE_ACCOUNTS_PAUSE_SECONDS": "0",
+        "HOME": tmp_path.as_posix(),
+    } | no_crlf
+    done = subprocess.run(
+        [bash(), script.as_posix(), "accounts/run-1-1", pr_copy.as_posix()],
+        cwd=run_copy,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert done.returncode == 0, done.stderr
+    assert len(calls.read_text().splitlines()) == 2  # it waited for the earlier PR
+    assert (pr_copy / "accounts.txt").read_text(encoding="utf-8").splitlines() == [
+        "vieja",
+        "# Added with the admin tools",
+        "uno",
+        "dos",
+    ]
+    added = [line for line in git("diff", "-U0", "HEAD", cwd=pr_copy).splitlines() if line.startswith("+")]
+    assert added == ["+++ b/accounts.txt", "+dos"]  # only this run's line: no conflict with main

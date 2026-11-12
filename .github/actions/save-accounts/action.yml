@@ -56,7 +56,13 @@ runs:
         git config user.name "$BOT"
         git config user.email "${bot_id}+${BOT}@users.noreply.github.com"
         branch="accounts/run-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-        git switch -c "$branch"
+        pr_copy="$RUNNER_TEMP/accounts-pr"
+        bash "$GITHUB_ACTION_PATH/on-main.sh" "$branch" "$pr_copy" # after an earlier accounts PR, on main as it is
+        cd "$pr_copy"
+        if git diff --quiet -- accounts.txt; then
+          echo "accounts.txt is already so on main: nothing to save."
+          exit 0
+        fi
         git commit -qm "$TITLE" -- accounts.txt
         git push -q origin "$branch"
         url="$(gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$branch" --title "$TITLE" \
