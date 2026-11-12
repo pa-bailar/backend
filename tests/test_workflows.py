@@ -135,10 +135,11 @@ def run_wait(tmp_path: Path, gh_answers: list[str], minutes: int) -> tuple[int, 
     answers = tmp_path / "answers"
     answers.write_text("\n".join(gh_answers) + "\n", encoding="utf-8", newline="\n")
     fake = bin_dir / "gh"
+    count, given = (tmp_path / "count").as_posix(), answers.as_posix()
     fake.write_text(
         "#!/bin/bash\n"
-        f'n=$(cat "{tmp_path.as_posix()}/count" 2>/dev/null || echo 0); echo $((n + 1)) > "{tmp_path.as_posix()}/count"\n'
-        f'answer=$(sed -n "$((n + 1))p" "{answers.as_posix()}"); [ -n "$answer" ] || answer=$(tail -n 1 "{answers.as_posix()}")\n'
+        f'n=$(cat "{count}" 2>/dev/null || echo 0); echo $((n + 1)) > "{count}"\n'
+        f'answer=$(sed -n "$((n + 1))p" "{given}"); [ -n "$answer" ] || answer=$(tail -n 1 "{given}")\n'
         'if [ "$answer" = fail ]; then echo "HTTP 502" >&2; exit 1; fi\n'
         'if [ "$answer" != none ]; then echo "$answer"; fi\n',
         encoding="utf-8",
