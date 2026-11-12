@@ -353,6 +353,11 @@ def missed_sweeps(runs: list[RunRecord], now: datetime) -> list[str]:
     oldest, window = min(finished), timedelta(hours=config.SWEEP_WINDOW_HOURS)
     missed = []
     for clock in config.SWEEP_TIMES:
+        # A run in today's window, still open, shows the time works again: until 12 Nov 2026 the 6:30 sweep back
+        # after two failed mornings (4 Nov) reported its own time missed.
+        today_start = datetime.combine(now.astimezone(config.BOGOTA_TZ).date(), parse_hhmm(clock), config.BOGOTA_TZ)
+        if now < today_start + window and any(today_start <= moment <= now for moment in finished):
+            continue
         starts: list[datetime] = []
         day = now.astimezone(config.BOGOTA_TZ).date()
         while len(starts) < MISSED_DAYS:
@@ -374,8 +379,8 @@ def _missed_sweep_findings(runs: list[RunRecord], run: RunRecord) -> list[Findin
         Finding(
             "warning",
             f"missed-sweep:{clock}",
-            f"No sweep ran at {clock} (Bogotá) on the last {MISSED_DAYS} days: has {config.SWEEP_TRIGGER} stopped "
-            "starting it? Start it by hand meanwhile (Run workflow); docs/ARCHITECTURE.md, section 15.",
+            f"No sweep finished at {clock} (Bogotá) on the last {MISSED_DAYS} days: did those runs fail (the "
+            f"workflow's runs), or has {config.SWEEP_TRIGGER} stopped starting it? docs/ARCHITECTURE.md, section 15.",
         )
         for clock in missed_sweeps(runs, datetime.fromisoformat(run.finished_at))
     ]

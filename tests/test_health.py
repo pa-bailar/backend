@@ -246,6 +246,15 @@ def test_a_scheduled_sweep_that_stopped_coming_is_a_warning(monkeypatch):
     without_3 = [run for run in every_sweep if "T03" not in run.finished_at]
     assert health.missed_sweeps(without_3, AT_6_50) == ["03:00"]
     assert levels(check(without_3[-1], without_3[:-1])) == {"missed-sweep:03:00": "warning"}
+
+
+def test_the_sweep_that_came_back_isnt_reported_missed(monkeypatch):
+    """12 Nov 2026: the 6:30 sweep failed on 8 and 9 Oct here (on 2 and 3 Nov for real), and the one back on the 10th
+    reported its own time missed: today's window, still open, wasn't counted."""
+    monkeypatch.setattr(config, "SWEEP_TIMES_SINCE", {})
+    without_6_30 = runs_at("08T03:40", "08T21:20", "09T03:35", "09T21:15", "10T03:30", "10T06:50")
+    assert health.missed_sweeps(without_6_30, AT_6_50) == []
+    assert health.missed_sweeps(without_6_30[:-1], datetime(2026, 10, 10, 6, 40, tzinfo=config.BOGOTA_TZ)) == ["06:30"]
     one_day = runs_at("08T06:50", "08T21:20", "09T06:45", "09T21:15", "10T03:30", "10T06:50")
     assert health.missed_sweeps(one_day, AT_6_50) == []  # missed once only (the first night, say)
 
