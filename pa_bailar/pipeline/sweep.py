@@ -508,7 +508,7 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
     def _hold_ruled_out(self, item: RuledOut) -> None:
         """Hold a post the triage ruled out for Flash's second opinion at the run's end (_check_triage), with its
         images: the first config.TRIAGE_CHECKS_HELD of the run's in second_opinion_order."""
-        if max(config.TRIAGE_CHECKS_PER_RUN, *config.TRIAGE_CHECKS_AT.values()) <= 0:
+        if max([config.TRIAGE_CHECKS_PER_RUN, *config.TRIAGE_CHECKS_AT.values()]) <= 0:  # off (config)
             return
         self._ruled_out.append(item)
         if len(self._ruled_out) > config.TRIAGE_CHECKS_HELD:

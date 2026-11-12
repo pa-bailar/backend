@@ -159,12 +159,15 @@ UPGRADE_MISSES_BEFORE_GIVING_UP = 3
 # didn't wait for a busy Flash at first, and Flash was paused as busy at that point in every sweep, so it still never
 # ran (0 in the six sweeps of 21–22 Oct); since 22 Oct it waits as the upgrades do (the owner). It's
 # there to measure the triage's misses for about two weeks: keep it or drop it then (early Nov 2026), on what it found.
-TRIAGE_CHECKS_PER_RUN = 1
+# Off since 12 Nov 2026 (the owner): 39 checks found 1 event in 23 Oct–12 Nov, while 42 upcoming events waited for
+# Flash's upgrade (about one a sweep, Google's 503s); its ~5 Flash requests a day go to the upgrades. The code stays:
+# the values it ran with (1, and {"06:30": 3}) turn it back on.
+TRIAGE_CHECKS_PER_RUN = 0
 # More of them in some sweeps (by config.SWEEP_TIMES' clock; the others take TRIAGE_CHECKS_PER_RUN): at 6:30 Flash
 # answers, while at 21:00 and 3:00 Google's 503 "overloaded" outlasted the run's wait for it in 4 of the 6 sweeps of
 # 27-28 Oct, so the second opinion read 2 posts in two days. Three at 6:30 (the owner, 28 Oct 2026): two more Flash
 # requests a day, from the 6:30 sweep's own third.
-TRIAGE_CHECKS_AT = {"06:30": 3}
+TRIAGE_CHECKS_AT: dict[str, int] = {}
 # How many of the run's ruled-out posts (with their images) are held for it meanwhile, the likeliest kept.
 TRIAGE_CHECKS_HELD = 12
 # A health notice when Flash found this many events the triage had ruled out in the last TRIAGE_MISS_RUNS runs (about
