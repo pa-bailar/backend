@@ -17,7 +17,7 @@ the report with the health-check ping.
 
 import hashlib
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Literal
@@ -438,12 +438,21 @@ def _unpublished_findings(run: RunRecord, history: list[RunRecord]) -> list[Find
     ]
 
 
-def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date) -> list[Finding]:
-    """What this run (with the ones before it) says needs a look. Warnings first."""
+def check(
+    run: RunRecord, history: list[RunRecord], stats: RunStats, today: date, swept: Collection[str] | None = None
+) -> list[Finding]:
+    """What this run (with the ones before it) says needs a look. Warnings first. `swept`: the accounts in
+    accounts.txt (None: every account the history names)."""
     runs = [*history, run]
     findings: list[Finding] = []
 
-    for account in run.failed_accounts:
+    # An account keeps its warning in the runs between its tries (once a day, or a week for a dormant one): until 12
+    # Nov 2026 the next run, which didn't read it, had none, and the workflow closed the issue "All clear" (#226,
+    # #229, #232, #233, each the same morning). Only the warning, and only while it's still in accounts.txt.
+    failed_before = {account for r in history for account in r.failed_accounts} - set(run.failed_accounts)
+    carried_over = sorted(failed_before if swept is None else failed_before & set(swept))
+    for account in [*run.failed_accounts, *carried_over]:
+        carried = account not in run.failed_accounts
 
         def failed(r: RunRecord, account: str = account) -> bool:
             return account in r.failed_accounts
@@ -455,7 +464,7 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
             older = r.accounts > 0 and not r.read_accounts
             return older or account in r.read_accounts or account in r.failed_accounts
 
-        findings += _repeated(
+        account_findings = _repeated(
             runs,
             failed,
             f"fetch:{account}",
@@ -464,6 +473,7 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
             f"@{account} couldn't be read this run (it's tried again on its next turn).",
             applies=tried,
         )
+        findings += [finding for finding in account_findings if not carried or finding.level == "warning"]
     findings += _repeated(
         runs,
         lambda r: r.rate_limited,

@@ -93,9 +93,10 @@ def check_health(stats: RunStats, site: health.SiteData | None = None) -> tuple[
     site's data around the run (whether earlier sweeps' data reached it: health.unpublished_runs)."""
     url = run_url()
     history = health.load_history()
-    run = health.record_of(stats, storage.read_accounts(), url, site)
+    swept = storage.read_accounts()
+    run = health.record_of(stats, swept, url, site)
     today = config.now_bogota().date()
-    findings = health.check(run, history, stats, today)
+    findings = health.check(run, history, stats, today, swept)
     run.warnings = [finding.key for finding in findings if finding.level == "warning"]
     health.save_history([*history, run])
     review = health.events_to_review(storage.load_events(), today)

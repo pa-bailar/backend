@@ -139,6 +139,21 @@ def test_an_account_read_every_other_run_still_warns_after_three_failed_tries():
     assert levels(check(failing, [failing, read_fine, failing])) == {"fetch:academia": "notice"}
 
 
+def test_a_failing_accounts_warning_holds_between_its_tries():
+    """12 Nov 2026: the run after a failed try didn't read the account, had no warning, and the workflow closed the
+    issue "All clear" (#226, #229, #232, #233, each opened at 3:00 and closed at 6:30 the same morning)."""
+    failing = record(failed_accounts=["academia"], read_accounts=["academia"])
+    other_turn = record(read_accounts=["otra"])
+    tries = [failing, other_turn, failing, other_turn, failing]
+    assert levels(check(other_turn, tries)) == {"fetch:academia": "warning"}
+    assert check(other_turn, [failing, other_turn]) == []  # one failed try: its notice was for that run only
+    assert check(record(read_accounts=["academia"]), tries) == []  # read fine: over
+    weekly = [failing, *[other_turn] * 20, failing, *[other_turn] * 20, failing]  # a dormant account: once a week
+    assert levels(check(other_turn, weekly + [other_turn] * 20)) == {"fetch:academia": "warning"}
+    gone = health.check(other_turn, tries, stats_with(), TODAY, swept=["otra"])  # taken out of accounts.txt
+    assert gone == []
+
+
 def test_a_run_that_read_no_account_doesnt_break_a_failing_accounts_streak():
     """12 Nov 2026: a 6:30 sweep with nobody due (every other day since 5 Nov) read no account, its empty
     read_accounts was taken for an older record's, and it broke the streak (@zaimora24 warned a try late on 26 Oct)."""
