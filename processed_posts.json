@@ -36111,11 +36111,11 @@
   "18121816640325993": {
     "account": "bogotadanceclub",
     "permalink": "https://www.instagram.com/p/DfipzzPDkY9/",
-    "processed_at": "2026-11-10T03:05:26-05:00",
+    "processed_at": "2026-11-12T06:35:46-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia dos eventos de baile individuales para el próximo fin de semana en Bogotá.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post anuncia dos eventos de baile para el fin de semana en Bogotá Dance Club.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "34d1e7d06645922d",
     "outcome": "event",
     "event_ids": [
@@ -38032,11 +38032,11 @@
   "18124570948938466": {
     "account": "salsaysonoficial",
     "permalink": "https://www.instagram.com/reel/DfngnHoA7oQ/",
-    "processed_at": "2026-11-12T03:15:48-05:00",
+    "processed_at": "2026-11-12T06:34:54-05:00",
     "is_event_post": true,
-    "reason": "Se anuncia la presentaci3n de la agrupaci3n Son Legales este viernes en el bar Salsa y Son.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "Anuncio de la presentación de la agrupación Son Legales en vivo este viernes 13 de noviembre en Salsa y Son.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "4d398088aee704a7",
     "outcome": "event",
     "event_ids": [
@@ -38116,6 +38116,40 @@
     "image_hashes": [],
     "by_hand": false,
     "triage_checked": false,
+    "upgrade_misses": 0
+  },
+  "18090852293274465": {
+    "account": "angie__cuesta",
+    "permalink": "https://www.instagram.com/reel/Dfn1TpHs_WA/",
+    "processed_at": "2026-11-12T06:34:06-05:00",
+    "is_event_post": false,
+    "reason": "El post presenta un video o show de danza y no anuncia ningún evento con fecha.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
+    "caption_hash": "ed503a62729632b2",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false,
+    "triage_checked": true,
+    "upgrade_misses": 0
+  },
+  "18040041746848797": {
+    "account": "juancho__salsita",
+    "permalink": "https://www.instagram.com/p/Dfnw1KhnaWD/",
+    "processed_at": "2026-11-12T06:33:54-05:00",
+    "is_event_post": false,
+    "reason": "El post contiene fotografías personales de calle y no anuncia ningún evento de baile.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
+    "caption_hash": "ab93cd6ba6c696e0",
+    "outcome": "not_event",
+    "event_ids": [],
+    "detail": null,
+    "image_hashes": [],
+    "by_hand": false,
+    "triage_checked": true,
     "upgrade_misses": 0
   }
 }
