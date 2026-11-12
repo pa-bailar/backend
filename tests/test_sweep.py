@@ -201,13 +201,14 @@ def test_recurring_and_undated_events_are_not_published():
     assert stats.events_discarded == 2
 
 
-def test_posts_ruled_out_by_triage_never_reach_flash_without_its_second_opinion(monkeypatch):
-    monkeypatch.setattr(config, "TRIAGE_CHECKS_PER_RUN", 0)  # the second opinion: test_triage_checks.py
+def test_posts_ruled_out_by_triage_never_reach_flash_the_second_opinion_is_off():
+    """The owner, 12 Nov 2026: Flash's second opinion on the triage is off by default (config); when on, it's
+    test_triage_checks.py's."""
     instagram = FakeInstagram({"academia": [post("tutorial"), post("flyer")], "otra": []})
     extractor = FakeExtractor({"flyer": event_post("flyer")}, not_events={"tutorial"})
     stats = run(instagram, extractor)
     assert extractor.extracted_posts == ["flyer"]
-    assert stats.posts_triaged_out == 1 and stats.posts_analyzed == 2
+    assert stats.posts_triaged_out == 1 and stats.posts_analyzed == 2 and stats.triage_checked == 0
 
 
 def test_processed_posts_are_not_sent_to_gemini_again():

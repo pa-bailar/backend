@@ -600,7 +600,7 @@ flowchart TD
     IMG -->|fails| PEND
     IMG --> TR["Triage: Flash-Lite<br/>caption + first image (512 px)"]
     TR -->|"not an event"| REC["Record as analyzed"]
-    REC -.->|"one a run, once the accounts are read,<br/>before the upgrades (7.2)"| SO["Flash's second opinion:<br/>an event found is stored (a triage miss)"]
+    REC -.->|"off since 12 Nov 2026 (7.2); when on, once<br/>the accounts are read, before the upgrades"| SO["Flash's second opinion:<br/>an event found is stored (a triage miss)"]
     SO --> ST
     TR -->|"Flash-Lite out of<br/>today's quota"| TLR{"Flash out<br/>of quota too?"}
     TLR -->|"no: keep Flash for<br/>screened posts"| PEND
@@ -663,7 +663,7 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 119 posts were ruled out in the week to 17 Oct without anyone knowing how many announced events. So a run holds the
 posts the triage ruled out (as fetched, with their images: no other Instagram read; at most `TRIAGE_CHECKS_HELD`,
 12), and once the accounts are read, before the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (1; 3 at 6:30, `TRIAGE_CHECKS_AT`) of them
-(section 7.2). Only the triage's own "no": not the rules' (a bar's or a focus filter's, recorded with model
+(section 7.2). **Off since 12 Nov 2026** (the owner: both values 0, so nothing is held or read; section 7.2 says why). Only the triage's own "no": not the rules' (a bar's or a focus filter's, recorded with model
 `-`), nor posts or stories added by hand. Flash's reading is stored as any Flash reading (section 6.3) and replaces
 the post's record (Flash's model, `triage_checked`, never checked again). An event published (or hidden by hand) is
 a **triage miss**: counted (`triage_misses`), logged as a warning, and its change in the run's history says "el filtro
@@ -913,8 +913,11 @@ flowchart TD
   `triage_checked` was 0 in all 15 sweeps of 17–22 Oct. Three at 6:30 since 28 Oct 2026 (the owner): at 21:00 and
   3:00 Google's overload outlasted the wait in 4 of the 6 sweeps of 27–28 Oct; at 6:30 Flash answers. Before them but not waiting, it still never ran (0 in the
   six sweeps of 21–22 Oct): Flash was paused as busy at its turn every time, and only the upgrades waited; it waits
-  since 22 Oct 2026 (the owner). The fixed share is there to measure the triage's misses for
-  about two weeks (the owner, 22 Oct 2026); whether it stays is decided then, on what it found. The counters
+  since 22 Oct 2026 (the owner). The fixed share was there to measure the triage's misses for
+  about two weeks (the owner, 22 Oct 2026). **Off since 12 Nov 2026 (the owner):** 39 checks found 1 event in
+  23 Oct–12 Nov, while 42 upcoming events waited for Flash's upgrade (about one a sweep, Google's 503s), so its
+  requests go to the upgrades. `TRIAGE_CHECKS_PER_RUN` is 0 and `TRIAGE_CHECKS_AT` empty; the code and its tests
+  stay (they turn it on with the values above), and those values turn it back on. The counters
   (`run_history.json`, the run's "Done:" line and summary, `admin status` and the admin page's run line: "1 descarte
   revisado con Flash, 1 evento rescatado"): `triage_checked`, the posts Flash read, and `triage_misses`, those it found
   an event in. A health notice when misses repeat (section 11.1): then look at those posts (`admin why`) and the
@@ -1392,7 +1395,7 @@ They run after every sweep. No AI, no quota.
 | Pending posts | Notice, or **warning** when the backlog hasn't gone down in 4 runs | The quotas or the time are too small for the accounts followed |
 | No events in a week | **Warning** | 21 runs (a week of three a day) with at least 10 posts analyzed and not a single event: are triage or extraction rejecting everything? |
 | Posts read provisionally | Notice | Read without this generation's Flash (out of quota, busy, or kept for a later sweep that day): by an older Flash, Flash-Lite or the last resort, re-read with Flash on later runs |
-| The triage missed events | Notice (`triage-misses`) | On a run where Flash's second opinion found an event the triage had ruled out, when it found 2 (`TRIAGE_MISSES_NOTICE`) in the last 9 runs (`TRIAGE_MISS_RUNS`, about three days): look at those posts (`admin why`) and the triage's prompt (section 6.2) |
+| The triage missed events | Notice (`triage-misses`) | On a run where Flash's second opinion found an event the triage had ruled out, when it found 2 (`TRIAGE_MISSES_NOTICE`) in the last 9 runs (`TRIAGE_MISS_RUNS`, about three days): look at those posts (`admin why`) and the triage's prompt (section 6.2). Silent while the second opinion is off (since 12 Nov 2026) |
 | The last resort was used | Notice | Gemini ran out: requests per provider, what each model did (answered, busy, invalid, skipped…) and the ones set aside after failing twice |
 | A provider of the last resort turned off | Notice, then **warning** after 3 runs in a row | Groq or OpenRouter answered 401, 402 or 403: check its key secret and the account, or delete the secret to stop using it |
 | Account inactive | Notice | No post in 45 days (or none at all) |
