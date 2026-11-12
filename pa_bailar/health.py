@@ -245,7 +245,9 @@ def _model_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
     findings += _repeated(
         runs,
         lambda r: bool(r.models_unavailable),
-        "models-unavailable",
+        # The models in the key: another one going (the last Flash, with other advice) changes the fingerprint and is
+        # announced; until 12 Nov 2026 the issue's text changed without a comment.
+        f"models-unavailable:{','.join(sorted(run.models_unavailable))}",
         f"Gemini said this key can't use {unavailable} in the last {{runs}} runs: did Google drop it? {advice}",
         f"Gemini said this key can't use {unavailable} this run (asked again after midnight Pacific, when the "
         "quotas reset).",

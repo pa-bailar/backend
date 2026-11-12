@@ -115,6 +115,15 @@ def test_the_fingerprint_changes_only_when_the_warnings_do():
     assert health.fingerprint([warning]) != health.fingerprint([])
 
 
+def test_another_model_going_away_changes_the_fingerprint():
+    """12 Nov 2026: one key whatever the models, so the last Flash going (advice: GEMINI_LITE_ONLY) after another
+    was out changed the issue's text without a comment or an email."""
+    one, two = record(models_unavailable=["model-a"]), record(models_unavailable=["model-a", "model-b"])
+    assert levels(check(one, [one, one])) == {"models-unavailable:model-a": "warning"}
+    assert health.fingerprint(check(one, [one, one])) != health.fingerprint(check(two, [one, one]))
+    assert health.fingerprint(check(one, [one, one])) == health.fingerprint(check(one, [one, one, one]))
+
+
 def test_the_history_keeps_the_latest_runs():
     health.save_history([record(posts_analyzed=n) for n in range(health.HISTORY_RUNS + 5)])
     history = health.load_history()
