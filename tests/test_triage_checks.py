@@ -1,10 +1,13 @@
 """Flash's second opinion on the triage (17 Oct 2026): Flash-Lite's "no" was final, and 119 posts were ruled out in a
 week without anyone knowing how many were events. Once the accounts are read, before the upgrades (a small fixed share
 since 22 Oct 2026: after them it never ran; waiting for a busy Flash as they do, since the same night), Flash reads one
-of the posts the triage ruled out this run, and the run counts how often the triage was wrong."""
+of the posts the triage ruled out this run, and the run counts how often the triage was wrong. Off since 12 Nov 2026
+(the owner; config): these tests turn it on with the values it ran with, for the day it comes back."""
 
 import time
 from datetime import UTC, datetime, timedelta
+
+import pytest
 
 from pa_bailar import config, health, storage
 from pa_bailar.models import PostAnalysis, ProcessedPost
@@ -25,6 +28,15 @@ from tests.test_sweep import (
 from tests.test_upgrades import FlashFor, day, flash_reads, on_record, provisional
 
 NO_EVENT = PostAnalysis(is_event_post=False, reason="un tutorial de pasos", events=[])
+
+# The values it ran with, 28 Oct–12 Nov 2026: one a run, three at 6:30.
+ON_PER_RUN, ON_AT = 1, {"06:30": 3}
+
+
+@pytest.fixture(autouse=True)
+def second_opinion_on(monkeypatch):
+    monkeypatch.setattr(config, "TRIAGE_CHECKS_PER_RUN", ON_PER_RUN)
+    monkeypatch.setattr(config, "TRIAGE_CHECKS_AT", ON_AT)
 
 
 def records() -> dict:
@@ -127,9 +139,8 @@ def test_flash_stops_the_checks_when_it_runs_out(monkeypatch):
     assert extractor.extracted_posts == ["t0"] and stats.triage_checked == 1
 
 
-def test_one_check_a_run_by_default():
+def test_one_check_a_run_when_on():
     """The owner, 22 Oct 2026: a small fixed share, three of Flash's 36 a day, to measure the triage's misses."""
-    assert config.TRIAGE_CHECKS_PER_RUN == 1
     ids = ["t0", "t1"]
     instagram = FakeInstagram({"academia": [post(i, days_ago=1 + n) for n, i in enumerate(ids)], "otra": []})
     extractor = FlashFor(10, {i: NO_EVENT for i in ids}, not_events=set(ids))
@@ -159,8 +170,21 @@ def test_a_run_belongs_to_the_scheduled_sweep_it_started_for():
 def test_three_checks_at_6_30_one_in_the_others():
     """The owner, 28 Oct 2026: at 21:00 and 3:00 Google's overload outlasted the wait in 4 of 6 sweeps; at 6:30 Flash
     answers."""
-    assert config.TRIAGE_CHECKS_AT == {"06:30": 3}
     assert [triage_checks(bogota(28, clock)) for clock in ("03:10", "06:40", "21:05", "14:00")] == [1, 3, 1, 1]
+
+
+def test_off_none_in_any_sweep_and_nothing_held(monkeypatch):
+    """The owner, 12 Nov 2026: off by default (config.py's values), with no special sweep left to pick from."""
+    monkeypatch.setattr(config, "TRIAGE_CHECKS_PER_RUN", 0)
+    monkeypatch.setattr(config, "TRIAGE_CHECKS_AT", {})
+    assert [triage_checks(bogota(28, clock)) for clock in ("03:10", "06:40", "21:05", "14:00")] == [0, 0, 0, 0]
+    ids = ["t0", "t1"]
+    instagram = FakeInstagram({"academia": [post(i, days_ago=1 + n) for n, i in enumerate(ids)], "otra": []})
+    extractor = FlashFor(10, {i: NO_EVENT for i in ids}, not_events=set(ids))
+
+    stats = run(instagram, extractor)
+
+    assert extractor.extracted_posts == [] and stats.triage_checked == 0 and stats.posts_triaged_out == 2
 
 
 def test_a_6_30_sweep_reads_three(monkeypatch):
