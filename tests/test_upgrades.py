@@ -368,3 +368,16 @@ def test_in_the_turn_such_a_post_comes_after_every_other():
     extractor = FlashFor(1, analyses)
     run(instagram, extractor)  # its turn again
     assert extractor.extracted_posts == ["reel"]  # when nothing else waits
+
+
+def test_a_collaboration_is_upgraded_as_the_account_it_was_recorded_under():
+    """12 Nov 2026: read first from @academia's feed, a collaboration is in @otra's too; @otra's turn queued it as
+    @otra's, and the upgrade moved the record and its event there, with @otra's rules (a bar's: a social became a
+    rumba)."""
+    config.ACCOUNTS_FILE.write_text("academia\notra bar\n", encoding="utf-8")
+    on_record(("collab", "academia", day(1), 1), due=("otra",))
+    instagram = FakeInstagram({"academia": [], "otra": [post("collab", days_ago=1)]})
+    run(instagram, FakeExtractor(flash_reads("collab", date=day(1))), all_accounts=False)
+    event = storage.load_events()[0]
+    assert not provisional("collab") and storage.load_processed_posts()["collab"].account == "academia"
+    assert (event.account, event.bar) == ("academia", False)

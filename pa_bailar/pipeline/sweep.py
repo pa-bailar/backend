@@ -885,7 +885,10 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             elif read is False:  # None: waiting in the batch, counted when it's read (batches.py)
                 self.stats.count(account, "pending")
         elif record.provisional:
-            self._to_upgrade.append((account, post, published))  # re-read after every account, by urgency
+            # Re-read after every account, by urgency, as the account it's recorded under: a collaboration is in both
+            # feeds, and until 12 Nov 2026 the other one's turn moved its event there, with that account's rules
+            # (a bar's made a social a rumba).
+            self._to_upgrade.append((record.account or account, post, published))
 
     def _adopt_public_record(self, post: Post) -> ProcessedPost | None:
         """A post added by hand from its public page, now among the account's posts: the same post, not a new
