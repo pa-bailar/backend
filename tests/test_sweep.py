@@ -1072,12 +1072,22 @@ def test_a_short_notice_account_the_evening_missed_is_read_the_next_morning(monk
     assert turn({"academia": swept(hours), "otra": swept(3)}) == ["academia"]
 
 
-def test_reading_ahead_never_takes_a_short_notice_account(monkeypatch):
+def test_reading_ahead_never_takes_a_short_notice_account_but_the_evening_sweep_does(monkeypatch):
+    """At 3:00 a short-notice account read ahead would leave the evening; the evening sweep is its one slot. 12 Nov
+    2026: an evening run started late (a runner delay, a re-run) left it short of its turn the next evening, and it was
+    read the morning after."""
     storage.save_processed_posts(found_past())
     at("03:00", monkeypatch)  # a 6:30 read: due at 4:30
     assert turn({"academia": swept(20.5), "otra": swept(20.5)}) == ["otra"]
-    at("21:00", monkeypatch)  # due in 2 hours
-    assert turn({"academia": swept(20), "otra": swept(20)}) == ["otra"]
+    at("21:00", monkeypatch)  # due in 2 hours: first, as due
+    assert turn({"academia": swept(20), "otra": swept(20)}) == ["academia", "otra"]
+    assert turn({"academia": swept(21.9), "otra": swept(3)}) == ["academia"]  # yesterday's sweep came at 23:00
+
+
+def test_accounts_read_ahead_come_after_a_due_new_one(monkeypatch):
+    """12 Nov 2026: a due new account sorted after the accounts read ahead, and the share cut it."""
+    monkeypatch.setattr(config, "EXTRA_ACCOUNTS_PER_RUN", 1)  # 3 accounts / 3 sweeps + 1: a share of 2
+    assert turn({"academia": swept(20.5), "otra": swept(20)}, "academia\notra\nnueva\n") == ["nueva", "academia"]
 
 
 @pytest.mark.parametrize(

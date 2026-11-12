@@ -718,7 +718,8 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         the 6:30 sweep's accounts (due at 4:30), and they keep the 3:00 sweep from then on. Short-notice accounts
         (short_notice_accounts) take their turn in the evening sweep, first among the due ones, so neither its share
         nor Instagram's stop pushes them to the next morning; a sweep before it reads one only
-        config.SHORT_NOTICE_WAIT_HOURS past its turn (never starved), and reading ahead never takes one."""
+        config.SHORT_NOTICE_WAIT_HOURS past its turn (never starved), and reading ahead never takes one (the evening
+        sweep takes one up to config.READ_AHEAD_HOURS early as due)."""
         followed = storage.read_accounts()
         now = config.now_bogota()
         overdue = overdue_by_account(followed, self.accounts, self.processed.values(), self.events, now)
@@ -726,16 +727,21 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         short = set() if self.all_accounts else short_notice_accounts(self.processed.values(), self.events, now)
 
         def turn_starts(account: str) -> float:
-            """Hours past its turn this sweep reads it from: a short-notice one waits for the evening."""
-            return config.SHORT_NOTICE_WAIT_HOURS if account in short and not evening else 0
+            """Hours past its turn this sweep reads it from: a short-notice one waits for the evening, and the evening
+            sweep takes it up to config.READ_AHEAD_HOURS early (its one slot: until 12 Nov 2026 an evening run that
+            started late left it short of its turn the next evening, and it was read the morning after)."""
+            if account not in short:
+                return 0
+            return -config.READ_AHEAD_HOURS if evening else config.SHORT_NOTICE_WAIT_HOURS
 
         due = (
             followed
             if self.all_accounts
             else [account for account in followed if overdue[account] >= turn_starts(account)]
         )
-        if held := [account for account in followed if 0 <= overdue[account] < turn_starts(account)]:
+        if held := [account for account in followed if 0 <= overdue[account] < turn_starts(account)]:  # not evening
             log.info("%s short-notice accounts wait for the evening sweep: %s", len(held), ", ".join(held))
+        ahead: list[str] = []
         if not self.all_accounts and len(due) < self._share_per_run():
             ahead = [
                 account
@@ -759,7 +765,11 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             """In the evening sweep, every account but the short-notice ones goes after them."""
             return not (evening and account in short)
 
-        return sorted(due, key=lambda account: (is_new(account), after_short_notice(account), -overdue[account]))
+        # Read-ahead after every due one, new ones too: until 12 Nov 2026 a due new account sorted after them, and the
+        # share cut it.
+        return sorted(
+            due, key=lambda account: (account in ahead, is_new(account), after_short_notice(account), -overdue[account])
+        )
 
     def _apply_retention(self) -> None:
         """Archive long-past events (storage.archive_events) and forget old analyzed posts, so the site's data and
