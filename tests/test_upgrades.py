@@ -381,3 +381,24 @@ def test_a_collaboration_is_upgraded_as_the_account_it_was_recorded_under():
     event = storage.load_events()[0]
     assert not provisional("collab") and storage.load_processed_posts()["collab"].account == "academia"
     assert (event.account, event.bar) == ("academia", False)
+
+
+def test_an_error_while_an_upgrade_stores_its_events_leaves_them_on_the_site(monkeypatch):
+    """12 Nov 2026: the post's events were detached before Flash's readings were added; an error in between was
+    contained, and the next post's save wrote the events without them, for good (the record, still provisional,
+    pointed to nothing)."""
+    from pa_bailar.pipeline import base
+
+    on_record(("p1", "otra", day(3), 1), ("p2", "otra", day(2), 1), due=("otra",))
+    instagram = FakeInstagram({"academia": [], "otra": [post("p1"), post("p2")]})
+    real = base.SweepBase._add_readings
+
+    def failing_for_p2(self, account, post_, *args, **kwargs):
+        if post_["id"] == "p2":  # the soonest event: upgraded first
+            raise ValueError("a reading the code didn't expect")
+        return real(self, account, post_, *args, **kwargs)
+
+    monkeypatch.setattr(base.SweepBase, "_add_readings", failing_for_p2)
+    run(instagram, FakeExtractor(flash_reads("p1", date=day(3)) | flash_reads("p2", date=day(2))), all_accounts=False)
+    assert {event.title for event in storage.load_events()} == {"Evento p1", "Evento p2"}
+    assert provisional("p2") and not provisional("p1")  # read again by a later sweep
