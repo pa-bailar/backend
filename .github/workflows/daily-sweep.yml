@@ -409,7 +409,7 @@ jobs:
           git config user.name "$BOT"
           git config user.email "${bot_id}+${BOT}@users.noreply.github.com"
           git add -A
-          git commit -qm "chore(media): images of run ${GITHUB_RUN_ID} ($(date -u +%F))"
+          git commit -qm "chore(media): images of run ${GITHUB_RUN_ID} ($(TZ=America/Bogota date +%F))"
           git push -q origin HEAD:main
 
       - name: Open a data pull request in the site repository if events changed
@@ -439,8 +439,10 @@ jobs:
           bot_id="$(gh api "/users/${BOT}" --jq .id)"
           git config user.name "$BOT"
           git config user.email "${bot_id}+${BOT}@users.noreply.github.com"
-          day="$(date -u +%F)"
-          branch="data/sweep-${day}-${GITHUB_RUN_ID}"
+          # Bogotá's day (the 21:00 sweep's PR was named after the next day), and the attempt: a re-run of a run that
+          # pushed its branch and then failed would push to that branch again, and be refused.
+          day="$(TZ=America/Bogota date +%F)"
+          branch="data/sweep-${day}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           git switch -c "$branch"
           git add data/
           git commit -m "chore(data): ${WHAT} ${day}"
