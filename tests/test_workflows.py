@@ -99,3 +99,76 @@ def test_cron_job_org_starts_every_sweep_and_github_schedules_none():
     assert "schedule:" not in SWEEP
     assert config.SWEEP_TRIGGER == "cron-job.org"
     assert config.SWEEP_TIMES == ("03:00", "06:30", "21:00")
+
+
+def wait_step_script() -> str:
+    """The wait's commands, as the runner gets them (bash -e), with no pause between its checks."""
+    job = SWEEP[step("Make sure the last data PR merged") :]
+    job = job[: job.index("\n      - ", 1)]
+    lines = job[job.index("run: |\n") + len("run: |\n") :].splitlines()
+    script = []
+    for line in lines:
+        if line and not line.startswith(" " * 10):  # past the block: the next step's comments
+            break
+        script.append(line[10:])
+    return "\n".join(script).replace("sleep 30", "sleep 0")
+
+
+def bash() -> str:
+    """The runner's shell: bash; on Windows, Git's (`bash` there can be WSL's)."""
+    import os
+    import shutil
+
+    git = shutil.which("git")
+    if os.name == "nt" and git:
+        found = [folder / "bin" / "bash.exe" for folder in Path(git).resolve().parents]
+        return str(next(path for path in found if path.exists()))
+    return "bash"
+
+
+def run_wait(tmp_path: Path, gh_answers: list[str], minutes: int) -> tuple[int, str]:
+    """Run the wait with a fake `gh` that gives these answers in turn ("fail" for an error; the last repeats)."""
+    import subprocess
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(parents=True)
+    answers = tmp_path / "answers"
+    answers.write_text("\n".join(gh_answers) + "\n", encoding="utf-8", newline="\n")
+    fake = bin_dir / "gh"
+    fake.write_text(
+        "#!/bin/bash\n"
+        f'n=$(cat "{tmp_path.as_posix()}/count" 2>/dev/null || echo 0); echo $((n + 1)) > "{tmp_path.as_posix()}/count"\n'
+        f'answer=$(sed -n "$((n + 1))p" "{answers.as_posix()}"); [ -n "$answer" ] || answer=$(tail -n 1 "{answers.as_posix()}")\n'
+        'if [ "$answer" = fail ]; then echo "HTTP 502" >&2; exit 1; fi\n'
+        'if [ "$answer" != none ]; then echo "$answer"; fi\n',
+        encoding="utf-8",
+        newline="\n",
+    )
+    fake.chmod(0o755)
+    script = tmp_path / "wait.sh"
+    script.write_text(wait_step_script(), encoding="utf-8", newline="\n")
+    report = tmp_path / "health.md"
+    env = {
+        "PATH": f"{bin_dir.as_posix()}:/usr/bin:/bin",
+        "SITE_OWNER": "pa-bailar",
+        "SITE_REPO": "pa-bailar.github.io",
+        "OPEN_DATA_PR_WAIT_MINUTES": str(minutes),
+        "HEALTH_REPORT_FILE": report.as_posix(),
+    }
+    done = subprocess.run([bash(), "-e", script.as_posix()], env=env, capture_output=True, text=True, check=False)
+    return done.returncode, report.read_text(encoding="utf-8") if report.exists() else ""
+
+
+def test_the_wait_tries_again_when_githubs_api_fails(tmp_path):
+    """12 Nov 2026: the step runs under bash -e, so one failed call to GitHub's API ended it, and with it the whole
+    sweep (lost sweeps aren't made up)."""
+    code, report = run_wait(tmp_path, ["fail", "fail", "none"], minutes=20)
+    assert code == 0 and report == ""
+    assert (tmp_path / "count").read_text().strip() == "3"
+
+
+def test_the_wait_tells_an_api_that_never_answers_from_an_open_pr(tmp_path):
+    code, report = run_wait(tmp_path / "api", ["fail"], minutes=0)
+    assert code == 1 and "didn't list the site repository's pull requests" in report
+    code, report = run_wait(tmp_path / "pr", ["https://github.com/pa-bailar/pa-bailar.github.io/pull/1"], minutes=0)
+    assert code == 1 and "A data PR has not merged" in report and "/pull/1" in report
