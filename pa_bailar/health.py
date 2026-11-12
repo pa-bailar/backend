@@ -449,8 +449,11 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
             return account in r.failed_accounts
 
         def tried(r: RunRecord, account: str = account) -> bool:
-            # Older records don't list what was read: they count, as before.
-            return not r.read_accounts or account in r.read_accounts or account in r.failed_accounts
+            # Older records don't list what was read: they count, as before. A run that read no account (a 6:30
+            # sweep with nobody due, every other day since 5 Nov 2026) didn't try it either: until 12 Nov it broke
+            # the streak, so an account failing on each of its tries rarely reached the warning.
+            older = r.accounts > 0 and not r.read_accounts
+            return older or account in r.read_accounts or account in r.failed_accounts
 
         findings += _repeated(
             runs,

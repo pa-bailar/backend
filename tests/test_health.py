@@ -139,6 +139,14 @@ def test_an_account_read_every_other_run_still_warns_after_three_failed_tries():
     assert levels(check(failing, [failing, read_fine, failing])) == {"fetch:academia": "notice"}
 
 
+def test_a_run_that_read_no_account_doesnt_break_a_failing_accounts_streak():
+    """12 Nov 2026: a 6:30 sweep with nobody due (every other day since 5 Nov) read no account, its empty
+    read_accounts was taken for an older record's, and it broke the streak (@zaimora24 warned a try late on 26 Oct)."""
+    failing = record(failed_accounts=["academia"], read_accounts=["academia"])
+    nothing = record(accounts=0, read_accounts=[])
+    assert levels(check(failing, [failing, nothing, failing, nothing])) == {"fetch:academia": "warning"}
+
+
 def test_events_over_several_days_are_reviewed_until_their_last_day():
     under_way = stored(
         "under-way",
