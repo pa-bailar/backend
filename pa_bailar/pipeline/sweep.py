@@ -413,8 +413,10 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         waiting = waiting_for_flash(self.processed, events, today)
         reads = [
             (upgrade_urgency(self.processed[post_ids[0]].event_ids, events, today), account, post_ids)
+            # Not one whose turn the share left for the next run (read first then): until 12 Nov 2026 it was read here
+            # for its provisional posts only, and again on its turn.
             for account, post_ids in waiting.items()
-            if account in self.options and account not in self._read_this_run
+            if account in self.options and account not in self._read_this_run and account not in self.stats.due_accounts
         ]
         reads = sorted(reads)[: config.UPGRADE_READS_PER_RUN]
         if not queue and not reads:
@@ -542,15 +544,18 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
                 self.rate_limited = True
                 self.stats.instagram_stop = "meta"
                 return None
-            return []
+            # A miss for each of its posts, as when the read doesn't return them: until 12 Nov 2026 an account
+            # Instagram can't read (renamed, private) was read for in every sweep until its event ended.
+            posts = []
         return self._fetched_for_flash(account, posts, post_ids)
 
     def _fetched_for_flash(
         self, account: str, posts: list[Post], post_ids: list[str]
     ) -> list[tuple[str, Post, datetime]]:
-        """The posts among those fetched that wait for Flash (`post_ids`), to queue. One not returned (deleted, or
-        deeper than the read went) is logged and counted, in the run (upgrade_misses) and on its record, in a row: tried
-        again on a later run, until config.UPGRADE_MISSES_BEFORE_GIVING_UP (then waiting_for_flash leaves it out)."""
+        """The posts among those fetched that wait for Flash (`post_ids`), to queue. One not returned (deleted, deeper
+        than the read went, or the read failed) is logged and counted, in the run (upgrade_misses) and on its record,
+        in a row: tried again on a later run, until config.UPGRADE_MISSES_BEFORE_GIVING_UP (then waiting_for_flash
+        leaves it out)."""
         fetched = {post["id"]: post for post in posts}
         changed = False
         for post_id in post_ids:
