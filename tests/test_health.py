@@ -115,6 +115,15 @@ def test_the_fingerprint_changes_only_when_the_warnings_do():
     assert health.fingerprint([warning]) != health.fingerprint([])
 
 
+def test_another_model_going_away_changes_the_fingerprint():
+    """12 Nov 2026: one key whatever the models, so the last Flash going (advice: GEMINI_LITE_ONLY) after another
+    was out changed the issue's text without a comment or an email."""
+    one, two = record(models_unavailable=["model-a"]), record(models_unavailable=["model-a", "model-b"])
+    assert levels(check(one, [one, one])) == {"models-unavailable:model-a": "warning"}
+    assert health.fingerprint(check(one, [one, one])) != health.fingerprint(check(two, [one, one]))
+    assert health.fingerprint(check(one, [one, one])) == health.fingerprint(check(one, [one, one, one]))
+
+
 def test_the_history_keeps_the_latest_runs():
     health.save_history([record(posts_analyzed=n) for n in range(health.HISTORY_RUNS + 5)])
     history = health.load_history()
@@ -137,6 +146,29 @@ def test_an_account_read_every_other_run_still_warns_after_three_failed_tries():
     assert levels(check(failing, history)) == {"fetch:academia": "warning"}
     read_fine = record(read_accounts=["academia"])
     assert levels(check(failing, [failing, read_fine, failing])) == {"fetch:academia": "notice"}
+
+
+def test_a_failing_accounts_warning_holds_between_its_tries():
+    """12 Nov 2026: the run after a failed try didn't read the account, had no warning, and the workflow closed the
+    issue "All clear" (#226, #229, #232, #233, each opened at 3:00 and closed at 6:30 the same morning)."""
+    failing = record(failed_accounts=["academia"], read_accounts=["academia"])
+    other_turn = record(read_accounts=["otra"])
+    tries = [failing, other_turn, failing, other_turn, failing]
+    assert levels(check(other_turn, tries)) == {"fetch:academia": "warning"}
+    assert check(other_turn, [failing, other_turn]) == []  # one failed try: its notice was for that run only
+    assert check(record(read_accounts=["academia"]), tries) == []  # read fine: over
+    weekly = [failing, *[other_turn] * 20, failing, *[other_turn] * 20, failing]  # a dormant account: once a week
+    assert levels(check(other_turn, weekly + [other_turn] * 20)) == {"fetch:academia": "warning"}
+    gone = health.check(other_turn, tries, stats_with(), TODAY, swept=["otra"])  # taken out of accounts.txt
+    assert gone == []
+
+
+def test_a_run_that_read_no_account_doesnt_break_a_failing_accounts_streak():
+    """12 Nov 2026: a 6:30 sweep with nobody due (every other day since 5 Nov) read no account, its empty
+    read_accounts was taken for an older record's, and it broke the streak (@zaimora24 warned a try late on 26 Oct)."""
+    failing = record(failed_accounts=["academia"], read_accounts=["academia"])
+    nothing = record(accounts=0, read_accounts=[])
+    assert levels(check(failing, [failing, nothing, failing, nothing])) == {"fetch:academia": "warning"}
 
 
 def test_events_over_several_days_are_reviewed_until_their_last_day():
@@ -223,6 +255,15 @@ def test_a_scheduled_sweep_that_stopped_coming_is_a_warning(monkeypatch):
     without_3 = [run for run in every_sweep if "T03" not in run.finished_at]
     assert health.missed_sweeps(without_3, AT_6_50) == ["03:00"]
     assert levels(check(without_3[-1], without_3[:-1])) == {"missed-sweep:03:00": "warning"}
+
+
+def test_the_sweep_that_came_back_isnt_reported_missed(monkeypatch):
+    """12 Nov 2026: the 6:30 sweep failed on 8 and 9 Oct here (on 2 and 3 Nov for real), and the one back on the 10th
+    reported its own time missed: today's window, still open, wasn't counted."""
+    monkeypatch.setattr(config, "SWEEP_TIMES_SINCE", {})
+    without_6_30 = runs_at("08T03:40", "08T21:20", "09T03:35", "09T21:15", "10T03:30", "10T06:50")
+    assert health.missed_sweeps(without_6_30, AT_6_50) == []
+    assert health.missed_sweeps(without_6_30[:-1], datetime(2026, 10, 10, 6, 40, tzinfo=config.BOGOTA_TZ)) == ["06:30"]
     one_day = runs_at("08T06:50", "08T21:20", "09T06:45", "09T21:15", "10T03:30", "10T06:50")
     assert health.missed_sweeps(one_day, AT_6_50) == []  # missed once only (the first night, say)
 

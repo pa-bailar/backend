@@ -17,7 +17,7 @@ the report with the health-check ping.
 
 import hashlib
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Literal
@@ -245,7 +245,9 @@ def _model_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
     findings += _repeated(
         runs,
         lambda r: bool(r.models_unavailable),
-        "models-unavailable",
+        # The models in the key: another one going (the last Flash, with other advice) changes the fingerprint and is
+        # announced; until 12 Nov 2026 the issue's text changed without a comment.
+        f"models-unavailable:{','.join(sorted(run.models_unavailable))}",
         f"Gemini said this key can't use {unavailable} in the last {{runs}} runs: did Google drop it? {advice}",
         f"Gemini said this key can't use {unavailable} this run (asked again after midnight Pacific, when the "
         "quotas reset).",
@@ -353,6 +355,11 @@ def missed_sweeps(runs: list[RunRecord], now: datetime) -> list[str]:
     oldest, window = min(finished), timedelta(hours=config.SWEEP_WINDOW_HOURS)
     missed = []
     for clock in config.SWEEP_TIMES:
+        # A run in today's window, still open, shows the time works again: until 12 Nov 2026 the 6:30 sweep back
+        # after two failed mornings (4 Nov) reported its own time missed.
+        today_start = datetime.combine(now.astimezone(config.BOGOTA_TZ).date(), parse_hhmm(clock), config.BOGOTA_TZ)
+        if now < today_start + window and any(today_start <= moment <= now for moment in finished):
+            continue
         starts: list[datetime] = []
         day = now.astimezone(config.BOGOTA_TZ).date()
         while len(starts) < MISSED_DAYS:
@@ -374,8 +381,8 @@ def _missed_sweep_findings(runs: list[RunRecord], run: RunRecord) -> list[Findin
         Finding(
             "warning",
             f"missed-sweep:{clock}",
-            f"No sweep ran at {clock} (Bogotá) on the last {MISSED_DAYS} days: has {config.SWEEP_TRIGGER} stopped "
-            "starting it? Start it by hand meanwhile (Run workflow); docs/ARCHITECTURE.md, section 15.",
+            f"No sweep finished at {clock} (Bogotá) on the last {MISSED_DAYS} days: did those runs fail (the "
+            f"workflow's runs), or has {config.SWEEP_TRIGGER} stopped starting it? docs/ARCHITECTURE.md, section 15.",
         )
         for clock in missed_sweeps(runs, datetime.fromisoformat(run.finished_at))
     ]
@@ -438,21 +445,33 @@ def _unpublished_findings(run: RunRecord, history: list[RunRecord]) -> list[Find
     ]
 
 
-def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date) -> list[Finding]:
-    """What this run (with the ones before it) says needs a look. Warnings first."""
+def check(
+    run: RunRecord, history: list[RunRecord], stats: RunStats, today: date, swept: Collection[str] | None = None
+) -> list[Finding]:
+    """What this run (with the ones before it) says needs a look. Warnings first. `swept`: the accounts in
+    accounts.txt (None: every account the history names)."""
     runs = [*history, run]
     findings: list[Finding] = []
 
-    for account in run.failed_accounts:
+    # An account keeps its warning in the runs between its tries (once a day, or a week for a dormant one): until 12
+    # Nov 2026 the next run, which didn't read it, had none, and the workflow closed the issue "All clear" (#226,
+    # #229, #232, #233, each the same morning). Only the warning, and only while it's still in accounts.txt.
+    failed_before = {account for r in history for account in r.failed_accounts} - set(run.failed_accounts)
+    carried_over = sorted(failed_before if swept is None else failed_before & set(swept))
+    for account in [*run.failed_accounts, *carried_over]:
+        carried = account not in run.failed_accounts
 
         def failed(r: RunRecord, account: str = account) -> bool:
             return account in r.failed_accounts
 
         def tried(r: RunRecord, account: str = account) -> bool:
-            # Older records don't list what was read: they count, as before.
-            return not r.read_accounts or account in r.read_accounts or account in r.failed_accounts
+            # Older records don't list what was read: they count, as before. A run that read no account (a 6:30
+            # sweep with nobody due, every other day since 5 Nov 2026) didn't try it either: until 12 Nov it broke
+            # the streak, so an account failing on each of its tries rarely reached the warning.
+            older = r.accounts > 0 and not r.read_accounts
+            return older or account in r.read_accounts or account in r.failed_accounts
 
-        findings += _repeated(
+        account_findings = _repeated(
             runs,
             failed,
             f"fetch:{account}",
@@ -461,6 +480,7 @@ def check(run: RunRecord, history: list[RunRecord], stats: RunStats, today: date
             f"@{account} couldn't be read this run (it's tried again on its next turn).",
             applies=tried,
         )
+        findings += [finding for finding in account_findings if not carried or finding.level == "warning"]
     findings += _repeated(
         runs,
         lambda r: r.rate_limited,

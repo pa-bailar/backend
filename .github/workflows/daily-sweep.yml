@@ -250,10 +250,22 @@ jobs:
           while true; do
             # The REST list, not `gh pr list --label` (a search): this run's token searches only this repository, so
             # the search came back empty and runs went on past unmerged data PRs (#194–#198, #212; 10–17 Oct 2026).
-            open="$(gh api "repos/$SITE_OWNER/$SITE_REPO/pulls?state=open&per_page=100" \
-              --jq '[.[] | select(any(.labels[]; .name == "data")) | .html_url] | join(" ")')"
+            # A call that fails is tried again within the wait: until 12 Nov 2026 one error from GitHub's API ended the
+            # step (bash -e), and with it the whole sweep.
+            if ! open="$(gh api "repos/$SITE_OWNER/$SITE_REPO/pulls?state=open&per_page=100" \
+              --jq '[.[] | select(any(.labels[]; .name == "data")) | .html_url] | join(" ")')"; then
+              open="(GitHub's API didn't answer)"
+            fi
             if [ -z "$open" ]; then break; fi
-            if [ "$(date +%s)" -gt "$deadline" ]; then
+            past_deadline=false
+            if [ "$(date +%s)" -gt "$deadline" ]; then past_deadline=true; fi  # read once: both checks agree
+            if [ "$past_deadline" = true ] && [ "$open" = "(GitHub's API didn't answer)" ]; then
+              echo "::error::GitHub's API didn't list the site's pull requests for ${OPEN_DATA_PR_WAIT_MINUTES} minutes."
+              printf "## Health\n\n### ⚠️ Warnings\n\n- GitHub's API didn't list the site repository's pull requests for %s minutes, so this run stopped before sweeping (it can't tell whether a data PR is still open). GitHub's status page may say more; the next sweep tries again.\n" \
+                "$OPEN_DATA_PR_WAIT_MINUTES" > "$HEALTH_REPORT_FILE"
+              exit 1
+            fi
+            if [ "$past_deadline" = true ]; then
               echo "::error::A data PR hasn't merged: ${open}. Merge or fix it first (its events aren't on main)."
               # No sweep, so no health report or issue: this is the health check's failure ping's body (step 15). The
               # failed run emails too; once the PR is merged or closed, the next sweep's health checks see whether its
@@ -399,7 +411,7 @@ jobs:
           git config user.name "$BOT"
           git config user.email "${bot_id}+${BOT}@users.noreply.github.com"
           git add -A
-          git commit -qm "chore(media): images of run ${GITHUB_RUN_ID} ($(date -u +%F))"
+          git commit -qm "chore(media): images of run ${GITHUB_RUN_ID} ($(TZ=America/Bogota date +%F))"
           git push -q origin HEAD:main
 
       - name: Open a data pull request in the site repository if events changed
@@ -429,8 +441,10 @@ jobs:
           bot_id="$(gh api "/users/${BOT}" --jq .id)"
           git config user.name "$BOT"
           git config user.email "${bot_id}+${BOT}@users.noreply.github.com"
-          day="$(date -u +%F)"
-          branch="data/sweep-${day}-${GITHUB_RUN_ID}"
+          # Bogotá's day (the 21:00 sweep's PR was named after the next day), and the attempt: a re-run of a run that
+          # pushed its branch and then failed would push to that branch again, and be refused.
+          day="$(TZ=America/Bogota date +%F)"
+          branch="data/sweep-${day}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           git switch -c "$branch"
           git add data/
           git commit -m "chore(data): ${WHAT} ${day}"

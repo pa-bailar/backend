@@ -456,36 +456,44 @@ class SweepBase:
         # As they were, for the run's changes (_note_changes).
         before = {event.id: event for event in self.events if event.id in announced}
         stored_ids, hidden_ids = {event.id for event in self.events}, set(self.hidden)
-        self.events = detach_post(self.events, post["id"])
-        cancelled = not publishable and bool(announced) and _says_cancelled(post, analysis)
+        # Put back if anything below fails: the error is contained (the run goes on), and the next post's _save would
+        # write the events without this post's. Until 12 Nov 2026 an upgrade that failed there took its event off the
+        # site for good (the record, still provisional, pointed to nothing, so no sweep read it again).
+        events_before = [event.model_copy(deep=True) for event in self.events]
+        try:
+            self.events = detach_post(self.events, post["id"])
+            cancelled = not publishable and bool(announced) and _says_cancelled(post, analysis)
 
-        if not publishable:
-            log.info("     skipped: %s", analysis.reason)
-        readings = list(zip(publishable, flyers, strict=True))
-        rebuilt = list(reusable)  # as they were: _add_readings takes from `reusable` as it gives their ids back
-        added = self._add_readings(
-            account, post, readings, reusable, count=count_as_new, light=light, announced=announced
-        )
-        self._keep_review_flags(rebuilt)
-        results = [result for result in added if result]
-        outcome: tuple[PostOutcome, list[str], str | None]
-        if results:
-            merged_only = all(merged for _, merged in results)
-            outcome = ("merged" if merged_only else "event", [event_id for event_id, _ in results], None)
-        elif added:  # every event it announces was hidden by hand
-            outcome = ("hidden", [], "oculto a mano")
-        elif cancelled:  # it announced events, and now says they're cancelled ("CANCELADO")
-            self._take_down_cancelled(account, announced)
-            outcome = ("discarded", [], "cancelado")
-        elif analysis.is_event_post and analysis.events:
-            outcome = ("discarded", [], ", ".join(sorted(reasons)))
-        else:
-            outcome = ("not_event", [], None)
-        # The record last: if anything above fails, the post isn't recorded as analyzed (with its events detached and
-        # not added again), so it's read again next run.
-        self._record_processed(account, post, analysis.is_event_post, analysis.reason, model, provisional)
-        self._set_outcome(post, *outcome)
-        self._save()
+            if not publishable:
+                log.info("     skipped: %s", analysis.reason)
+            readings = list(zip(publishable, flyers, strict=True))
+            rebuilt = list(reusable)  # as they were: _add_readings takes from `reusable` as it gives their ids back
+            added = self._add_readings(
+                account, post, readings, reusable, count=count_as_new, light=light, announced=announced
+            )
+            self._keep_review_flags(rebuilt)
+            results = [result for result in added if result]
+            outcome: tuple[PostOutcome, list[str], str | None]
+            if results:
+                merged_only = all(merged for _, merged in results)
+                outcome = ("merged" if merged_only else "event", [event_id for event_id, _ in results], None)
+            elif added:  # every event it announces was hidden by hand
+                outcome = ("hidden", [], "oculto a mano")
+            elif cancelled:  # it announced events, and now says they're cancelled ("CANCELADO")
+                self._take_down_cancelled(account, announced)
+                outcome = ("discarded", [], "cancelado")
+            elif analysis.is_event_post and analysis.events:
+                outcome = ("discarded", [], ", ".join(sorted(reasons)))
+            else:
+                outcome = ("not_event", [], None)
+            # The record last: if anything above fails, the post isn't recorded as analyzed (its events are put back,
+            # below), so it's read again next run.
+            self._record_processed(account, post, analysis.is_event_post, analysis.reason, model, provisional)
+            self._set_outcome(post, *outcome)
+            self._save()
+        except BaseException:
+            self.events = events_before
+            raise
         self._note_changes(
             account,
             post,

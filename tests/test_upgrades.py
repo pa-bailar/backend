@@ -368,3 +368,63 @@ def test_in_the_turn_such_a_post_comes_after_every_other():
     extractor = FlashFor(1, analyses)
     run(instagram, extractor)  # its turn again
     assert extractor.extracted_posts == ["reel"]  # when nothing else waits
+
+
+def test_a_collaboration_is_upgraded_as_the_account_it_was_recorded_under():
+    """12 Nov 2026: read first from @academia's feed, a collaboration is in @otra's too; @otra's turn queued it as
+    @otra's, and the upgrade moved the record and its event there, with @otra's rules (a bar's: a social became a
+    rumba)."""
+    config.ACCOUNTS_FILE.write_text("academia\notra bar\n", encoding="utf-8")
+    on_record(("collab", "academia", day(1), 1), due=("otra",))
+    instagram = FakeInstagram({"academia": [], "otra": [post("collab", days_ago=1)]})
+    run(instagram, FakeExtractor(flash_reads("collab", date=day(1))), all_accounts=False)
+    event = storage.load_events()[0]
+    assert not provisional("collab") and storage.load_processed_posts()["collab"].account == "academia"
+    assert (event.account, event.bar) == ("academia", False)
+
+
+def test_an_error_while_an_upgrade_stores_its_events_leaves_them_on_the_site(monkeypatch):
+    """12 Nov 2026: the post's events were detached before Flash's readings were added; an error in between was
+    contained, and the next post's save wrote the events without them, for good (the record, still provisional,
+    pointed to nothing)."""
+    from pa_bailar.pipeline import base
+
+    on_record(("p1", "otra", day(3), 1), ("p2", "otra", day(2), 1), due=("otra",))
+    instagram = FakeInstagram({"academia": [], "otra": [post("p1"), post("p2")]})
+    real = base.SweepBase._add_readings
+
+    def failing_for_p2(self, account, post_, *args, **kwargs):
+        if post_["id"] == "p2":  # the soonest event: upgraded first
+            raise ValueError("a reading the code didn't expect")
+        return real(self, account, post_, *args, **kwargs)
+
+    monkeypatch.setattr(base.SweepBase, "_add_readings", failing_for_p2)
+    run(instagram, FakeExtractor(flash_reads("p1", date=day(3)) | flash_reads("p2", date=day(2))), all_accounts=False)
+    assert {event.title for event in storage.load_events()} == {"Evento p1", "Evento p2"}
+    assert provisional("p2") and not provisional("p1")  # read again by a later sweep
+
+
+def test_an_account_whose_turn_the_share_left_isnt_read_for_flash(monkeypatch):
+    """12 Nov 2026: the share left @otra's turn for the next run, and the upgrades read it for its provisional post
+    only: an Instagram read, and another on its turn."""
+    from tests.test_sweep import swept
+
+    monkeypatch.setattr(config, "EXTRA_ACCOUNTS_PER_RUN", 0)  # a share of 1 for 2 accounts
+    on_record(("cerca", "otra", day(1), 2))
+    storage.write_json(config.ACCOUNT_STATE_FILE, {"academia": swept(30), "otra": swept(23)})
+    instagram = FakeInstagram({"academia": [], "otra": [post("cerca")]})
+    stats = run(instagram, FakeExtractor(flash_reads("cerca", date=day(1))), all_accounts=False)
+    assert "otra" not in instagram.limits and stats.upgrade_reads == 0 and provisional("cerca")
+
+
+def test_an_account_instagram_cant_read_is_given_up_like_a_post_it_doesnt_return():
+    """12 Nov 2026: a failed read counted no miss, so an account renamed or gone private was read for in every
+    sweep until its event ended (three a day)."""
+    from pa_bailar.instagram import InstagramError
+
+    on_record(("p", "otra", day(10), 1))
+    instagram = FakeInstagram({"academia": [], "otra": InstagramError("Invalid user id", code=110)})
+    reads = [run(instagram, FakeExtractor({}), all_accounts=False).upgrade_reads for _ in range(5)]
+    assert (
+        sum(reads) == config.UPGRADE_MISSES_BEFORE_GIVING_UP and misses("p") == config.UPGRADE_MISSES_BEFORE_GIVING_UP
+    )

@@ -449,7 +449,8 @@ flowchart LR
   `daily-sweep`; `admin` also answers a request made by commenting on a closed issue). The answer reaches it as
   a file or an input, never inside a script.
 - **`.github/actions/save-accounts`:** saves `accounts.txt` for both workflows when an account was added: a PR
-  opened by pa-bailar-bot, merged by itself once `ci` passes. `main` takes no direct pushes (its ruleset), and a PR
+  opened by pa-bailar-bot, merged by itself once `ci` passes. It waits for an earlier accounts PR and is built on
+  `main` as it is (`on-main.sh`): two open at once conflicted until 12 Nov 2026. `main` takes no direct pushes (its ruleset), and a PR
   opened with the workflow's own token would start no `ci`. Until 24 Oct 2026 both workflows pushed to `main` and
   were refused: every account added with these tools since 6 Oct was lost (the answer said it was added).
 - **`.github/ISSUE_TEMPLATE/admin.yml`:** the form (Acción: Revisar, Agregar, Volver a leer, Agregar cuenta,

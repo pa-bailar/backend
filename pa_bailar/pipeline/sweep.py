@@ -413,8 +413,10 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         waiting = waiting_for_flash(self.processed, events, today)
         reads = [
             (upgrade_urgency(self.processed[post_ids[0]].event_ids, events, today), account, post_ids)
+            # Not one whose turn the share left for the next run (read first then): until 12 Nov 2026 it was read here
+            # for its provisional posts only, and again on its turn.
             for account, post_ids in waiting.items()
-            if account in self.options and account not in self._read_this_run
+            if account in self.options and account not in self._read_this_run and account not in self.stats.due_accounts
         ]
         reads = sorted(reads)[: config.UPGRADE_READS_PER_RUN]
         if not queue and not reads:
@@ -542,15 +544,18 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
                 self.rate_limited = True
                 self.stats.instagram_stop = "meta"
                 return None
-            return []
+            # A miss for each of its posts, as when the read doesn't return them: until 12 Nov 2026 an account
+            # Instagram can't read (renamed, private) was read for in every sweep until its event ended.
+            posts = []
         return self._fetched_for_flash(account, posts, post_ids)
 
     def _fetched_for_flash(
         self, account: str, posts: list[Post], post_ids: list[str]
     ) -> list[tuple[str, Post, datetime]]:
-        """The posts among those fetched that wait for Flash (`post_ids`), to queue. One not returned (deleted, or
-        deeper than the read went) is logged and counted, in the run (upgrade_misses) and on its record, in a row: tried
-        again on a later run, until config.UPGRADE_MISSES_BEFORE_GIVING_UP (then waiting_for_flash leaves it out)."""
+        """The posts among those fetched that wait for Flash (`post_ids`), to queue. One not returned (deleted, deeper
+        than the read went, or the read failed) is logged and counted, in the run (upgrade_misses) and on its record,
+        in a row: tried again on a later run, until config.UPGRADE_MISSES_BEFORE_GIVING_UP (then waiting_for_flash
+        leaves it out)."""
         fetched = {post["id"]: post for post in posts}
         changed = False
         for post_id in post_ids:
@@ -718,7 +723,8 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         the 6:30 sweep's accounts (due at 4:30), and they keep the 3:00 sweep from then on. Short-notice accounts
         (short_notice_accounts) take their turn in the evening sweep, first among the due ones, so neither its share
         nor Instagram's stop pushes them to the next morning; a sweep before it reads one only
-        config.SHORT_NOTICE_WAIT_HOURS past its turn (never starved), and reading ahead never takes one."""
+        config.SHORT_NOTICE_WAIT_HOURS past its turn (never starved), and reading ahead never takes one (the evening
+        sweep takes one up to config.READ_AHEAD_HOURS early as due)."""
         followed = storage.read_accounts()
         now = config.now_bogota()
         overdue = overdue_by_account(followed, self.accounts, self.processed.values(), self.events, now)
@@ -726,16 +732,21 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
         short = set() if self.all_accounts else short_notice_accounts(self.processed.values(), self.events, now)
 
         def turn_starts(account: str) -> float:
-            """Hours past its turn this sweep reads it from: a short-notice one waits for the evening."""
-            return config.SHORT_NOTICE_WAIT_HOURS if account in short and not evening else 0
+            """Hours past its turn this sweep reads it from: a short-notice one waits for the evening, and the evening
+            sweep takes it up to config.READ_AHEAD_HOURS early (its one slot: until 12 Nov 2026 an evening run that
+            started late left it short of its turn the next evening, and it was read the morning after)."""
+            if account not in short:
+                return 0
+            return -config.READ_AHEAD_HOURS if evening else config.SHORT_NOTICE_WAIT_HOURS
 
         due = (
             followed
             if self.all_accounts
             else [account for account in followed if overdue[account] >= turn_starts(account)]
         )
-        if held := [account for account in followed if 0 <= overdue[account] < turn_starts(account)]:
+        if held := [account for account in followed if 0 <= overdue[account] < turn_starts(account)]:  # not evening
             log.info("%s short-notice accounts wait for the evening sweep: %s", len(held), ", ".join(held))
+        ahead: list[str] = []
         if not self.all_accounts and len(due) < self._share_per_run():
             ahead = [
                 account
@@ -759,7 +770,11 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             """In the evening sweep, every account but the short-notice ones goes after them."""
             return not (evening and account in short)
 
-        return sorted(due, key=lambda account: (is_new(account), after_short_notice(account), -overdue[account]))
+        # Read-ahead after every due one, new ones too: until 12 Nov 2026 a due new account sorted after them, and the
+        # share cut it.
+        return sorted(
+            due, key=lambda account: (account in ahead, is_new(account), after_short_notice(account), -overdue[account])
+        )
 
     def _apply_retention(self) -> None:
         """Archive long-past events (storage.archive_events) and forget old analyzed posts, so the site's data and
@@ -885,7 +900,10 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
             elif read is False:  # None: waiting in the batch, counted when it's read (batches.py)
                 self.stats.count(account, "pending")
         elif record.provisional:
-            self._to_upgrade.append((account, post, published))  # re-read after every account, by urgency
+            # Re-read after every account, by urgency, as the account it's recorded under: a collaboration is in both
+            # feeds, and until 12 Nov 2026 the other one's turn moved its event there, with that account's rules
+            # (a bar's made a social a rumba).
+            self._to_upgrade.append((record.account or account, post, published))
 
     def _adopt_public_record(self, post: Post) -> ProcessedPost | None:
         """A post added by hand from its public page, now among the account's posts: the same post, not a new
