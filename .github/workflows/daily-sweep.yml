@@ -257,13 +257,15 @@ jobs:
               open="(GitHub's API didn't answer)"
             fi
             if [ -z "$open" ]; then break; fi
-            if [ "$(date +%s)" -gt "$deadline" ] && [ "$open" = "(GitHub's API didn't answer)" ]; then
+            past_deadline=false
+            if [ "$(date +%s)" -gt "$deadline" ]; then past_deadline=true; fi  # read once: both checks agree
+            if [ "$past_deadline" = true ] && [ "$open" = "(GitHub's API didn't answer)" ]; then
               echo "::error::GitHub's API didn't list the site's pull requests for ${OPEN_DATA_PR_WAIT_MINUTES} minutes."
               printf "## Health\n\n### ⚠️ Warnings\n\n- GitHub's API didn't list the site repository's pull requests for %s minutes, so this run stopped before sweeping (it can't tell whether a data PR is still open). GitHub's status page may say more; the next sweep tries again.\n" \
                 "$OPEN_DATA_PR_WAIT_MINUTES" > "$HEALTH_REPORT_FILE"
               exit 1
             fi
-            if [ "$(date +%s)" -gt "$deadline" ]; then
+            if [ "$past_deadline" = true ]; then
               echo "::error::A data PR hasn't merged: ${open}. Merge or fix it first (its events aren't on main)."
               # No sweep, so no health report or issue: this is the health check's failure ping's body (step 15). The
               # failed run emails too; once the PR is merged or closed, the next sweep's health checks see whether its
