@@ -17,13 +17,14 @@ pa_bailar/            the collector (one Python package; every module in docs/AR
   instagram.py        Instagram Graph API (Business Discovery); instagram_usage.py: what a read costs, the stop
   public_post.py      one post from its public page, when the API can't give it (admin tools)
   stories.py          a story's event from screenshots shared to the admin page: dates, crop, account
-  extraction.py       triage then extraction; prompts.py has the prompts, gemini.py the models and quotas
+  extraction.py       triage then extraction; prompts.py has the prompts, gemini.py the models and quotas;
+                      batching.py: several posts in one request (off by default)
   external.py         the last resort when Gemini runs out (Groq, OpenRouter)
   bakeoff.py          measures models: the last resort's against Flash, any model against the test set (gold/)
   checks.py, ocr.py   rules (no AI) that flag a reading for a second look, and a flyer's OCR text (not in the sweep yet)
   account_options.py  what an accounts.txt line says besides the name (`bar`, `solo:<styles>`)
   merging.py, ids.py, normalize.py, clips.py, storage.py, media_store.py, models.py, config.py
-  health.py, status.py, why.py, inbox.py, links.py, patterns.py, sweep_state.py, discovery.py, text.py, logs.py
+  health.py, status.py, changes.py, why.py, inbox.py, links.py, patterns.py, sweep_state.py, discovery.py, text.py, logs.py
 tests/                unit and end-to-end tests (no network); fixtures/patterns.json and run_lines.json are shared with admin-web/test
 gold/                 the test set: posts checked by hand against their flyers (admin bakeoff --gold; its README)
 .github/              the workflows (ci, media, admin, daily-sweep), the answer-issue and save-accounts actions, the admin issue form,

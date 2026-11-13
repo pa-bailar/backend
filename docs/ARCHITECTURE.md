@@ -5,7 +5,7 @@ How the whole system works, from an academy posting a flyer on Instagram to that
 `pa-bailar/backend`) in depth, and every service around it. The site's side is in the site
 repository's `docs/ARCHITECTURE.md` (`pa-bailar/pa-bailar.github.io`).
 
-Last reviewed: 9 October 2026.
+Last reviewed: 12 November 2026.
 
 Contents:
 
@@ -271,9 +271,9 @@ They're described in the site repository's `docs/ARCHITECTURE.md`. The backend d
 | `GEMINI_LITE_ONLY` | Variable | GitHub Actions variable (optional) | Sweep step | `1`: Flash-Lite also extracts, as final results (`config.LITE_ONLY`). For when Flash isn't available to the key; unset otherwise |
 | `GEMINI_BATCH_POSTS` | Variable | GitHub Actions variable (optional) | Sweep step | `2` or `3`: an account's posts read that many per extraction request (`config.EXTRACTION_BATCH_POSTS`, section 7.2); unset or `1`: one each (the default) |
 | `HEALTHCHECK_URL` | Secret | GitHub Actions secret | "Report to the health check" step | The check's ping URL. Optional: without it the step does nothing |
-| `GITHUB_TOKEN` | Automatic | Created by GitHub per run | daily-sweep: the `request` job (reads the admin issue, answers it if adding can't start), `story-images` (answers if the screenshots can't be downloaded), the open-PR check (reads the public site), the state save, the account commit (`main`), the health issue, the answer on the admin issue. admin: labels and answers the issue, commits an added account, starts the sweep | daily-sweep: `contents: write` and `issues: write` (`request` and `story-images`: `contents: read` and `issues: write`). admin: `contents: write`, `issues: write`, `actions: write`. Only handed to the steps that need it |
+| `GITHUB_TOKEN` | Automatic | Created by GitHub per run | daily-sweep: the `request` job (reads the admin issue, answers it if adding can't start), `story-images` (answers if the screenshots can't be downloaded), the open-PR check (reads the public site), the state save, an added account's branch (its PR is the bot's, step 11b), the health issue, the answer on the admin issue. admin: labels and answers the issue, pushes an added account's branch, starts the sweep | daily-sweep: `contents: write` and `issues: write` (`request` and `story-images`: `contents: read` and `issues: write`). admin: `contents: write`, `issues: write`, `actions: write`. Only handed to the steps that need it |
 | GitHub's identity token (OIDC) | Automatic | Minted per job by GitHub, only in daily-sweep's `story-images` and `story-cleanup` jobs (`id-token: write`) | Downloading and deleting story screenshots on the admin page's Worker | Short-lived, audience `pa-bailar-admin`; the Worker checks GitHub's signature, the repository, `main` and the workflow. Nothing to store or rotate |
-| cron-job.org token | Secret | cron-job.org only | The two cron jobs | Fine-grained PAT, Actions read/write on this repository only |
+| cron-job.org token | Secret | cron-job.org only | The three cron jobs | Fine-grained PAT, Actions read/write on this repository only |
 
 Settings that aren't secrets live in code, mostly in `pa_bailar/config.py`. That includes the models and
 quotas, the lookback windows, the retention, the sweep times and the time budget. The followed accounts
@@ -667,7 +667,7 @@ false "no" loses the event for good, while a false "yes" only costs one Flash ca
 **Flash's second opinion on the triage** (17 Oct 2026, `Sweep._check_triage`): the triage's "no" was final, and
 119 posts were ruled out in the week to 17 Oct without anyone knowing how many announced events. So a run holds the
 posts the triage ruled out (as fetched, with their images: no other Instagram read; at most `TRIAGE_CHECKS_HELD`,
-12), and once the accounts are read, before the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (1; 3 at 6:30, `TRIAGE_CHECKS_AT`) of them
+12), and once the accounts are read, before the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (1 when on; 3 at 6:30, `TRIAGE_CHECKS_AT`) of them
 (section 7.2). **Off since 12 Nov 2026** (the owner: both values 0, so nothing is held or read; section 7.2 says why). Only the triage's own "no": not the rules' (a bar's or a focus filter's, recorded with model
 `-`), nor posts or stories added by hand. Flash's reading is stored as any Flash reading (section 6.3) and replaces
 the post's record (Flash's model, `triage_checked`, never checked again). An event published (or hidden by hand) is
@@ -909,12 +909,12 @@ flowchart TD
   up at once, with 21 of the run's 30 minutes left; 40 of the 85 upcoming events had only a lighter reading. Out of
   quota, it doesn't wait; busy again after the wait, the rest waits for a later run.
 - **Flash's second opinion on the triage** (17 Oct 2026, `Sweep._check_triage`; section 6.2): once the accounts are
-  read and before the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (1), or `TRIAGE_CHECKS_AT` for a scheduled sweep
+  read and before the upgrades, Flash extracts up to `TRIAGE_CHECKS_PER_RUN` (1 when on), or `TRIAGE_CHECKS_AT` for a scheduled sweep
   (3 at 6:30: `scheduled_sweep`, `triage_checks`), of the posts the triage ruled out
   this run, under the upgrades' gate (`can_upgrade`: budget beyond the later sweeps' share, not paused as busy; time
   left), taking the run's one wait for a paused Flash (above); the upgrades take the rest. Which ones
   (`second_opinion_order`): those of accounts with an event on record first (they do post events), then the others,
-  then the unproductive ones (`unproductive_accounts`); the newest first in each. Cost: at most 5 Flash requests a
+  then the unproductive ones (`unproductive_accounts`); the newest first in each. Cost, when on: at most 5 Flash requests a
   day (1 at 3:00 and 21:00, 3 at 6:30) of the 36; no Instagram read. Until 22 Oct 2026 it came after the upgrades, with what they left
   (3 a run), and never ran: Flash is used up every quota day and provisional posts always wait (24 that week), so
   `triage_checked` was 0 in all 15 sweeps of 17–22 Oct. Three at 6:30 since 28 Oct 2026 (the owner): at 21:00 and
@@ -1611,7 +1611,7 @@ model of a role having its limits).
 
 | Risk | Mitigation |
 |---|---|
-| A compromised dependency reading the repository token during the sweep | No checkout keeps credentials (`persist-credentials: false`). The write token is only handed to the steps that write (the state save, the account commit, issues), and the App token is minted after the sweep |
+| A compromised dependency reading the repository token during the sweep | No checkout keeps credentials (`persist-credentials: false`). The write token is only handed to the steps that write (the state save, an added account's branch, issues), and the App token is minted after the sweep |
 | Secrets exposed to steps that don't need them | The Gemini secrets (and Groq's and OpenRouter's) are only in the sweep step's environment; the Meta token and the Instagram user id, in the sweep step, the status step after it (`admin status --json`) and the admin workflow's Answer step (section 4). The Meta app secret isn't on GitHub at all |
 | A leaked cron-job.org token | Scope: start or cancel runs of this repository only, no code or secrets. `--days` is capped at 30, so a forced run can't spend the day's quotas on old posts. `concurrency` caps the runs at one running and one waiting. The admin inputs (`post_url`, `story`, `hide`) need an open `admin` issue by `jzamora5` and their exact shapes, and never reach shell code directly (the `request` job, section 5.2), so the token can't publish or hide anything or run commands |
 | The Meta token in error text | It's sent in the URL; `instagram.redact` removes it (and the app secret and exchanged tokens of `refresh-token`) from every error before logs, `status.json` or admin answers (section 8) |
@@ -1630,7 +1630,7 @@ model of a role having its limits).
 
 ## 14. Quotas and capacity
 
-With **128 followed accounts** (8 October 2026, `accounts.txt`) and three runs a day (3:00, 6:30 and 21:00 since
+With **about 130 followed accounts** (131 on 12 November 2026, `accounts.txt`) and three runs a day (3:00, 6:30 and 21:00 since
 9 Oct 2026; each account read about once a day, quiet, occasional, unproductive and dormant ones less often:
 section 5, "Whose turn it is"):
 
@@ -1643,7 +1643,7 @@ section 5, "Whose turn it is"):
 | Gemini Flash (two for extraction, one older for provisional reads) | 20 / day each (36 usable for extraction, 18 more provisional; 3.7 and 3.5 Flash left the pool on 9 Oct 2026: deprecated, answered by 3.8 and 3.6) | 1 per post that announces events, plus upgrades of provisional posts | All of it most days: about 40–70 posts a day announce events, the rest are read provisionally (by the older Flash or Flash-Lite) | The binding limit, but it loses no events: the overflow is read provisionally and shown. The three sweeps share one quota day (midnight Pacific: 2:00 Bogotá, 3:00 in the Pacific's winter), 3:00 first, so a sweep leaves each later one an equal share (`flash_reserve`: the 3:00 one keeps two thirds of each model's 18, the 6:30 one a third; 12 of the 36 per sweep, and what one leaves unused passes on to the next), and spare requests re-read provisional posts after every account is read, the soonest events first (`Sweep._upgrade_by_urgency`; the owner, 6 Oct 2026); Flash's second opinion on posts the triage ruled out (section 6.2) took a fixed share before them from 22 Oct 2026, and is off since 12 Nov (the owner: its requests go to the upgrades). A provisional post of an event not over yet is reached wherever it is: a turn's read of its account goes back to it, and up to 10 accounts not read that run are read for such posts alone (section 7.2; 17 Oct 2026: until then the 6:30 sweep, which since read-ahead usually reads no account, left its share unused); not one those reads missed 3 times in a row, nor one whose events Flash read through another post (22 Oct 2026). A post whose events are over leaves the line once it leaves the lookback, so the backlog doesn't grow without end. Batched extraction (`GEMINI_BATCH_POSTS`, off by default; section 7.2) reads an account's posts two or three per request: on the records of 9 Oct 2026 about 19% (two) or 30% (three) fewer extraction requests, the posts confirmed alone included |
 | GitHub Actions minutes (backend, public since 6 Oct 2026) | Unlimited | 15–30 min (measured 6 Oct 2026: Gemini's pacing and busy retries, Instagram; no longer waiting for the data PR, #124) | ~50–75 (three runs) | Free. Before (private: 2,000 a month), about 1,100–1,500 a month went to the sweeps, plus ci on pull requests |
 | GitHub Actions minutes (public site repository) | Unlimited | ci + deploy, ~2 min | | |
-| cron-job.org | Unlimited jobs | 1 call | 2 | |
+| cron-job.org | Unlimited jobs | 1 call | 3 | |
 | healthchecks.io | Free plan | 1 ping | 3 | |
 
 **The time budget:** a run stops starting Gemini work after 30 minutes (`MAX_RUN_MINUTES`). The step
@@ -1664,7 +1664,7 @@ spent only on the few that announce events.
 
 | Symptom | Likely cause | What to do |
 |---|---|---|
-| cron-job.org email "execution failed", with HTTP `401` | The fine-grained token expired or was revoked | Create a new one (resource owner `pa-bailar`, repository `backend`, Actions read/write) and replace it in both cron jobs |
+| cron-job.org email "execution failed", with HTTP `401` | The fine-grained token expired or was revoked | Create a new one (resource owner `pa-bailar`, repository `backend`, Actions read/write) and replace it in all three cron jobs |
 | cron-job.org email with HTTP `404` | Workflow file renamed, or the token can't see the repository | Fix the URL or the token's repository access |
 | healthchecks.io "DOWN", **no ping** | No run started: cron-job.org disabled, or GitHub accepted the call but never ran it | Check cron-job.org's history and the Actions page. Start a run with *Run workflow* |
 | Warning: no sweep at a scheduled time on the last 2 days | Its cron-job.org job stopped: an expired token (cron-job.org emails a `401`), or the job paused | Check the job's history in cron-job.org; replace the token in all three jobs if it expired (section 3.4). Meanwhile the next sweep reads what the missed one would have |

@@ -64,7 +64,8 @@ address follows the tab you pick. On a keyboard, ← and → (or Home, End) move
 
 **Estadísticas:** the sweeps (✅ or ⚠️, with links to the runs; each says what it did: new and merged events, posts
 read provisionally or re-read with Flash, accounts read for Flash beyond their turn, posts the triage ruled out that
-Flash checked and the events it found in them: "descartes revisados con Flash", "eventos rescatados") and, under them, "Datos publicados: hoy 3:40 a. m.":
+Flash checked and the events it found in them: "descartes revisados con Flash", "eventos rescatados", none since that
+check was turned off on 12 Nov 2026; a count of 0 isn't shown) and, under them, "Datos publicados: hoy 3:40 a. m.":
 when the site's data was last published, as the latest sweep found the site when it started (a data PR that merged
 since shows after the next sweep). In the warning color when earlier sweeps' data never reached the site (their data
 PR didn't merge: the same rule as the health warning, backend ARCHITECTURE section 11.1): "⚠️ Datos publicados: sábado
@@ -464,7 +465,7 @@ flowchart LR
 - **Files:**
   - `admin-web/wrangler.jsonc`: the Worker's settings. Its `name` must match the Worker's name in Cloudflare.
   - `admin-web/public/`: the page, with no data in it: `index.html`, `app.js`, `admin.css`, `render.js` (turns
-    data into escaped HTML: the new series, the history, Bogotá times), `tabs.js` (the tabs) and `patterns.js` (the shapes a request may take, which
+    data into escaped HTML: the new series, each sweep's line (`runSummary`), the history, Bogotá times), `tabs.js` (the tabs) and `patterns.js` (the shapes a request may take, which
     `src/index.js` imports too). What makes it installable: `manifest.webmanifest` (name, colors, icons in
     `icons/`) with a `share_target`: Android posts what's shared (a link's text, up to 4 images) to `/share`.
     `sw.js`, the page's service worker, answers that in the browser: it keeps shared images in Cache Storage
