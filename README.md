@@ -24,7 +24,7 @@ pa_bailar/            the collector (one Python package; every module in docs/AR
   account_options.py  what an accounts.txt line says besides the name (`bar`, `solo:<styles>`)
   merging.py, ids.py, normalize.py, clips.py, storage.py, media_store.py, models.py, config.py
   health.py, status.py, why.py, inbox.py, links.py, patterns.py, sweep_state.py, discovery.py, text.py, logs.py
-tests/                unit and end-to-end tests (no network); fixtures/patterns.json is shared with admin-web/test
+tests/                unit and end-to-end tests (no network); fixtures/patterns.json and run_lines.json are shared with admin-web/test
 gold/                 the test set: posts checked by hand against their flyers (admin bakeoff --gold; its README)
 .github/              the workflows (ci, media, admin, daily-sweep), the answer-issue and save-accounts actions, the admin issue form,
                       Dependabot's settings
