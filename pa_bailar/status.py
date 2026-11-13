@@ -34,9 +34,6 @@ from .text import WEEKDAYS, clock, parse_hhmm, sessions_label
 
 RECENT_RUNS = 5
 HISTORY_ITEMS = 10  # runs in the history (status["history"]): sweeps and admin requests, newest first
-# A sweep that ends within this long after one of config.SWEEP_TIMES is that scheduled one (it can wait for a data PR
-# or a request before it, then runs up to config.MAX_RUN_MINUTES); else it's an extra one, started by hand.
-SCHEDULED_SWEEP_MINUTES = 150  # 90 until 9 Oct 2026: a 3:00 run waiting for a data PR read as "extra"
 _FLAT_STOP = 90  # where the sweep stopped reading accounts until 9 Oct 2026, for the records from before
 
 
@@ -55,11 +52,12 @@ def next_sweeps(now: datetime, count: int = 2) -> list[datetime]:
 
 def sweep_slot(finished_at: str) -> str | None:
     """The scheduled sweep (config.SWEEP_TIMES: "03:00", "06:30", "21:00") a run that ended then was, or None (an
-    extra one)."""
+    extra one, started by hand): one ending within config.SWEEP_WINDOW_HOURS after its time, as the health check
+    judges it (its own 150 minutes until 12 Nov 2026)."""
     moment = datetime.fromisoformat(finished_at).astimezone(config.BOGOTA_TZ)
     for hhmm in config.SWEEP_TIMES:
         start = datetime.combine(moment.date(), parse_hhmm(hhmm), config.BOGOTA_TZ)
-        if timedelta(0) <= moment - start <= timedelta(minutes=SCHEDULED_SWEEP_MINUTES):
+        if timedelta(0) <= moment - start <= timedelta(hours=config.SWEEP_WINDOW_HOURS):
             return hhmm
     return None
 
@@ -439,7 +437,10 @@ def _count(number: int, one: str, many: str) -> str:
     return _amount(number, one, many) if number else ""
 
 
-def _run_line(run: dict[str, Any], now: datetime) -> str:
+def run_summary(run: dict[str, Any]) -> tuple[str, bool]:
+    """A run in short ("2 nuevos, 1 unido, …") and whether it had problems. The admin page's runSummary
+    (admin-web/public/render.js) says the same: both are checked against tests/fixtures/run_lines.json (until 12 Nov
+    2026 the two copies had drifted apart)."""
     problems = [
         "límite de Instagram" if run.get("rate_limited") else "",
         "sin tiempo" if run.get("out_of_time") else "",
@@ -447,7 +448,6 @@ def _run_line(run: dict[str, Any], now: datetime) -> str:
         _count(run.get("post_errors", 0), "error", "errores"),
     ]
     problems = [problem for problem in problems if problem]
-    mark = "⚠️" if problems else "✅"
     parts = [
         _amount(run.get("events_new", 0), "nuevo", "nuevos"),  # "1 nuevos" until 17 Oct 2026
         _amount(run.get("events_merged", 0), "unido", "unidos"),
@@ -461,9 +461,14 @@ def _run_line(run: dict[str, Any], now: datetime) -> str:
         _count(run.get("triage_misses", 0), "evento rescatado", "eventos rescatados"),
         *problems,
     ]
+    return ", ".join(part for part in parts if part), bool(problems)
+
+
+def _run_line(run: dict[str, Any], now: datetime) -> str:
+    summary, problems = run_summary(run)
     when = moment_label(run["finished_at"], now)
     link = f" · [ver]({run['run_url']})" if run.get("run_url") else ""
-    return f"- {mark} {when}: " + ", ".join(part for part in parts if part) + link
+    return f"- {'⚠️' if problems else '✅'} {when}: {summary}{link}"
 
 
 def _series_line(item: dict[str, Any]) -> str:

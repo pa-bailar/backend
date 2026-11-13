@@ -1587,7 +1587,10 @@ each job billed as at least a whole minute: from 1 to 5 October 2026 CI took 246
 again after merges and the toolkit's job started only when `media/` changes; both stay, to keep the queue short.
 
 Both test suites check the shapes the admin tools accept (`pa_bailar/patterns.py`, `admin-web/public/patterns.js`)
-against the same examples, `tests/fixtures/patterns.json`, so the inbox and the admin page can't drift apart.
+against the same examples, `tests/fixtures/patterns.json`, so the inbox and the admin page can't drift apart. A
+run in short ("2 nuevos, 1 unido, …"), written by `admin status` (`status.run_summary`) and the admin page
+(`render.js` `runSummary`), is checked the same way against `tests/fixtures/run_lines.json` (until 12 Nov 2026 the two
+had drifted).
 
 The tests use fake Instagram and Gemini clients, so no network or quota is involved. The
 autouse fixture `isolated_files` sends every file a test writes to a temporary folder. Most modules have their own

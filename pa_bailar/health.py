@@ -45,6 +45,7 @@ INACTIVE_DAYS = 45  # an account without posts for this long may be abandoned
 # window on MISSED_DAYS days in a row: its cron-job.org job stopped (an expired token, a job paused), which
 # healthchecks.io's ping can't tell when the other sweeps still run.
 MISSED_DAYS = 2
+SHOWN_RUNS = 5  # sweeps linked in the unpublished-data warning; the rest only counted
 # Doubts about the date (folded text): the costliest mistake. Its words, a month or a year guessed ("mes deducido"),
 # and a weekday that doesn't fit ("dice sábado, pero el 12 es domingo": stories.py).
 DATE_DOUBT = re.compile(r"\b(fechas?|dias?|mes|ano|" + "|".join(fold(day) for day in WEEKDAYS) + r")\b")
@@ -285,7 +286,7 @@ def _triage_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
             "triage-misses",
             f"Flash found events in {misses} of the {checked} posts it checked after the triage ruled them out, in "
             f"the last {len(recent)} runs: the triage (Flash-Lite) loses events. Look at those posts (`admin why`) "
-            "and the triage's prompt (docs/ARCHITECTURE.md, 7.2).",
+            "and the triage's prompt (docs/ARCHITECTURE.md, 7.1).",
         )
     ]
 
@@ -417,9 +418,6 @@ def _moment(iso: str) -> str:
     """ "11 Oct 06:58", in Bogotá."""
     moment = datetime.fromisoformat(iso).astimezone(config.BOGOTA_TZ)
     return f"{moment.day} {moment:%b %H:%M}"
-
-
-SHOWN_RUNS = 5  # sweeps linked in the unpublished-data warning; the rest only counted
 
 
 def _unpublished_findings(run: RunRecord, history: list[RunRecord]) -> list[Finding]:

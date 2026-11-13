@@ -483,7 +483,8 @@ flowchart LR
     - `/share`: what Android shares when `sw.js` isn't running yet (the first share after installing): a
       link goes on to the page, images get "share again".
   - `admin-web/test/*.test.mjs`: the Worker's tests (with fakes for GitHub, its keys and KV), the rendering,
-    the tabs, and `patterns.js` against `tests/fixtures/patterns.json` (ARCHITECTURE.md section 13.1); run by
+    the tabs, `patterns.js` against `tests/fixtures/patterns.json` and the sweeps' run line against
+    `tests/fixtures/run_lines.json` (ARCHITECTURE.md section 13.1); run by
     `ci` with `node --test "admin-web/test/*.test.mjs"`.
   - `patterns.js`, `render.js` and `tabs.js` start with `// @ts-check`: editors type-check them from their JSDoc
     (no build step).

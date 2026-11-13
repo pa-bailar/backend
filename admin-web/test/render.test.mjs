@@ -1,6 +1,7 @@
 // Tests for the admin page's pure rendering (public/render.js), with Node's own runner (the ci workflow runs them).
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import {
@@ -8,7 +9,9 @@ import {
   escapeHtml,
   historyCard,
   publishedLine,
+  runItem,
   runLabel,
+  runSummary,
   seriesCard,
   shortDate,
   when,
@@ -263,5 +266,19 @@ describe("the published-data line", () => {
     const html = publishedLine(evil, NOW);
     assert.doesNotMatch(html, /javascript:|<a /);
     assert.match(html, /revisa los PR «data» abiertos del sitio\./);
+  });
+});
+
+describe("a run in short (runSummary, runItem)", () => {
+  const { cases } = JSON.parse(readFileSync(new URL("../../tests/fixtures/run_lines.json", import.meta.url), "utf8"));
+
+  it("says what the status page says (status.py run_summary, the same cases)", () => {
+    for (const { run, text, problems } of cases) assert.deepEqual(runSummary(run), { text, problems });
+  });
+
+  it("links only an http(s) run log", () => {
+    const run = { finished_at: "2026-11-12T06:50:00-05:00", events_new: 1 };
+    assert.match(runItem({ ...run, run_url: "https://github.com/pa-bailar/backend/actions/runs/1" }), /<a href="https:/);
+    assert.doesNotMatch(runItem({ ...run, run_url: "javascript:alert(1)" }), /<a /);
   });
 });

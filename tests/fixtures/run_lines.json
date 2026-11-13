@@ -1,0 +1,57 @@
+{
+  "_comment": "A run in short, as the status page (pa_bailar/status.py run_summary) and the admin page (admin-web/public/render.js runSummary) both write it: tests/test_status.py and admin-web/test/render.test.mjs check both against these cases, so the two copies can't drift apart (they had, until 12 Nov 2026).",
+  "cases": [
+    {
+      "run": {
+        "events_new": 1,
+        "events_merged": 0
+      },
+      "text": "1 nuevo, 0 unidos",
+      "problems": false
+    },
+    {
+      "run": {
+        "events_new": 3,
+        "events_merged": 1,
+        "pending": 2,
+        "instagram_usage": 64,
+        "provisional": 1,
+        "upgraded": 2,
+        "upgrade_reads": 1,
+        "triage_checked": 1,
+        "triage_misses": 1
+      },
+      "text": "3 nuevos, 1 unido, 2 en espera, Instagram 64%, 1 provisional, 2 releídas con Flash, 1 cuenta leída para Flash, 1 descarte revisado con Flash, 1 evento rescatado",
+      "problems": false
+    },
+    {
+      "run": {
+        "events_new": 0,
+        "events_merged": 2,
+        "instagram_usage": 89,
+        "rate_limited": true,
+        "out_of_time": true,
+        "failed_accounts": [
+          "zaimora24",
+          "bailabo_studio"
+        ],
+        "post_errors": 1
+      },
+      "text": "0 nuevos, 2 unidos, Instagram 89%, límite de Instagram, sin tiempo, 2 cuentas sin leer, 1 error",
+      "problems": true
+    },
+    {
+      "run": {
+        "events_new": 0,
+        "events_merged": 0,
+        "failed_accounts": [
+          "bailabo_studio"
+        ],
+        "post_errors": 2,
+        "upgrade_reads": 3
+      },
+      "text": "0 nuevos, 0 unidos, 3 cuentas leídas para Flash, 1 cuenta sin leer, 2 errores",
+      "problems": true
+    }
+  ]
+}

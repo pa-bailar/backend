@@ -1,6 +1,10 @@
-"""The sweep workflow's steps in a safe order (.github/workflows/daily-sweep.yml, read as text: no YAML parser here)."""
+"""The workflows and the save-accounts action: the sweep's steps in a safe order (daily-sweep.yml, read as text: no
+YAML parser here), and their shell run as the runner runs it, with a fake `gh` (the wait for a data PR, on-main.sh)."""
 
+import os
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 from pa_bailar import config
@@ -116,9 +120,6 @@ def wait_step_script() -> str:
 
 def bash() -> str:
     """The runner's shell: bash; on Windows, Git's (`bash` there can be WSL's)."""
-    import os
-    import shutil
-
     git = shutil.which("git")
     if os.name == "nt" and git:
         found = [folder / "bin" / "bash.exe" for folder in Path(git).resolve().parents]
@@ -126,31 +127,43 @@ def bash() -> str:
     return "bash"
 
 
-def run_wait(tmp_path: Path, gh_answers: list[str], minutes: int) -> tuple[int, str]:
-    """Run the wait with a fake `gh` that gives these answers in turn ("fail" for an error; the last repeats)."""
-    import subprocess
+# As on the runner: no line-ending conversion (Windows' default would make every line of a file differ).
+NO_CRLF = {"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "core.autocrlf", "GIT_CONFIG_VALUE_0": "false"}
 
+
+def fake_gh(tmp_path: Path, answers: list[str]) -> dict[str, str]:
+    """A fake `gh` that gives these answers in turn ("fail" for an error, "none" for no output; the last repeats) and
+    counts its calls in tmp_path/"calls": the environment to run a script with it first on the PATH."""
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(parents=True)
-    answers = tmp_path / "answers"
-    answers.write_text("\n".join(gh_answers) + "\n", encoding="utf-8", newline="\n")
+    given = tmp_path / "answers"
+    given.write_text("\n".join(answers) + "\n", encoding="utf-8", newline="\n")
+    calls, answers_file = (tmp_path / "calls").as_posix(), given.as_posix()
     fake = bin_dir / "gh"
-    count, given = (tmp_path / "count").as_posix(), answers.as_posix()
     fake.write_text(
         "#!/bin/bash\n"
-        f'n=$(cat "{count}" 2>/dev/null || echo 0); echo $((n + 1)) > "{count}"\n'
-        f'answer=$(sed -n "$((n + 1))p" "{given}"); [ -n "$answer" ] || answer=$(tail -n 1 "{given}")\n'
+        f'echo x >> "{calls}"; n=$(wc -l < "{calls}")\n'
+        f'answer=$(sed -n "${{n}}p" "{answers_file}"); [ -n "$answer" ] || answer=$(tail -n 1 "{answers_file}")\n'
         'if [ "$answer" = fail ]; then echo "HTTP 502" >&2; exit 1; fi\n'
         'if [ "$answer" != none ]; then echo "$answer"; fi\n',
         encoding="utf-8",
         newline="\n",
     )
     fake.chmod(0o755)
+    return {"PATH": f"{bin_dir.as_posix()}:/usr/bin:/bin:/mingw64/bin", "HOME": tmp_path.as_posix()} | NO_CRLF
+
+
+def gh_calls(tmp_path: Path) -> int:
+    return len((tmp_path / "calls").read_text().splitlines())
+
+
+def run_wait(tmp_path: Path, gh_answers: list[str], minutes: int) -> tuple[int, str]:
+    """Run the wait with a fake `gh` (fake_gh's answers)."""
     script = tmp_path / "wait.sh"
+    env = fake_gh(tmp_path, gh_answers)
     script.write_text(wait_step_script(), encoding="utf-8", newline="\n")
     report = tmp_path / "health.md"
-    env = {
-        "PATH": f"{bin_dir.as_posix()}:/usr/bin:/bin",
+    env |= {
         "SITE_OWNER": "pa-bailar",
         "SITE_REPO": "pa-bailar.github.io",
         "OPEN_DATA_PR_WAIT_MINUTES": str(minutes),
@@ -164,8 +177,7 @@ def test_the_wait_tries_again_when_githubs_api_fails(tmp_path):
     """12 Nov 2026: the step runs under bash -e, so one failed call to GitHub's API ended it, and with it the whole
     sweep (lost sweeps aren't made up)."""
     code, report = run_wait(tmp_path, ["fail", "fail", "none"], minutes=20)
-    assert code == 0 and report == ""
-    assert (tmp_path / "count").read_text().strip() == "3"
+    assert code == 0 and report == "" and gh_calls(tmp_path) == 3
 
 
 def test_the_wait_tells_an_api_that_never_answers_from_an_open_pr(tmp_path):
@@ -175,27 +187,22 @@ def test_the_wait_tells_an_api_that_never_answers_from_an_open_pr(tmp_path):
     assert code == 1 and "A data PR has not merged" in report and "/pull/1" in report
 
 
+def git(*args: str, cwd: Path) -> str:
+    """Git as on the runner (NO_CRLF), with an author for commits."""
+    command = ["git", "-c", "user.name=t", "-c", "user.email=t@t", *args]
+    return subprocess.run(command, cwd=cwd, capture_output=True, text=True, check=True, env=os.environ | NO_CRLF).stdout
+
+
 def test_an_added_account_goes_on_main_as_it_is_after_an_earlier_accounts_pr(tmp_path):
     """12 Nov 2026: every admin addition goes at the same spot of accounts.txt, so a second accounts PR opened before
     the first merged, or from a copy older than main (a sweep's, taken when it started), conflicted and never merged,
     while its answer said "Agregué". The PR now waits for an earlier one and is built on main as it is."""
-    import os
-    import subprocess
-
-    no_crlf = {"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "core.autocrlf", "GIT_CONFIG_VALUE_0": "false"}
-
-    def git(*args: str, cwd: Path) -> str:  # as on the runner: no line-ending conversion (Windows' default)
-        done = subprocess.run(
-            ["git", *args], cwd=cwd, capture_output=True, text=True, check=True, env=os.environ | no_crlf
-        )
-        return done.stdout
-
     seed = tmp_path / "seed"
     seed.mkdir()
     git("init", "-q", "-b", "main", cwd=seed)
     (seed / "accounts.txt").write_text("vieja\n# Added with the admin tools\n", encoding="utf-8", newline="\n")
     git("add", "accounts.txt", cwd=seed)
-    git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "seed", cwd=seed)
+    git("commit", "-qm", "seed", cwd=seed)
     origin = tmp_path / "origin.git"
     git("clone", "-q", "--bare", seed.as_posix(), origin.as_posix(), cwd=tmp_path)
     run_copy = tmp_path / "run"  # the run's copy, shallow like actions/checkout's
@@ -205,45 +212,21 @@ def test_an_added_account_goes_on_main_as_it_is_after_an_earlier_accounts_pr(tmp
     git("clone", "-q", origin.as_posix(), other.as_posix(), cwd=tmp_path)
     with (other / "accounts.txt").open("a", encoding="utf-8", newline="\n") as file:
         file.write("uno\n")
-    git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qam", "add uno", cwd=other)
+    git("commit", "-qam", "add uno", cwd=other)
     git("push", "-q", "origin", "main", cwd=other)
 
     with (run_copy / "accounts.txt").open("a", encoding="utf-8", newline="\n") as file:
         file.write("dos\n")  # this run's addition, at the same spot
 
-    bin_dir = tmp_path / "bin"
-    bin_dir.mkdir()
-    calls = tmp_path / "calls"
-    log = calls.as_posix()
-    (bin_dir / "gh").write_text(  # an earlier accounts PR open at first, then merged
-        f'#!/bin/bash\necho x >> "{log}"\n[ "$(wc -l < "{log}")" -ge 2 ] && echo 0 || echo 1\n',
-        encoding="utf-8",
-        newline="\n",
-    )
-    (bin_dir / "gh").chmod(0o755)
+    env = fake_gh(tmp_path, ["1", "0"])  # an earlier accounts PR open at first, then merged
+    env |= {"GITHUB_REPOSITORY": "pa-bailar/backend", "SAVE_ACCOUNTS_PAUSE_SECONDS": "0"}
     script = ROOT / ".github" / "actions" / "save-accounts" / "on-main.sh"
     pr_copy = tmp_path / "pr"
-    env = {
-        "PATH": f"{bin_dir.as_posix()}:/usr/bin:/bin:/mingw64/bin",
-        "GITHUB_REPOSITORY": "pa-bailar/backend",
-        "SAVE_ACCOUNTS_PAUSE_SECONDS": "0",
-        "HOME": tmp_path.as_posix(),
-    } | no_crlf
-    done = subprocess.run(
-        [bash(), script.as_posix(), "accounts/run-1-1", pr_copy.as_posix()],
-        cwd=run_copy,
-        env=env,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    command = [bash(), script.as_posix(), "accounts/run-1-1", pr_copy.as_posix()]
+    done = subprocess.run(command, cwd=run_copy, env=env, capture_output=True, text=True, check=False)
     assert done.returncode == 0, done.stderr
-    assert len(calls.read_text().splitlines()) == 2  # it waited for the earlier PR
-    assert (pr_copy / "accounts.txt").read_text(encoding="utf-8").splitlines() == [
-        "vieja",
-        "# Added with the admin tools",
-        "uno",
-        "dos",
-    ]
+    assert gh_calls(tmp_path) == 2  # it waited for the earlier PR
+    lines = (pr_copy / "accounts.txt").read_text(encoding="utf-8").splitlines()
+    assert lines == ["vieja", "# Added with the admin tools", "uno", "dos"]
     added = [line for line in git("diff", "-U0", "HEAD", cwd=pr_copy).splitlines() if line.startswith("+")]
     assert added == ["+++ b/accounts.txt", "+dos"]  # only this run's line: no conflict with main

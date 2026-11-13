@@ -6,7 +6,7 @@
 // picked here go to "Agregar desde una historia".
 
 import { HIDE_STORY_COMMAND, MAX_SCREENSHOTS, NOTES_MAX, POST_LINK_IN_TEXT, STORY_LINK_IN_TEXT } from "./patterns.js";
-import { escapeHtml, historyCard, publishedLine, seriesCard, when } from "./render.js";
+import { escapeHtml, historyCard, publishedLine, runItem, seriesCard, when } from "./render.js";
 import { initialTab, TAB_KEY, tabAfterKey, tabFromHash, tabsHtml } from "./tabs.js";
 
 const main = document.getElementById("main");
@@ -19,38 +19,11 @@ const MESSAGES = {
 };
 
 
-const amount = (number, one, many) => `${number} ${number === 1 ? one : many}`;
-const count = (number, one, many) => (number ? amount(number, one, many) : "");
-
-function runItem(run) {
-  const problems = [
-    run.rate_limited && "límite de Instagram",
-    run.out_of_time && "sin tiempo",
-    count(run.failed_accounts?.length ?? 0, "cuenta sin leer", "cuentas sin leer"),
-    count(run.post_errors ?? 0, "error", "errores"),
-  ].filter(Boolean);
-  const parts = [
-    amount(run.events_new ?? 0, "nuevo", "nuevos"), // "1 nuevos" until 17 Oct 2026
-    amount(run.events_merged ?? 0, "unido", "unidos"),
-    count(run.pending ?? 0, "en espera", "en espera"),
-    count(run.provisional ?? 0, "provisional", "provisionales"),
-    count(run.upgraded ?? 0, "releída con Flash", "releídas con Flash"),
-    count(run.upgrade_reads ?? 0, "cuenta leída para Flash", "cuentas leídas para Flash"),
-    count(run.triage_checked ?? 0, "descarte revisado con Flash", "descartes revisados con Flash"),
-    count(run.triage_misses ?? 0, "evento rescatado", "eventos rescatados"),
-    run.instagram_usage ? `Instagram ${run.instagram_usage}%` : "",
-    ...problems,
-  ].filter(Boolean);
-  const mark = problems.length ? `<span class="warn" title="Con problemas">⚠️</span>` : `<span class="ok" title="Bien">✅</span>`;
-  const link = run.run_url ? ` · <a href="${escapeHtml(run.run_url)}" target="_blank" rel="noopener">ver</a>` : "";
-  return `<li>${mark} <span class="when">${when(run.finished_at)}</span>: ${escapeHtml(parts.join(", "))}${link}</li>`;
-}
-
 /** The latest sweeps, when the site's data was last published (warning when a sweep's never got there), the next
  * ones. */
 function sweepsCard(sweeps, site) {
   const runs = sweeps.recent.length
-    ? `<ul class="runs">${sweeps.recent.map(runItem).join("")}</ul>`
+    ? `<ul class="runs">${sweeps.recent.map((run) => runItem(run)).join("")}</ul>`
     : `<p class="muted">Todavía no hay barridos registrados.</p>`;
   return `<section class="card"><h2>Barridos</h2>${runs}${publishedLine(site)}
     <p class="small muted">Próximos: ${sweeps.next.map((moment) => when(moment)).join(" y ")}</p></section>`;

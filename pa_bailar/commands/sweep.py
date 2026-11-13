@@ -32,6 +32,34 @@ from pa_bailar.pipeline import AddPostError, RunStats, Sweep
 log = logging.getLogger(__name__)
 
 
+def run_counts(stats: RunStats) -> list[str]:
+    """What the run did, in short: the run page's summary and the log's "Done:" line say the same (until 12 Nov 2026
+    each had its own list, and they had drifted)."""
+    batched = (  # batched extraction (config.EXTRACTION_BATCH_POSTS), when it read anything
+        [
+            f"{stats.batched_posts} read in {stats.batch_requests} shared requests, "
+            f"{stats.batch_rereads} read again alone"
+        ]
+        if stats.batch_requests or stats.batch_rereads
+        else []
+    )
+    return [
+        f"{stats.posts_analyzed} posts analyzed ({stats.posts_triaged_out} ruled out by triage)",
+        f"{stats.events_new} new events",
+        f"{stats.events_merged} merged into existing events",
+        f"{stats.events_discarded} discarded (recurring, undated, past or outside Bogotá)",
+        f"{stats.provisional} provisional",
+        *batched,
+        f"{stats.upgraded} upgraded ({stats.upgrade_reads} accounts read for Flash beyond their turn, "
+        f"{stats.upgrade_misses} posts not returned)",
+        f"{stats.triage_checked} ruled out by triage checked by Flash ({stats.triage_misses} were events)",
+        f"{stats.reanalyzed} re-analyzed (edited captions)",
+        f"{stats.pending} pending for next run",
+        f"{stats.errors} errors",
+        f"{stats.events_expired} past events and {stats.flyers_removed} flyers cleaned up",
+    ]
+
+
 def summary_markdown(stats: RunStats) -> str:
     """Markdown tables shown on the GitHub Actions run page."""
     account_rows = [
@@ -48,25 +76,11 @@ def summary_markdown(stats: RunStats) -> str:
         for provider in config.EXTERNAL_PROVIDERS
         if (requests := stats.gemini_requests.get(provider.name))
     ]
-    batched = (  # batched extraction (config.EXTRACTION_BATCH_POSTS), when it read anything
-        f"{stats.batched_posts} read in {stats.batch_requests} shared requests, "
-        f"{stats.batch_rereads} read again alone · "
-        if stats.batch_requests or stats.batch_rereads
-        else ""
-    )
     return "\n".join(
         [
             "## Daily sweep",
             "",
-            f"{stats.posts_analyzed} posts analyzed ({stats.posts_triaged_out} ruled out by triage) · "
-            f"{stats.events_new} new events · {stats.events_merged} merged into existing events · "
-            f"{stats.events_discarded} discarded (recurring, undated, past or outside Bogotá) · "
-            f"{stats.provisional} provisional · {batched}"
-            f"{stats.upgraded} upgraded ({stats.upgrade_reads} accounts read for Flash beyond their turn) · "
-            f"{stats.triage_checked} ruled out by triage checked by Flash ({stats.triage_misses} were events) · "
-            f"{stats.reanalyzed} re-analyzed (edited captions) · "
-            f"{stats.pending} pending for next run · {stats.errors} errors · "
-            f"{stats.events_expired} past events and {stats.flyers_removed} flyers cleaned up",
+            " · ".join(run_counts(stats)),
             "",
             "| Account | Posts analyzed | New events | Merged | Pending | Errors |",
             "|---|---|---|---|---|---|",
@@ -279,24 +293,9 @@ def main(argv: list[str] | None = None) -> None:
     site = health.SiteData(started, published, storage.data_fingerprint() != before)
 
     logging.info(
-        "\nDone: %s accounts, %s posts analyzed (%s ruled out by triage), %s new events, %s merged, "
-        "%s discarded, %s provisional, %s upgraded (%s accounts read for Flash beyond their turn, %s posts not "
-        "returned), %s ruled out by triage checked by Flash (%s were events), %s pending, %s errors. "
-        "Gemini requests: %s",
+        "\nDone: %s accounts, %s. Gemini requests: %s",
         stats.accounts,
-        stats.posts_analyzed,
-        stats.posts_triaged_out,
-        stats.events_new,
-        stats.events_merged,
-        stats.events_discarded,
-        stats.provisional,
-        stats.upgraded,
-        stats.upgrade_reads,
-        stats.upgrade_misses,
-        stats.triage_checked,
-        stats.triage_misses,
-        stats.pending,
-        stats.errors,
+        ", ".join(run_counts(stats)),
         stats.gemini_requests or "none",
     )
     findings, report = check_health(stats, site)

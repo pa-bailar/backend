@@ -84,8 +84,9 @@ def busy_accounts(posts: Iterable[ProcessedPost], events: Iterable[StoredEvent],
     """The accounts the occasional tier never slows down (the owner, 9 Oct 2026): those with an event on the site that
     hasn't ended (its own, or one a post of theirs joined), whose changes or cancellation must show within a day, and
     those with a post read by a lighter model that a sweep would still re-read with Flash (only a read of the account
-    does). A post is re-read only within the lookback, and it was published before it was first read: one read
-    longer ago than that is out of reach, and waits for nothing (a first, deeper sweep's old posts)."""
+    does). A post first read longer ago than the lookback keeps the account daily only through its upcoming events
+    (above): reads for Flash reach it beyond the turn (upgrade_read_depth), and one of a past event waits for nothing
+    (a first, deeper sweep's old posts)."""
     today = now.date().isoformat()
     upcoming = {event.id: event.account for event in events if (event.last_day or "") >= today}
     reachable = now - timedelta(days=config.DEFAULT_LOOKBACK_DAYS)
@@ -204,7 +205,7 @@ def scheduled_sweep(now: datetime) -> str | None:
 
 def triage_checks(now: datetime) -> int:
     """How many of the posts the triage ruled out Flash reads in a run at `now`: config.TRIAGE_CHECKS_AT for its
-    scheduled sweep (three at 6:30), config.TRIAGE_CHECKS_PER_RUN otherwise."""
+    scheduled sweep, config.TRIAGE_CHECKS_PER_RUN otherwise (0 everywhere since 12 Nov 2026: off)."""
     clock = scheduled_sweep(now)
     return config.TRIAGE_CHECKS_AT.get(clock, config.TRIAGE_CHECKS_PER_RUN) if clock else config.TRIAGE_CHECKS_PER_RUN
 
@@ -448,10 +449,11 @@ class Sweep(Batches, ManualPosts, StoryAdmin, Hiding):
                 self._upgrade_post(account, post, published)
 
     def _check_triage(self) -> None:
-        """Flash's second opinion on the triage (the owner, 17 Oct 2026): a few of the posts the triage ruled out this
-        run (triage_checks: one, three at 6:30), as they were fetched (no other Instagram read), in
-        second_opinion_order, each extracted by Flash while it can be used as for an upgrade (can_upgrade: budget beyond
-        the later sweeps' share; paused as busy, the run's one wait for it, _wait_for_flash) and time is left. Before
+        """Flash's second opinion on the triage (the owner, 17 Oct 2026; off since 12 Nov, config): a few of the posts
+        the triage ruled out this run (triage_checks; it ran with one, three at 6:30), as they were fetched (no other
+        Instagram read), in second_opinion_order, each extracted by Flash while it can be used as for an upgrade
+        (can_upgrade: budget beyond the later sweeps' share; paused as busy, the run's one wait for it,
+        _wait_for_flash) and time is left. Before
         the upgrades, a small fixed share (the owner, 22 Oct 2026): after them it never ran, since they took all of
         Flash every run. Nor did it before them without waiting (22 Oct 2026): Flash was paused as busy at that point
         in every sweep, and only the upgrades waited. The upgrades take the rest. What Flash finds is stored as any

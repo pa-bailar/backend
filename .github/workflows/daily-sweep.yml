@@ -252,14 +252,16 @@ jobs:
             # the search came back empty and runs went on past unmerged data PRs (#194–#198, #212; 10–17 Oct 2026).
             # A call that fails is tried again within the wait: until 12 Nov 2026 one error from GitHub's API ended the
             # step (bash -e), and with it the whole sweep.
+            api_failed=false
             if ! open="$(gh api "repos/$SITE_OWNER/$SITE_REPO/pulls?state=open&per_page=100" \
               --jq '[.[] | select(any(.labels[]; .name == "data")) | .html_url] | join(" ")')"; then
-              open="(GitHub's API didn't answer)"
+              api_failed=true
             fi
-            if [ -z "$open" ]; then break; fi
+            if [ "$api_failed" = false ] && [ -z "$open" ]; then break; fi
             past_deadline=false
             if [ "$(date +%s)" -gt "$deadline" ]; then past_deadline=true; fi  # read once: both checks agree
-            if [ "$past_deadline" = true ] && [ "$open" = "(GitHub's API didn't answer)" ]; then
+            # The two reports below follow health.report_markdown's layout (no Python before the checkouts).
+            if [ "$past_deadline" = true ] && [ "$api_failed" = true ]; then
               echo "::error::GitHub's API didn't list the site's pull requests for ${OPEN_DATA_PR_WAIT_MINUTES} minutes."
               printf "## Health\n\n### ⚠️ Warnings\n\n- GitHub's API didn't list the site repository's pull requests for %s minutes, so this run stopped before sweeping (it can't tell whether a data PR is still open). GitHub's status page may say more; the next sweep tries again.\n" \
                 "$OPEN_DATA_PR_WAIT_MINUTES" > "$HEALTH_REPORT_FILE"
@@ -274,7 +276,7 @@ jobs:
                 "$open" > "$HEALTH_REPORT_FILE"
               exit 1
             fi
-            echo "Waiting for ${open} to merge…"
+            if [ "$api_failed" = true ]; then echo "GitHub's API didn't answer: trying again…"; else echo "Waiting for ${open} to merge…"; fi
             sleep 30
           done
 
