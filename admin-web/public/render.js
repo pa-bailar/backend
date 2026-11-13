@@ -112,6 +112,50 @@ export function publishedLine(site, now = new Date()) {
   return `<p class="small warn">⚠️ ${text}; ${lost}: revisa los ${prs} del sitio.</p>`;
 }
 
+const amount = (number, one, many) => `${number} ${number === 1 ? one : many}`;
+const count = (number, one, many) => (number ? amount(number, one, many) : "");
+
+/**
+ * A run in short ("2 nuevos, 1 unido, …") and whether it had problems: status.py run_summary says the same, both
+ * checked against tests/fixtures/run_lines.json (until 12 Nov 2026 the two copies had drifted apart).
+ * @param {Record<string, any>} run a run of status.json's `sweeps.recent`
+ * @returns {{ text: string, problems: boolean }}
+ */
+export function runSummary(run) {
+  const problems = [
+    run.rate_limited && "límite de Instagram",
+    run.out_of_time && "sin tiempo",
+    count(run.failed_accounts?.length ?? 0, "cuenta sin leer", "cuentas sin leer"),
+    count(run.post_errors ?? 0, "error", "errores"),
+  ].filter(Boolean);
+  const parts = [
+    amount(run.events_new ?? 0, "nuevo", "nuevos"), // "1 nuevos" until 17 Oct 2026
+    amount(run.events_merged ?? 0, "unido", "unidos"),
+    run.pending ? `${run.pending} en espera` : "",
+    run.instagram_usage ? `Instagram ${run.instagram_usage}%` : "",
+    count(run.provisional ?? 0, "provisional", "provisionales"),
+    count(run.upgraded ?? 0, "releída con Flash", "releídas con Flash"),
+    count(run.upgrade_reads ?? 0, "cuenta leída para Flash", "cuentas leídas para Flash"),
+    count(run.triage_checked ?? 0, "descarte revisado con Flash", "descartes revisados con Flash"),
+    count(run.triage_misses ?? 0, "evento rescatado", "eventos rescatados"),
+    ...problems,
+  ].filter(Boolean);
+  return { text: parts.join(", "), problems: problems.length > 0 };
+}
+
+/**
+ * A run in the sweeps card: its mark, when, the summary and a link to its log.
+ * @param {Record<string, any>} run
+ * @param {Date} [now]
+ */
+export function runItem(run, now = new Date()) {
+  const { text, problems } = runSummary(run);
+  const mark = problems ? `<span class="warn" title="Con problemas">⚠️</span>` : `<span class="ok" title="Bien">✅</span>`;
+  const url = safeLink(run.run_url);
+  const link = url ? ` · <a href="${escapeHtml(url)}" target="_blank" rel="noopener">ver</a>` : "";
+  return `<li>${mark} <span class="when">${when(run.finished_at, now)}</span>: ${escapeHtml(text)}${link}</li>`;
+}
+
 /**
  * An event's day, short: "2026-10-11" → "sáb 11 oct". Anything else, as it is (escaped by the caller).
  * @param {unknown} day

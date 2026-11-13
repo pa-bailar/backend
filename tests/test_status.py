@@ -1,6 +1,8 @@
 """admin status: what it reads and how it says it, from fake state (no git, no network)."""
 
+import json
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -326,3 +328,12 @@ def test_the_status_says_when_the_sites_data_was_published_and_which_sweeps_neve
     assert "; faltan los de 2 barridos con cambios, desde el de ayer 6:58 a. m.:" in status.site_data_line(
         many["site_data"], later
     )
+
+
+RUN_LINES = json.loads((Path(__file__).parent / "fixtures" / "run_lines.json").read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize("case", RUN_LINES["cases"])
+def test_a_run_in_short_says_what_the_admin_page_says(case):
+    """The admin page writes the same line (render.js runSummary), checked against the same cases."""
+    assert status.run_summary(case["run"]) == (case["text"], case["problems"])

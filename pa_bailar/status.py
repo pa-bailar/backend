@@ -439,7 +439,10 @@ def _count(number: int, one: str, many: str) -> str:
     return _amount(number, one, many) if number else ""
 
 
-def _run_line(run: dict[str, Any], now: datetime) -> str:
+def run_summary(run: dict[str, Any]) -> tuple[str, bool]:
+    """A run in short ("2 nuevos, 1 unido, …") and whether it had problems. The admin page's runSummary
+    (admin-web/public/render.js) says the same: both are checked against tests/fixtures/run_lines.json (until 12 Nov
+    2026 the two copies had drifted apart)."""
     problems = [
         "límite de Instagram" if run.get("rate_limited") else "",
         "sin tiempo" if run.get("out_of_time") else "",
@@ -447,7 +450,6 @@ def _run_line(run: dict[str, Any], now: datetime) -> str:
         _count(run.get("post_errors", 0), "error", "errores"),
     ]
     problems = [problem for problem in problems if problem]
-    mark = "⚠️" if problems else "✅"
     parts = [
         _amount(run.get("events_new", 0), "nuevo", "nuevos"),  # "1 nuevos" until 17 Oct 2026
         _amount(run.get("events_merged", 0), "unido", "unidos"),
@@ -461,9 +463,14 @@ def _run_line(run: dict[str, Any], now: datetime) -> str:
         _count(run.get("triage_misses", 0), "evento rescatado", "eventos rescatados"),
         *problems,
     ]
+    return ", ".join(part for part in parts if part), bool(problems)
+
+
+def _run_line(run: dict[str, Any], now: datetime) -> str:
+    summary, problems = run_summary(run)
     when = moment_label(run["finished_at"], now)
     link = f" · [ver]({run['run_url']})" if run.get("run_url") else ""
-    return f"- {mark} {when}: " + ", ".join(part for part in parts if part) + link
+    return f"- {'⚠️' if problems else '✅'} {when}: {summary}{link}"
 
 
 def _series_line(item: dict[str, Any]) -> str:
