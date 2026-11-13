@@ -34,9 +34,6 @@ from .text import WEEKDAYS, clock, parse_hhmm, sessions_label
 
 RECENT_RUNS = 5
 HISTORY_ITEMS = 10  # runs in the history (status["history"]): sweeps and admin requests, newest first
-# A sweep that ends within this long after one of config.SWEEP_TIMES is that scheduled one (it can wait for a data PR
-# or a request before it, then runs up to config.MAX_RUN_MINUTES); else it's an extra one, started by hand.
-SCHEDULED_SWEEP_MINUTES = 150  # 90 until 9 Oct 2026: a 3:00 run waiting for a data PR read as "extra"
 _FLAT_STOP = 90  # where the sweep stopped reading accounts until 9 Oct 2026, for the records from before
 
 
@@ -55,11 +52,12 @@ def next_sweeps(now: datetime, count: int = 2) -> list[datetime]:
 
 def sweep_slot(finished_at: str) -> str | None:
     """The scheduled sweep (config.SWEEP_TIMES: "03:00", "06:30", "21:00") a run that ended then was, or None (an
-    extra one)."""
+    extra one, started by hand): one ending within config.SWEEP_WINDOW_HOURS after its time, as the health check
+    judges it (its own 150 minutes until 12 Nov 2026)."""
     moment = datetime.fromisoformat(finished_at).astimezone(config.BOGOTA_TZ)
     for hhmm in config.SWEEP_TIMES:
         start = datetime.combine(moment.date(), parse_hhmm(hhmm), config.BOGOTA_TZ)
-        if timedelta(0) <= moment - start <= timedelta(minutes=SCHEDULED_SWEEP_MINUTES):
+        if timedelta(0) <= moment - start <= timedelta(hours=config.SWEEP_WINDOW_HOURS):
             return hhmm
     return None
 

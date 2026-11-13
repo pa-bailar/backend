@@ -387,8 +387,8 @@ SWEEP_TIMES_SINCE = {"03:00": "2026-10-10"}
 # sweep's whole share (the bug-squash pass).
 LATER_SWEEP_MARGIN_MINUTES = 30
 # A scheduled sweep (SWEEP_TIMES) runs within this long of its time: a run can wait for one before it, and takes up to
-# ~45 minutes. The health check's missed sweeps (health.missed_sweeps) and the sweep a run belongs to
-# (pipeline.sweep.scheduled_sweep) go by it.
+# ~45 minutes. The health check's missed sweeps (health.missed_sweeps), the sweep a run belongs to
+# (pipeline.sweep.scheduled_sweep) and the status page's (status.sweep_slot) go by it.
 SWEEP_WINDOW_HOURS = 3
 # A sweep that changed the site's events opens a data PR, which merges itself when the site's `ci` passes (a few
 # minutes). The next sweep checks that it landed (health.unpublished_runs): an earlier sweep that changed events and
