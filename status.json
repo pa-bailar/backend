@@ -1,7 +1,78 @@
 {
-  "generated_at": "2026-11-13T03:17:49-05:00",
+  "generated_at": "2026-11-13T06:51:48-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-11-13T06:51:48-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/43417544511",
+        "started_at": "2026-11-13T06:30:51-05:00",
+        "site_data_at": "2026-11-13T03:17:48-05:00",
+        "data_changed": true,
+        "accounts": 0,
+        "failed_accounts": [],
+        "read_accounts": [],
+        "skipped_accounts": [],
+        "posts_analyzed": 0,
+        "events_new": 0,
+        "events_merged": 0,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 0,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.8-flash": 6,
+          "gemini-3.6-flash": 6
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 6,
+        "instagram_usage_detail": {
+          "call_count": 1,
+          "total_cputime": 0,
+          "total_time": 6
+        },
+        "instagram_reads": {
+          "accounts": 5,
+          "mean_seconds": 2.05,
+          "median_seconds": 1.36,
+          "max_seconds": 4.91,
+          "mean_cost": 1.5,
+          "max_cost": 4,
+          "max_cost_account": "bulevarsalsabar",
+          "headers": {
+            "X-App-Usage": 5
+          },
+          "expected_cost": 4
+        },
+        "instagram_stop": null,
+        "upgrade_changes": {
+          "compared": 9,
+          "dropped": 1,
+          "styles": 6,
+          "event_type": 1,
+          "venue": 1
+        },
+        "upgraded": 6,
+        "upgrade_reads": 5,
+        "upgrade_misses": 0,
+        "triage_checked": 0,
+        "triage_misses": 0,
+        "batch_requests": 0,
+        "batched_posts": 0,
+        "batch_rereads": 0,
+        "warnings": [
+          "fetch:bailabo_studio"
+        ],
+        "changes_left_out": 0,
+        "change_counts": {
+          "corrected": 6,
+          "dropped": 1,
+          "reread": 2
+        }
+      },
       {
         "finished_at": "2026-11-13T03:17:48-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/43389803423",
@@ -433,124 +504,16 @@
           "merged": 5,
           "archived": 3
         }
-      },
-      {
-        "finished_at": "2026-11-11T21:24:14-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/43138306938",
-        "started_at": "2026-11-11T21:01:08-05:00",
-        "site_data_at": "2026-11-11T06:56:30-05:00",
-        "data_changed": true,
-        "accounts": 41,
-        "failed_accounts": [
-          "bailabo_studio"
-        ],
-        "read_accounts": [
-          "academiaalmadetangoe",
-          "academyfeel",
-          "alejochacon.co",
-          "arrollando.dc",
-          "babou_candelaria",
-          "bachatamania_bogota",
-          "bachatasocialcongresss",
-          "bailabo_studio",
-          "bailarito",
-          "bogotadanceclub.academy",
-          "bureodancestudio",
-          "cordillerafestival",
-          "danceholicproject",
-          "danceinmotionclub",
-          "distritosocialbog",
-          "efadanza",
-          "el_bochinche_cafe_",
-          "el_panteon_de_la_salsa",
-          "elratonsalsaclub",
-          "fogal_arte",
-          "galeriacafelibro",
-          "guadalupebar751",
-          "iledanza",
-          "imperiolatino",
-          "jen.ssy",
-          "ladiezluxury_outlet",
-          "latrinidaddelasalsa",
-          "mambo_y_control",
-          "mover__se",
-          "originalstepdance",
-          "quemaquequema",
-          "restaurantecasadecitas",
-          "ritmomoderno",
-          "salsalatina.alsacia",
-          "salsayritmolatino",
-          "showstarscol",
-          "sonrumbero",
-          "studiolatindance",
-          "tibaduiza__",
-          "valkandela",
-          "zafiro_project_team"
-        ],
-        "skipped_accounts": [],
-        "posts_analyzed": 17,
-        "events_new": 1,
-        "events_merged": 7,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 4,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 16,
-          "gemini-3.8-flash": 6,
-          "gemini-3.6-flash": 6,
-          "gemini-3-flash-preview": 4
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 68,
-        "instagram_usage_detail": {
-          "call_count": 16,
-          "total_cputime": 0,
-          "total_time": 68
-        },
-        "instagram_reads": {
-          "accounts": 41,
-          "mean_seconds": 3.19,
-          "median_seconds": 2.43,
-          "max_seconds": 8.82,
-          "mean_cost": 1.7,
-          "max_cost": 4,
-          "max_cost_account": "elratonsalsaclub",
-          "headers": {
-            "X-App-Usage": 41
-          },
-          "expected_cost": 2
-        },
-        "instagram_stop": null,
-        "upgrade_changes": {},
-        "upgraded": 0,
-        "upgrade_reads": 0,
-        "upgrade_misses": 0,
-        "triage_checked": 0,
-        "triage_misses": 0,
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [],
-        "changes_left_out": 0,
-        "change_counts": {
-          "new": 1,
-          "merged": 6
-        }
       }
     ],
     "next": [
-      "2026-11-13T06:30-05:00",
-      "2026-11-13T21:00-05:00"
+      "2026-11-13T21:00-05:00",
+      "2026-11-14T03:00-05:00"
     ]
   },
   "site_data": {
-    "published_at": "2026-11-12T21:20:52-05:00",
-    "checked_at": "2026-11-13T03:01:00-05:00",
+    "published_at": "2026-11-13T03:17:48-05:00",
+    "checked_at": "2026-11-13T06:30:51-05:00",
     "missing": [],
     "prs_url": "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata"
   },
@@ -561,13 +524,13 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 6,
+        "used": 12,
         "budget": 18
       },
       {
         "model": "gemini-3.6-flash",
         "role": "extraction",
-        "used": 6,
+        "used": 12,
         "budget": 18
       },
       {
@@ -624,37 +587,37 @@
     "error": null
   },
   "instagram_quota": {
-    "usage": 58,
+    "usage": 6,
     "detail": {
-      "call_count": 17,
+      "call_count": 1,
       "total_cputime": 0,
-      "total_time": 58
+      "total_time": 6
     },
     "stopped": false,
     "stop": null,
-    "finished_at": "2026-11-13T03:17:48-05:00",
+    "finished_at": "2026-11-13T06:51:48-05:00",
     "stop_at": 98,
     "reads": {
-      "accounts": 43,
-      "mean_seconds": 2.01,
-      "median_seconds": 1.63,
-      "max_seconds": 5.65,
-      "mean_cost": 1.38,
+      "accounts": 5,
+      "mean_seconds": 2.05,
+      "median_seconds": 1.36,
+      "max_seconds": 4.91,
+      "mean_cost": 1.5,
       "max_cost": 4,
-      "max_cost_account": "la33orquesta",
+      "max_cost_account": "bulevarsalsabar",
       "headers": {
-        "X-App-Usage": 43
+        "X-App-Usage": 5
       },
-      "expected_cost": 3
+      "expected_cost": 4
     }
   },
   "lighter_reads": {
-    "compared": 152,
-    "dropped": 5,
-    "venue": 38,
-    "styles": 24,
+    "compared": 161,
+    "dropped": 6,
+    "venue": 39,
+    "styles": 30,
     "title": 15,
-    "event_type": 8,
+    "event_type": 9,
     "start_time": 2
   },
   "accounts": {
@@ -672,10 +635,10 @@
   },
   "posts": {
     "recorded": 2207,
-    "provisional": 311
+    "provisional": 305
   },
   "events": {
-    "upcoming": 91,
+    "upcoming": 90,
     "low_confidence": 0
   },
   "new_series": [
@@ -991,6 +954,103 @@
     }
   ],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "06:30",
+      "finished_at": "2026-11-13T06:51:48-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/43417544511",
+      "target": null,
+      "error": null,
+      "changes": [
+        {
+          "kind": "corrected",
+          "id": "valkandela-2026-en-el-co-laboratorio-14-nov",
+          "title": "VALKANDELA 2026 en El Co. Laboratorio",
+          "account": "valkandela",
+          "date": "2026-11-14",
+          "detail": "Flash cambió los ritmos",
+          "url": "https://pa-bailar.github.io/evento/valkandela-2026-en-el-co-laboratorio-14-nov/"
+        },
+        {
+          "kind": "corrected",
+          "id": "valkandela-2026-en-galeria-cafe-libro-club-21-nov",
+          "title": "VALKANDELA 2026 en Galería Café Libro Club",
+          "account": "valkandela",
+          "date": "2026-11-21",
+          "detail": "Flash cambió el tipo y los ritmos",
+          "url": "https://pa-bailar.github.io/evento/valkandela-2026-en-galeria-cafe-libro-club-21-nov/"
+        },
+        {
+          "kind": "corrected",
+          "id": "valkandela-2026-en-plazoleta-del-panamericano-29-nov",
+          "title": "VALKANDELA 2026 en Plazoleta del Panamericano",
+          "account": "valkandela",
+          "date": "2026-11-29",
+          "detail": "Flash cambió los ritmos",
+          "url": "https://pa-bailar.github.io/evento/valkandela-2026-en-plazoleta-del-panamericano-29-nov/"
+        },
+        {
+          "kind": "corrected",
+          "id": "tardeo-salsa-all-stars-15-nov",
+          "title": "TARDEO Salsa ALL STARS",
+          "account": "fernandoespanadj",
+          "date": "2026-11-15",
+          "detail": "Flash cambió los ritmos",
+          "url": "https://pa-bailar.github.io/evento/tardeo-salsa-all-stars-15-nov/"
+        },
+        {
+          "kind": "corrected",
+          "id": "estrellas-de-buenavista-21-nov",
+          "title": "Estrellas de Buenavista",
+          "account": "fernandoespanadj",
+          "date": "2026-11-21",
+          "detail": "Flash cambió el lugar y los ritmos",
+          "url": "https://pa-bailar.github.io/evento/estrellas-de-buenavista-21-nov/"
+        },
+        {
+          "kind": "corrected",
+          "id": "clausura-2026-studio-latin-dance-18-dic",
+          "title": "Clausura 2026 Studio Latin Dance",
+          "account": "studiolatindance",
+          "date": "2026-12-18",
+          "detail": "Flash cambió los ritmos",
+          "url": "https://pa-bailar.github.io/evento/clausura-2026-studio-latin-dance-18-dic/"
+        },
+        {
+          "kind": "dropped",
+          "id": "orquesta-arag-oacute-n-de-cuba-charanga-en-la-luna-20-nov",
+          "title": "Orquesta Arag&oacute;n de Cuba - Charanga en la Luna",
+          "account": "fernandoespanadj",
+          "date": "2026-11-20",
+          "detail": "Flash no lo encontró al releer",
+          "url": null
+        },
+        {
+          "kind": "reread",
+          "id": "el-golazo-de-bulevar-15-nov",
+          "title": "El Golazo de Bulevar",
+          "account": "bulevarsalsabar",
+          "date": "2026-11-15",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/el-golazo-de-bulevar-15-nov/"
+        },
+        {
+          "kind": "reread",
+          "id": "tropicana-ensamble-15-nov",
+          "title": "Tropicana Ensamble",
+          "account": "salsacamaraoficial",
+          "date": "2026-11-15",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/tropicana-ensamble-15-nov/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "corrected": 6,
+        "dropped": 1,
+        "reread": 2
+      }
+    },
     {
       "kind": "sweep",
       "slot": "03:00",
@@ -1722,176 +1782,6 @@
       "changes": [],
       "left_out": 0,
       "counts": {}
-    },
-    {
-      "kind": "sweep",
-      "slot": "03:00",
-      "finished_at": "2026-11-10T03:18:57-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/42779252714",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "new",
-          "id": "salsadentro-nov-clase-de-salsa-para-las-fiestas-21-nov",
-          "title": "Salsadentro Nov: Clase de salsa para las fiestas",
-          "account": "clandisfrute",
-          "date": "2026-11-21",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/salsadentro-nov-clase-de-salsa-para-las-fiestas-21-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "fuga-compania-periferia-12-nov",
-          "title": "FUGA - Compañía Periferia",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-12",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/fuga-compania-periferia-12-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "aurora-12-nov",
-          "title": "Aurora",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-12",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/aurora-12-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "franja-mov-videodanza-see-through-territorio-yuma-10-nov",
-          "title": "Franja .MOV - Videodanza: See-through, Territorio Yuma, Ciudasis",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-10",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/franja-mov-videodanza-see-through-territorio-yuma-10-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "tinder-bailable-sala-de-emergencias-14-nov",
-          "title": "Tinder Bailable: Sala de Emergencias",
-          "account": "bogotadanceclub",
-          "date": "2026-11-14",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/tinder-bailable-sala-de-emergencias-14-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "domingo-super-bailable-15-nov",
-          "title": "Domingo Súper Bailable",
-          "account": "bogotadanceclub",
-          "date": "2026-11-15",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/domingo-super-bailable-15-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "charanga-premiere-12-nov",
-          "title": "Charanga Premiere",
-          "account": "salsacamaraoficial",
-          "date": "2026-11-12",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/charanga-premiere-12-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "sonido-70-14-nov",
-          "title": "Sonido 70",
-          "account": "salsacamaraoficial",
-          "date": "2026-11-14",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/sonido-70-14-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "clase-de-tango-con-ceci-urzola-11-nov",
-          "title": "Clase de Tango con Ceci Urzola",
-          "account": "callejonsalsa",
-          "date": "2026-11-11",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/clase-de-tango-con-ceci-urzola-11-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "clase-de-baile-con-teffa-murcia-13-nov",
-          "title": "Clase de baile con Teffa Murcia",
-          "account": "callejonsalsa",
-          "date": "2026-11-13",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/clase-de-baile-con-teffa-murcia-13-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "salsa-y-son-en-vivo-con-armando-quintana-cuba-13-nov",
-          "title": "Salsa y Son en vivo con Armando Quintana (Cuba) Entre Amigos",
-          "account": "callejonsalsa",
-          "date": "2026-11-13",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/salsa-y-son-en-vivo-con-armando-quintana-cuba-13-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "lanzamiento-del-nuevo-album-de-la-orquesta-la-13-nov",
-          "title": "Lanzamiento del nuevo álbum de la Orquesta La Palabra",
-          "account": "pachanga_y_pochola",
-          "date": "2026-11-13",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/lanzamiento-del-nuevo-album-de-la-orquesta-la-13-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "tardeo-salsa-all-stars-15-nov",
-          "title": "TARDEO Salsa ALL STARS",
-          "account": "fernandoespanadj",
-          "date": "2026-11-15",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/tardeo-salsa-all-stars-15-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "estrellas-de-buenavista-21-nov",
-          "title": "Estrellas de Buenavista",
-          "account": "fernandoespanadj",
-          "date": "2026-11-21",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/estrellas-de-buenavista-21-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "orquesta-arag-oacute-n-de-cuba-charanga-en-la-luna-20-nov",
-          "title": "Orquesta Arag&oacute;n de Cuba - Charanga en la Luna",
-          "account": "fernandoespanadj",
-          "date": "2026-11-20",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/orquesta-arag-oacute-n-de-cuba-charanga-en-la-luna-20-nov/"
-        },
-        {
-          "kind": "merged",
-          "id": "vacio-10-nov",
-          "title": "VACÍO",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-10",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/vacio-10-nov/"
-        },
-        {
-          "kind": "archived",
-          "id": "ritmos-cruzados-10-sep",
-          "title": "Ritmos Cruzados",
-          "account": "esferalatinaoficial",
-          "date": "2026-09-10",
-          "detail": "terminó hace más de 60 días",
-          "url": null
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "new": 3,
-        "provisional": 12,
-        "merged": 1,
-        "archived": 1
-      }
     }
   ],
   "discovery": null

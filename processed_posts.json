@@ -35947,11 +35947,11 @@
   "17915963133515649": {
     "account": "studiolatindance",
     "permalink": "https://www.instagram.com/p/DfiKVPoOG9Q/",
-    "processed_at": "2026-11-09T21:08:47-05:00",
+    "processed_at": "2026-11-13T06:35:11-05:00",
     "is_event_post": true,
-    "reason": "Se anuncia la clausura y fiesta de fin de año de la academia Studio Latin Dance para el viernes 18 de diciembre.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post anuncia la fiesta de Clausura 2026 de la academia Studio Latin Dance el 18 de diciembre.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "2c638f1004867abb",
     "outcome": "event",
     "event_ids": [
@@ -36378,16 +36378,15 @@
   "18132459670705219": {
     "account": "fernandoespanadj",
     "permalink": "https://www.instagram.com/reel/DffQ-VPJpd4/",
-    "processed_at": "2026-11-10T03:09:25-05:00",
+    "processed_at": "2026-11-13T06:35:29-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia un tardeo de salsa el 15 de noviembre y un concierto en el Teatro Jorge Eli\tcer Gait\tn el 21 de noviembre.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post anuncia el evento TARDEO Salsa ALL STARS para el domingo 15 de noviembre de 2026.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "f258ad7e94852ceb",
-    "outcome": "event",
+    "outcome": "merged",
     "event_ids": [
-      "tardeo-salsa-all-stars-15-nov",
-      "estrellas-de-buenavista-21-nov"
+      "tardeo-salsa-all-stars-15-nov"
     ],
     "detail": null,
     "image_hashes": [],
@@ -36398,16 +36397,15 @@
   "17971708788194232": {
     "account": "fernandoespanadj",
     "permalink": "https://www.instagram.com/reel/DffR6ZdAjbZ/",
-    "processed_at": "2026-11-10T03:10:04-05:00",
+    "processed_at": "2026-11-13T06:33:30-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia una serie de eventos de m&uacute;sica cubana y salsa para el mes de noviembre, incluyendo conciertos y un tardeo.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post anuncia la programación de eventos de noviembre incluyendo el Tardeo del 15 de noviembre, el concierto de la Orquesta Aragón el 20 de noviembre y Estrellas de Buenavista el 21 de noviembre.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "f258ad7e94852ceb",
-    "outcome": "event",
+    "outcome": "merged",
     "event_ids": [
       "tardeo-salsa-all-stars-15-nov",
-      "orquesta-arag-oacute-n-de-cuba-charanga-en-la-luna-20-nov",
       "estrellas-de-buenavista-21-nov"
     ],
     "detail": null,
@@ -37962,11 +37960,11 @@
   "18138048838781991": {
     "account": "salsacamaraoficial",
     "permalink": "https://www.instagram.com/p/DfngVcuIDJo/",
-    "processed_at": "2026-11-12T03:14:58-05:00",
+    "processed_at": "2026-11-13T06:33:39-05:00",
     "is_event_post": true,
-    "reason": "Se anuncia un concierto de la orquesta Tropicana Ensamble el domingo 15 de noviembre.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "Anuncio de la presentación en vivo de Tropicana Ensamble el domingo 15 de noviembre.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "57133d52ac278321",
     "outcome": "event",
     "event_ids": [
@@ -38329,11 +38327,11 @@
   "17904025728378007": {
     "account": "valkandela",
     "permalink": "https://www.instagram.com/p/Dfp-y00Gkit/",
-    "processed_at": "2026-11-12T21:14:17-05:00",
+    "processed_at": "2026-11-13T06:32:37-05:00",
     "is_event_post": true,
-    "reason": "El post anuncia varias fechas de una gira de presentaciones de la artista Valkandela en Bogotá.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post presenta las fechas de la gira Valkandela 2026, incluyendo tres fechas en Bogotá.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "7618d531d0da3ae8",
     "outcome": "event",
     "event_ids": [
@@ -38758,11 +38756,11 @@
   "18133797121761402": {
     "account": "bulevarsalsabar",
     "permalink": "https://www.instagram.com/reel/DfqfqYFA1Jq/",
-    "processed_at": "2026-11-13T03:08:22-05:00",
+    "processed_at": "2026-11-13T06:32:50-05:00",
     "is_event_post": true,
-    "reason": "Anuncia un evento especial con promoción de bebidas en una fecha específica.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "Publicación que promociona el evento El Golazo de Bulevar el domingo 15 de noviembre de 2026.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "2ea064a1435b1f9a",
     "outcome": "event",
     "event_ids": [
