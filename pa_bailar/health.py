@@ -285,7 +285,7 @@ def _triage_findings(runs: list[RunRecord], run: RunRecord) -> list[Finding]:
             "triage-misses",
             f"Flash found events in {misses} of the {checked} posts it checked after the triage ruled them out, in "
             f"the last {len(recent)} runs: the triage (Flash-Lite) loses events. Look at those posts (`admin why`) "
-            "and the triage's prompt (docs/ARCHITECTURE.md, 7.2).",
+            "and the triage's prompt (docs/ARCHITECTURE.md, 7.1).",
         )
     ]
 

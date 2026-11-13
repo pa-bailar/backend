@@ -166,12 +166,12 @@ TRIAGE_CHECKS_PER_RUN = 0
 # More of them in some sweeps (by config.SWEEP_TIMES' clock; the others take TRIAGE_CHECKS_PER_RUN): at 6:30 Flash
 # answers, while at 21:00 and 3:00 Google's 503 "overloaded" outlasted the run's wait for it in 4 of the 6 sweeps of
 # 27-28 Oct, so the second opinion read 2 posts in two days. Three at 6:30 (the owner, 28 Oct 2026): two more Flash
-# requests a day, from the 6:30 sweep's own third.
+# requests a day, from the 6:30 sweep's own third. Empty since 12 Nov 2026 (off, above).
 TRIAGE_CHECKS_AT: dict[str, int] = {}
 # How many of the run's ruled-out posts (with their images) are held for it meanwhile, the likeliest kept.
 TRIAGE_CHECKS_HELD = 12
 # A health notice when Flash found this many events the triage had ruled out in the last TRIAGE_MISS_RUNS runs (about
-# three days): the triage's prompt or model may need a look (docs/ARCHITECTURE.md, 7.2).
+# three days): the triage's prompt or model may need a look (docs/ARCHITECTURE.md, 7.1). Silent while the check is off.
 TRIAGE_MISSES_NOTICE = 2
 TRIAGE_MISS_RUNS = 9
 MAX_IMAGES_PER_POST = 10  # monthly schedules often show an event on slide 5 or later; still one request

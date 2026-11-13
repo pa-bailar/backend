@@ -1,4 +1,5 @@
-"""The sweep workflow's steps in a safe order (.github/workflows/daily-sweep.yml, read as text: no YAML parser here)."""
+"""The workflows and the save-accounts action: the sweep's steps in a safe order (daily-sweep.yml, read as text: no
+YAML parser here), and their shell run as the runner runs it, with a fake `gh` (the wait for a data PR, on-main.sh)."""
 
 import re
 from pathlib import Path
