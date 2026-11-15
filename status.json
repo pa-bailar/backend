@@ -1,7 +1,53 @@
 {
-  "generated_at": "2026-11-15T03:27:12-05:00",
+  "generated_at": "2026-11-15T06:31:17-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-11-15T06:31:16-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/43709205162",
+        "started_at": "2026-11-15T06:31:15-05:00",
+        "site_data_at": "2026-11-15T03:27:12-05:00",
+        "data_changed": false,
+        "accounts": 0,
+        "failed_accounts": [],
+        "read_accounts": [],
+        "skipped_accounts": [],
+        "posts_analyzed": 0,
+        "events_new": 0,
+        "events_merged": 0,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 0,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {},
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 1,
+        "instagram_usage_detail": {
+          "call_count": 1,
+          "total_cputime": 1,
+          "total_time": 1
+        },
+        "instagram_reads": null,
+        "instagram_stop": null,
+        "upgrade_changes": {},
+        "upgraded": 0,
+        "upgrade_reads": 0,
+        "upgrade_misses": 0,
+        "triage_checked": 0,
+        "triage_misses": 0,
+        "batch_requests": 0,
+        "batched_posts": 0,
+        "batch_rereads": 0,
+        "warnings": [
+          "fetch:bailabo_studio"
+        ],
+        "changes_left_out": 0,
+        "change_counts": {}
+      },
       {
         "finished_at": "2026-11-15T03:27:12-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/43692439024",
@@ -419,122 +465,16 @@
           "merged": 3,
           "archived": 2
         }
-      },
-      {
-        "finished_at": "2026-11-13T21:20:52-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/43543806292",
-        "started_at": "2026-11-13T21:01:21-05:00",
-        "site_data_at": "2026-11-13T06:51:48-05:00",
-        "data_changed": true,
-        "accounts": 39,
-        "failed_accounts": [
-          "el_panteon_de_la_salsa"
-        ],
-        "read_accounts": [
-          "academiaalmadetangoe",
-          "academyfeel",
-          "alejochacon.co",
-          "arrollando.dc",
-          "babou_candelaria",
-          "bachatamania_bogota",
-          "bachatasocialcongresss",
-          "bailarito",
-          "bogotadanceclub.academy",
-          "bureodancestudio",
-          "cordillerafestival",
-          "danceholicproject",
-          "danceinmotionclub",
-          "distritosocialbog",
-          "efadanza",
-          "el_bochinche_cafe_",
-          "el_panteon_de_la_salsa",
-          "elratonsalsaclub",
-          "fogal_arte",
-          "galeriacafelibro",
-          "guadalupebar751",
-          "iledanza",
-          "imperiolatino",
-          "jen.ssy",
-          "latrinidaddelasalsa",
-          "mambo_y_control",
-          "mover__se",
-          "originalstepdance",
-          "quemaquequema",
-          "restaurantecasadecitas",
-          "ritmomoderno",
-          "salsalatina.alsacia",
-          "salsayritmolatino",
-          "showstarscol",
-          "sonrumbero",
-          "studiolatindance",
-          "tibaduiza__",
-          "valkandela",
-          "zafiro_project_team"
-        ],
-        "skipped_accounts": [],
-        "posts_analyzed": 15,
-        "events_new": 4,
-        "events_merged": 0,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 0,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 15,
-          "gemini-3.8-flash": 6,
-          "gemini-3.6-flash": 6
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 51,
-        "instagram_usage_detail": {
-          "call_count": 15,
-          "total_cputime": 0,
-          "total_time": 51
-        },
-        "instagram_reads": {
-          "accounts": 39,
-          "mean_seconds": 2.09,
-          "median_seconds": 1.64,
-          "max_seconds": 7.57,
-          "mean_cost": 1.34,
-          "max_cost": 3,
-          "max_cost_account": "danceholicproject",
-          "headers": {
-            "X-App-Usage": 39
-          },
-          "expected_cost": 3
-        },
-        "instagram_stop": null,
-        "upgrade_changes": {},
-        "upgraded": 2,
-        "upgrade_reads": 0,
-        "upgrade_misses": 0,
-        "triage_checked": 0,
-        "triage_misses": 0,
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [
-          "fetch:bailabo_studio"
-        ],
-        "changes_left_out": 0,
-        "change_counts": {
-          "new": 4
-        }
       }
     ],
     "next": [
-      "2026-11-15T06:30-05:00",
-      "2026-11-15T21:00-05:00"
+      "2026-11-15T21:00-05:00",
+      "2026-11-16T03:00-05:00"
     ]
   },
   "site_data": {
-    "published_at": "2026-11-14T21:21:53-05:00",
-    "checked_at": "2026-11-15T03:01:15-05:00",
+    "published_at": "2026-11-15T03:27:12-05:00",
+    "checked_at": "2026-11-15T06:31:15-05:00",
     "missing": [],
     "prs_url": "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata"
   },
@@ -994,6 +934,17 @@
     }
   ],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "06:30",
+      "finished_at": "2026-11-15T06:31:16-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/43709205162",
+      "target": null,
+      "error": null,
+      "changes": [],
+      "left_out": 0,
+      "counts": {}
+    },
     {
       "kind": "sweep",
       "slot": "03:00",
@@ -1600,167 +1551,6 @@
       "counts": {
         "corrected": 1,
         "reread": 2
-      }
-    },
-    {
-      "kind": "sweep",
-      "slot": "03:00",
-      "finished_at": "2026-11-12T03:23:43-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/43179415054",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "new",
-          "id": "el-viaje-14-nov",
-          "title": "El Viaje",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-14",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/el-viaje-14-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "clan-14-nov",
-          "title": "CLAN",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-14",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/clan-14-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "carne-de-mi-carne-14-nov",
-          "title": "Carne de mi carne",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-14",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/carne-de-mi-carne-14-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "la-voz-del-pueblo-14-nov",
-          "title": "La voz del pueblo",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-14",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/la-voz-del-pueblo-14-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "gala-clasica-y-romantica-16-nov",
-          "title": "Gala Clásica y Romántica",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-16",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/gala-clasica-y-romantica-16-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "esquirlas-de-un-beso-fragmentos-de-un-acto-de-amor-15-nov",
-          "title": "Esquirlas de un beso: fragmentos de un acto de amor",
-          "account": "danzaenlaciudad",
-          "date": "2026-11-15",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/esquirlas-de-un-beso-fragmentos-de-un-acto-de-amor-15-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "tropicana-ensamble-15-nov",
-          "title": "Tropicana Ensamble",
-          "account": "salsacamaraoficial",
-          "date": "2026-11-15",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/tropicana-ensamble-15-nov/"
-        },
-        {
-          "kind": "provisional",
-          "id": "son-legales-en-vivo-13-nov",
-          "title": "Son Legales en vivo",
-          "account": "salsaysonoficial",
-          "date": "2026-11-13",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/son-legales-en-vivo-13-nov/"
-        },
-        {
-          "kind": "merged",
-          "id": "tinder-bailable-sala-de-emergencias-14-nov",
-          "title": "Tinder Bailable: Sala de Emergencias",
-          "account": "bogotadanceclub",
-          "date": "2026-11-14",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/tinder-bailable-sala-de-emergencias-14-nov/"
-        },
-        {
-          "kind": "merged",
-          "id": "festival-internacional-casinea-10-a-edicion-13-nov",
-          "title": "Festival Internacional Casinea - 10.ª Edición",
-          "account": "casineafest",
-          "date": "2026-11-13",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/festival-internacional-casinea-10-a-edicion-13-nov/"
-        },
-        {
-          "kind": "merged",
-          "id": "sonido-70-orquesta-13-nov",
-          "title": "Sonido 70 Orquesta",
-          "account": "casaquiebracanto",
-          "date": "2026-11-13",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/sonido-70-orquesta-13-nov/"
-        },
-        {
-          "kind": "merged",
-          "id": "alex-rebambaramba-y-su-orquesta-14-nov",
-          "title": "Alex Rebambaramba y su orquesta",
-          "account": "casaquiebracanto",
-          "date": "2026-11-14",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/alex-rebambaramba-y-su-orquesta-14-nov/"
-        },
-        {
-          "kind": "merged",
-          "id": "tardeo-salsa-all-stars-15-nov",
-          "title": "TARDEO Salsa ALL STARS",
-          "account": "fernandoespanadj",
-          "date": "2026-11-15",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/tardeo-salsa-all-stars-15-nov/"
-        },
-        {
-          "kind": "archived",
-          "id": "acro-yoga-y-retrato-12-sep",
-          "title": "Acro yoga y retrato",
-          "account": "espacio.64",
-          "date": "2026-09-12",
-          "detail": "terminó hace más de 60 días",
-          "url": null
-        },
-        {
-          "kind": "archived",
-          "id": "angeles-y-diablitos-edicion-tinder-bailable-12-sep",
-          "title": "Ángeles y Diablitos - Edición Tinder Bailable",
-          "account": "bogotadanceclub",
-          "date": "2026-09-12",
-          "detail": "terminó hace más de 60 días",
-          "url": null
-        },
-        {
-          "kind": "archived",
-          "id": "social-crossover-y-talleres-12-sep",
-          "title": "Social Crossover y Talleres",
-          "account": "showstarscol",
-          "date": "2026-09-12",
-          "detail": "terminó hace más de 60 días",
-          "url": null
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "new": 6,
-        "provisional": 2,
-        "merged": 5,
-        "archived": 3
       }
     }
   ],
