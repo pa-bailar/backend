@@ -10894,144 +10894,7 @@
     "batched_posts": 0,
     "batch_rereads": 0,
     "warnings": [],
-    "changes": [
-      {
-        "kind": "new",
-        "id": "salsadentro-nov-clase-de-salsa-para-las-fiestas-21-nov",
-        "title": "Salsadentro Nov: Clase de salsa para las fiestas",
-        "account": "clandisfrute",
-        "date": "2026-11-21",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "fuga-compania-periferia-12-nov",
-        "title": "FUGA - Compañía Periferia",
-        "account": "danzaenlaciudad",
-        "date": "2026-11-12",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "aurora-12-nov",
-        "title": "Aurora",
-        "account": "danzaenlaciudad",
-        "date": "2026-11-12",
-        "detail": null
-      },
-      {
-        "kind": "provisional",
-        "id": "franja-mov-videodanza-see-through-territorio-yuma-10-nov",
-        "title": "Franja .MOV - Videodanza: See-through, Territorio Yuma, Ciudasis",
-        "account": "danzaenlaciudad",
-        "date": "2026-11-10",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "tinder-bailable-sala-de-emergencias-14-nov",
-        "title": "Tinder Bailable: Sala de Emergencias",
-        "account": "bogotadanceclub",
-        "date": "2026-11-14",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "domingo-super-bailable-15-nov",
-        "title": "Domingo Súper Bailable",
-        "account": "bogotadanceclub",
-        "date": "2026-11-15",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "charanga-premiere-12-nov",
-        "title": "Charanga Premiere",
-        "account": "salsacamaraoficial",
-        "date": "2026-11-12",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "sonido-70-14-nov",
-        "title": "Sonido 70",
-        "account": "salsacamaraoficial",
-        "date": "2026-11-14",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "clase-de-tango-con-ceci-urzola-11-nov",
-        "title": "Clase de Tango con Ceci Urzola",
-        "account": "callejonsalsa",
-        "date": "2026-11-11",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "clase-de-baile-con-teffa-murcia-13-nov",
-        "title": "Clase de baile con Teffa Murcia",
-        "account": "callejonsalsa",
-        "date": "2026-11-13",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "salsa-y-son-en-vivo-con-armando-quintana-cuba-13-nov",
-        "title": "Salsa y Son en vivo con Armando Quintana (Cuba) Entre Amigos",
-        "account": "callejonsalsa",
-        "date": "2026-11-13",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "lanzamiento-del-nuevo-album-de-la-orquesta-la-13-nov",
-        "title": "Lanzamiento del nuevo álbum de la Orquesta La Palabra",
-        "account": "pachanga_y_pochola",
-        "date": "2026-11-13",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "tardeo-salsa-all-stars-15-nov",
-        "title": "TARDEO Salsa ALL STARS",
-        "account": "fernandoespanadj",
-        "date": "2026-11-15",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "estrellas-de-buenavista-21-nov",
-        "title": "Estrellas de Buenavista",
-        "account": "fernandoespanadj",
-        "date": "2026-11-21",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "provisional",
-        "id": "orquesta-arag-oacute-n-de-cuba-charanga-en-la-luna-20-nov",
-        "title": "Orquesta Arag&oacute;n de Cuba - Charanga en la Luna",
-        "account": "fernandoespanadj",
-        "date": "2026-11-20",
-        "detail": "leído por un modelo más liviano: Flash lo relee después"
-      },
-      {
-        "kind": "merged",
-        "id": "vacio-10-nov",
-        "title": "VACÍO",
-        "account": "danzaenlaciudad",
-        "date": "2026-11-10",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "archived",
-        "id": "ritmos-cruzados-10-sep",
-        "title": "Ritmos Cruzados",
-        "account": "esferalatinaoficial",
-        "date": "2026-09-10",
-        "detail": "terminó hace más de 60 días"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "new": 3,
@@ -13045,6 +12908,151 @@
     "changes_left_out": 0,
     "change_counts": {
       "reread": 1
+    }
+  },
+  {
+    "finished_at": "2026-11-14T21:21:53-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/43665665287",
+    "started_at": "2026-11-14T21:01:13-05:00",
+    "site_data_at": "2026-11-14T06:32:20-05:00",
+    "data_changed": true,
+    "accounts": 34,
+    "failed_accounts": [
+      "el_panteon_de_la_salsa"
+    ],
+    "read_accounts": [
+      "_olorumcongress",
+      "academiaalmadetangoe",
+      "academyfeel",
+      "bachatamania_bogota",
+      "bachatasocialcongresss",
+      "bailalo_improsocial",
+      "bogotadanceclub.academy",
+      "bureodancestudio",
+      "danceholicproject",
+      "el_bochinche_cafe_",
+      "el_panteon_de_la_salsa",
+      "elratonsalsaclub",
+      "espacio.64",
+      "festivalsalsaalparque",
+      "galeriacafelibro",
+      "habana93",
+      "imperiolatino",
+      "jen.ssy",
+      "lacoartadacentrocultural",
+      "ladiezluxury_outlet",
+      "ludancestudios",
+      "mover__se",
+      "puntalpie",
+      "quemaquequema",
+      "restaurantecasadecitas",
+      "ritmomoderno",
+      "salsabravadancehallpicante",
+      "salsayritmolatino",
+      "sandunguera.salsabar",
+      "showstarscol",
+      "soondanz_company",
+      "studiolatindance",
+      "teffa_mg",
+      "valkandela"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 16,
+    "events_new": 3,
+    "events_merged": 3,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 1,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 15,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 11,
+      "gemini-3-flash-preview": 1
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 46,
+    "instagram_usage_detail": {
+      "call_count": 13,
+      "total_cputime": 0,
+      "total_time": 46
+    },
+    "instagram_reads": {
+      "accounts": 34,
+      "mean_seconds": 1.94,
+      "median_seconds": 1.5,
+      "max_seconds": 7.66,
+      "mean_cost": 1.39,
+      "max_cost": 3,
+      "max_cost_account": "bachatasocialcongresss",
+      "headers": {
+        "X-App-Usage": 34
+      },
+      "expected_cost": 3
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [
+      "fetch:bailabo_studio"
+    ],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "salsa-en-vivo-14-nov",
+        "title": "Salsa en Vivo",
+        "account": "quemaquequema",
+        "date": "2026-11-14",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "salsa-al-parque-2026-28-nov",
+        "title": "Salsa al Parque 2026",
+        "account": "festivalsalsaalparque",
+        "date": "2026-11-28",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "candelaria-salsa-groove-en-vivo-27-nov",
+        "title": "Candelaria Salsa Groove en vivo",
+        "account": "restaurantecasadecitas",
+        "date": "2026-11-27",
+        "detail": null
+      },
+      {
+        "kind": "merged",
+        "id": "bachata-social-congress-2027-24-jun",
+        "title": "Bachata Social Congress 2027",
+        "account": "bachatasocialcongresss",
+        "date": "2027-06-24",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "clausura-showstars-28-nov",
+        "title": "Clausura Showstars",
+        "account": "showstarscol",
+        "date": "2026-11-28",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 3,
+      "merged": 2
     }
   }
 ]
