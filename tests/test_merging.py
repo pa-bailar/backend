@@ -8,6 +8,7 @@ from pa_bailar.merging import (
     find_existing,
     looks_like_same_event,
     looks_like_shared_event,
+    matches_hidden,
     merge_duplicates,
     merge_into,
     ordered_media,
@@ -248,6 +249,50 @@ def test_other_events_during_a_festival_weekend_stay_apart():
     )
     # After its last day: another event.
     assert not looks_like_same_event(festival, "academia", extracted(title=FESTIVAL["title"], date="2026-11-03"))
+
+
+CASINEA = {
+    "title": "Festival Internacional Casinea - 10.ª Edición",
+    "event_type": "congress",
+    "date": "2026-11-13",
+    "end_date": "2026-11-16",
+}
+
+
+def test_a_congress_night_is_an_event_of_its_own():
+    """Nov 2026: CASINEA's socials, each in its own post, were linked to the congress (same_as) and folded into it;
+    the site showed no socials (the owner, 17 Nov)."""
+    congress = stored("casinea", account="casineafest", **CASINEA)
+    social = extracted(
+        same_as="casinea",
+        title="Black & White Cuban Social - Casinea",
+        event_type="social",
+        date="2026-11-15",
+        venue="Bendito Vice",
+    )
+    assert find_existing([congress], "casineafest", social, "social-post") is None
+    assert not looks_like_same_event(congress, "casineafest", social)
+    assert not matches_hidden(congress, "casineafest", social, "social-post")  # hiding the congress keeps its nights
+    party = extracted(title="Festival Internacional Casinea - Fiesta", event_type="party", date="2026-11-14")
+    assert find_existing([congress], "casineafest", party, "party-post") is None
+    assert find_existing([congress], "casineafest", party, "party-post", announced={"casinea"}) is None
+    # The venue's post of the night isn't the congress either.
+    assert not looks_like_shared_event(congress, "benditovice", social.model_copy(update={"same_as": None}))
+    # Stored the other way round: the congress's post isn't the night.
+    night = stored("black-white", account="casineafest", title=social.title, event_type="social", date="2026-11-15")
+    assert find_existing([night], "casineafest", extracted(**CASINEA), "congress-post") is None
+    assert merge_duplicates([congress, night])[1] == []
+
+
+def test_a_congress_teacher_or_competition_still_joins_the_congress():
+    congress = stored("casinea", account="casineafest", **CASINEA)
+    teacher = extracted(same_as="casinea", title="Jesús Castillo en Casinea", event_type="workshop", date="2026-11-15")
+    assert find_existing([congress], "casineafest", teacher, "teacher-post") is congress
+    competition = extracted(same_as="casinea", title="Competencias", event_type="competition", date="2026-11-14")
+    assert find_existing([congress], "casineafest", competition, "competition-post") is congress
+    # A social over the congress's days (Gemini typed the congress a social) isn't a night of it.
+    whole = extracted(same_as="casinea", title="Casinea", event_type="social", date="2026-11-13", end_date="2026-11-16")
+    assert find_existing([congress], "casineafest", whole, "whole-post") is congress
 
 
 def test_a_congress_posted_by_two_accounts_merges_across_its_days():

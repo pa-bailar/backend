@@ -68,6 +68,22 @@ def _multi_day(event: EventDetails) -> bool:
     return bool(event.end_date or event.sessions)
 
 
+# A congress's or festival's nights are events of their own (the owner, 17 Nov 2026): CASINEA's socials, each
+# announced in its own post with its venue, time and door price, were folded into the congress, so the site showed
+# one card of workshops and competitions and no socials, and the congress took a social's venue and cover.
+_GATHERINGS = {"congress", "festival"}
+_NIGHTS = {"social", "party"}
+
+
+def night_apart(a: EventDetails, b: EventDetails) -> bool:
+    """Whether one is a one-day social or party and the other a congress or festival: two events, whatever links them
+    (the rules, Gemini's same_as). A post about a congress's teacher or its competition still joins the congress."""
+    return any(
+        gathering.event_type in _GATHERINGS and night.event_type in _NIGHTS and not _multi_day(night)
+        for gathering, night in ((a, b), (b, a))
+    )
+
+
 def _same_series(a: EventDetails, b: EventDetails) -> bool:
     """Two workshop series of one account are the same program when most sessions match (at least half of the
     shorter one's), with the same start time on a session they share when both give one, and the same title or
@@ -107,8 +123,9 @@ def looks_like_same_event(stored: StoredEvent, account: str, candidate: EventDet
     - when either lasts several days: the same title, or distinctive title words in common (a festival
       and a post about its teacher), never the start time alone (a festival weekend has several nights);
     - a workshop series and a post about one of its sessions: _session_of; two series: _same_series.
+    Never a congress or festival and a night of it (night_apart).
     """
-    if stored.account != account or not share_a_day(stored, candidate):
+    if stored.account != account or not share_a_day(stored, candidate) or night_apart(stored, candidate):
         return False
     if stored.sessions and candidate.sessions:
         return _same_series(stored, candidate)
@@ -238,9 +255,10 @@ def looks_like_shared_event(stored: StoredEvent, account: str, candidate: EventD
         distinctive title words in common, kinds of events aside ("Level Up … Fusion Congress"), or counting
         them as long as one word in common isn't one ("Tour de la Salsa — Capítulo 001" and "Primer capítulo del
         Tour de la Salsa", the second without a time: 7 Oct 2026).
-    Titles alone never merge two accounts' events: "Halloween Party" or "Festival … 2026" may be two events.
+    Titles alone never merge two accounts' events: "Halloween Party" or "Festival … 2026" may be two events. Nor
+    does anything merge a congress or festival and a night of it (night_apart).
     """
-    if stored.account == account or not share_a_day(stored, candidate):
+    if stored.account == account or not share_a_day(stored, candidate) or night_apart(stored, candidate):
         return False
     one_day = not _multi_day(stored) and not _multi_day(candidate)
     if one_day and stored.start_time and candidate.start_time and stored.start_time != candidate.start_time:
@@ -279,16 +297,21 @@ def find_existing(
     and the re-read made a second event, which then took over with a new id (review, 7 Oct 2026).
 
     Events that already contain `post_id` are never matched: two events announced in the same post
-    are different events, even if they share a date and time.
+    are different events, even if they share a date and time. Nor is a congress or festival and a night of it
+    (night_apart), even linked by Gemini.
     """
     others = [e for e in events if all(m.post_id != post_id for m in e.media)]
     linked = _linked(others, account, candidate)
-    if linked and share_a_day(linked, candidate):
+    if linked and share_a_day(linked, candidate) and not night_apart(linked, candidate):
         return linked
     same_account = next((e for e in others if looks_like_same_event(e, account, candidate)), None)
     if same_account:
         return same_account
-    before = [e for e in others if e.id in announced and e.account == account and share_a_day(e, candidate)]
+    before = [
+        e
+        for e in others
+        if e.id in announced and e.account == account and share_a_day(e, candidate) and not night_apart(e, candidate)
+    ]
     if len(before) == 1:
         return before[0]
     return next((e for e in others if looks_like_shared_event(e, account, candidate)), None)
@@ -330,7 +353,8 @@ def matches_hidden(hidden: StoredEvent, account: str, candidate: ExtractedEvent,
         looks_like_same_event(hidden, hidden.account, candidate) or fold(hidden.title) == fold(candidate.title)
     ):
         return True
-    if candidate.same_as == hidden.id and hidden.account == account and share_a_day(hidden, candidate):
+    linked = candidate.same_as == hidden.id and hidden.account == account
+    if linked and share_a_day(hidden, candidate) and not night_apart(hidden, candidate):
         return True
     return looks_like_same_event(hidden, account, candidate) or looks_like_shared_event(hidden, account, candidate)
 
