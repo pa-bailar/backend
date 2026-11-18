@@ -101,8 +101,11 @@ _TYPES_AND_STYLES = f"""Event type, by the main purpose of the event:
 - congress: a dance congress or encuentro ("congreso", "congress", "encuentro", "weekender"), usually over
   several days (set date and end_date) with workshops, socials, shows and often competitions, with national
   and international artists and passes ("full pass"). Several workshops as part of one congress are the
-  congress, not workshops. If the post announces a congress without exact dates (only "en noviembre"), it
-  has no date.
+  congress, not workshops. Its socials and parties are not: return each social or party night the post names as
+  an event of its own besides the congress, titled by the night's name, with its venue, the night's start time
+  (not the day's workshops') and price when given. Everything else of the congress (its workshops, competitions,
+  shows, opening and closing) is the congress, never events of their own. If the post announces a congress
+  without exact dates (only "en noviembre"), it has no date.
 - festival: a festival of music or dance more broadly (e.g. "Salsa al Parque"), not a congress.
 - competition: concurso, competencia, batalla. show: a performance or gala without social dancing.
 - other: anything else.
@@ -137,10 +140,12 @@ series' sessions | start time | title):
 Academies often announce the same event several times: a flyer, then a video, a reminder or a second
 flyer. If an event in this post is one of the known events (same occasion, even if the title or wording
 differs, e.g. "este sábado" vs the date), set same_as to that event's id and still fill in every detail
-you can see. A post presenting a teacher, an artist or one night of a congress or festival announces that
-same congress or festival: one event with its dates, linked by same_as when it's known. Otherwise set same_as
-to null. Link only a post that announces the event itself, on its date: never link (same_as) a post that only
-mentions it in passing (a song release, a profile) or that gives it another date."""
+you can see. A post presenting a teacher, an artist or the competition of a congress or festival announces that
+same congress or festival: one event with its dates, linked by same_as when it's known. But a social or a party
+of a congress or festival is an event of its own: never link it (same_as) to the congress or festival.
+Otherwise set same_as to null. Link only a post that announces the event itself, on its date:
+never link (same_as) a post that only mentions it in passing (a song release, a profile) or that gives it another
+date."""
 
 _WHAT_AND_HOW = f"""{_EVENT_DEFINITION}
 (Mark is_recurring=true for any regular or weekly event you include.)
@@ -155,7 +160,8 @@ _EXTRACTION_RULES = """Rules:
 - date: the event's day, or its FIRST day for an event over several consecutive days. end_date: its LAST
   day ("NOV 13-15 2026" → date 2026-11-13, end_date 2026-11-15; "31 Oct, 1 y 2 Nov" → 2026-10-31 and
   2026-11-02). end_date is null for a one-day event, including a night that goes on past midnight.
-- Never return one event per day of an event over several days. But the same workshop or social on separate,
+- Never return one event per day of an event over several days (a congress's or festival's socials and parties
+  aside: each is an event of its own). But the same workshop or social on separate,
   non-consecutive dates or at different venues is one event per date, when each date is an occasion of its
   own: a workshop given again on another date (people come to one of them), three socials each with its own
   theme.

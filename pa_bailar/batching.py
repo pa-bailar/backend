@@ -21,7 +21,7 @@ from datetime import datetime
 from google.genai import types
 
 from .instagram import Post
-from .merging import find_existing, share_a_day
+from .merging import find_existing, night_apart, share_a_day
 from .models import BatchAnalysis, PostAnalysis, StoredEvent
 from .normalize import normalize_event
 from .prompts import BATCH_EXTRACTION_PROMPT, BATCH_POST
@@ -157,8 +157,7 @@ def repeats_earlier(
     (SAME_DAY): one request more, only then; two different events of a day stay two, as one by one."""
     for event in analysis.events:
         candidate = normalize_event(event)
-        if any(share_a_day(stored, candidate) for stored in earlier) and not find_existing(
-            events, account, candidate, post_id
-        ):
+        on_its_day = (share_a_day(s, candidate) and not night_apart(s, candidate) for s in earlier)
+        if any(on_its_day) and not find_existing(events, account, candidate, post_id):
             return True
     return False

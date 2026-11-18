@@ -95,7 +95,7 @@ def test_the_one_post_prompt_is_unchanged_by_the_batched_one():
 
     from pa_bailar.prompts import EXTRACTION_PROMPT
 
-    assert hashlib.sha256(EXTRACTION_PROMPT.encode()).hexdigest()[:16] == "b5126a52a0e1a98f"
+    assert hashlib.sha256(EXTRACTION_PROMPT.encode()).hexdigest()[:16] == "79bf337676b5739a"
 
 
 # ---------- the answer, checked ----------
