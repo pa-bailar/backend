@@ -785,12 +785,14 @@ Notes on the prompts and parameters:
   - `in_bogota` for every event ("yes", "no" or "unknown"), checked in code (section 6.3), since the prompt
     alone let a tour's concerts abroad through;
   - how to pick the event type (social, party, workshop, concert, congress, festival, competition, show, other: a
-    multi-day dance congress is a `congress`, its workshops included; a `social` is a night for dancers, an
+    multi-day dance congress is a `congress`, its workshops, competitions and shows included, but each of its
+    social or party nights is an event of its own (the owner, 17 Nov 2026); a `social` is a night for dancers, an
     academy's or an organizer's, a `party` a night out, a bar's or a general public one) and the styles (from a fixed list);
   - dates: `date` is the event's (first) day, `end_date` its last over consecutive days ("NOV 13-15" → 13
     and 15; null for one day, a night past midnight included); one event per congress, not per day; the same
     workshop on separate dates is one event per date, while a workshop series (one sign-up) is one event with
-    `sessions`; a post about one session, one teacher or one night is that series or festival. Times over
+    `sessions`; a post about one session or one teacher is that series or festival, a post about one of its
+    nights is that night, never linked to the congress or festival. Times over
     several days: the first day's start and the last day's end;
   - how to resolve dates without a year;
   - prices: `amount_cop` only in Colombian pesos, 0 only when free; a price in another currency goes to the
@@ -1106,8 +1108,13 @@ flowchart TD
   mentioned a concert), its id still naming the old day, and could have cost a series its sessions. A real
   reschedule then shows as two events, the new one flagged, until the old one is hidden.
 - **Days in common:** an event covers `date` to `end_date` (or just `date`), and two events match only if
-  their days overlap. A post about one night or one teacher of a festival falls within the festival's days.
+  their days overlap. A post about one teacher of a festival falls within the festival's days.
   A workshop series covers only its session days, not the days between them.
+- **A congress's nights stay apart** (`merging.night_apart`): a one-day `social` or `party` and a `congress` or
+  `festival` are never one event, whatever links them (the rules, `same_as`, a re-read, the hidden-event match).
+  CASINEA's three socials (13–16 Nov 2026), each announced in its own post with its venue, time and door price,
+  were linked to the congress and folded into it: the site showed one card of workshops and competitions and no
+  socials, and the congress took a social's venue and cover (the owner, 17 Nov 2026).
 - **Workshop series** (section 9.1), same account:
   - a post about one of its sessions (a reminder, "sesión 3") is the series when it's dated on a session
     day, doesn't clash with that session's start time, and has the same title, a distinctive title word in
