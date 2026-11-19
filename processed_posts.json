@@ -34637,11 +34637,11 @@
   "18131584735879914": {
     "account": "galeriacafelibro",
     "permalink": "https://www.instagram.com/p/Df49Pr4MF7N/",
-    "processed_at": "2026-11-18T21:08:44-05:00",
+    "processed_at": "2026-11-19T06:51:46-05:00",
     "is_event_post": true,
-    "reason": "Se anuncia una presentación de la orquesta Los Melódicos el 19 de diciembre en la sede Parque 93 de Galería Café Libro.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post anuncia el concierto de la orquesta Los Melódicos en Galería Café Libro el 19 de diciembre.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "4946405869757daf",
     "outcome": "event",
     "event_ids": [
@@ -34999,11 +34999,11 @@
   "18022184270955263": {
     "account": "casaquiebracanto",
     "permalink": "https://www.instagram.com/p/Df5znc4x4l9/",
-    "processed_at": "2026-11-19T03:25:48-05:00",
+    "processed_at": "2026-11-19T06:50:40-05:00",
     "is_event_post": true,
-    "reason": "Se anuncian dos presentaciones de orquestas de salsa en vivo para el fin de semana.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post anuncia dos conciertos de salsa en vivo: Real Charanga el viernes 20 de noviembre y La Llave Orquesta el sábado 21 de noviembre en Casa Quiebra-Canto.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "bd059fbb97744425",
     "outcome": "event",
     "event_ids": [
