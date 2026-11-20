@@ -1,7 +1,117 @@
 {
-  "generated_at": "2026-11-19T06:51:47-05:00",
+  "generated_at": "2026-11-19T21:25:52-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-11-19T21:25:51-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/44657620637",
+        "started_at": "2026-11-19T21:01:24-05:00",
+        "site_data_at": "2026-11-19T06:51:47-05:00",
+        "data_changed": true,
+        "accounts": 41,
+        "failed_accounts": [
+          "el_panteon_de_la_salsa"
+        ],
+        "read_accounts": [
+          "academiaalmadetangoe",
+          "academyfeel",
+          "alejochacon.co",
+          "arrollando.dc",
+          "babou_candelaria",
+          "bachatamania_bogota",
+          "bachatasocialcongresss",
+          "bailarito",
+          "bogotadanceclub.academy",
+          "bureodancestudio",
+          "cordillerafestival",
+          "danceholicproject",
+          "danceinmotionclub",
+          "distritosocialbog",
+          "efadanza",
+          "el_bochinche_cafe_",
+          "el_panteon_de_la_salsa",
+          "elratonsalsaclub",
+          "festivalsalsaalparque",
+          "fogal_arte",
+          "galeriacafelibro",
+          "guadalupebar751",
+          "iledanza",
+          "imperiolatino",
+          "jen.ssy",
+          "latrinidaddelasalsa",
+          "mambo_y_control",
+          "mover__se",
+          "originalstepdance",
+          "quemaquequema",
+          "restaurantecasadecitas",
+          "ritmomoderno",
+          "salsalatina.alsacia",
+          "salsayritmolatino",
+          "showstarscol",
+          "sonrumbero",
+          "studiolatindance",
+          "teffa_mg",
+          "tibaduiza__",
+          "valkandela",
+          "zafiro_project_team"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 15,
+        "events_new": 3,
+        "events_merged": 4,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 0,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 14,
+          "gemini-3.8-flash": 7,
+          "gemini-3.6-flash": 10
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 58,
+        "instagram_usage_detail": {
+          "call_count": 16,
+          "total_cputime": 0,
+          "total_time": 58
+        },
+        "instagram_reads": {
+          "accounts": 41,
+          "mean_seconds": 1.9,
+          "median_seconds": 2.0,
+          "max_seconds": 4.15,
+          "mean_cost": 1.45,
+          "max_cost": 5,
+          "max_cost_account": "zafiro_project_team",
+          "headers": {
+            "X-App-Usage": 41
+          },
+          "expected_cost": 3
+        },
+        "instagram_stop": null,
+        "upgrade_changes": {},
+        "upgraded": 3,
+        "upgrade_reads": 0,
+        "upgrade_misses": 0,
+        "triage_checked": 0,
+        "triage_misses": 0,
+        "batch_requests": 0,
+        "batched_posts": 0,
+        "batch_rereads": 0,
+        "warnings": [
+          "fetch:el_panteon_de_la_salsa",
+          "fetch:bailabo_studio"
+        ],
+        "changes_left_out": 0,
+        "change_counts": {
+          "new": 3,
+          "merged": 4
+        }
+      },
       {
         "finished_at": "2026-11-19T06:51:47-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/44515360477",
@@ -389,135 +499,16 @@
           "new": 4,
           "corrected": 1
         }
-      },
-      {
-        "finished_at": "2026-11-18T03:13:56-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/44263272264",
-        "started_at": "2026-11-18T03:00:50-05:00",
-        "site_data_at": "2026-11-17T21:17:16-05:00",
-        "data_changed": true,
-        "accounts": 41,
-        "failed_accounts": [],
-        "read_accounts": [
-          "academiadebailepasolatino",
-          "acaparchamos",
-          "and1erita",
-          "andonybaron",
-          "aseismanos",
-          "bilongocolombia",
-          "bogotadanceclub",
-          "bulevarsalsabar",
-          "callejonsalsa",
-          "casaquiebracanto",
-          "casavander_",
-          "casineafest",
-          "clandisfrute",
-          "danzaenlaciudad",
-          "dlivingstudio",
-          "ebi_dancecompany",
-          "esferalatinaoficial",
-          "fernandoespanadj",
-          "foururbandanc",
-          "frank.de.latorre",
-          "germanbaila",
-          "herencialatinad.c",
-          "ilhehabana",
-          "jaleocompetencia_",
-          "juancho__salsita",
-          "la33orquesta",
-          "lanenamagdalena",
-          "madyumdance",
-          "meetinghousebogota",
-          "oronegroclub",
-          "pachanga_y_pochola",
-          "parchexbogota",
-          "reyesdelasalsa.col",
-          "ritmosacademiadebaile",
-          "salsacamaraoficial",
-          "salsaculto",
-          "salsaysonoficial",
-          "sondehabana",
-          "soywiwioficial",
-          "studio110dance",
-          "tributo.salsayjazz"
-        ],
-        "skipped_accounts": [
-          "latinproductioncolombia",
-          "discojaguar.bta",
-          "rpdancestudio",
-          "sonorasocialclub_",
-          "bembeacademiadebaile",
-          "cremadeajiaco",
-          "bulevarsalsarooftop",
-          "elgocepagano",
-          "salsalatina.villaluz"
-        ],
-        "posts_analyzed": 20,
-        "events_new": 3,
-        "events_merged": 7,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 0,
-        "rate_limited": true,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 15,
-          "gemini-3.8-flash": 6,
-          "gemini-3.6-flash": 6
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 95,
-        "instagram_usage_detail": {
-          "call_count": 16,
-          "total_cputime": 0,
-          "total_time": 95
-        },
-        "instagram_reads": {
-          "accounts": 41,
-          "mean_seconds": 3.52,
-          "median_seconds": 3.11,
-          "max_seconds": 8.59,
-          "mean_cost": 2.38,
-          "max_cost": 5,
-          "max_cost_account": "dlivingstudio",
-          "headers": {
-            "X-App-Usage": 41
-          },
-          "expected_cost": 4
-        },
-        "instagram_stop": "forecast",
-        "upgrade_changes": {},
-        "upgraded": 2,
-        "upgrade_reads": 0,
-        "upgrade_misses": 0,
-        "triage_checked": 0,
-        "triage_misses": 0,
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [
-          "fetch:bailabo_studio",
-          "fetch:el_panteon_de_la_salsa"
-        ],
-        "changes_left_out": 0,
-        "change_counts": {
-          "new": 4,
-          "merged": 8,
-          "reread": 1
-        }
       }
     ],
     "next": [
-      "2026-11-19T21:00-05:00",
-      "2026-11-20T03:00-05:00"
+      "2026-11-20T03:00-05:00",
+      "2026-11-20T06:30-05:00"
     ]
   },
   "site_data": {
-    "published_at": "2026-11-19T03:40:33-05:00",
-    "checked_at": "2026-11-19T06:45:47-05:00",
+    "published_at": "2026-11-19T06:51:47-05:00",
+    "checked_at": "2026-11-19T21:01:24-05:00",
     "missing": [],
     "prs_url": "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata"
   },
@@ -528,13 +519,13 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 9,
+        "used": 16,
         "budget": 18
       },
       {
         "model": "gemini-3.6-flash",
         "role": "extraction",
-        "used": 8,
+        "used": 18,
         "budget": 18
       },
       {
@@ -546,7 +537,7 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 13,
+        "used": 27,
         "budget": 498
       },
       {
@@ -558,7 +549,7 @@
     ]
   },
   "external": {
-    "resets_at": "2026-11-19T19:00-05:00",
+    "resets_at": "2026-11-20T19:00-05:00",
     "providers": [
       {
         "name": "groq",
@@ -591,28 +582,28 @@
     "error": null
   },
   "instagram_quota": {
-    "usage": 1,
+    "usage": 58,
     "detail": {
-      "call_count": 0,
+      "call_count": 16,
       "total_cputime": 0,
-      "total_time": 1
+      "total_time": 58
     },
     "stopped": false,
     "stop": null,
-    "finished_at": "2026-11-19T06:51:47-05:00",
+    "finished_at": "2026-11-19T21:25:51-05:00",
     "stop_at": 98,
     "reads": {
-      "accounts": 2,
-      "mean_seconds": 1.8,
-      "median_seconds": 1.8,
-      "max_seconds": 2.38,
-      "mean_cost": 1.0,
-      "max_cost": 1,
-      "max_cost_account": "galeriacafelibro",
+      "accounts": 41,
+      "mean_seconds": 1.9,
+      "median_seconds": 2.0,
+      "max_seconds": 4.15,
+      "mean_cost": 1.45,
+      "max_cost": 5,
+      "max_cost_account": "zafiro_project_team",
       "headers": {
-        "X-App-Usage": 2
+        "X-App-Usage": 41
       },
-      "expected_cost": 1
+      "expected_cost": 3
     }
   },
   "lighter_reads": {
@@ -637,14 +628,52 @@
     ]
   },
   "posts": {
-    "recorded": 1992,
-    "provisional": 204
+    "recorded": 1870,
+    "provisional": 170
   },
   "events": {
-    "upcoming": 77,
+    "upcoming": 80,
     "low_confidence": 0
   },
   "new_series": [
+    {
+      "id": "curso-intensivo-2-salsa-desde-cero-14-dic",
+      "title": "Curso Intensivo 2 - Salsa desde cero",
+      "account": "sonrumbero",
+      "sessions": "3 sesiones: 14, 16 y 18 dic",
+      "dates": [
+        "2026-12-14",
+        "2026-12-16",
+        "2026-12-18"
+      ],
+      "url": "https://pa-bailar.github.io/evento/curso-intensivo-2-salsa-desde-cero-14-dic/",
+      "first_published": "2026-11-19T21:12-05:00",
+      "sources": [
+        {
+          "kind": "post",
+          "link": "https://www.instagram.com/p/Df46qQKFJc0/"
+        }
+      ]
+    },
+    {
+      "id": "curso-intensivo-1-salsa-desde-cero-15-dic",
+      "title": "Curso Intensivo 1 - Salsa desde cero",
+      "account": "sonrumbero",
+      "sessions": "3 sesiones: 15, 17 y 19 dic",
+      "dates": [
+        "2026-12-15",
+        "2026-12-17",
+        "2026-12-19"
+      ],
+      "url": "https://pa-bailar.github.io/evento/curso-intensivo-1-salsa-desde-cero-15-dic/",
+      "first_published": "2026-11-19T21:12-05:00",
+      "sources": [
+        {
+          "kind": "post",
+          "link": "https://www.instagram.com/p/Df46qQKFJc0/"
+        }
+      ]
+    },
     {
       "id": "ciclo-de-iniciacion-a-la-salsa-en-linea-21-nov",
       "title": "Ciclo de iniciación a la salsa en línea",
@@ -992,6 +1021,84 @@
     }
   ],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "21:00",
+      "finished_at": "2026-11-19T21:25:51-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/44657620637",
+      "target": null,
+      "error": null,
+      "changes": [
+        {
+          "kind": "new",
+          "id": "la-ruta-pagana-festival-de-salsa-21-nov",
+          "title": "La Ruta Pagana: Festival de Salsa",
+          "account": "galeriacafelibro",
+          "date": "2026-11-21",
+          "detail": null,
+          "url": "https://pa-bailar.github.io/evento/la-ruta-pagana-festival-de-salsa-21-nov/"
+        },
+        {
+          "kind": "new",
+          "id": "curso-intensivo-2-salsa-desde-cero-14-dic",
+          "title": "Curso Intensivo 2 - Salsa desde cero",
+          "account": "sonrumbero",
+          "date": "2026-12-14",
+          "detail": null,
+          "url": "https://pa-bailar.github.io/evento/curso-intensivo-2-salsa-desde-cero-14-dic/"
+        },
+        {
+          "kind": "new",
+          "id": "curso-intensivo-1-salsa-desde-cero-15-dic",
+          "title": "Curso Intensivo 1 - Salsa desde cero",
+          "account": "sonrumbero",
+          "date": "2026-12-15",
+          "detail": null,
+          "url": "https://pa-bailar.github.io/evento/curso-intensivo-1-salsa-desde-cero-15-dic/"
+        },
+        {
+          "kind": "merged",
+          "id": "the-big-jhony-21-nov",
+          "title": "The Big Jhony",
+          "account": "galeriacafelibro",
+          "date": "2026-11-21",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/the-big-jhony-21-nov/"
+        },
+        {
+          "kind": "merged",
+          "id": "salsa-al-parque-2026-28-nov",
+          "title": "Salsa al Parque 2026",
+          "account": "festivalsalsaalparque",
+          "date": "2026-11-28",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/salsa-al-parque-2026-28-nov/"
+        },
+        {
+          "kind": "merged",
+          "id": "conspiraciones-encuentro-de-cuerpo-y-memoria-3-dic",
+          "title": "Conspiraciones - Encuentro de cuerpo y memoria",
+          "account": "fogal_arte",
+          "date": "2026-12-03",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/conspiraciones-encuentro-de-cuerpo-y-memoria-3-dic/"
+        },
+        {
+          "kind": "merged",
+          "id": "clausura-2026-28-nov",
+          "title": "Clausura 2026",
+          "account": "salsayritmolatino",
+          "date": "2026-11-28",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/clausura-2026-28-nov/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "new": 3,
+        "merged": 4
+      }
+    },
     {
       "kind": "sweep",
       "slot": "06:30",
@@ -1603,17 +1710,6 @@
       "counts": {
         "merged": 3
       }
-    },
-    {
-      "kind": "sweep",
-      "slot": "06:30",
-      "finished_at": "2026-11-16T06:32:04-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/43858293148",
-      "target": null,
-      "error": null,
-      "changes": [],
-      "left_out": 0,
-      "counts": {}
     }
   ],
   "discovery": null
