@@ -12449,7 +12449,7 @@
     "warnings": [
       "fetch:bailabo_studio"
     ],
-    "changes": [],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {}
   },
@@ -14340,6 +14340,209 @@
     "change_counts": {
       "new": 3,
       "merged": 4
+    }
+  },
+  {
+    "finished_at": "2026-11-20T03:21:13-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/44699098268",
+    "started_at": "2026-11-20T03:00:54-05:00",
+    "site_data_at": "2026-11-19T21:25:51-05:00",
+    "data_changed": true,
+    "accounts": 49,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academiadebailepasolatino",
+      "acaparchamos",
+      "and1erita",
+      "andonybaron",
+      "aseismanos",
+      "bembeacademiadebaile",
+      "bilongocolombia",
+      "bogotadanceclub",
+      "bulevarsalsabar",
+      "bulevarsalsarooftop",
+      "callejonsalsa",
+      "casaquiebracanto",
+      "casavander_",
+      "casineafest",
+      "clandisfrute",
+      "cremadeajiaco",
+      "danzaenlaciudad",
+      "discojaguar.bta",
+      "dlivingstudio",
+      "ebi_dancecompany",
+      "elgocepagano",
+      "esferalatinaoficial",
+      "fernandoespanadj",
+      "foururbandanc",
+      "frank.de.latorre",
+      "ilhehabana",
+      "jaleocompetencia_",
+      "juancho__salsita",
+      "la33orquesta",
+      "lanenamagdalena",
+      "latinproductioncolombia",
+      "madyumdance",
+      "mariavasquezdancer",
+      "oronegroclub",
+      "pachanga_y_pochola",
+      "parchexbogota",
+      "proyectourbandance",
+      "reyesdelasalsa.col",
+      "ritmosacademiadebaile",
+      "rpdancestudio",
+      "salsacamaraoficial",
+      "salsaculto",
+      "salsalatina.villaluz",
+      "salsaysonoficial",
+      "sondehabana",
+      "sonorasocialclub_",
+      "soywiwioficial",
+      "studio110dance",
+      "tributo.salsayjazz"
+    ],
+    "skipped_accounts": [
+      "ikubambayadanza",
+      "mundanobaroficial",
+      "mambolei_",
+      "fredyysaraoficial",
+      "academia_cowork",
+      "tubailecom",
+      "alpasojam",
+      "angie__cuesta",
+      "davidylauradancers",
+      "elparche.se",
+      "salsalatina_castilla",
+      "dannysalsita.lafabrica",
+      "boogaloop.candelaria",
+      "dreamcupco",
+      "danitello22",
+      "oswaldgil2",
+      "zaimora24"
+    ],
+    "posts_analyzed": 36,
+    "events_new": 2,
+    "events_merged": 6,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 8,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 24,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3-flash-preview": 8
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 60,
+    "instagram_usage_detail": {
+      "call_count": 20,
+      "total_cputime": 0,
+      "total_time": 60
+    },
+    "instagram_reads": {
+      "accounts": 49,
+      "mean_seconds": 1.57,
+      "median_seconds": 1.48,
+      "max_seconds": 3.54,
+      "mean_cost": 1.25,
+      "max_cost": 4,
+      "max_cost_account": "jaleocompetencia_",
+      "headers": {
+        "X-App-Usage": 49
+      },
+      "expected_cost": 3
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [
+      "fetch:bailabo_studio",
+      "fetch:el_panteon_de_la_salsa"
+    ],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "social-decembrino-27-nov",
+        "title": "Social Decembrino",
+        "account": "esferalatinaoficial",
+        "date": "2026-11-27",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "baila-que-baila-12-dic",
+        "title": "Baila Que Baila",
+        "account": "academiadebailepasolatino",
+        "date": "2026-12-12",
+        "detail": null
+      },
+      {
+        "kind": "merged",
+        "id": "reyes-de-la-salsa-2027-19-mar",
+        "title": "Reyes de la Salsa 2027",
+        "account": "reyesdelasalsa.col",
+        "date": "2027-03-19",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "la-llave-orquesta-en-casa-quiebra-canto-21-nov",
+        "title": "La Llave Orquesta en Casa Quiebra-Canto",
+        "account": "casaquiebracanto",
+        "date": "2026-11-21",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "luigi-texidor-en-pachanga-4-dic",
+        "title": "Luigi Texidor en Pachanga",
+        "account": "pachanga_y_pochola",
+        "date": "2026-12-04",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "el-tour-de-la-salsa-luna-llena-salsa-band-en-vivo-28-nov",
+        "title": "El Tour de la Salsa: Luna Llena Salsa Band en vivo",
+        "account": "salsaculto",
+        "date": "2026-11-28",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "reread",
+        "id": "bogota-distrito-carnaval-21-nov",
+        "title": "Bogotá Distrito Carnaval",
+        "account": "aseismanos",
+        "date": "2026-11-20",
+        "detail": "publicación editada, sin cambios"
+      },
+      {
+        "kind": "archived",
+        "id": "estilo-carrandales-intensivo-de-bachata-20-sep",
+        "title": "Estilo Carrandales - Intensivo de bachata tradicional",
+        "account": "distritosocialbog",
+        "date": "2026-09-20",
+        "detail": "terminó hace más de 60 días"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 2,
+      "merged": 4,
+      "reread": 1,
+      "archived": 1
     }
   }
 ]
