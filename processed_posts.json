@@ -32785,11 +32785,11 @@
   "18140032474652468": {
     "account": "bulevarsalsabar",
     "permalink": "https://www.instagram.com/reel/Df-EUBdAv2H/",
-    "processed_at": "2026-11-21T03:12:43-05:00",
+    "processed_at": "2026-11-21T06:48:30-05:00",
     "is_event_post": true,
-    "reason": "Se anuncia un evento especial tipo tardeo el sábado 28 de noviembre en Bulevar Rooftop.",
-    "model": "gemini-3-flash-preview",
-    "provisional": true,
+    "reason": "El post confirma la próxima edición del Tardeo de Bulevar el sábado 28 de noviembre.",
+    "model": "gemini-3.6-flash",
+    "provisional": false,
     "caption_hash": "a758c2be7a6ab051",
     "outcome": "event",
     "event_ids": [
