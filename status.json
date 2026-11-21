@@ -1,7 +1,117 @@
 {
-  "generated_at": "2026-11-20T21:12:13-05:00",
+  "generated_at": "2026-11-21T03:25:48-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-11-21T03:25:47-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/44882793615",
+        "started_at": "2026-11-21T03:00:53-05:00",
+        "site_data_at": "2026-11-20T21:12:12-05:00",
+        "data_changed": true,
+        "accounts": 42,
+        "failed_accounts": [],
+        "read_accounts": [
+          "academiadebailepasolatino",
+          "and1erita",
+          "andonybaron",
+          "aseismanos",
+          "bembeacademiadebaile",
+          "bilongocolombia",
+          "bogotadanceclub",
+          "bulevarsalsabar",
+          "bulevarsalsarooftop",
+          "callejonsalsa",
+          "casaquiebracanto",
+          "casavander_",
+          "casineafest",
+          "chanchanlatino",
+          "clandisfrute",
+          "danzaenlaciudad",
+          "dlivingstudio",
+          "ebi_dancecompany",
+          "elgocepagano",
+          "esferalatinaoficial",
+          "fernandoespanadj",
+          "frank.de.latorre",
+          "germanbaila",
+          "herencialatinad.c",
+          "jaleocompetencia_",
+          "la33orquesta",
+          "lamecanica_original",
+          "madyumdance",
+          "mariavasquezdancer",
+          "meetinghousebogota",
+          "oronegroclub",
+          "pachanga_y_pochola",
+          "parchexbogota",
+          "proyectourbandance",
+          "reyesdelasalsa.col",
+          "salsacamaraoficial",
+          "salsaculto",
+          "salsaysonoficial",
+          "sarasandoval.oficial",
+          "sondehabana",
+          "soywiwioficial",
+          "zafradance"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 24,
+        "events_new": 2,
+        "events_merged": 3,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 8,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 23,
+          "gemini-3.8-flash": 6,
+          "gemini-3.6-flash": 6,
+          "gemini-3-flash-preview": 8
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 55,
+        "instagram_usage_detail": {
+          "call_count": 16,
+          "total_cputime": 0,
+          "total_time": 55
+        },
+        "instagram_reads": {
+          "accounts": 42,
+          "mean_seconds": 1.67,
+          "median_seconds": 1.58,
+          "max_seconds": 3.18,
+          "mean_cost": 1.34,
+          "max_cost": 3,
+          "max_cost_account": "dlivingstudio",
+          "headers": {
+            "X-App-Usage": 42
+          },
+          "expected_cost": 2
+        },
+        "instagram_stop": null,
+        "upgrade_changes": {},
+        "upgraded": 3,
+        "upgrade_reads": 0,
+        "upgrade_misses": 0,
+        "triage_checked": 0,
+        "triage_misses": 0,
+        "batch_requests": 0,
+        "batched_posts": 0,
+        "batch_rereads": 0,
+        "warnings": [
+          "fetch:bailabo_studio",
+          "fetch:el_panteon_de_la_salsa"
+        ],
+        "changes_left_out": 0,
+        "change_counts": {
+          "provisional": 2,
+          "merged": 4
+        }
+      },
       {
         "finished_at": "2026-11-20T21:12:12-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/44853388737",
@@ -427,102 +537,33 @@
           "new": 3,
           "merged": 4
         }
-      },
-      {
-        "finished_at": "2026-11-19T06:51:47-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/44515360477",
-        "started_at": "2026-11-19T06:45:47-05:00",
-        "site_data_at": "2026-11-19T03:40:33-05:00",
-        "data_changed": true,
-        "accounts": 0,
-        "failed_accounts": [],
-        "read_accounts": [],
-        "skipped_accounts": [],
-        "posts_analyzed": 0,
-        "events_new": 0,
-        "events_merged": 0,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 0,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.8-flash": 3,
-          "gemini-3.6-flash": 2
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 1,
-        "instagram_usage_detail": {
-          "call_count": 0,
-          "total_cputime": 0,
-          "total_time": 1
-        },
-        "instagram_reads": {
-          "accounts": 2,
-          "mean_seconds": 1.8,
-          "median_seconds": 1.8,
-          "max_seconds": 2.38,
-          "mean_cost": 1.0,
-          "max_cost": 1,
-          "max_cost_account": "galeriacafelibro",
-          "headers": {
-            "X-App-Usage": 2
-          },
-          "expected_cost": 1
-        },
-        "instagram_stop": null,
-        "upgrade_changes": {
-          "compared": 3,
-          "dropped": 0,
-          "venue": 1
-        },
-        "upgraded": 2,
-        "upgrade_reads": 2,
-        "upgrade_misses": 0,
-        "triage_checked": 0,
-        "triage_misses": 0,
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [
-          "fetch:bailabo_studio",
-          "fetch:el_panteon_de_la_salsa"
-        ],
-        "changes_left_out": 0,
-        "change_counts": {
-          "corrected": 1,
-          "reread": 2
-        }
       }
     ],
     "next": [
-      "2026-11-21T03:00-05:00",
-      "2026-11-21T06:30-05:00"
+      "2026-11-21T06:30-05:00",
+      "2026-11-21T21:00-05:00"
     ]
   },
   "site_data": {
-    "published_at": "2026-11-20T03:21:13-05:00",
-    "checked_at": "2026-11-20T21:00:57-05:00",
+    "published_at": "2026-11-20T21:12:12-05:00",
+    "checked_at": "2026-11-21T03:00:53-05:00",
     "missing": [],
     "prs_url": "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata"
   },
   "gemini": {
     "lite_only": false,
-    "resets_at": "2026-11-21T03:00-05:00",
+    "resets_at": "2026-11-22T03:00-05:00",
     "models": [
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 18,
+        "used": 6,
         "budget": 18
       },
       {
         "model": "gemini-3.6-flash",
         "role": "extraction",
-        "used": 13,
+        "used": 6,
         "budget": 18
       },
       {
@@ -534,7 +575,7 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 41,
+        "used": 23,
         "budget": 498
       },
       {
@@ -579,26 +620,26 @@
     "error": null
   },
   "instagram_quota": {
-    "usage": 26,
+    "usage": 55,
     "detail": {
-      "call_count": 12,
+      "call_count": 16,
       "total_cputime": 0,
-      "total_time": 26
+      "total_time": 55
     },
     "stopped": false,
     "stop": null,
-    "finished_at": "2026-11-20T21:12:12-05:00",
+    "finished_at": "2026-11-21T03:25:47-05:00",
     "stop_at": 98,
     "reads": {
-      "accounts": 32,
-      "mean_seconds": 1.33,
-      "median_seconds": 1.21,
-      "max_seconds": 2.75,
-      "mean_cost": 0.84,
+      "accounts": 42,
+      "mean_seconds": 1.67,
+      "median_seconds": 1.58,
+      "max_seconds": 3.18,
+      "mean_cost": 1.34,
       "max_cost": 3,
-      "max_cost_account": "sandunguera.salsabar",
+      "max_cost_account": "dlivingstudio",
       "headers": {
-        "X-App-Usage": 32
+        "X-App-Usage": 42
       },
       "expected_cost": 2
     }
@@ -625,11 +666,11 @@
     ]
   },
   "posts": {
-    "recorded": 1841,
-    "provisional": 162
+    "recorded": 1856,
+    "provisional": 165
   },
   "events": {
-    "upcoming": 80,
+    "upcoming": 75,
     "low_confidence": 0
   },
   "new_series": [
@@ -692,6 +733,75 @@
     }
   ],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "03:00",
+      "finished_at": "2026-11-21T03:25:47-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/44882793615",
+      "target": null,
+      "error": null,
+      "changes": [
+        {
+          "kind": "provisional",
+          "id": "mision-exotico-salsa-21-nov",
+          "title": "Misión: Exótico & Salsa",
+          "account": "pachanga_y_pochola",
+          "date": "2026-11-21",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/mision-exotico-salsa-21-nov/"
+        },
+        {
+          "kind": "provisional",
+          "id": "tardeo-de-bulevar-28-nov",
+          "title": "Tardeo de Bulevar",
+          "account": "bulevarsalsabar",
+          "date": "2026-11-28",
+          "detail": "leído por un modelo más liviano: Flash lo relee después",
+          "url": "https://pa-bailar.github.io/evento/tardeo-de-bulevar-28-nov/"
+        },
+        {
+          "kind": "merged",
+          "id": "concurso-de-chicas-bdc-21-nov",
+          "title": "Concurso de Chicas BDC",
+          "account": "bogotadanceclub",
+          "date": "2026-11-21",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/concurso-de-chicas-bdc-21-nov/"
+        },
+        {
+          "kind": "merged",
+          "id": "los-25-de-la-33-21-nov",
+          "title": "Los 25 de la-33",
+          "account": "la33orquesta",
+          "date": "2026-11-21",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/los-25-de-la-33-21-nov/"
+        },
+        {
+          "kind": "merged",
+          "id": "salsa-vs-dancehall-20-nov",
+          "title": "Salsa vs Dancehall",
+          "account": "parchexbogota",
+          "date": "2026-11-20",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/salsa-vs-dancehall-20-nov/"
+        },
+        {
+          "kind": "merged",
+          "id": "parchese-la-salsa-salsa-vs-champeta-27-nov",
+          "title": "Párchese La Salsa: Salsa vs Champeta",
+          "account": "parchexbogota",
+          "date": "2026-11-27",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/parchese-la-salsa-salsa-vs-champeta-27-nov/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "provisional": 2,
+        "merged": 4
+      }
+    },
     {
       "kind": "sweep",
       "slot": "21:00",
@@ -1395,39 +1505,6 @@
         "new": 4,
         "merged": 8,
         "reread": 1
-      }
-    },
-    {
-      "kind": "sweep",
-      "slot": "21:00",
-      "finished_at": "2026-11-17T21:17:16-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/44219984469",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "provisional",
-          "id": "m-sicas-populares-de-brasil-21-nov",
-          "title": "M\u0000sicas Populares de Brasil",
-          "account": "restaurantecasadecitas",
-          "date": "2026-11-21",
-          "detail": "leído por un modelo más liviano: Flash lo relee después",
-          "url": "https://pa-bailar.github.io/evento/m-sicas-populares-de-brasil-21-nov/"
-        },
-        {
-          "kind": "merged",
-          "id": "conspiraciones-encuentro-de-cuerpo-y-memoria-3-dic",
-          "title": "Conspiraciones - Encuentro de cuerpo y memoria",
-          "account": "fogal_arte",
-          "date": "2026-12-03",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/conspiraciones-encuentro-de-cuerpo-y-memoria-3-dic/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "provisional": 1,
-        "merged": 1
       }
     }
   ],
