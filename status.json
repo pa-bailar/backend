@@ -1,7 +1,120 @@
 {
-  "generated_at": "2026-11-22T21:06:12-05:00",
+  "generated_at": "2026-11-23T03:17:27-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-11-23T03:17:26-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/45135175553",
+        "started_at": "2026-11-23T03:00:47-05:00",
+        "site_data_at": "2026-11-22T21:06:11-05:00",
+        "data_changed": true,
+        "accounts": 44,
+        "failed_accounts": [],
+        "read_accounts": [
+          "academiadebailepasolatino",
+          "and1erita",
+          "andonybaron",
+          "aseismanos",
+          "bembeacademiadebaile",
+          "bilongocolombia",
+          "bogotadanceclub",
+          "bulevarsalsabar",
+          "bulevarsalsarooftop",
+          "callejonsalsa",
+          "casaquiebracanto",
+          "casavander_",
+          "casineafest",
+          "chanchanlatino",
+          "clandisfrute",
+          "cremadeajiaco",
+          "danzaenlaciudad",
+          "dlivingstudio",
+          "ebi_dancecompany",
+          "elgocepagano",
+          "esferalatinaoficial",
+          "fernandoespanadj",
+          "frank.de.latorre",
+          "germanbaila",
+          "herencialatinad.c",
+          "ilhehabana",
+          "jaleocompetencia_",
+          "la33orquesta",
+          "lamecanica_original",
+          "madyumdance",
+          "mariavasquezdancer",
+          "meetinghousebogota",
+          "oronegroclub",
+          "pachanga_y_pochola",
+          "parchexbogota",
+          "proyectourbandance",
+          "reyesdelasalsa.col",
+          "salsacamaraoficial",
+          "salsaculto",
+          "salsaysonoficial",
+          "sarasandoval.oficial",
+          "sondehabana",
+          "soywiwioficial",
+          "zafradance"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 5,
+        "events_new": 1,
+        "events_merged": 1,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 0,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 4,
+          "gemini-3.8-flash": 6,
+          "gemini-3.6-flash": 6
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 38,
+        "instagram_usage_detail": {
+          "call_count": 17,
+          "total_cputime": 0,
+          "total_time": 38
+        },
+        "instagram_reads": {
+          "accounts": 44,
+          "mean_seconds": 1.16,
+          "median_seconds": 1.1,
+          "max_seconds": 2.09,
+          "mean_cost": 0.88,
+          "max_cost": 3,
+          "max_cost_account": "elgocepagano",
+          "headers": {
+            "X-App-Usage": 44
+          },
+          "expected_cost": 3
+        },
+        "instagram_stop": null,
+        "upgrade_changes": {},
+        "upgraded": 3,
+        "upgrade_reads": 0,
+        "upgrade_misses": 0,
+        "triage_checked": 0,
+        "triage_misses": 0,
+        "batch_requests": 0,
+        "batched_posts": 0,
+        "batch_rereads": 0,
+        "warnings": [
+          "fetch:bailabo_studio",
+          "fetch:el_panteon_de_la_salsa"
+        ],
+        "changes_left_out": 0,
+        "change_counts": {
+          "new": 1,
+          "merged": 1,
+          "reread": 1,
+          "archived": 1
+        }
+      },
       {
         "finished_at": "2026-11-22T21:06:11-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/45097665261",
@@ -425,100 +538,33 @@
           "corrected": 1,
           "merged": 3
         }
-      },
-      {
-        "finished_at": "2026-11-21T06:48:30-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/44899389661",
-        "started_at": "2026-11-21T06:30:56-05:00",
-        "site_data_at": "2026-11-21T03:25:47-05:00",
-        "data_changed": true,
-        "accounts": 0,
-        "failed_accounts": [],
-        "read_accounts": [],
-        "skipped_accounts": [],
-        "posts_analyzed": 0,
-        "events_new": 0,
-        "events_merged": 0,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 0,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.8-flash": 6,
-          "gemini-3.6-flash": 4
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 1,
-        "instagram_usage_detail": {
-          "call_count": 0,
-          "total_cputime": 0,
-          "total_time": 1
-        },
-        "instagram_reads": {
-          "accounts": 2,
-          "mean_seconds": 1.3,
-          "median_seconds": 1.3,
-          "max_seconds": 1.45,
-          "mean_cost": 1.0,
-          "max_cost": 1,
-          "max_cost_account": "bulevarsalsabar",
-          "headers": {
-            "X-App-Usage": 2
-          },
-          "expected_cost": 1
-        },
-        "instagram_stop": null,
-        "upgrade_changes": {
-          "compared": 1,
-          "dropped": 0
-        },
-        "upgraded": 1,
-        "upgrade_reads": 2,
-        "upgrade_misses": 0,
-        "triage_checked": 0,
-        "triage_misses": 0,
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [
-          "fetch:bailabo_studio",
-          "fetch:el_panteon_de_la_salsa"
-        ],
-        "changes_left_out": 0,
-        "change_counts": {
-          "reread": 1
-        }
       }
     ],
     "next": [
-      "2026-11-23T03:00-05:00",
-      "2026-11-23T06:30-05:00"
+      "2026-11-23T06:30-05:00",
+      "2026-11-23T21:00-05:00"
     ]
   },
   "site_data": {
-    "published_at": "2026-11-22T03:19:34-05:00",
-    "checked_at": "2026-11-22T21:00:46-05:00",
+    "published_at": "2026-11-22T21:06:11-05:00",
+    "checked_at": "2026-11-23T03:00:47-05:00",
     "missing": [],
     "prs_url": "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata"
   },
   "gemini": {
     "lite_only": false,
-    "resets_at": "2026-11-23T03:00-05:00",
+    "resets_at": "2026-11-24T03:00-05:00",
     "models": [
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 9,
+        "used": 6,
         "budget": 18
       },
       {
         "model": "gemini-3.6-flash",
         "role": "extraction",
-        "used": 15,
+        "used": 6,
         "budget": 18
       },
       {
@@ -530,7 +576,7 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 38,
+        "used": 4,
         "budget": 498
       },
       {
@@ -575,28 +621,28 @@
     "error": null
   },
   "instagram_quota": {
-    "usage": 46,
+    "usage": 38,
     "detail": {
-      "call_count": 13,
+      "call_count": 17,
       "total_cputime": 0,
-      "total_time": 46
+      "total_time": 38
     },
     "stopped": false,
     "stop": null,
-    "finished_at": "2026-11-22T21:06:11-05:00",
+    "finished_at": "2026-11-23T03:17:26-05:00",
     "stop_at": 98,
     "reads": {
-      "accounts": 34,
-      "mean_seconds": 1.87,
-      "median_seconds": 1.65,
-      "max_seconds": 4.75,
-      "mean_cost": 1.39,
-      "max_cost": 6,
-      "max_cost_account": "studiolatindance",
+      "accounts": 44,
+      "mean_seconds": 1.16,
+      "median_seconds": 1.1,
+      "max_seconds": 2.09,
+      "mean_cost": 0.88,
+      "max_cost": 3,
+      "max_cost_account": "elgocepagano",
       "headers": {
-        "X-App-Usage": 34
+        "X-App-Usage": 44
       },
-      "expected_cost": 2
+      "expected_cost": 3
     }
   },
   "lighter_reads": {
@@ -621,8 +667,8 @@
     ]
   },
   "posts": {
-    "recorded": 1859,
-    "provisional": 162
+    "recorded": 1850,
+    "provisional": 158
   },
   "events": {
     "upcoming": 57,
@@ -688,6 +734,59 @@
     }
   ],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "03:00",
+      "finished_at": "2026-11-23T03:17:26-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/45135175553",
+      "target": null,
+      "error": null,
+      "changes": [
+        {
+          "kind": "new",
+          "id": "tributo-fania-y-la-previa-decembrina-27-nov",
+          "title": "Tributo Fania y La Previa Decembrina",
+          "account": "casavander_",
+          "date": "2026-11-27",
+          "detail": null,
+          "url": "https://pa-bailar.github.io/evento/tributo-fania-y-la-previa-decembrina-27-nov/"
+        },
+        {
+          "kind": "merged",
+          "id": "social-pal-parche-28-nov",
+          "title": "Social Pal Parche",
+          "account": "jaleocompetencia_",
+          "date": "2026-11-28",
+          "detail": "otra publicación",
+          "url": "https://pa-bailar.github.io/evento/social-pal-parche-28-nov/"
+        },
+        {
+          "kind": "reread",
+          "id": "concurso-de-chicas-bdc-21-nov",
+          "title": "Concurso de Chicas BDC",
+          "account": "bogotadanceclub",
+          "date": "2026-11-21",
+          "detail": "Flash confirmó la lectura",
+          "url": "https://pa-bailar.github.io/evento/concurso-de-chicas-bdc-21-nov/"
+        },
+        {
+          "kind": "archived",
+          "id": "social-salsa-y-bachata-workshop-sede-cajica-23-sep",
+          "title": "Social Salsa y Bachata Workshop - Sede Cajicá",
+          "account": "bureodancestudio",
+          "date": "2026-09-23",
+          "detail": "terminó hace más de 60 días",
+          "url": null
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "new": 1,
+        "merged": 1,
+        "reread": 1,
+        "archived": 1
+      }
+    },
     {
       "kind": "sweep",
       "slot": "21:00",
@@ -1141,84 +1240,6 @@
         "merged": 4,
         "reread": 1,
         "archived": 1
-      }
-    },
-    {
-      "kind": "sweep",
-      "slot": "21:00",
-      "finished_at": "2026-11-19T21:25:51-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/44657620637",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "new",
-          "id": "la-ruta-pagana-festival-de-salsa-21-nov",
-          "title": "La Ruta Pagana: Festival de Salsa",
-          "account": "galeriacafelibro",
-          "date": "2026-11-21",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/la-ruta-pagana-festival-de-salsa-21-nov/"
-        },
-        {
-          "kind": "new",
-          "id": "curso-intensivo-2-salsa-desde-cero-14-dic",
-          "title": "Curso Intensivo 2 - Salsa desde cero",
-          "account": "sonrumbero",
-          "date": "2026-12-14",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/curso-intensivo-2-salsa-desde-cero-14-dic/"
-        },
-        {
-          "kind": "new",
-          "id": "curso-intensivo-1-salsa-desde-cero-15-dic",
-          "title": "Curso Intensivo 1 - Salsa desde cero",
-          "account": "sonrumbero",
-          "date": "2026-12-15",
-          "detail": null,
-          "url": "https://pa-bailar.github.io/evento/curso-intensivo-1-salsa-desde-cero-15-dic/"
-        },
-        {
-          "kind": "merged",
-          "id": "the-big-jhony-21-nov",
-          "title": "The Big Jhony",
-          "account": "galeriacafelibro",
-          "date": "2026-11-21",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/the-big-jhony-21-nov/"
-        },
-        {
-          "kind": "merged",
-          "id": "salsa-al-parque-2026-28-nov",
-          "title": "Salsa al Parque 2026",
-          "account": "festivalsalsaalparque",
-          "date": "2026-11-28",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/salsa-al-parque-2026-28-nov/"
-        },
-        {
-          "kind": "merged",
-          "id": "conspiraciones-encuentro-de-cuerpo-y-memoria-3-dic",
-          "title": "Conspiraciones - Encuentro de cuerpo y memoria",
-          "account": "fogal_arte",
-          "date": "2026-12-03",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/conspiraciones-encuentro-de-cuerpo-y-memoria-3-dic/"
-        },
-        {
-          "kind": "merged",
-          "id": "clausura-2026-28-nov",
-          "title": "Clausura 2026",
-          "account": "salsayritmolatino",
-          "date": "2026-11-28",
-          "detail": "otra publicación",
-          "url": "https://pa-bailar.github.io/evento/clausura-2026-28-nov/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "new": 3,
-        "merged": 4
       }
     }
   ],

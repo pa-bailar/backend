@@ -13353,48 +13353,7 @@
       "fetch:bailabo_studio",
       "fetch:el_panteon_de_la_salsa"
     ],
-    "changes": [
-      {
-        "kind": "new",
-        "id": "el-ciclon-21-nov",
-        "title": "El Ciclón",
-        "account": "elgocepagano",
-        "date": "2026-11-21",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "barakatanga-20-nov",
-        "title": "Barakatanga",
-        "account": "elgocepagano",
-        "date": "2026-11-20",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "la-rebega-groove-27-nov",
-        "title": "La Rebega Groove",
-        "account": "elgocepagano",
-        "date": "2026-11-27",
-        "detail": null
-      },
-      {
-        "kind": "new",
-        "id": "ger-band-latin-group-28-nov",
-        "title": "Ger Band Latin Group",
-        "account": "elgocepagano",
-        "date": "2026-11-28",
-        "detail": null
-      },
-      {
-        "kind": "corrected",
-        "id": "m-sicas-populares-de-brasil-21-nov",
-        "title": "Músicas Populares de Brasil",
-        "account": "restaurantecasadecitas",
-        "date": "2026-11-21",
-        "detail": "Flash cambió el título y los ritmos"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "new": 4,
@@ -15275,6 +15234,153 @@
     "change_counts": {
       "new": 1,
       "merged": 4
+    }
+  },
+  {
+    "finished_at": "2026-11-23T03:17:26-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/45135175553",
+    "started_at": "2026-11-23T03:00:47-05:00",
+    "site_data_at": "2026-11-22T21:06:11-05:00",
+    "data_changed": true,
+    "accounts": 44,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academiadebailepasolatino",
+      "and1erita",
+      "andonybaron",
+      "aseismanos",
+      "bembeacademiadebaile",
+      "bilongocolombia",
+      "bogotadanceclub",
+      "bulevarsalsabar",
+      "bulevarsalsarooftop",
+      "callejonsalsa",
+      "casaquiebracanto",
+      "casavander_",
+      "casineafest",
+      "chanchanlatino",
+      "clandisfrute",
+      "cremadeajiaco",
+      "danzaenlaciudad",
+      "dlivingstudio",
+      "ebi_dancecompany",
+      "elgocepagano",
+      "esferalatinaoficial",
+      "fernandoespanadj",
+      "frank.de.latorre",
+      "germanbaila",
+      "herencialatinad.c",
+      "ilhehabana",
+      "jaleocompetencia_",
+      "la33orquesta",
+      "lamecanica_original",
+      "madyumdance",
+      "mariavasquezdancer",
+      "meetinghousebogota",
+      "oronegroclub",
+      "pachanga_y_pochola",
+      "parchexbogota",
+      "proyectourbandance",
+      "reyesdelasalsa.col",
+      "salsacamaraoficial",
+      "salsaculto",
+      "salsaysonoficial",
+      "sarasandoval.oficial",
+      "sondehabana",
+      "soywiwioficial",
+      "zafradance"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 5,
+    "events_new": 1,
+    "events_merged": 1,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 4,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 38,
+    "instagram_usage_detail": {
+      "call_count": 17,
+      "total_cputime": 0,
+      "total_time": 38
+    },
+    "instagram_reads": {
+      "accounts": 44,
+      "mean_seconds": 1.16,
+      "median_seconds": 1.1,
+      "max_seconds": 2.09,
+      "mean_cost": 0.88,
+      "max_cost": 3,
+      "max_cost_account": "elgocepagano",
+      "headers": {
+        "X-App-Usage": 44
+      },
+      "expected_cost": 3
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 3,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [
+      "fetch:bailabo_studio",
+      "fetch:el_panteon_de_la_salsa"
+    ],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "tributo-fania-y-la-previa-decembrina-27-nov",
+        "title": "Tributo Fania y La Previa Decembrina",
+        "account": "casavander_",
+        "date": "2026-11-27",
+        "detail": null
+      },
+      {
+        "kind": "merged",
+        "id": "social-pal-parche-28-nov",
+        "title": "Social Pal Parche",
+        "account": "jaleocompetencia_",
+        "date": "2026-11-28",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "reread",
+        "id": "concurso-de-chicas-bdc-21-nov",
+        "title": "Concurso de Chicas BDC",
+        "account": "bogotadanceclub",
+        "date": "2026-11-21",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "archived",
+        "id": "social-salsa-y-bachata-workshop-sede-cajica-23-sep",
+        "title": "Social Salsa y Bachata Workshop - Sede Cajicá",
+        "account": "bureodancestudio",
+        "date": "2026-09-23",
+        "detail": "terminó hace más de 60 días"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 1,
+      "merged": 1,
+      "reread": 1,
+      "archived": 1
     }
   }
 ]
