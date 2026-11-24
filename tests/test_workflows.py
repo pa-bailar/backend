@@ -92,7 +92,7 @@ def test_no_workflow_pushes_to_main_accounts_go_through_the_bots_pr():
     action = (ROOT / ".github" / "actions" / "save-accounts" / "action.yml").read_text(encoding="utf-8")
     opened = action[action.index("- name: Open the pull request") :]
     assert "GH_TOKEN: ${{ steps.app.outputs.token }}" in opened and "github.token" not in opened
-    assert "gh pr merge" in opened and "--auto" in opened
+    assert "merge-when-green.sh" in opened  # set to merge itself (test_every_bot_pr_is_set_to_merge_itself…)
     assert not re.search(r"git push\b[^\n]*\bmain\b", action)
 
 
@@ -230,3 +230,55 @@ def test_an_added_account_goes_on_main_as_it_is_after_an_earlier_accounts_pr(tmp
     assert lines == ["vieja", "# Added with the admin tools", "uno", "dos"]
     added = [line for line in git("diff", "-U0", "HEAD", cwd=pr_copy).splitlines() if line.startswith("+")]
     assert added == ["+++ b/accounts.txt", "+dos"]  # only this run's line: no conflict with main
+
+
+MERGE_WHEN_GREEN = ROOT / ".github" / "scripts" / "merge-when-green.sh"
+
+
+def run_merge_when_green(tmp_path: Path, gh_answers: list[str]) -> subprocess.CompletedProcess[str]:
+    """merge-when-green.sh with a fake `gh` (fake_gh's answers), without its pauses."""
+    env = fake_gh(tmp_path, gh_answers) | {"MERGE_RETRY_WAITS": "0 0"}
+    command = [bash(), MERGE_WHEN_GREEN.as_posix(), "https://github.com/pa-bailar/pa-bailar.github.io/pull/331"]
+    return subprocess.run(command, env=env, capture_output=True, text=True, check=False)
+
+
+def test_a_data_pr_is_set_to_merge_itself_after_github_fails_once(tmp_path):
+    """23 Nov 2026: `gh pr merge --auto` met GitHub's "Something went wrong" once, right after the data PR was opened;
+    the PR would never have merged, and every later sweep would have waited on it and failed."""
+    done = run_merge_when_green(tmp_path, ["fail", "no", "none"])  # set: fails; not set; set again: works
+    assert done.returncode == 0, done.stderr
+    assert gh_calls(tmp_path) == 3
+
+
+def test_a_try_whose_answer_was_lost_counts_when_the_pr_is_set(tmp_path):
+    done = run_merge_when_green(tmp_path, ["fail", "yes"])  # the error came back, but GitHub had set it
+    assert done.returncode == 0, done.stderr
+    assert gh_calls(tmp_path) == 2
+
+
+def test_a_pr_that_never_could_be_set_fails_and_says_so(tmp_path):
+    done = run_merge_when_green(tmp_path, ["fail"])
+    assert done.returncode == 1
+    assert gh_calls(tmp_path) == 6  # three tries (two waits), each with its check
+    assert "couldn't be set to merge itself" in done.stdout
+
+
+def test_every_bot_pr_is_set_to_merge_itself_through_the_script():
+    """No workflow or action calls `gh pr merge --auto` itself: one failure from GitHub there left a PR unmerged."""
+    github = ROOT / ".github"
+    direct = [
+        path.relative_to(ROOT).as_posix()
+        for path in github.rglob("*")
+        if path.is_file() and path != MERGE_WHEN_GREEN and "gh pr merge" in path.read_text(encoding="utf-8")
+    ]
+    assert direct == []
+    action = (github / "actions" / "save-accounts" / "action.yml").read_text(encoding="utf-8")
+    assert "merge-when-green.sh" in action and "merge-when-green.sh" in SWEEP
+
+
+def test_a_data_pr_that_cant_merge_itself_fails_the_run_after_the_state_is_saved():
+    """Its events are in the PR, so the state keeps its posts read (the PR step succeeds), and the run still fails,
+    before the health check's ping, so both email."""
+    fail = step("Fail if the data PR can't merge itself")
+    assert step("Save the sweep state") < fail < step("Report to the health check")
+    assert "steps.pr.outputs.unarmed == 'true'" in SWEEP[fail : SWEEP.index("\n      - ", fail + 1)]

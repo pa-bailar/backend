@@ -67,5 +67,5 @@ runs:
         git push -q origin "$branch"
         url="$(gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$branch" --title "$TITLE" \
           --body "$BODY Merges itself when \`ci\` passes.")"
-        gh pr merge "$url" --auto --squash --delete-branch
         echo "Opened $url"
+        bash "$GITHUB_ACTION_PATH/../../scripts/merge-when-green.sh" "$url"
