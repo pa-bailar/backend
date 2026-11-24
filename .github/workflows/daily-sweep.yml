@@ -454,9 +454,13 @@ jobs:
           url="$(gh pr create --repo "$SITE_OWNER/$SITE_REPO" --base main --head "$branch" --label data \
             --title "chore(data): ${WHAT} ${day}" \
             --body "Automatic data update (${WHAT}, run ${GITHUB_RUN_ID} of the backend). Merges itself when \`ci\` passes.")"
-          gh pr merge "$url" --auto --squash --delete-branch
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Opened $url"
+          # The PR holds this run's events whether or not it can merge itself, so the step succeeds and the state keeps
+          # its posts read; a PR that can't merge itself fails the run at its end (the last step), so it emails.
+          if ! bash "$GITHUB_WORKSPACE/.github/scripts/merge-when-green.sh" "$url"; then
+            echo "unarmed=true" >> "$GITHUB_OUTPUT"
+          fi
 
       # If the data PR couldn't be opened (the App token, GitHub's API, the push), the sweep's events and flyers
       # would die with the runner: keep them for 14 days, to recover by hand (docs/ARCHITECTURE.md, section 15).
@@ -562,6 +566,18 @@ jobs:
         run: |
           gh workflow run deploy.yml --repo "$SITE_OWNER/$SITE_REPO" --ref main \
             -f checked_at="$(TZ=America/Bogota date --iso-8601=seconds)"
+
+      # A data PR opened but never set to merge itself (merge-when-green.sh): everything else ran (the state keeps its
+      # posts read, its events are in it), and the run fails here, before the health check's ping, so both email.
+      - name: Fail if the data PR can't merge itself
+        if: ${{ !cancelled() && steps.wait.outcome == 'success' && steps.pr.outputs.unarmed == 'true' }}
+        env:
+          PR_URL: ${{ steps.pr.outputs.url }}
+        run: |
+          echo "::error::The data PR $PR_URL can't merge itself: merge it once its ci passes, or the next sweep stops."
+          printf '\n- The data PR %s could not be set to merge itself: merge it once its `ci` passes, or the next sweep stops.\n' \
+            "$PR_URL" >> "$HEALTH_REPORT_FILE"
+          exit 1
 
       # Dead man's switch (optional, only if the HEALTHCHECK_URL secret exists, e.g. a free healthchecks.io
       # check): every run reports success or failure, and the service emails when runs fail or stop
