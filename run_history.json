@@ -14074,56 +14074,7 @@
       "fetch:bailabo_studio",
       "fetch:el_panteon_de_la_salsa"
     ],
-    "changes": [
-      {
-        "kind": "new",
-        "id": "taller-dancehall-female-cuerpos-y-resistencia-5-dic",
-        "title": "Taller Dancehall Female: Cuerpos y resistencia",
-        "account": "fogal_arte",
-        "date": "2026-12-05",
-        "detail": null
-      },
-      {
-        "kind": "merged",
-        "id": "the-big-jhony-21-nov",
-        "title": "The Big Jhony",
-        "account": "galeriacafelibro",
-        "date": "2026-11-21",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "salsa-al-parque-2026-28-nov",
-        "title": "Salsa al Parque 2026",
-        "account": "festivalsalsaalparque",
-        "date": "2026-11-28",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "reread",
-        "id": "conspiraciones-encuentro-de-cuerpo-y-memoria-3-dic",
-        "title": "Conspiraciones - Encuentro de cuerpo y memoria",
-        "account": "fogal_arte",
-        "date": "2026-12-03",
-        "detail": "Flash confirmó la lectura"
-      },
-      {
-        "kind": "reread",
-        "id": "bachata-social-congress-2027-24-jun",
-        "title": "Bachata Social Congress 2027",
-        "account": "bachatasocialcongresss",
-        "date": "2027-06-24",
-        "detail": "Flash confirmó la lectura"
-      },
-      {
-        "kind": "reread",
-        "id": "clausura-2026-studio-latin-dance-18-dic",
-        "title": "Clausura 2026 Studio Latin Dance",
-        "account": "studiolatindance",
-        "date": "2026-12-18",
-        "detail": "Flash confirmó la lectura"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "new": 1,
@@ -15999,6 +15950,154 @@
       "provisional": 6,
       "merged": 6,
       "archived": 3
+    }
+  },
+  {
+    "finished_at": "2026-11-25T06:47:26-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/45605003723",
+    "started_at": "2026-11-25T06:31:13-05:00",
+    "site_data_at": "2026-11-25T03:19:51-05:00",
+    "data_changed": true,
+    "accounts": 18,
+    "failed_accounts": [],
+    "read_accounts": [
+      "aseismanos",
+      "bembeacademiadebaile",
+      "bulevarsalsabar",
+      "bulevarsalsarooftop",
+      "callejonsalsa",
+      "casavander_",
+      "cremadeajiaco",
+      "elgocepagano",
+      "fernandoespanadj",
+      "herencialatinad.c",
+      "ilhehabana",
+      "jaleocompetencia_",
+      "lamecanica_original",
+      "madyumdance",
+      "pachanga_y_pochola",
+      "ritmosacademiadebaile",
+      "salsaculto",
+      "salsaysonoficial"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 6,
+    "events_new": 2,
+    "events_merged": 0,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 4,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 24,
+    "instagram_usage_detail": {
+      "call_count": 9,
+      "total_cputime": 0,
+      "total_time": 24
+    },
+    "instagram_reads": {
+      "accounts": 23,
+      "mean_seconds": 1.44,
+      "median_seconds": 1.33,
+      "max_seconds": 2.69,
+      "mean_cost": 1.09,
+      "max_cost": 3,
+      "max_cost_account": "aseismanos",
+      "headers": {
+        "X-App-Usage": 23
+      },
+      "expected_cost": 3
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {
+      "compared": 5,
+      "dropped": 0,
+      "styles": 1
+    },
+    "upgraded": 4,
+    "upgrade_reads": 5,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [
+      "fetch:bailabo_studio",
+      "fetch:el_panteon_de_la_salsa"
+    ],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "miercoles-de-tango-clase-tango-paso-a-paso-con-25-nov",
+        "title": "Miércoles de Tango: Clase Tango paso a paso con Ceci Urzola",
+        "account": "callejonsalsa",
+        "date": "2026-11-25",
+        "detail": null
+      },
+      {
+        "kind": "new",
+        "id": "4ta-edicion-de-los-titanes-de-la-salsa-27-nov",
+        "title": "4ta Edicion de Los Titanes de la Salsa",
+        "account": "fernandoespanadj",
+        "date": "2026-11-27",
+        "detail": null
+      },
+      {
+        "kind": "corrected",
+        "id": "simulacro-navideno-28-nov",
+        "title": "Simulacro Navideño",
+        "account": "bogotadanceclub",
+        "date": "2026-11-28",
+        "detail": "Flash cambió los ritmos"
+      },
+      {
+        "kind": "reread",
+        "id": "taller-salon-de-baile-salsa-colombiana-25-nov",
+        "title": "Taller Salón de Baile Salsa Colombiana",
+        "account": "danzaenlaciudad",
+        "date": "2026-11-25",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "guajeo-orquesta-27-nov",
+        "title": "Guajeo Orquesta",
+        "account": "casaquiebracanto",
+        "date": "2026-11-27",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "nando-lopez-orquesta-28-nov",
+        "title": "Nando Lopez & Orquesta",
+        "account": "casaquiebracanto",
+        "date": "2026-11-28",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsa-al-parque-2026-28-nov-2",
+        "title": "Salsa al Parque 2026",
+        "account": "parchexbogota",
+        "date": "2026-11-28",
+        "detail": "Flash confirmó la lectura"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 2,
+      "corrected": 1,
+      "reread": 4
     }
   }
 ]
