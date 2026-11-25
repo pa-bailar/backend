@@ -1,7 +1,91 @@
 {
-  "generated_at": "2026-11-24T06:47:51-05:00",
+  "generated_at": "2026-11-24T21:02:03-05:00",
   "sweeps": {
     "recent": [
+      {
+        "finished_at": "2026-11-24T21:02:03-05:00",
+        "run_url": "https://github.com/pa-bailar/backend/actions/runs/45529777107",
+        "started_at": "2026-11-24T21:00:44-05:00",
+        "site_data_at": "2026-11-24T06:47:50-05:00",
+        "data_changed": true,
+        "accounts": 18,
+        "failed_accounts": [],
+        "read_accounts": [
+          "alpasojam",
+          "angie__cuesta",
+          "boogaloop.candelaria",
+          "danitello22",
+          "dannysalsita.lafabrica",
+          "davidylauradancers",
+          "distritosocialbog",
+          "dreamcupco",
+          "elparche.se",
+          "espacio.64",
+          "jackandjilloficial",
+          "oswaldgil2",
+          "puntalpie",
+          "salsalatina_castilla",
+          "sandunguera.salsabar",
+          "soondanz_company",
+          "terrazasalsera",
+          "zaimora24"
+        ],
+        "skipped_accounts": [],
+        "posts_analyzed": 3,
+        "events_new": 1,
+        "events_merged": 0,
+        "pending": 0,
+        "post_errors": 0,
+        "provisional": 0,
+        "rate_limited": false,
+        "out_of_time": false,
+        "gemini_requests": {
+          "gemini-3.5-flash-lite": 3,
+          "gemini-3.8-flash": 3,
+          "gemini-3.6-flash": 1
+        },
+        "models_unavailable": [],
+        "external_outcomes": {},
+        "external_quarantined": [],
+        "external_problems": {},
+        "instagram_usage": 13,
+        "instagram_usage_detail": {
+          "call_count": 7,
+          "total_cputime": 0,
+          "total_time": 13
+        },
+        "instagram_reads": {
+          "accounts": 18,
+          "mean_seconds": 1.05,
+          "median_seconds": 1.02,
+          "max_seconds": 1.37,
+          "mean_cost": 0.76,
+          "max_cost": 2,
+          "max_cost_account": "boogaloop.candelaria",
+          "headers": {
+            "X-App-Usage": 18
+          },
+          "expected_cost": 1
+        },
+        "instagram_stop": null,
+        "upgrade_changes": {},
+        "upgraded": 0,
+        "upgrade_reads": 0,
+        "upgrade_misses": 0,
+        "triage_checked": 0,
+        "triage_misses": 0,
+        "batch_requests": 0,
+        "batched_posts": 0,
+        "batch_rereads": 0,
+        "warnings": [
+          "fetch:bailabo_studio",
+          "fetch:el_panteon_de_la_salsa"
+        ],
+        "changes_left_out": 0,
+        "change_counts": {
+          "new": 1
+        }
+      },
       {
         "finished_at": "2026-11-24T06:47:50-05:00",
         "run_url": "https://github.com/pa-bailar/backend/actions/runs/45384731764",
@@ -456,129 +540,16 @@
         ],
         "changes_left_out": 0,
         "change_counts": {}
-      },
-      {
-        "finished_at": "2026-11-23T03:17:26-05:00",
-        "run_url": "https://github.com/pa-bailar/backend/actions/runs/45135175553",
-        "started_at": "2026-11-23T03:00:47-05:00",
-        "site_data_at": "2026-11-22T21:06:11-05:00",
-        "data_changed": true,
-        "accounts": 44,
-        "failed_accounts": [],
-        "read_accounts": [
-          "academiadebailepasolatino",
-          "and1erita",
-          "andonybaron",
-          "aseismanos",
-          "bembeacademiadebaile",
-          "bilongocolombia",
-          "bogotadanceclub",
-          "bulevarsalsabar",
-          "bulevarsalsarooftop",
-          "callejonsalsa",
-          "casaquiebracanto",
-          "casavander_",
-          "casineafest",
-          "chanchanlatino",
-          "clandisfrute",
-          "cremadeajiaco",
-          "danzaenlaciudad",
-          "dlivingstudio",
-          "ebi_dancecompany",
-          "elgocepagano",
-          "esferalatinaoficial",
-          "fernandoespanadj",
-          "frank.de.latorre",
-          "germanbaila",
-          "herencialatinad.c",
-          "ilhehabana",
-          "jaleocompetencia_",
-          "la33orquesta",
-          "lamecanica_original",
-          "madyumdance",
-          "mariavasquezdancer",
-          "meetinghousebogota",
-          "oronegroclub",
-          "pachanga_y_pochola",
-          "parchexbogota",
-          "proyectourbandance",
-          "reyesdelasalsa.col",
-          "salsacamaraoficial",
-          "salsaculto",
-          "salsaysonoficial",
-          "sarasandoval.oficial",
-          "sondehabana",
-          "soywiwioficial",
-          "zafradance"
-        ],
-        "skipped_accounts": [],
-        "posts_analyzed": 5,
-        "events_new": 1,
-        "events_merged": 1,
-        "pending": 0,
-        "post_errors": 0,
-        "provisional": 0,
-        "rate_limited": false,
-        "out_of_time": false,
-        "gemini_requests": {
-          "gemini-3.5-flash-lite": 4,
-          "gemini-3.8-flash": 6,
-          "gemini-3.6-flash": 6
-        },
-        "models_unavailable": [],
-        "external_outcomes": {},
-        "external_quarantined": [],
-        "external_problems": {},
-        "instagram_usage": 38,
-        "instagram_usage_detail": {
-          "call_count": 17,
-          "total_cputime": 0,
-          "total_time": 38
-        },
-        "instagram_reads": {
-          "accounts": 44,
-          "mean_seconds": 1.16,
-          "median_seconds": 1.1,
-          "max_seconds": 2.09,
-          "mean_cost": 0.88,
-          "max_cost": 3,
-          "max_cost_account": "elgocepagano",
-          "headers": {
-            "X-App-Usage": 44
-          },
-          "expected_cost": 3
-        },
-        "instagram_stop": null,
-        "upgrade_changes": {},
-        "upgraded": 3,
-        "upgrade_reads": 0,
-        "upgrade_misses": 0,
-        "triage_checked": 0,
-        "triage_misses": 0,
-        "batch_requests": 0,
-        "batched_posts": 0,
-        "batch_rereads": 0,
-        "warnings": [
-          "fetch:bailabo_studio",
-          "fetch:el_panteon_de_la_salsa"
-        ],
-        "changes_left_out": 0,
-        "change_counts": {
-          "new": 1,
-          "merged": 1,
-          "reread": 1,
-          "archived": 1
-        }
       }
     ],
     "next": [
-      "2026-11-24T21:00-05:00",
-      "2026-11-25T03:00-05:00"
+      "2026-11-25T03:00-05:00",
+      "2026-11-25T06:30-05:00"
     ]
   },
   "site_data": {
-    "published_at": "2026-11-24T03:15:36-05:00",
-    "checked_at": "2026-11-24T06:31:08-05:00",
+    "published_at": "2026-11-24T06:47:50-05:00",
+    "checked_at": "2026-11-24T21:00:44-05:00",
     "missing": [],
     "prs_url": "https://github.com/pa-bailar/pa-bailar.github.io/pulls?q=is%3Apr+is%3Aopen+label%3Adata"
   },
@@ -589,13 +560,13 @@
       {
         "model": "gemini-3.8-flash",
         "role": "extraction",
-        "used": 9,
+        "used": 12,
         "budget": 18
       },
       {
         "model": "gemini-3.6-flash",
         "role": "extraction",
-        "used": 12,
+        "used": 13,
         "budget": 18
       },
       {
@@ -607,7 +578,7 @@
       {
         "model": "gemini-3.5-flash-lite",
         "role": "triage, provisional",
-        "used": 53,
+        "used": 56,
         "budget": 498
       },
       {
@@ -619,7 +590,7 @@
     ]
   },
   "external": {
-    "resets_at": "2026-11-24T19:00-05:00",
+    "resets_at": "2026-11-25T19:00-05:00",
     "providers": [
       {
         "name": "groq",
@@ -652,28 +623,28 @@
     "error": null
   },
   "instagram_quota": {
-    "usage": 43,
+    "usage": 13,
     "detail": {
-      "call_count": 20,
+      "call_count": 7,
       "total_cputime": 0,
-      "total_time": 43
+      "total_time": 13
     },
     "stopped": false,
     "stop": null,
-    "finished_at": "2026-11-24T06:47:50-05:00",
+    "finished_at": "2026-11-24T21:02:03-05:00",
     "stop_at": 98,
     "reads": {
-      "accounts": 50,
-      "mean_seconds": 1.1,
+      "accounts": 18,
+      "mean_seconds": 1.05,
       "median_seconds": 1.02,
-      "max_seconds": 1.93,
-      "mean_cost": 0.88,
-      "max_cost": 3,
-      "max_cost_account": "foururbandanc",
+      "max_seconds": 1.37,
+      "mean_cost": 0.76,
+      "max_cost": 2,
+      "max_cost_account": "boogaloop.candelaria",
       "headers": {
-        "X-App-Usage": 50
+        "X-App-Usage": 18
       },
-      "expected_cost": 2
+      "expected_cost": 1
     }
   },
   "lighter_reads": {
@@ -698,11 +669,11 @@
     ]
   },
   "posts": {
-    "recorded": 1820,
+    "recorded": 1818,
     "provisional": 161
   },
   "events": {
-    "upcoming": 62,
+    "upcoming": 63,
     "low_confidence": 0
   },
   "new_series": [
@@ -805,6 +776,29 @@
     }
   ],
   "history": [
+    {
+      "kind": "sweep",
+      "slot": "21:00",
+      "finished_at": "2026-11-24T21:02:03-05:00",
+      "run_url": "https://github.com/pa-bailar/backend/actions/runs/45529777107",
+      "target": null,
+      "error": null,
+      "changes": [
+        {
+          "kind": "new",
+          "id": "aguinaldo-navideno-social-sbk-12-dic",
+          "title": "Aguinaldo Navideño - Social SBK",
+          "account": "distritosocialbog",
+          "date": "2026-12-12",
+          "detail": null,
+          "url": "https://pa-bailar.github.io/evento/aguinaldo-navideno-social-sbk-12-dic/"
+        }
+      ],
+      "left_out": 0,
+      "counts": {
+        "new": 1
+      }
+    },
     {
       "kind": "sweep",
       "slot": "06:30",
@@ -1243,29 +1237,6 @@
         "new": 2,
         "corrected": 1,
         "merged": 3
-      }
-    },
-    {
-      "kind": "sweep",
-      "slot": "06:30",
-      "finished_at": "2026-11-21T06:48:30-05:00",
-      "run_url": "https://github.com/pa-bailar/backend/actions/runs/44899389661",
-      "target": null,
-      "error": null,
-      "changes": [
-        {
-          "kind": "reread",
-          "id": "tardeo-de-bulevar-28-nov",
-          "title": "Tardeo de Bulevar",
-          "account": "bulevarsalsabar",
-          "date": "2026-11-28",
-          "detail": "Flash confirmó la lectura",
-          "url": "https://pa-bailar.github.io/evento/tardeo-de-bulevar-28-nov/"
-        }
-      ],
-      "left_out": 0,
-      "counts": {
-        "reread": 1
       }
     }
   ],
