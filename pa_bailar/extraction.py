@@ -102,9 +102,12 @@ class EventExtractor:
 
     def can_analyze(self) -> bool:
         """Some model still has quota today for a new post (triage, extraction or provisional extraction), counting
-        the last resort."""
+        the last resort. A backup counts only while it isn't skipped for the run (Gemma's 14,400 a day would
+        otherwise always count)."""
         gemini = (*config.TRIAGE_MODELS, *config.EXTRACTION_MODELS, *config.PROVISIONAL_MODELS)
-        return self.pool.any_budget(gemini) or self.external.available()
+        regular = tuple(model for model in gemini if model not in config.BACKUP_MODEL_TIMEOUTS)
+        backups = tuple(model for model in gemini if model in config.BACKUP_MODEL_TIMEOUTS)
+        return self.pool.any_budget(regular) or self.pool.any_ready(backups) or self.external.available()
 
     def models_unavailable(self) -> list[str]:
         """Models Gemini said this key can't use, today (gemini.ModelPool.unavailable): every run of the day."""
@@ -193,9 +196,9 @@ class EventExtractor:
     def _extract[T: BaseModel](
         self, contents: list[types.PartUnionDict], schema: type[T], allow_provisional: bool, last_resort: bool = True
     ) -> tuple[T, str, bool]:
-        """Flash, else (when allowed) the provisional models (PROVISIONAL_MODELS: the older Flash, then Flash-Lite) as a
-        provisional read, else (`last_resort`, and only when Flash and those are all out of quota) the external
-        providers, provisional too: (answer, model, provisional)."""
+        """Flash, else (when allowed) the provisional models (PROVISIONAL_MODELS: the older Flash, the backups,
+        Flash-Lite) as a provisional read, else (`last_resort`, and only when Flash and those are all out of quota)
+        the external providers, provisional too: (answer, model, provisional)."""
         try:
             analysis, model = self.pool.generate(config.EXTRACTION_MODELS, contents, schema)
             return analysis, model, False

@@ -17,9 +17,15 @@ budget kept, so an overloaded Flash doesn't take the day's few requests in retri
 
 A model Gemini says isn't available to this key (404 or 403, e.g. if Google took it out of the free tier) is
 skipped for the rest of the day like a spent one, and listed in `unavailable` for the health checks.
+
+Backups (`config.BACKUP_MODEL_TIMEOUTS`) are used only when they answer at once: one attempt per post, with their own
+timeout, never a wait (not for their per-minute pacing either: a backup not free yet is passed over). One that fails
+is skipped for the rest of the run, and its failure doesn't count in the error raised when no model answers: the
+models around it decide that, as if it weren't in the list.
 """
 
 import logging
+import math
 import time
 from collections import Counter
 from datetime import UTC, date, datetime, timedelta
@@ -151,8 +157,10 @@ def _is_daily_quota_error(error: errors.ClientError) -> bool:
 class ModelPool:
     """Calls Gemini models in a preferred order while respecting each one's quotas."""
 
-    def __init__(self, api_key: str, client: genai.Client | None = None):
-        """`client` is for tests; by default a Gemini client with a request timeout."""
+    def __init__(self, api_key: str, client: genai.Client | None = None, backups: bool = True):
+        """`client` is for tests; by default a Gemini client with a request timeout. `backups`: False treats the
+        backup models like any other (the bake-off, which measures them as they are)."""
+        self._backups = backups
         self._client = client or genai.Client(
             api_key=api_key, http_options=types.HttpOptions(timeout=config.GEMINI_TIMEOUT_SECONDS * 1000)
         )
@@ -186,7 +194,8 @@ class ModelPool:
         return any(self.has_budget(model) for model in models)
 
     def paused(self, model: str) -> bool:
-        """Busy on every attempt a moment ago (BUSY_PAUSE_SECONDS): skipped until then, its budget kept."""
+        """Busy on every attempt a moment ago (BUSY_PAUSE_SECONDS), or a backup that failed this run: skipped until
+        then, its budget kept."""
         return time.monotonic() < self._paused_until.get(model, 0.0)
 
     def any_ready(self, models: tuple[str, ...]) -> bool:
@@ -221,12 +230,67 @@ class ModelPool:
         if self.deadline is not None and time.monotonic() >= self.deadline:
             raise OutOfTimeError("the run's time budget is used")
 
-    def _pace(self, model: str) -> None:
+    def _pacing_wait(self, model: str) -> float:
+        """Seconds until `model` may be called again (its requests per minute); 0 or less: now."""
         interval = 60 / config.MODEL_LIMITS[model].requests_per_minute + config.PACING_MARGIN_SECONDS
-        wait = interval - (time.monotonic() - self._last_call.get(model, 0.0))
-        if wait > 0:
+        return interval - (time.monotonic() - self._last_call.get(model, 0.0))
+
+    def _pace(self, model: str) -> None:
+        if (wait := self._pacing_wait(model)) > 0:
             time.sleep(wait)
         self._last_call[model] = time.monotonic()
+
+    def _is_backup(self, model: str) -> bool:
+        return self._backups and model in config.BACKUP_MODEL_TIMEOUTS
+
+    def _ask_backup[T: BaseModel](
+        self,
+        model: str,
+        contents: types.ContentListUnionDict,
+        schema: type[T],
+        generation_config: types.GenerateContentConfig,
+    ) -> T | None:
+        """A backup's answer, or None: not free now (out of budget, failed earlier this run, or its per-minute
+        pacing), or it failed now. A failure of the model itself skips it for the rest of the run; one about this
+        post alone (a blocked answer, one cut off) only for this post. Never sleeps. GeminiKeyError as any model."""
+        self._check_time()
+        if not self.has_budget(model) or self.paused(model) or self._pacing_wait(model) > 0:
+            return None
+        self._last_call[model] = time.monotonic()
+        self._spend(model)
+        timeout = types.HttpOptions(timeout=config.BACKUP_MODEL_TIMEOUTS[model] * 1000)
+        try:
+            response = self._client.models.generate_content(
+                model=model, contents=contents, config=generation_config.model_copy(update={"http_options": timeout})
+            )
+            answer = _parsed(model, response, schema)
+        except RejectedRequestError as error:
+            log.info("    %s (a backup): %s, the next model", model, error)
+            return None
+        except errors.ClientError as error:
+            if _is_key_error(error):
+                raise GeminiKeyError(str(error)) from error
+            if error.code in (403, 404):
+                log.warning("    %s is not available to this API key (%s)", model, error.code)
+                self.unavailable.add(model)
+                self._exhaust(model)
+                return None
+            if error.code == 429 and _is_daily_quota_error(error):
+                self._exhaust(model)
+                return None
+            if error.code == 429:  # its per-minute limit: free again in a minute, not worth waiting for
+                self._paused_until[model] = time.monotonic() + RATE_LIMIT_WAIT_SECONDS
+                return None
+            reason = f"refused the request ({error.code})"
+        except (errors.ServerError, httpx.TransportError) as error:
+            reason = f"busy ({error.code if isinstance(error, errors.ServerError) else type(error).__name__})"
+        else:
+            if answer is not None:
+                return answer
+            reason = "no valid JSON"
+        log.info("    %s (a backup): %s, skipped for the rest of the run", model, reason)
+        self._paused_until[model] = math.inf
+        return None
 
     def _after_client_error(
         self, model: str, attempt: int, error: errors.ClientError
@@ -281,45 +345,64 @@ class ModelPool:
         failed = False  # a model was tried and failed (busy, bad answer), as opposed to all out of quota
         busy = False  # a failure that wasn't an unreadable answer (busy, the network): worth retrying as is
         for model in models:
-            invalid = 0  # this model's answers that weren't valid JSON
-            for attempt in range(1, ATTEMPTS_PER_MODEL + 1):
-                self._check_time()
-                if not self.has_budget(model):
-                    log.info("    %s: daily budget used up, skipping", model)
-                    break
-                if self.paused(model):
-                    log.info("    %s: busy a moment ago, skipping", model)
-                    failed = busy = True
-                    break
-                self._pace(model)
-                self._spend(model)
-                try:
-                    response = self._client.models.generate_content(
-                        model=model, contents=contents, config=generation_config
-                    )
-                    if (answer := _parsed(model, response, schema)) is not None:
-                        return answer, model
-                    failed, invalid = True, invalid + 1
-                    if invalid >= INVALID_ANSWER_ATTEMPTS:
-                        log.info("    %s returned no valid JSON again, trying the next model", model)
-                        break
-                    log.info("    %s returned no valid JSON, retrying", model)
-                except (errors.ServerError, httpx.TransportError) as error:
-                    # Busy (5xx), or the network: a timeout or a dropped connection, which the SDK raises as
-                    # httpx's own errors (neither an APIError nor an OSError).
-                    code = error.code if isinstance(error, errors.ServerError) else type(error).__name__
-                    log.info("    %s busy (%s), retrying", model, code)
-                    failed = busy = True
-                    if attempt < ATTEMPTS_PER_MODEL:
-                        time.sleep(SERVER_ERROR_BACKOFF_SECONDS * attempt)
-                    else:
-                        log.info("    %s still busy: skipped for %s minutes", model, BUSY_PAUSE_SECONDS // 60)
-                        self._paused_until[model] = time.monotonic() + BUSY_PAUSE_SECONDS
-                except errors.ClientError as error:
-                    verdict = self._after_client_error(model, attempt, error)
-                    if verdict == "retry":
-                        continue
-                    if verdict == "busy":
-                        failed = busy = True
-                    break  # the next model
+            if self._is_backup(model):  # failed or not free: as if it weren't in `models` (failed and busy untouched)
+                answer = self._ask_backup(model, contents, schema, generation_config)
+            else:
+                answer, model_failed, model_busy = self._ask(model, contents, schema, generation_config)
+                failed, busy = failed or model_failed, busy or model_busy
+            if answer is not None:
+                return answer, model
         raise _failure(models, failed, busy)
+
+    def _ask[T: BaseModel](
+        self,
+        model: str,
+        contents: types.ContentListUnionDict,
+        schema: type[T],
+        generation_config: types.GenerateContentConfig,
+    ) -> tuple[T | None, bool, bool]:
+        """`model`'s answer, with its retries (generate): (answer or None, it failed, it failed but not as an
+        unreadable answer)."""
+        failed = busy = False
+        invalid = 0  # this model's answers that weren't valid JSON
+        for attempt in range(1, ATTEMPTS_PER_MODEL + 1):
+            self._check_time()
+            if not self.has_budget(model):
+                log.info("    %s: daily budget used up, skipping", model)
+                break
+            if self.paused(model):
+                log.info("    %s: busy a moment ago, skipping", model)
+                failed = busy = True
+                break
+            self._pace(model)
+            self._spend(model)
+            try:
+                response = self._client.models.generate_content(
+                    model=model, contents=contents, config=generation_config
+                )
+                if (answer := _parsed(model, response, schema)) is not None:
+                    return answer, failed, busy
+                failed, invalid = True, invalid + 1
+                if invalid >= INVALID_ANSWER_ATTEMPTS:
+                    log.info("    %s returned no valid JSON again, trying the next model", model)
+                    break
+                log.info("    %s returned no valid JSON, retrying", model)
+            except (errors.ServerError, httpx.TransportError) as error:
+                # Busy (5xx), or the network: a timeout or a dropped connection, which the SDK raises as
+                # httpx's own errors (neither an APIError nor an OSError).
+                code = error.code if isinstance(error, errors.ServerError) else type(error).__name__
+                log.info("    %s busy (%s), retrying", model, code)
+                failed = busy = True
+                if attempt < ATTEMPTS_PER_MODEL:
+                    time.sleep(SERVER_ERROR_BACKOFF_SECONDS * attempt)
+                else:
+                    log.info("    %s still busy: skipped for %s minutes", model, BUSY_PAUSE_SECONDS // 60)
+                    self._paused_until[model] = time.monotonic() + BUSY_PAUSE_SECONDS
+            except errors.ClientError as error:
+                verdict = self._after_client_error(model, attempt, error)
+                if verdict == "retry":
+                    continue
+                if verdict == "busy":
+                    failed = busy = True
+                break  # the next model
+        return None, failed, busy
