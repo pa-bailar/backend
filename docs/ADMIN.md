@@ -336,7 +336,7 @@ The sweep workflow runs in single-post mode (`sweep --post`), one at a time with
    and slides; the answer says "La leí desde su página pública". An account the API can't read (personal or
    private) isn't added to the sweeps, and the answer says so.
 2. Extracts it with Gemini **without the first filter** (whoever asks knows it's an event): Flash, else an
-   older Flash or Flash-Lite as provisional, else the last resort (Groq, then OpenRouter, also provisional). **Only when that
+   older Flash, Flash-Lite or a backup model as provisional, else the last resort (Groq, then OpenRouter, also provisional). **Only when that
    can change something:** a post analyzed before with the same caption isn't read again: the answer says "Ya
    la había leído y no ha cambiado", links its events and offers **Volver a leer**. It's read again when its
    caption changed, when the first filter had called it "not an event" or Gemini had rejected it, or with
@@ -362,7 +362,7 @@ The sweep workflow runs in story mode, one at a time with the sweeps:
    again: the answer links the event ("Ya está en el sitio"). Neither is another screenshot of a story published
    in the last 36 hours (a perceptual hash of each screenshot, 10 bits or fewer apart), unless it comes with
    notes: then it's read, in case it's another story made from the same template.
-3. **Reads them with Gemini, one request for all of them** (Flash, or an older Flash or Flash-Lite when Flash is
+3. **Reads them with Gemini, one request for all of them** (Flash, or an older Flash, Flash-Lite or a backup model when Flash is
    out of quota, kept as it is: no later sweep sees a story). The prompt (`STORY_PROMPT`) says it's a story screenshot and to
    ignore Instagram's interface; the notes go in as trusted hints and are never published. Gemini returns the
    events with their dates **as printed** (day, month, year only if printed, weekday, "hoy"/"mañana"), the
