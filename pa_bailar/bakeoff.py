@@ -182,7 +182,8 @@ class Asker:
 
     def read[T: BaseModel](self, model: str, contents: list[types.PartUnionDict], schema: type[T]) -> T:
         if model in config.MODEL_LIMITS:
-            self._gemini = self._gemini or ModelPool(self._gemini_key())
+            # A backup measured as it is: its retries and the usual timeout, not the sweep's one quick try.
+            self._gemini = self._gemini or ModelPool(self._gemini_key(), backups=False)
             return self._gemini.generate((model,), contents, schema, thinking=self._thinking)[0]
         provider, _, name = model.partition(":")
         self._external = self._external or ExternalTier()

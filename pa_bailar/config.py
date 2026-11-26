@@ -206,6 +206,11 @@ MODEL_LIMITS = {
     "gemini-3-flash-preview": ModelLimit(requests_per_minute=5, requests_per_day=20),
     "gemini-3.5-flash-lite": ModelLimit(requests_per_minute=15, requests_per_day=500),
     "gemini-3.1-flash-lite": ModelLimit(requests_per_minute=15, requests_per_day=500),
+    # The backups (BACKUP_MODEL_TIMEOUTS), on the sweep's project (21 Nov 2026). Gemma's own limit is 30 a minute,
+    # but only 16,000 tokens a minute: an extraction with its images takes about 6,000-7,000, so two a minute.
+    "gemini-4-hydrogen": ModelLimit(requests_per_minute=5, requests_per_day=20),
+    "gemma-4-26b-a4b-it": ModelLimit(requests_per_minute=2, requests_per_day=14_400),
+    "gemma-4-31b-it": ModelLimit(requests_per_minute=2, requests_per_day=14_400),
 }
 # Lite-only mode (GEMINI_LITE_ONLY=1, a repository variable on CI): Flash-Lite also does extraction, as final
 # results, not provisional ones. For when Flash isn't available, e.g. if Google took it out of the free tier.
@@ -222,8 +227,23 @@ TRIAGE_MODELS = LITE_MODELS  # cheap yes/no: does the post announce an event?
 FLASH_MODELS = ("gemini-3.8-flash", "gemini-3.6-flash")
 EXTRACTION_MODELS = LITE_MODELS if LITE_ONLY else FLASH_MODELS
 # When those are out: saved, then upgraded on a later run (none in lite-only mode). An older Flash first (its reads
-# weren't compared with this generation's yet: a 6 Oct bake-off met Google's overload), then Flash-Lite.
-PROVISIONAL_MODELS: tuple[str, ...] = () if LITE_ONLY else ("gemini-3-flash-preview", *LITE_MODELS)
+# weren't compared with this generation's yet: a 6 Oct bake-off met Google's overload), then hydrogen (a backup),
+# then Flash-Lite, then Google's Gemma (backups: only once both Flash-Lites are out, before the external providers).
+PROVISIONAL_MODELS: tuple[str, ...] = (
+    ()
+    if LITE_ONLY
+    else ("gemini-3-flash-preview", "gemini-4-hydrogen", *LITE_MODELS, "gemma-4-26b-a4b-it", "gemma-4-31b-it")
+)
+# Backups (the owner, 26 Nov 2026: "used if possible, and if not, not"): models that are often overloaded, used when
+# they answer and never in a sweep's way when they don't. Each gets one attempt per post with its own timeout (in
+# seconds here), no wait for its per-minute limit; one that fails (busy, a timeout, a refused request, no valid JSON)
+# is skipped for the rest of the run, and its failure counts as if it hadn't been tried: the next model goes on as
+# before, and a post with every other model out of quota still reaches the external providers. Provisional only.
+# gemini-4-hydrogen: a Flash-sized model, 20 a day; on gold (26 Nov) 21 of 22 events in 10 posts, but 45 s a post
+# (8-170 s: 8 of 10 under 36 s, 2 over 140 s) and often 503 "high demand": 60 s keeps the quick answers, and one that
+# hangs costs a run a minute once. Gemma 4 on Gemini's API (14,400 a day; the same models OpenRouter gives us 50 of):
+# 503 "high demand" on every gold post on 21 and 26 Nov.
+BACKUP_MODEL_TIMEOUTS = {"gemini-4-hydrogen": 60, "gemma-4-26b-a4b-it": 60, "gemma-4-31b-it": 60}
 DAILY_BUDGET_MARGIN = 2  # requests kept unused per model, for manual runs and retries
 
 

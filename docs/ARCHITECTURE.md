@@ -157,7 +157,7 @@ Every service the system depends on. All of them are on free plans.
 | **What for** | Deciding whether a post announces an event (triage), extracting the event's details as JSON (extraction), and classifying accounts during discovery |
 | **SDK** | `google-genai` (`pa_bailar/gemini.py`), using structured output: `response_mime_type="application/json"` plus a Pydantic `response_schema` |
 | **Key** | `GEMINI_API_KEY`, an API key from Google AI Studio (aistudio.google.com) |
-| **Models and roles** | Each model has its own free daily quota, so each role takes several, in order (the owner, 6 Oct 2026). Flash-Lite (`gemini-3.5-flash-lite`, then `gemini-3.1-flash-lite`, `config.LITE_MODELS`: 1,000 a day) does triage and discovery. Flash of this generation (`gemini-3.8-flash`, then `3.6`: 40 a day) does extraction (not `3.7` nor `3.5`: deprecated on 9 Oct 2026 and answered by 3.8 and 3.6, they only spent those models' quota). Provisional extraction, when those are out: `gemini-3-flash-preview` (an older Flash, not yet compared with this generation's), then Flash-Lite (`config.TRIAGE_MODELS`, `EXTRACTION_MODELS`, `PROVISIONAL_MODELS`) |
+| **Models and roles** | Each model has its own free daily quota, so each role takes several, in order (the owner, 6 Oct 2026). Flash-Lite (`gemini-3.5-flash-lite`, then `gemini-3.1-flash-lite`, `config.LITE_MODELS`: 1,000 a day) does triage and discovery. Flash of this generation (`gemini-3.8-flash`, then `3.6`: 40 a day) does extraction (not `3.7` nor `3.5`: deprecated on 9 Oct 2026 and answered by 3.8 and 3.6, they only spent those models' quota). Provisional extraction, when those are out: `gemini-3-flash-preview` (an older Flash, not yet compared with this generation's), then `gemini-4-hydrogen` (a backup), then Flash-Lite, then Gemma 4 on Gemini's API (`gemma-4-26b-a4b-it`, `gemma-4-31b-it`: backups) (`config.TRIAGE_MODELS`, `EXTRACTION_MODELS`, `PROVISIONAL_MODELS`; backups: section 7.2) |
 | **Free quotas** | Flash-Lite: 15 requests/minute and 500/day. Each Flash model: 5/minute and 20/day (`config.MODEL_LIMITS`, read from AI Studio's rate-limit page on 6 Oct 2026). Each model has its own quota. Days reset at **midnight Pacific time** |
 | **Cost** | Free (the free tier may use prompts to improve Google's products; posts are public anyway) |
 | **If it fails** | Out of quota: the next model, then the last resort (section 3.10), else the post waits. Busy or unreachable: retried, then the next model, else the post waits. Rejected: recorded as rejected, never retried. Details in section 7.2 |
@@ -612,7 +612,7 @@ flowchart TD
     TLR -->|"no: keep Flash for<br/>screened posts"| PEND
     TLR -->|"yes: no triage, the<br/>extraction decides"| EX
     TR -->|"event, or triage failed<br/>(busy, timeout)"| EX["Extraction: Flash<br/>every image + caption + this account's known events"]
-    EX -->|"Flash out of quota or busy"| PROV["Extraction: an older Flash,<br/>then Flash-Lite, marked provisional"]
+    EX -->|"Flash out of quota or busy"| PROV["Extraction: an older Flash, hydrogen,<br/>Flash-Lite, Gemma, marked provisional"]
     EX -->|"rejected by Gemini (4xx), its answer<br/>blocked or cut off (MAX_TOKENS)"| REJ["Record as rejected<br/>never retried"]
     EX -->|"no valid JSON from any model,<br/>on 3 runs"| REJ
     EX -->|"the API key doesn't work"| STOP["Stop the run (it fails):<br/>nothing recorded, read next run"]
@@ -765,7 +765,7 @@ post with an event on the day of an event an earlier post of the batch announced
 |---|---|---|---|---|
 | Triage | Flash-Lite (`LITE_MODELS`) | Caption, account, publication date, today's date, first image as a 512 px JPEG | `Triage`: `is_event_post`, `reason` | Low |
 | Extraction | Flash: `gemini-3.8-flash`, then `3.6` | Every image (numbered), caption, dates, and this account's **known events** (id, date or first → last day and a series' sessions, time, title) | `PostAnalysis`: `is_event_post`, `reason`, `events[]` (each an `ExtractedEvent`, with `sessions`, `image_index`, `same_as` and `in_bogota`, the last three never stored) | Model default |
-| Provisional extraction | `gemini-3-flash-preview`, then Flash-Lite | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
+| Provisional extraction | `gemini-3-flash-preview`, `gemini-4-hydrogen`, Flash-Lite, then Gemma 4 (backups: section 7.2) | Same as extraction | Same, marked provisional: redone with Flash on a later run when there's quota | Model default |
 | Story (admin tools) | Extraction's models, then the provisional ones when Flash is out (kept as it is) | Up to 4 screenshots of one story (numbered), when the screenshot was taken, the admin's notes and account, the account's known events | `StoryAnalysis`: the header's account, a reshared post's author, mentions, location sticker, the story's age, a `content_box` per screenshot, `events[]` (`StoryEvent`: dates as printed, a series' sessions too (`StorySession`), worked out in code by `stories.resolve_date`) | Model default |
 | Discovery | Flash-Lite (`LITE_MODELS`, the triage's) | An account's profile and recent captions | `AccountClassification`: kind, in Bogotá, city, styles, whether it announces one-time events, reason | Model default |
 
@@ -879,6 +879,16 @@ flowchart TD
   budget kept, and no provisional post is upgraded while Flash is paused (`EventExtractor.can_upgrade`). On 6 Oct
   2026 Flash answered 503 all morning, and 3 attempts per model per post spent its whole day (36 requests, all
   counted, since Google may count them) without a single answer; now an outage costs 3 per model per pause.
+- **Backups** (`config.BACKUP_MODEL_TIMEOUTS`; the owner, 26 Nov 2026: "used if possible, and if not, not"):
+  models that are often overloaded (`gemini-4-hydrogen`, Gemma 4 on Gemini's API: 503 "high demand" through most of
+  their tests on 21 and 26 Nov) are used only when they answer at once. One attempt per post with their own timeout
+  (60 s), no backoff and no wait (neither for a 429 nor for their pacing: a backup not free yet is passed over); one
+  that fails (busy, a timeout, a refused request, no valid JSON) is skipped for the rest of the run, and a post
+  Gemini blocked or cut off only for that post. A backup's failure doesn't count in the error raised when no model
+  answers: with Flash-Lite out and Gemma busy, the post still reaches the last resort (section 7.3) as before.
+  `EventExtractor.can_analyze` counts a backup only while it isn't skipped (Gemma's 14,400 a day would always
+  count). Provisional only (a test keeps them out of the triage and the final extraction). The bake-off measures
+  them as they are (`ModelPool(backups=False)`: the usual retries and timeout).
 - **Upgrades beyond the turn** (17 Oct 2026, `Sweep._upgrade_by_urgency`): the line holds the provisional posts the
   turn's reads fetched (each as the account it's recorded under: a collaboration is in both accounts' feeds, and
   until 12 Nov 2026 the other one's turn moved its event there, with that account's rules) and, placed by their soonest event, the accounts in `accounts.txt` not read this run that
@@ -997,13 +1007,13 @@ flowchart TD
 | Step | In order | Provisional? |
 |---|---|---|
 | Triage | Flash-Lite only: when it's out, the post waits, or goes straight to the extraction when Flash is out too (section 6.2) | (a yes/no) |
-| Extraction | Flash (four models) → an older Flash (`gemini-3-flash-preview`) → Flash-Lite → Groq → OpenRouter | The older Flash's, Flash-Lite's and the last resort's, always |
+| Extraction | Flash (two models) → an older Flash (`gemini-3-flash-preview`) → hydrogen → Flash-Lite → Gemma 4 → Groq → OpenRouter | All but this generation's Flash, always |
 | Lite-only mode | Flash-Lite → Groq → OpenRouter | The last resort's (re-read with Flash-Lite) |
 | Upgrade of a provisional post | Flash only (a last-resort "no event": Flash-Lite's triage first) | No |
-| Story (admin tools) | Flash → an older Flash → Flash-Lite | Never the last resort: a story isn't read again, so its reading would stay |
+| Story (admin tools) | Flash → an older Flash → hydrogen → Flash-Lite → Gemma 4 | Never the last resort: a story isn't read again, so its reading would stay |
 
 - **Only when Gemini is out:** the last resort is asked only when both Flash and the provisional models (the older
-  Flash, Flash-Lite) raised `QuotaExhaustedError` (all out of today's quota or not available to the key;
+  Flash, Flash-Lite; a backup that failed counts as not asked) raised `QuotaExhaustedError` (all out of today's quota or not available to the key;
   `EventExtractor._extract`). A busy
   Flash (5xx, timeouts) or one that refused the post (a safety block) with Flash-Lite out leaves the post waiting
   for Gemini.
