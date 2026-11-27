@@ -14497,40 +14497,7 @@
       "fetch:bailabo_studio",
       "fetch:el_panteon_de_la_salsa"
     ],
-    "changes": [
-      {
-        "kind": "new",
-        "id": "salsa-al-aire-libre-13-dic",
-        "title": "Salsa al Aire Libre",
-        "account": "germanbaila",
-        "date": "2026-12-13",
-        "detail": null
-      },
-      {
-        "kind": "merged",
-        "id": "los-25-de-la-33-21-nov",
-        "title": "Los 25 de la-33",
-        "account": "la33orquesta",
-        "date": "2026-11-21",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "merged",
-        "id": "latin-sessions-con-trio-bilonguero-21-nov",
-        "title": "Latin Sessions con Trío Bilonguero",
-        "account": "bilongocolombia",
-        "date": "2026-11-21",
-        "detail": "otra publicación"
-      },
-      {
-        "kind": "archived",
-        "id": "social-salsa-y-bachata-workshop-sede-127-22-sep",
-        "title": "Social Salsa y Bachata Workshop - Sede 127",
-        "account": "bureodancestudio",
-        "date": "2026-09-22",
-        "detail": "terminó hace más de 60 días"
-      }
-    ],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {
       "new": 1,
@@ -16630,6 +16597,181 @@
       "new": 1,
       "provisional": 6,
       "merged": 4
+    }
+  },
+  {
+    "finished_at": "2026-11-26T21:22:50-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/45925734273",
+    "started_at": "2026-11-26T21:00:53-05:00",
+    "site_data_at": "2026-11-26T06:51:58-05:00",
+    "data_changed": true,
+    "accounts": 20,
+    "failed_accounts": [],
+    "read_accounts": [
+      "academyfeel",
+      "alpasojam",
+      "angie__cuesta",
+      "boogaloop.candelaria",
+      "danceholicproject",
+      "danitello22",
+      "dannysalsita.lafabrica",
+      "davidylauradancers",
+      "distritosocialbog",
+      "dreamcupco",
+      "elparche.se",
+      "espacio.64",
+      "galeriacafelibro",
+      "originalstepdance",
+      "puntalpie",
+      "quemaquequema",
+      "salsalatina_castilla",
+      "sandunguera.salsabar",
+      "soondanz_company",
+      "zaimora24"
+    ],
+    "skipped_accounts": [],
+    "posts_analyzed": 8,
+    "events_new": 1,
+    "events_merged": 1,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 0,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 8,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 8
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 21,
+    "instagram_usage_detail": {
+      "call_count": 9,
+      "total_cputime": 0,
+      "total_time": 21
+    },
+    "instagram_reads": {
+      "accounts": 24,
+      "mean_seconds": 1.34,
+      "median_seconds": 1.27,
+      "max_seconds": 2.62,
+      "mean_cost": 0.91,
+      "max_cost": 2,
+      "max_cost_account": "quemaquequema",
+      "headers": {
+        "X-App-Usage": 24
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {
+      "compared": 7,
+      "dropped": 0,
+      "title": 1
+    },
+    "upgraded": 4,
+    "upgrade_reads": 4,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [
+      "fetch:bailabo_studio",
+      "fetch:el_panteon_de_la_salsa"
+    ],
+    "changes": [
+      {
+        "kind": "new",
+        "id": "taller-de-heels-video-class-28-nov",
+        "title": "Taller de Heels + Video Class",
+        "account": "soondanz_company",
+        "date": "2026-11-28",
+        "detail": null
+      },
+      {
+        "kind": "corrected",
+        "id": "clase-de-salsa-con-teffa-mg-27-nov",
+        "title": "Clase de salsa con Teffa Murcia",
+        "account": "callejonsalsa",
+        "date": "2026-11-27",
+        "detail": "Flash cambió el título"
+      },
+      {
+        "kind": "merged",
+        "id": "rumba-salsera-con-nick-salas-orquesta-26-nov",
+        "title": "Rumba salsera con Nick Salas Orquesta",
+        "account": "galeriacafelibro",
+        "date": "2026-11-26",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "reread",
+        "id": "callejeros-jazz-trio-en-vivo-26-nov",
+        "title": "Callejeros Jazz Trío en vivo",
+        "account": "callejonsalsa",
+        "date": "2026-11-26",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "miercoles-de-tango-clase-tango-paso-a-paso-con-25-nov",
+        "title": "Miércoles de Tango: Clase Tango paso a paso con Ceci Urzola",
+        "account": "callejonsalsa",
+        "date": "2026-11-25",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsa-en-la-nevera-previa-salsa-al-parque-27-nov",
+        "title": "Salsa en la NEVERA: Previa Salsa al Parque",
+        "account": "callejonsalsa",
+        "date": "2026-11-27",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "remate-de-salsa-al-parque-con-abakua-28-nov",
+        "title": "Remate de Salsa al Parque con Abakuá",
+        "account": "callejonsalsa",
+        "date": "2026-11-28",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "remate-de-salsa-al-parque-con-ns-orquesta-29-nov",
+        "title": "Remate de Salsa al Parque con NS Orquesta",
+        "account": "callejonsalsa",
+        "date": "2026-11-29",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsa-vs-reggaeton-27-nov",
+        "title": "Salsa vs Reggaetón",
+        "account": "el_bochinche_cafe_",
+        "date": "2026-11-27",
+        "detail": "Flash confirmó la lectura"
+      },
+      {
+        "kind": "reread",
+        "id": "salsa-al-parque-en-babou-28-nov",
+        "title": "Salsa al Parque en Babou",
+        "account": "babou_candelaria",
+        "date": "2026-11-28",
+        "detail": "Flash confirmó la lectura"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "new": 1,
+      "corrected": 1,
+      "merged": 1,
+      "reread": 7
     }
   }
 ]
