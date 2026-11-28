@@ -14847,7 +14847,7 @@
       "fetch:bailabo_studio",
       "fetch:el_panteon_de_la_salsa"
     ],
-    "changes": [],
+    "changes": null,
     "changes_left_out": 0,
     "change_counts": {}
   },
@@ -17215,6 +17215,177 @@
     "change_counts": {
       "corrected": 7,
       "reread": 2
+    }
+  },
+  {
+    "finished_at": "2026-11-28T03:23:36-05:00",
+    "run_url": "https://github.com/pa-bailar/backend/actions/runs/46123741861",
+    "started_at": "2026-11-28T03:01:31-05:00",
+    "site_data_at": "2026-11-27T21:09:12-05:00",
+    "data_changed": true,
+    "accounts": 49,
+    "failed_accounts": [
+      "el_panteon_de_la_salsa"
+    ],
+    "read_accounts": [
+      "academiaalmadetangoe",
+      "academiadebailepasolatino",
+      "and1erita",
+      "babou_candelaria",
+      "bachatamania_bogota",
+      "bachatasocialcongresss",
+      "bembeacademiadebaile",
+      "bilongocolombia",
+      "bogotadanceclub",
+      "bogotadanceclub.academy",
+      "bureodancestudio",
+      "casaquiebracanto",
+      "chanchanlatino",
+      "clandisfrute",
+      "danceinmotionclub",
+      "danzaenlaciudad",
+      "dlivingstudio",
+      "ebi_dancecompany",
+      "efadanza",
+      "el_bochinche_cafe_",
+      "el_panteon_de_la_salsa",
+      "elratonsalsaclub",
+      "festivalsalsaalparque",
+      "fogal_arte",
+      "frank.de.latorre",
+      "germanbaila",
+      "imperiolatino",
+      "jen.ssy",
+      "la33orquesta",
+      "lacoartadacentrocultural",
+      "ladiezluxury_outlet",
+      "ludancestudios",
+      "mover__se",
+      "parchexbogota",
+      "restaurantecasadecitas",
+      "reyesdelasalsa.col",
+      "ritmomoderno",
+      "ritmosacademiadebaile",
+      "salsacamaraoficial",
+      "salsalatina.alsacia",
+      "salsayritmolatino",
+      "showstarscol",
+      "sondehabana",
+      "sonrumbero",
+      "soywiwioficial",
+      "studiolatindance",
+      "teffa_mg",
+      "valkandela",
+      "zafradance"
+    ],
+    "skipped_accounts": [
+      "iledanza",
+      "alejochacon.co",
+      "mambo_y_control",
+      "guadalupebar751",
+      "zafiro_project_team",
+      "bailarito",
+      "cordillerafestival",
+      "arrollando.dc",
+      "tibaduiza__",
+      "latrinidaddelasalsa"
+    ],
+    "posts_analyzed": 18,
+    "events_new": 0,
+    "events_merged": 7,
+    "pending": 0,
+    "post_errors": 0,
+    "provisional": 3,
+    "rate_limited": false,
+    "out_of_time": false,
+    "gemini_requests": {
+      "gemini-3.5-flash-lite": 18,
+      "gemini-3.8-flash": 6,
+      "gemini-3.6-flash": 6,
+      "gemini-3-flash-preview": 3
+    },
+    "models_unavailable": [],
+    "external_outcomes": {},
+    "external_quarantined": [],
+    "external_problems": {},
+    "instagram_usage": 47,
+    "instagram_usage_detail": {
+      "call_count": 20,
+      "total_cputime": 0,
+      "total_time": 47
+    },
+    "instagram_reads": {
+      "accounts": 49,
+      "mean_seconds": 1.23,
+      "median_seconds": 1.19,
+      "max_seconds": 2.2,
+      "mean_cost": 0.98,
+      "max_cost": 4,
+      "max_cost_account": "festivalsalsaalparque",
+      "headers": {
+        "X-App-Usage": 49
+      },
+      "expected_cost": 2
+    },
+    "instagram_stop": null,
+    "upgrade_changes": {},
+    "upgraded": 0,
+    "upgrade_reads": 0,
+    "upgrade_misses": 0,
+    "triage_checked": 0,
+    "triage_misses": 0,
+    "batch_requests": 0,
+    "batched_posts": 0,
+    "batch_rereads": 0,
+    "warnings": [
+      "fetch:el_panteon_de_la_salsa",
+      "fetch:bailabo_studio"
+    ],
+    "changes": [
+      {
+        "kind": "merged",
+        "id": "salsa-al-parque-2026-28-nov",
+        "title": "Salsa al Parque 2026",
+        "account": "festivalsalsaalparque",
+        "date": "2026-11-28",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "conspiraciones-encuentro-de-cuerpo-y-memoria-3-dic",
+        "title": "Conspiraciones - Encuentro de cuerpo y memoria",
+        "account": "fogal_arte",
+        "date": "2026-12-03",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "bachatamania-social-28-nov",
+        "title": "Bachatamania Social",
+        "account": "bachatamania_bogota",
+        "date": "2026-11-28",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "clausura-2026-studio-latin-dance-18-dic",
+        "title": "Clausura 2026 Studio Latin Dance",
+        "account": "studiolatindance",
+        "date": "2026-12-18",
+        "detail": "otra publicación"
+      },
+      {
+        "kind": "merged",
+        "id": "simulacro-navideno-28-nov",
+        "title": "Simulacro Navideño",
+        "account": "bogotadanceclub",
+        "date": "2026-11-28",
+        "detail": "otra publicación"
+      }
+    ],
+    "changes_left_out": 0,
+    "change_counts": {
+      "merged": 5
     }
   }
 ]
